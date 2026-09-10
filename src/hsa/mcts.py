@@ -450,6 +450,17 @@ class InformationSetMCTSPolicy:
             visits / visit_total if visit_total else 1.0 / len(legal)
             for visits in root_visits
         ]
+        root_action_stats = []
+        for action, visit_share in zip(legal, root_policy, strict=True):
+            child = root.children.get(information_action_key(game, action))
+            root_action_stats.append({
+                "visits": 0 if child is None else child.visits,
+                "availability": 0 if child is None else child.availability,
+                "mean_value": 0.0 if child is None else child.mean_value,
+                "prior": 0.0 if child is None else child.prior,
+                "visit_share": visit_share,
+                "selected": child is best,
+            })
         self.decision_index += 1
         self.last_search = {
             "information_mode": self.information_mode,
@@ -461,6 +472,7 @@ class InformationSetMCTSPolicy:
             "selected_visits": best.visits,
             "selected_value": best.mean_value,
             "root_policy": root_policy,
+            "root_action_stats": root_action_stats,
             "policy_value_model": (
                 getattr(self.policy_value_model, "name", None)
             ),

@@ -17,8 +17,8 @@ Legal actions: 2; Searched nodes: 5; Selected value: -0.0337
 
 Top choices by root visit share:
 
-- `0.500` — P1 END_TURN
-- `0.500` — P1 PLAY Cannonmaster[CAP_107] -> -
+- `0.500` — P1 PLAY Cannonmaster[CAP_107] -> - [SELECTED]; Q=-0.0337; prior=0.0000
+- `0.500` — P1 END_TURN; Q=-0.1427; prior=0.0000
 
 Resolved events:
 
@@ -38,7 +38,7 @@ Legal actions: 1; Searched nodes: 1; Selected value: 0.0000
 
 Top choices by root visit share:
 
-- `1.000` — P1 END_TURN
+- `1.000` — P1 END_TURN; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -57,9 +57,9 @@ Legal actions: 3; Searched nodes: 5; Selected value: 0.1828
 
 Top choices by root visit share:
 
-- `0.500` — P2 PLAY The Coin[GAME_005] -> -
-- `0.250` — P2 END_TURN
-- `0.250` — P2 PLAY Sanguine Depths[CORE_REV_990] -> -
+- `0.500` — P2 PLAY The Coin[GAME_005] -> - [SELECTED]; Q=0.1828; prior=0.6212
+- `0.250` — P2 PLAY Sanguine Depths[CORE_REV_990] -> -; Q=-0.4008; prior=0.2033
+- `0.250` — P2 END_TURN; Q=-0.4612; prior=0.1755
 
 Resolved events:
 
@@ -76,10 +76,10 @@ Legal actions: 4; Searched nodes: 5; Selected value: 0.1731
 
 Top choices by root visit share:
 
-- `0.250` — P2 END_TURN
-- `0.250` — P2 HERO_POWER Armor Up
-- `0.250` — P2 PLAY Sanguine Depths[CORE_REV_990] -> -
-- `0.250` — P2 PLAY Hook n' Heave[CAP_105] -> -
+- `0.250` — P2 PLAY Hook n' Heave[CAP_105] -> - [SELECTED]; Q=0.1731; prior=0.3167
+- `0.250` — P2 PLAY Sanguine Depths[CORE_REV_990] -> -; Q=-0.1698; prior=0.1554
+- `0.250` — P2 HERO_POWER Armor Up; Q=-0.5668; prior=0.2233
+- `0.250` — P2 END_TURN; Q=-0.6377; prior=0.3046
 
 Resolved events:
 
@@ -97,7 +97,7 @@ Legal actions: 1; Searched nodes: 1; Selected value: 0.0000
 
 Top choices by root visit share:
 
-- `1.000` — P2 DISCOVER_PICK Cannonmaster[CAP_107]
+- `1.000` — P2 DISCOVER_PICK Cannonmaster[CAP_107]; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -116,9 +116,9 @@ Legal actions: 3; Searched nodes: 5; Selected value: -0.0198
 
 Top choices by root visit share:
 
-- `0.500` — P2 END_TURN
-- `0.250` — P2 ATTACK Cutlass Cutthroat#66 -> P1 Cannonmaster#30
-- `0.250` — P2 ATTACK Cutlass Cutthroat#67 -> P1 Cannonmaster#30
+- `0.500` — P2 END_TURN [SELECTED]; Q=-0.0198; prior=0.6641
+- `0.250` — P2 ATTACK Cutlass Cutthroat#67 -> P1 Cannonmaster#30; Q=-0.1503; prior=0.1743
+- `0.250` — P2 ATTACK Cutlass Cutthroat#66 -> P1 Cannonmaster#30; Q=-0.2447; prior=0.1617
 
 Resolved events:
 
@@ -137,11 +137,11 @@ Legal actions: 7; Searched nodes: 5; Selected value: 0.3839
 
 Top choices by root visit share:
 
-- `0.250` — P1 ATTACK Cannonmaster#30 -> P2 hero
-- `0.250` — P1 ATTACK Cannonmaster#30 -> P2 Cutlass Cutthroat#66
-- `0.250` — P1 ATTACK Cannonmaster#30 -> P2 Cutlass Cutthroat#67
-- `0.250` — P1 PLAY Hook n' Heave[CAP_105] -> -
-- `0.000` — P1 END_TURN
+- `0.250` — P1 ATTACK Cannonmaster#30 -> P2 hero [SELECTED]; Q=0.3839; prior=0.0000
+- `0.250` — P1 PLAY Hook n' Heave[CAP_105] -> -; Q=0.2290; prior=0.0000
+- `0.250` — P1 ATTACK Cannonmaster#30 -> P2 Cutlass Cutthroat#66; Q=0.1731; prior=0.0000
+- `0.250` — P1 ATTACK Cannonmaster#30 -> P2 Cutlass Cutthroat#67; Q=0.1731; prior=0.0000
+- `0.000` — P1 END_TURN; Q=0.0000; prior=0.0000
 
 - P1: HP=30 Armor=0 Mana=2/2 Deck=26; Weapon=none; Board=Cannonmaster#30 3/1; Hand=Torch(1), Chainbreaker Hogger(8), Windpeak Wyrm(8), Cannoneer(1), Hook n' Heave(2)
 - P2: HP=27 Armor=0 Mana=0/1 Deck=26; Weapon=none; Board=Cutlass Cutthroat#66 1/1, Cutlass Cutthroat#67 1/1; Hand=Sanguine Depths(1), Torch(1), Torch(1), Erupting Volcano(3), Cannonmaster(1)
@@ -154,10 +154,10 @@ Legal actions: 4; Searched nodes: 5; Selected value: 0.3839
 
 Top choices by root visit share:
 
-- `0.250` — P1 END_TURN
-- `0.250` — P1 HERO_POWER Armor Up
-- `0.250` — P1 PLAY Hook n' Heave[CAP_105] -> -
-- `0.250` — P1 PLAY Cannoneer[CAP_107t] -> -
+- `0.250` — P1 PLAY Hook n' Heave[CAP_105] -> - [SELECTED]; Q=0.3839; prior=0.0000
+- `0.250` — P1 PLAY Cannoneer[CAP_107t] -> -; Q=0.0968; prior=0.0000
+- `0.250` — P1 HERO_POWER Armor Up; Q=0.0337; prior=0.0000
+- `0.250` — P1 END_TURN; Q=-0.4079; prior=0.0000
 
 Resolved events:
 
@@ -175,7 +175,7 @@ Legal actions: 1; Searched nodes: 1; Selected value: 0.0000
 
 Top choices by root visit share:
 
-- `1.000` — P1 DISCOVER_PICK Cannonmaster[CAP_107]
+- `1.000` — P1 DISCOVER_PICK Cannonmaster[CAP_107]; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -192,11 +192,11 @@ Legal actions: 5; Searched nodes: 5; Selected value: 0.2230
 
 Top choices by root visit share:
 
-- `0.250` — P1 ATTACK Cutlass Cutthroat#69 -> P2 Cutlass Cutthroat#66
-- `0.250` — P1 ATTACK Cutlass Cutthroat#69 -> P2 Cutlass Cutthroat#67
-- `0.250` — P1 ATTACK Cutlass Cutthroat#70 -> P2 Cutlass Cutthroat#66
-- `0.250` — P1 ATTACK Cutlass Cutthroat#70 -> P2 Cutlass Cutthroat#67
-- `0.000` — P1 END_TURN
+- `0.250` — P1 ATTACK Cutlass Cutthroat#69 -> P2 Cutlass Cutthroat#66 [SELECTED]; Q=0.2230; prior=0.0000
+- `0.250` — P1 ATTACK Cutlass Cutthroat#70 -> P2 Cutlass Cutthroat#67; Q=0.1503; prior=0.0000
+- `0.250` — P1 ATTACK Cutlass Cutthroat#69 -> P2 Cutlass Cutthroat#67; Q=0.0320; prior=0.0000
+- `0.250` — P1 ATTACK Cutlass Cutthroat#70 -> P2 Cutlass Cutthroat#66; Q=0.0320; prior=0.0000
+- `0.000` — P1 END_TURN; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -214,8 +214,8 @@ Legal actions: 2; Searched nodes: 5; Selected value: 0.1106
 
 Top choices by root visit share:
 
-- `0.750` — P1 ATTACK Cutlass Cutthroat#70 -> P2 Cutlass Cutthroat#67
-- `0.250` — P1 END_TURN
+- `0.750` — P1 ATTACK Cutlass Cutthroat#70 -> P2 Cutlass Cutthroat#67 [SELECTED]; Q=0.1106; prior=0.0000
+- `0.250` — P1 END_TURN; Q=-0.1391; prior=0.0000
 
 Resolved events:
 
@@ -235,7 +235,7 @@ Legal actions: 1; Searched nodes: 1; Selected value: 0.0000
 
 Top choices by root visit share:
 
-- `1.000` — P1 END_TURN
+- `1.000` — P1 END_TURN; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -254,11 +254,11 @@ Legal actions: 5; Searched nodes: 5; Selected value: -0.0109
 
 Top choices by root visit share:
 
-- `0.250` — P2 END_TURN
-- `0.250` — P2 HERO_POWER Armor Up
-- `0.250` — P2 PLAY Searing Fissure[CATA_582] -> -
-- `0.250` — P2 PLAY Cannonmaster[CAP_107] -> -
-- `0.000` — P2 PLAY Sanguine Depths[CORE_REV_990] -> -
+- `0.250` — P2 PLAY Cannonmaster[CAP_107] -> - [SELECTED]; Q=-0.0109; prior=0.2178
+- `0.250` — P2 PLAY Searing Fissure[CATA_582] -> -; Q=-0.2479; prior=0.1871
+- `0.250` — P2 END_TURN; Q=-0.5982; prior=0.2553
+- `0.250` — P2 HERO_POWER Armor Up; Q=-0.6719; prior=0.2251
+- `0.000` — P2 PLAY Sanguine Depths[CORE_REV_990] -> -; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -276,9 +276,9 @@ Legal actions: 3; Searched nodes: 5; Selected value: -0.0523
 
 Top choices by root visit share:
 
-- `0.500` — P2 PLAY Cannoneer[CAP_107t] -> -
-- `0.250` — P2 END_TURN
-- `0.250` — P2 PLAY Sanguine Depths[CORE_REV_990] -> -
+- `0.500` — P2 PLAY Cannoneer[CAP_107t] -> - [SELECTED]; Q=-0.0523; prior=0.5150
+- `0.250` — P2 PLAY Sanguine Depths[CORE_REV_990] -> -; Q=-0.4960; prior=0.2452
+- `0.250` — P2 END_TURN; Q=-0.5317; prior=0.2398
 
 Resolved events:
 
@@ -297,7 +297,7 @@ Legal actions: 1; Searched nodes: 1; Selected value: 0.0000
 
 Top choices by root visit share:
 
-- `1.000` — P2 END_TURN
+- `1.000` — P2 END_TURN; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -316,11 +316,11 @@ Legal actions: 7; Searched nodes: 5; Selected value: 0.5527
 
 Top choices by root visit share:
 
-- `0.250` — P1 ATTACK Cannonmaster#30 -> P2 hero
-- `0.250` — P1 ATTACK Cannonmaster#30 -> P2 Cannonmaster#65
-- `0.250` — P1 ATTACK Cannonmaster#30 -> P2 Cannoneer#71
-- `0.250` — P1 PLAY Cannonmaster[CAP_107] -> -
-- `0.000` — P1 END_TURN
+- `0.250` — P1 ATTACK Cannonmaster#30 -> P2 hero [SELECTED]; Q=0.5527; prior=0.0000
+- `0.250` — P1 ATTACK Cannonmaster#30 -> P2 Cannonmaster#65; Q=0.4226; prior=0.0000
+- `0.250` — P1 PLAY Cannonmaster[CAP_107] -> -; Q=0.4226; prior=0.0000
+- `0.250` — P1 ATTACK Cannonmaster#30 -> P2 Cannoneer#71; Q=0.3285; prior=0.0000
+- `0.000` — P1 END_TURN; Q=0.0000; prior=0.0000
 
 - P1: HP=29 Armor=0 Mana=3/3 Deck=25; Weapon=none; Board=Cannonmaster#30 3/1; Hand=Torch(1), Chainbreaker Hogger(8), Windpeak Wyrm(8), Cannoneer(1), Cannonmaster(1), Stadium Announcer(4)
 - P2: HP=24 Armor=0 Mana=0/2 Deck=25; Weapon=none; Board=Cannonmaster#65 3/1, Cannoneer#71 1/1; Hand=Sanguine Depths(1), Torch(1), Torch(1), Erupting Volcano(3), Searing Fissure(2)
@@ -333,10 +333,10 @@ Legal actions: 4; Searched nodes: 5; Selected value: 0.6148
 
 Top choices by root visit share:
 
-- `0.250` — P1 END_TURN
-- `0.250` — P1 HERO_POWER Armor Up
-- `0.250` — P1 PLAY Cannoneer[CAP_107t] -> -
-- `0.250` — P1 PLAY Cannonmaster[CAP_107] -> -
+- `0.250` — P1 PLAY Cannoneer[CAP_107t] -> - [SELECTED]; Q=0.6148; prior=0.0000
+- `0.250` — P1 PLAY Cannonmaster[CAP_107] -> -; Q=0.6148; prior=0.0000
+- `0.250` — P1 HERO_POWER Armor Up; Q=0.3799; prior=0.0000
+- `0.250` — P1 END_TURN; Q=-0.0985; prior=0.0000
 
 Resolved events:
 
@@ -353,9 +353,9 @@ Legal actions: 3; Searched nodes: 5; Selected value: 0.5419
 
 Top choices by root visit share:
 
-- `0.500` — P1 PLAY Cannonmaster[CAP_107] -> -
-- `0.250` — P1 END_TURN
-- `0.250` — P1 HERO_POWER Armor Up
+- `0.500` — P1 PLAY Cannonmaster[CAP_107] -> - [SELECTED]; Q=0.5419; prior=0.0000
+- `0.250` — P1 HERO_POWER Armor Up; Q=0.4113; prior=0.0000
+- `0.250` — P1 END_TURN; Q=0.2247; prior=0.0000
 
 Resolved events:
 
@@ -373,8 +373,8 @@ Legal actions: 2; Searched nodes: 5; Selected value: 0.3954
 
 Top choices by root visit share:
 
-- `0.500` — P1 END_TURN
-- `0.500` — P1 PLAY Cannoneer[CAP_107t] -> -
+- `0.500` — P1 PLAY Cannoneer[CAP_107t] -> - [SELECTED]; Q=0.3954; prior=0.0000
+- `0.500` — P1 END_TURN; Q=0.2015; prior=0.0000
 
 Resolved events:
 
@@ -393,7 +393,7 @@ Legal actions: 1; Searched nodes: 1; Selected value: 0.0000
 
 Top choices by root visit share:
 
-- `1.000` — P1 END_TURN
+- `1.000` — P1 END_TURN; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -412,11 +412,11 @@ Legal actions: 15; Searched nodes: 5; Selected value: -0.2436
 
 Top choices by root visit share:
 
-- `0.250` — P2 ATTACK Cannonmaster#65 -> P1 hero
-- `0.250` — P2 ATTACK Cannonmaster#65 -> P1 Cannoneer#72
-- `0.250` — P2 ATTACK Cannoneer#71 -> P1 hero
-- `0.250` — P2 PLAY Searing Fissure[CATA_582] -> -
-- `0.000` — P2 ATTACK Cannonmaster#65 -> P1 Cannonmaster#30
+- `0.250` — P2 PLAY Searing Fissure[CATA_582] -> - [SELECTED]; Q=-0.2436; prior=0.0727
+- `0.250` — P2 ATTACK Cannonmaster#65 -> P1 hero; Q=-0.4426; prior=0.0988
+- `0.250` — P2 ATTACK Cannoneer#71 -> P1 hero; Q=-0.5198; prior=0.0757
+- `0.250` — P2 ATTACK Cannonmaster#65 -> P1 Cannoneer#72; Q=-0.6391; prior=0.0736
+- `0.000` — P2 ATTACK Cannonmaster#65 -> P1 Cannonmaster#30; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -439,9 +439,9 @@ Legal actions: 3; Searched nodes: 5; Selected value: -0.2678
 
 Top choices by root visit share:
 
-- `0.500` — P2 HERO_ATTACK -> P1 hero
-- `0.250` — P2 END_TURN
-- `0.250` — P2 PLAY Sanguine Depths[CORE_REV_990] -> -
+- `0.500` — P2 HERO_ATTACK -> P1 hero [SELECTED]; Q=-0.2678; prior=0.2794
+- `0.250` — P2 PLAY Sanguine Depths[CORE_REV_990] -> -; Q=-0.5379; prior=0.2090
+- `0.250` — P2 END_TURN; Q=-0.7334; prior=0.5117
 
 - P1: HP=26 Armor=0 Mana=0/3 Deck=25; Weapon=none; Board=empty; Hand=Torch(1), Chainbreaker Hogger(8), Windpeak Wyrm(8), Stadium Announcer(4)
 - P2: HP=22 Armor=0 Mana=1/3 Deck=24; Weapon=none; Board=empty; Hand=Sanguine Depths(1), Torch(1), Torch(1), Erupting Volcano(3), Prescient Slitherdrake(7)
@@ -456,8 +456,8 @@ Legal actions: 2; Searched nodes: 5; Selected value: -0.4338
 
 Top choices by root visit share:
 
-- `0.750` — P2 END_TURN
-- `0.250` — P2 PLAY Sanguine Depths[CORE_REV_990] -> -
+- `0.750` — P2 END_TURN [SELECTED]; Q=-0.4338; prior=0.7072
+- `0.250` — P2 PLAY Sanguine Depths[CORE_REV_990] -> -; Q=-0.7604; prior=0.2928
 
 Resolved events:
 
@@ -476,10 +476,10 @@ Legal actions: 4; Searched nodes: 5; Selected value: 0.6697
 
 Top choices by root visit share:
 
-- `0.250` — P1 END_TURN
-- `0.250` — P1 HERO_POWER Armor Up
-- `0.250` — P1 PLAY Mother Duck[EDR_492] -> -
-- `0.250` — P1 PLAY Stadium Announcer[TIME_034] -> -
+- `0.250` — P1 PLAY Stadium Announcer[TIME_034] -> - [SELECTED]; Q=0.6697; prior=0.0000
+- `0.250` — P1 PLAY Mother Duck[EDR_492] -> -; Q=0.5063; prior=0.0000
+- `0.250` — P1 END_TURN; Q=-0.3162; prior=0.0000
+- `0.250` — P1 HERO_POWER Armor Up; Q=-0.4017; prior=0.0000
 
 Resolved events:
 
@@ -499,8 +499,8 @@ Legal actions: 2; Searched nodes: 5; Selected value: 0.6148
 
 Top choices by root visit share:
 
-- `0.750` — P1 REWIND_RETRY
-- `0.250` — P1 REWIND_KEEP
+- `0.750` — P1 REWIND_RETRY [SELECTED]; Q=0.6148; prior=0.0000
+- `0.250` — P1 REWIND_KEEP; Q=0.7438; prior=0.0000
 
 Resolved events:
 
@@ -519,8 +519,8 @@ Legal actions: 2; Searched nodes: 5; Selected value: 0.5709
 
 Top choices by root visit share:
 
-- `0.750` — P1 HERO_ATTACK -> P2 hero
-- `0.250` — P1 END_TURN
+- `0.750` — P1 HERO_ATTACK -> P2 hero [SELECTED]; Q=0.5709; prior=0.0000
+- `0.250` — P1 END_TURN; Q=0.3824; prior=0.0000
 
 Resolved events:
 
@@ -539,7 +539,7 @@ Legal actions: 1; Searched nodes: 1; Selected value: 0.0000
 
 Top choices by root visit share:
 
-- `1.000` — P1 END_TURN
+- `1.000` — P1 END_TURN; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -558,11 +558,11 @@ Legal actions: 8; Searched nodes: 5; Selected value: -0.0673
 
 Top choices by root visit share:
 
-- `0.250` — P2 END_TURN
-- `0.250` — P2 HERO_POWER Armor Up
-- `0.250` — P2 PLAY Prescient Slitherdrake[END_033] -> -
-- `0.250` — P2 PLAY Carrier Whelp[CATA_556] -> -
-- `0.000` — P2 HERO_ATTACK -> P1 hero
+- `0.250` — P2 PLAY Prescient Slitherdrake[END_033] -> - [SELECTED]; Q=-0.0673; prior=0.1226
+- `0.250` — P2 PLAY Carrier Whelp[CATA_556] -> -; Q=-0.3567; prior=0.1730
+- `0.250` — P2 HERO_POWER Armor Up; Q=-0.3940; prior=0.2123
+- `0.250` — P2 END_TURN; Q=-0.9770; prior=0.1876
+- `0.000` — P2 HERO_ATTACK -> P1 hero; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -581,9 +581,9 @@ Legal actions: 3; Searched nodes: 5; Selected value: -0.6235
 
 Top choices by root visit share:
 
-- `0.500` — P2 END_TURN
-- `0.250` — P2 HERO_ATTACK -> P1 hero
-- `0.250` — P2 HERO_ATTACK -> P1 Stadium Announcer#13
+- `0.500` — P2 END_TURN [SELECTED]; Q=-0.6235; prior=0.4791
+- `0.250` — P2 HERO_ATTACK -> P1 hero; Q=-0.1753; prior=0.3220
+- `0.250` — P2 HERO_ATTACK -> P1 Stadium Announcer#13; Q=-0.3351; prior=0.1990
 
 Resolved events:
 
@@ -602,11 +602,11 @@ Legal actions: 16; Searched nodes: 5; Selected value: 0.9542
 
 Top choices by root visit share:
 
-- `0.250` — P1 ATTACK Stadium Announcer#13 -> P2 hero
-- `0.250` — P1 ATTACK Stadium Announcer#13 -> P2 Prescient Slitherdrake#46
-- `0.250` — P1 HERO_ATTACK -> P2 hero
-- `0.250` — P1 HERO_ATTACK -> P2 Prescient Slitherdrake#46
-- `0.000` — P1 END_TURN
+- `0.250` — P1 ATTACK Stadium Announcer#13 -> P2 hero [SELECTED]; Q=0.9542; prior=0.0000
+- `0.250` — P1 HERO_ATTACK -> P2 hero; Q=0.9538; prior=0.0000
+- `0.250` — P1 ATTACK Stadium Announcer#13 -> P2 Prescient Slitherdrake#46; Q=0.9196; prior=0.0000
+- `0.250` — P1 HERO_ATTACK -> P2 Prescient Slitherdrake#46; Q=0.9196; prior=0.0000
+- `0.000` — P1 END_TURN; Q=0.0000; prior=0.0000
 
 - P1: HP=26 Armor=0 Mana=5/5 Deck=22; Weapon=Ursine Maul 5/2; Board=Stadium Announcer#13 3/3; Hand=Torch(1), Chainbreaker Hogger(8), Windpeak Wyrm(5), Mother Duck(4), Carrier Whelp(1), Windpeak Wyrm(5)
 - P2: HP=14 Armor=0 Mana=0/4 Deck=23; Weapon=Defiled Spear 2/3; Board=Prescient Slitherdrake#46 5/8; Hand=Sanguine Depths(1), Torch(1), Torch(1), Erupting Volcano(3), Carrier Whelp(1)
@@ -619,11 +619,11 @@ Legal actions: 14; Searched nodes: 5; Selected value: 0.9694
 
 Top choices by root visit share:
 
-- `0.250` — P1 HERO_ATTACK -> P2 hero
-- `0.250` — P1 HERO_ATTACK -> P2 Prescient Slitherdrake#46
-- `0.250` — P1 PLAY Windpeak Wyrm[TLC_600] -> P2 Prescient Slitherdrake#46
-- `0.250` — P1 PLAY Windpeak Wyrm[TLC_600] -> P2 Prescient Slitherdrake#46
-- `0.000` — P1 END_TURN
+- `0.250` — P1 PLAY Windpeak Wyrm[TLC_600] -> P2 Prescient Slitherdrake#46 [SELECTED]; Q=0.9694; prior=0.0000
+- `0.250` — P1 HERO_ATTACK -> P2 Prescient Slitherdrake#46; Q=0.9694; prior=0.0000
+- `0.250` — P1 PLAY Windpeak Wyrm[TLC_600] -> P2 Prescient Slitherdrake#46; Q=0.9694; prior=0.0000
+- `0.250` — P1 HERO_ATTACK -> P2 hero; Q=0.9670; prior=0.0000
+- `0.000` — P1 END_TURN; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -643,9 +643,9 @@ Legal actions: 3; Searched nodes: 5; Selected value: 0.8482
 
 Top choices by root visit share:
 
-- `0.500` — P1 END_TURN
-- `0.250` — P1 HERO_ATTACK -> P2 hero
-- `0.250` — P1 HERO_ATTACK -> P2 Prescient Slitherdrake#46
+- `0.500` — P1 END_TURN [SELECTED]; Q=0.8482; prior=0.0000
+- `0.250` — P1 HERO_ATTACK -> P2 hero; Q=0.9780; prior=0.0000
+- `0.250` — P1 HERO_ATTACK -> P2 Prescient Slitherdrake#46; Q=0.8721; prior=0.0000
 
 Resolved events:
 
@@ -664,11 +664,11 @@ Legal actions: 14; Searched nodes: 5; Selected value: -0.8209
 
 Top choices by root visit share:
 
-- `0.250` — P2 END_TURN
-- `0.250` — P2 HERO_POWER Armor Up
-- `0.250` — P2 PLAY Darkrider[EDR_456] -> -
-- `0.250` — P2 PLAY Carrier Whelp[CATA_556] -> -
-- `0.000` — P2 ATTACK Prescient Slitherdrake#46 -> P1 hero
+- `0.250` — P2 PLAY Carrier Whelp[CATA_556] -> - [SELECTED]; Q=-0.8209; prior=0.0849
+- `0.250` — P2 HERO_POWER Armor Up; Q=-0.8345; prior=0.1140
+- `0.250` — P2 PLAY Darkrider[EDR_456] -> -; Q=-0.9591; prior=0.1096
+- `0.250` — P2 END_TURN; Q=-0.9840; prior=0.1180
+- `0.000` — P2 ATTACK Prescient Slitherdrake#46 -> P1 hero; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -686,11 +686,11 @@ Legal actions: 14; Searched nodes: 5; Selected value: -0.7799
 
 Top choices by root visit share:
 
-- `0.250` — P2 END_TURN
-- `0.250` — P2 HERO_ATTACK -> P1 hero
-- `0.250` — P2 HERO_ATTACK -> P1 Windpeak Wyrm#11
-- `0.250` — P2 HERO_POWER Armor Up
-- `0.000` — P2 ATTACK Prescient Slitherdrake#46 -> P1 hero
+- `0.250` — P2 HERO_POWER Armor Up [SELECTED]; Q=-0.7799; prior=0.0918
+- `0.250` — P2 HERO_ATTACK -> P1 Windpeak Wyrm#11; Q=-0.8909; prior=0.0945
+- `0.250` — P2 HERO_ATTACK -> P1 hero; Q=-0.9030; prior=0.0831
+- `0.250` — P2 END_TURN; Q=-0.9760; prior=0.1086
+- `0.000` — P2 ATTACK Prescient Slitherdrake#46 -> P1 hero; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -708,11 +708,11 @@ Legal actions: 12; Searched nodes: 5; Selected value: -0.7101
 
 Top choices by root visit share:
 
-- `0.250` — P2 END_TURN
-- `0.250` — P2 HERO_ATTACK -> P1 Windpeak Wyrm#11
-- `0.250` — P2 PLAY Darkrider[EDR_456] -> -
-- `0.250` — P2 PLAY Carrier Whelp[CATA_556] -> -
-- `0.000` — P2 ATTACK Prescient Slitherdrake#46 -> P1 hero
+- `0.250` — P2 PLAY Carrier Whelp[CATA_556] -> - [SELECTED]; Q=-0.7101; prior=0.1528
+- `0.250` — P2 HERO_ATTACK -> P1 Windpeak Wyrm#11; Q=-0.8125; prior=0.0873
+- `0.250` — P2 PLAY Darkrider[EDR_456] -> -; Q=-0.9305; prior=0.1419
+- `0.250` — P2 END_TURN; Q=-0.9699; prior=0.0839
+- `0.000` — P2 ATTACK Prescient Slitherdrake#46 -> P1 hero; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -730,11 +730,11 @@ Legal actions: 12; Searched nodes: 5; Selected value: -0.3877
 
 Top choices by root visit share:
 
-- `0.250` — P2 ATTACK Prescient Slitherdrake#46 -> P1 hero
-- `0.250` — P2 HERO_ATTACK -> P1 Windpeak Wyrm#11
-- `0.250` — P2 PLAY Darkrider[EDR_456] -> -
-- `0.250` — P2 PLAY Carrier Whelp[CATA_556] -> -
-- `0.000` — P2 ATTACK Prescient Slitherdrake#46 -> P1 Windpeak Wyrm#11
+- `0.250` — P2 ATTACK Prescient Slitherdrake#46 -> P1 hero [SELECTED]; Q=-0.3877; prior=0.0848
+- `0.250` — P2 HERO_ATTACK -> P1 Windpeak Wyrm#11; Q=-0.8192; prior=0.0907
+- `0.250` — P2 PLAY Carrier Whelp[CATA_556] -> -; Q=-0.9034; prior=0.1459
+- `0.250` — P2 PLAY Darkrider[EDR_456] -> -; Q=-0.9060; prior=0.1350
+- `0.000` — P2 ATTACK Prescient Slitherdrake#46 -> P1 Windpeak Wyrm#11; Q=0.0000; prior=0.0000
 
 - P1: HP=26 Armor=0 Mana=0/5 Deck=22; Weapon=Ursine Maul 5/2; Board=Stadium Announcer#13 3/3, Windpeak Wyrm#11 6/6; Hand=Torch(1), Chainbreaker Hogger(8), Windpeak Wyrm(5), Mother Duck(4), Carrier Whelp(1)
 - P2: HP=14 Armor=2 Mana=1/5 Deck=22; Weapon=Defiled Spear 2/3; Board=Prescient Slitherdrake#46 5/3, Carrier Whelp#48 1/2, Carrier Whelp#73 1/2; Hand=Sanguine Depths(1), Torch(1), Torch(1), Erupting Volcano(3), Darkrider(1), Carrier Whelp(1)
@@ -747,11 +747,11 @@ Legal actions: 9; Searched nodes: 5; Selected value: -0.5692
 
 Top choices by root visit share:
 
-- `0.250` — P2 HERO_ATTACK -> P1 hero
-- `0.250` — P2 HERO_ATTACK -> P1 Windpeak Wyrm#11
-- `0.250` — P2 PLAY Darkrider[EDR_456] -> -
-- `0.250` — P2 PLAY Carrier Whelp[CATA_556] -> -
-- `0.000` — P2 END_TURN
+- `0.250` — P2 HERO_ATTACK -> P1 Windpeak Wyrm#11 [SELECTED]; Q=-0.5692; prior=0.1083
+- `0.250` — P2 HERO_ATTACK -> P1 hero; Q=-0.6094; prior=0.1037
+- `0.250` — P2 PLAY Darkrider[EDR_456] -> -; Q=-0.7724; prior=0.1754
+- `0.250` — P2 PLAY Carrier Whelp[CATA_556] -> -; Q=-0.8423; prior=0.1914
+- `0.000` — P2 END_TURN; Q=0.0000; prior=0.0000
 
 - P1: HP=24 Armor=0 Mana=0/5 Deck=22; Weapon=Ursine Maul 5/2; Board=Stadium Announcer#13 3/3, Windpeak Wyrm#11 6/4; Hand=Torch(1), Chainbreaker Hogger(8), Windpeak Wyrm(5), Mother Duck(4), Carrier Whelp(1)
 - P2: HP=10 Armor=0 Mana=1/5 Deck=22; Weapon=Defiled Spear 2/2; Board=Prescient Slitherdrake#46 5/3, Carrier Whelp#48 1/2, Carrier Whelp#73 1/2; Hand=Sanguine Depths(1), Torch(1), Torch(1), Erupting Volcano(3), Darkrider(1), Carrier Whelp(1)
@@ -764,11 +764,11 @@ Legal actions: 8; Searched nodes: 5; Selected value: -0.6468
 
 Top choices by root visit share:
 
-- `0.250` — P2 PLAY Darkrider[EDR_456] -> -
-- `0.250` — P2 PLAY Torch[CATA_585] -> P1 Windpeak Wyrm#11
-- `0.250` — P2 PLAY Torch[CATA_585] -> P1 Windpeak Wyrm#11
-- `0.250` — P2 PLAY Carrier Whelp[CATA_556] -> -
-- `0.000` — P2 END_TURN
+- `0.250` — P2 PLAY Torch[CATA_585] -> P1 Windpeak Wyrm#11 [SELECTED]; Q=-0.6468; prior=0.2352
+- `0.250` — P2 PLAY Torch[CATA_585] -> P1 Windpeak Wyrm#11; Q=-0.6468; prior=0.1386
+- `0.250` — P2 PLAY Darkrider[EDR_456] -> -; Q=-0.8574; prior=0.1514
+- `0.250` — P2 PLAY Carrier Whelp[CATA_556] -> -; Q=-0.8747; prior=0.1645
+- `0.000` — P2 END_TURN; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -789,7 +789,7 @@ Legal actions: 1; Searched nodes: 1; Selected value: 0.0000
 
 Top choices by root visit share:
 
-- `1.000` — P2 END_TURN
+- `1.000` — P2 END_TURN; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -808,11 +808,11 @@ Legal actions: 23; Searched nodes: 5; Selected value: 0.9737
 
 Top choices by root visit share:
 
-- `0.250` — P1 ATTACK Stadium Announcer#13 -> P2 Prescient Slitherdrake#46
-- `0.250` — P1 ATTACK Stadium Announcer#13 -> P2 Carrier Whelp#48
-- `0.250` — P1 ATTACK Stadium Announcer#13 -> P2 Carrier Whelp#73
-- `0.250` — P1 HERO_ATTACK -> P2 Prescient Slitherdrake#46
-- `0.000` — P1 ATTACK Stadium Announcer#13 -> P2 hero
+- `0.250` — P1 HERO_ATTACK -> P2 Prescient Slitherdrake#46 [SELECTED]; Q=0.9737; prior=0.0000
+- `0.250` — P1 ATTACK Stadium Announcer#13 -> P2 Carrier Whelp#48; Q=0.9737; prior=0.0000
+- `0.250` — P1 ATTACK Stadium Announcer#13 -> P2 Carrier Whelp#73; Q=0.9737; prior=0.0000
+- `0.250` — P1 ATTACK Stadium Announcer#13 -> P2 Prescient Slitherdrake#46; Q=0.9653; prior=0.0000
+- `0.000` — P1 ATTACK Stadium Announcer#13 -> P2 hero; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -830,11 +830,11 @@ Legal actions: 17; Searched nodes: 5; Selected value: 0.9752
 
 Top choices by root visit share:
 
-- `0.250` — P1 ATTACK Stadium Announcer#13 -> P2 hero
-- `0.250` — P1 ATTACK Stadium Announcer#13 -> P2 Carrier Whelp#48
-- `0.250` — P1 ATTACK Stadium Announcer#13 -> P2 Carrier Whelp#73
-- `0.250` — P1 PLAY Windpeak Wyrm[TLC_600] -> P2 Carrier Whelp#48
-- `0.000` — P1 END_TURN
+- `0.250` — P1 ATTACK Stadium Announcer#13 -> P2 hero [SELECTED]; Q=0.9752; prior=0.0000
+- `0.250` — P1 ATTACK Stadium Announcer#13 -> P2 Carrier Whelp#48; Q=0.9727; prior=0.0000
+- `0.250` — P1 ATTACK Stadium Announcer#13 -> P2 Carrier Whelp#73; Q=0.9727; prior=0.0000
+- `0.250` — P1 PLAY Windpeak Wyrm[TLC_600] -> P2 Carrier Whelp#48; Q=0.9727; prior=0.0000
+- `0.000` — P1 END_TURN; Q=0.0000; prior=0.0000
 
 - P1: HP=19 Armor=0 Mana=6/6 Deck=20; Weapon=Ursine Maul 5/1; Board=Stadium Announcer#13 3/3; Hand=Torch(1), Chainbreaker Hogger(8), Windpeak Wyrm(5), Mother Duck(4), Carrier Whelp(1), Royal Librarian(4), Erupting Volcano(3)
 - P2: HP=7 Armor=0 Mana=0/5 Deck=22; Weapon=Defiled Spear 2/2; Board=Carrier Whelp#48 1/2, Carrier Whelp#73 1/2; Hand=Sanguine Depths(1), Torch(1), Erupting Volcano(3), Darkrider(1), Carrier Whelp(1), Torch(1)
@@ -847,11 +847,11 @@ Legal actions: 14; Searched nodes: 5; Selected value: 0.9731
 
 Top choices by root visit share:
 
-- `0.250` — P1 PLAY Royal Librarian[CORE_SW_066] -> P2 Carrier Whelp#48
-- `0.250` — P1 PLAY Windpeak Wyrm[TLC_600] -> P2 hero
-- `0.250` — P1 PLAY Windpeak Wyrm[TLC_600] -> P2 Carrier Whelp#48
-- `0.250` — P1 PLAY Windpeak Wyrm[TLC_600] -> P2 Carrier Whelp#73
-- `0.000` — P1 END_TURN
+- `0.250` — P1 PLAY Windpeak Wyrm[TLC_600] -> P2 hero [SELECTED]; Q=0.9731; prior=0.0000
+- `0.250` — P1 PLAY Windpeak Wyrm[TLC_600] -> P2 Carrier Whelp#48; Q=0.9653; prior=0.0000
+- `0.250` — P1 PLAY Windpeak Wyrm[TLC_600] -> P2 Carrier Whelp#73; Q=0.9653; prior=0.0000
+- `0.250` — P1 PLAY Royal Librarian[CORE_SW_066] -> P2 Carrier Whelp#48; Q=0.9197; prior=0.0000
+- `0.000` — P1 END_TURN; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -871,8 +871,8 @@ Legal actions: 2; Searched nodes: 5; Selected value: 1.0000
 
 Top choices by root visit share:
 
-- `0.750` — P1 END_TURN
-- `0.250` — P1 PLAY Carrier Whelp[CATA_556] -> -
+- `0.750` — P1 END_TURN [SELECTED]; Q=1.0000; prior=0.0000
+- `0.250` — P1 PLAY Carrier Whelp[CATA_556] -> -; Q=0.9789; prior=0.0000
 
 Resolved events:
 
@@ -891,11 +891,11 @@ Legal actions: 16; Searched nodes: 5; Selected value: -0.8310
 
 Top choices by root visit share:
 
-- `0.250` — P2 ATTACK Carrier Whelp#73 -> P1 Windpeak Wyrm#12
-- `0.250` — P2 HERO_ATTACK -> P1 hero
-- `0.250` — P2 HERO_ATTACK -> P1 Windpeak Wyrm#12
-- `0.250` — P2 HERO_ATTACK -> P1 Stadium Announcer#13
-- `0.000` — P2 ATTACK Carrier Whelp#48 -> P1 hero
+- `0.250` — P2 HERO_ATTACK -> P1 hero [SELECTED]; Q=-0.8310; prior=0.0796
+- `0.250` — P2 ATTACK Carrier Whelp#73 -> P1 Windpeak Wyrm#12; Q=-1.0000; prior=0.0800
+- `0.250` — P2 HERO_ATTACK -> P1 Windpeak Wyrm#12; Q=-1.0000; prior=0.1055
+- `0.250` — P2 HERO_ATTACK -> P1 Stadium Announcer#13; Q=-1.0000; prior=0.0756
+- `0.000` — P2 ATTACK Carrier Whelp#48 -> P1 hero; Q=0.0000; prior=0.0000
 
 - P1: HP=19 Armor=3 Mana=1/6 Deck=20; Weapon=Ursine Maul 5/1; Board=Stadium Announcer#13 3/1, Windpeak Wyrm#12 6/6; Hand=Torch(1), Chainbreaker Hogger(8), Mother Duck(4), Carrier Whelp(1), Royal Librarian(4), Erupting Volcano(3)
 - P2: HP=2 Armor=0 Mana=6/6 Deck=21; Weapon=Defiled Spear 2/1; Board=Carrier Whelp#48 1/2, Carrier Whelp#73 1/2; Hand=Sanguine Depths(1), Torch(1), Erupting Volcano(3), Darkrider(1), Carrier Whelp(1), Torch(1), Mother Duck(4)
@@ -908,11 +908,11 @@ Legal actions: 15; Searched nodes: 5; Selected value: -0.3249
 
 Top choices by root visit share:
 
-- `0.250` — P2 ATTACK Carrier Whelp#73 -> P1 hero
-- `0.250` — P2 ATTACK Carrier Whelp#73 -> P1 Windpeak Wyrm#12
-- `0.250` — P2 HERO_POWER Armor Up
-- `0.250` — P2 PLAY Torch[CATA_585] -> P1 Stadium Announcer#13
-- `0.000` — P2 ATTACK Carrier Whelp#48 -> P1 hero
+- `0.250` — P2 ATTACK Carrier Whelp#73 -> P1 Windpeak Wyrm#12 [SELECTED]; Q=-0.3249; prior=0.0809
+- `0.250` — P2 ATTACK Carrier Whelp#73 -> P1 hero; Q=-0.7902; prior=0.0737
+- `0.250` — P2 HERO_POWER Armor Up; Q=-0.7921; prior=0.0842
+- `0.250` — P2 PLAY Torch[CATA_585] -> P1 Stadium Announcer#13; Q=-0.8310; prior=0.0975
+- `0.000` — P2 ATTACK Carrier Whelp#48 -> P1 hero; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -929,11 +929,11 @@ Legal actions: 14; Searched nodes: 5; Selected value: -0.1775
 
 Top choices by root visit share:
 
-- `0.250` — P2 END_TURN
-- `0.250` — P2 HERO_POWER Armor Up
-- `0.250` — P2 PLAY Torch[CATA_585] -> P1 Windpeak Wyrm#12
-- `0.250` — P2 PLAY Torch[CATA_585] -> P1 Stadium Announcer#13
-- `0.000` — P2 ATTACK Carrier Whelp#48 -> P1 hero
+- `0.250` — P2 PLAY Torch[CATA_585] -> P1 Windpeak Wyrm#12 [SELECTED]; Q=-0.1775; prior=0.0976
+- `0.250` — P2 PLAY Torch[CATA_585] -> P1 Stadium Announcer#13; Q=-0.3249; prior=0.1004
+- `0.250` — P2 HERO_POWER Armor Up; Q=-0.7995; prior=0.1348
+- `0.250` — P2 END_TURN; Q=-1.0000; prior=0.0994
+- `0.000` — P2 ATTACK Carrier Whelp#48 -> P1 hero; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -952,11 +952,11 @@ Legal actions: 11; Searched nodes: 5; Selected value: -0.1385
 
 Top choices by root visit share:
 
-- `0.250` — P2 END_TURN
-- `0.250` — P2 HERO_POWER Armor Up
-- `0.250` — P2 PLAY Mother Duck[EDR_492] -> -
-- `0.250` — P2 PLAY Carrier Whelp[CATA_556] -> -
-- `0.000` — P2 ATTACK Carrier Whelp#48 -> P1 hero
+- `0.250` — P2 PLAY Mother Duck[EDR_492] -> - [SELECTED]; Q=-0.1385; prior=0.0855
+- `0.250` — P2 PLAY Carrier Whelp[CATA_556] -> -; Q=-0.1968; prior=0.0961
+- `0.250` — P2 HERO_POWER Armor Up; Q=-0.8066; prior=0.1947
+- `0.250` — P2 END_TURN; Q=-1.0000; prior=0.1451
+- `0.000` — P2 ATTACK Carrier Whelp#48 -> P1 hero; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -973,11 +973,11 @@ Legal actions: 11; Searched nodes: 5; Selected value: -0.1581
 
 Top choices by root visit share:
 
-- `0.250` — P2 ATTACK Carrier Whelp#48 -> P1 hero
-- `0.250` — P2 PLAY Darkrider[EDR_456] -> -
-- `0.250` — P2 PLAY Torch[CATA_585] -> P1 Stadium Announcer#13
-- `0.250` — P2 PLAY Carrier Whelp[CATA_556] -> -
-- `0.000` — P2 ATTACK Carrier Whelp#48 -> P1 Stadium Announcer#13
+- `0.250` — P2 PLAY Carrier Whelp[CATA_556] -> - [SELECTED]; Q=-0.1581; prior=0.1098
+- `0.250` — P2 ATTACK Carrier Whelp#48 -> P1 hero; Q=-0.1581; prior=0.1160
+- `0.250` — P2 PLAY Darkrider[EDR_456] -> -; Q=-0.1913; prior=0.0946
+- `0.250` — P2 PLAY Torch[CATA_585] -> P1 Stadium Announcer#13; Q=-1.0000; prior=0.1341
+- `0.000` — P2 ATTACK Carrier Whelp#48 -> P1 Stadium Announcer#13; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -995,11 +995,11 @@ Legal actions: 6; Searched nodes: 5; Selected value: -1.0000
 
 Top choices by root visit share:
 
-- `0.250` — P2 ATTACK Carrier Whelp#48 -> P1 hero
-- `0.250` — P2 ATTACK Carrier Whelp#48 -> P1 Stadium Announcer#13
-- `0.250` — P2 ATTACK Duckling#75 -> P1 Stadium Announcer#13
-- `0.250` — P2 ATTACK Duckling#76 -> P1 Stadium Announcer#13
-- `0.000` — P2 ATTACK Duckling#77 -> P1 Stadium Announcer#13
+- `0.250` — P2 ATTACK Duckling#76 -> P1 Stadium Announcer#13 [SELECTED]; Q=-1.0000; prior=0.1700
+- `0.250` — P2 ATTACK Carrier Whelp#48 -> P1 hero; Q=-1.0000; prior=0.2513
+- `0.250` — P2 ATTACK Carrier Whelp#48 -> P1 Stadium Announcer#13; Q=-1.0000; prior=0.1705
+- `0.250` — P2 ATTACK Duckling#75 -> P1 Stadium Announcer#13; Q=-1.0000; prior=0.1655
+- `0.000` — P2 ATTACK Duckling#77 -> P1 Stadium Announcer#13; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -1017,8 +1017,8 @@ Legal actions: 2; Searched nodes: 5; Selected value: -0.8836
 
 Top choices by root visit share:
 
-- `0.750` — P2 ATTACK Carrier Whelp#48 -> P1 hero
-- `0.250` — P2 END_TURN
+- `0.750` — P2 ATTACK Carrier Whelp#48 -> P1 hero [SELECTED]; Q=-0.8836; prior=0.6389
+- `0.250` — P2 END_TURN; Q=-1.0000; prior=0.3611
 
 - P1: HP=19 Armor=2 Mana=1/6 Deck=20; Weapon=Ursine Maul 5/1; Board=empty; Hand=Torch(1), Chainbreaker Hogger(8), Mother Duck(4), Carrier Whelp(1), Royal Librarian(4), Erupting Volcano(3)
 - P2: HP=2 Armor=0 Mana=0/6 Deck=21; Weapon=Defiled Spear 2/1; Board=Carrier Whelp#48 1/2, Mother Duck#38 2/3, Duckling#75 1/1, Duckling#77 1/1, Carrier Whelp#74 1/2; Hand=Sanguine Depths(1), Torch(1), Erupting Volcano(3), Darkrider(1), Torch(1), Carrier Whelp(1)
@@ -1033,7 +1033,7 @@ Legal actions: 1; Searched nodes: 1; Selected value: 0.0000
 
 Top choices by root visit share:
 
-- `1.000` — P2 END_TURN
+- `1.000` — P2 END_TURN; Q=0.0000; prior=0.0000
 
 Resolved events:
 
@@ -1052,11 +1052,11 @@ Legal actions: 18; Searched nodes: 5; Selected value: 1.0000
 
 Top choices by root visit share:
 
-- `0.250` — P1 HERO_ATTACK -> P2 hero
-- `0.250` — P1 HERO_ATTACK -> P2 Mother Duck#38
-- `0.250` — P1 HERO_ATTACK -> P2 Carrier Whelp#48
-- `0.250` — P1 HERO_ATTACK -> P2 Carrier Whelp#74
-- `0.000` — P1 END_TURN
+- `0.250` — P1 HERO_ATTACK -> P2 hero [SELECTED]; Q=1.0000; prior=0.0000
+- `0.250` — P1 HERO_ATTACK -> P2 Mother Duck#38; Q=0.8878; prior=0.0000
+- `0.250` — P1 HERO_ATTACK -> P2 Carrier Whelp#48; Q=0.8556; prior=0.0000
+- `0.250` — P1 HERO_ATTACK -> P2 Carrier Whelp#74; Q=0.8556; prior=0.0000
+- `0.000` — P1 END_TURN; Q=0.0000; prior=0.0000
 
 Resolved events:
 

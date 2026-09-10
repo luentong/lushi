@@ -83,6 +83,17 @@ class MCTSPolicyTests(unittest.TestCase):
         self.assertGreater(left.last_search["root_children"], 1)
         self.assertEqual(len(first.legal_actions()), len(left.last_search["root_policy"]))
         self.assertAlmostEqual(1.0, sum(left.last_search["root_policy"]))
+        root_stats = left.last_search["root_action_stats"]
+        self.assertEqual(len(first.legal_actions()), len(root_stats))
+        self.assertEqual(1, sum(bool(item["selected"]) for item in root_stats))
+        self.assertEqual(
+            left.last_search["selected_visits"],
+            next(item["visits"] for item in root_stats if item["selected"]),
+        )
+        self.assertAlmostEqual(
+            left.last_search["selected_value"],
+            next(item["mean_value"] for item in root_stats if item["selected"]),
+        )
 
     def test_shared_tree_does_not_read_true_opponent_hidden_identity(self):
         first = DragonMirrorGame(CARDS, 131)

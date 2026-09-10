@@ -123,14 +123,23 @@ def main() -> int:
         description = game.describe_action(action)
         search = dict(policy.last_search)
         root_policy = search.pop("root_policy", [])
+        root_action_stats = search.pop("root_action_stats", None)
+        if root_action_stats is None:
+            root_action_stats = [
+                {"visit_share": probability}
+                for probability in root_policy
+            ]
         alternatives = sorted(
             [
-                {"action": text, "visit_share": probability}
-                for text, probability in zip(
-                    legal_descriptions, root_policy, strict=True
+                {"action": text, **stats}
+                for text, stats in zip(
+                    legal_descriptions, root_action_stats, strict=True
                 )
             ],
-            key=lambda item: item["visit_share"],
+            key=lambda item: (
+                item.get("visits", 0), item.get("mean_value", 0.0),
+                item.get("selected", False),
+            ),
             reverse=True,
         )
         event_offset = len(game.events)
@@ -197,8 +206,11 @@ def main() -> int:
             lines.append("Top choices by root visit share:")
             lines.append("")
             for option in step["ranked_alternatives"][:5]:
+                selected = " [SELECTED]" if option.get("selected") else ""
                 lines.append(
-                    f'- `{option["visit_share"]:.3f}` — {option["action"]}'
+                    f'- `{option["visit_share"]:.3f}` — {option["action"]}{selected}; '
+                    f'Q={option.get("mean_value", 0):.4f}; '
+                    f'prior={option.get("prior", 0):.4f}'
                 )
             lines.append("")
         if step["events"]:

@@ -40,7 +40,9 @@ def translate_action(
     english_names: dict[str, str],
     chinese_names: dict[str, str],
 ) -> str:
-    result = description
+    result = description.replace(
+        "HERO_POWER Armor Up", "使用英雄技能“全副武装！”"
+    )
     replacements = sorted(
         (
             (english_name, chinese_names.get(card_id, english_name))
@@ -57,7 +59,6 @@ def translate_action(
         ("MULLIGAN_KEEP", "起手保留"),
         ("MULLIGAN_CONFIRM", "确认起手牌"),
         ("HERO_ATTACK", "英雄攻击"),
-        ("HERO_POWER Armor Up", "使用英雄技能“全副武装！”"),
         ("DISCOVER_PICK", "发现并选择"),
         ("GEDDON_DRAW_PICK", "选择抽取"),
         ("REWIND_KEEP", "保留回溯结果"),
@@ -227,7 +228,17 @@ def main() -> None:
                 translated = translate_action(
                     option["action"], english_names, chinese_names
                 )
-                lines.append(f'- `{option["visit_share"]:.3f}` — {translated}')
+                selected = " **← 最终选择**" if option.get("selected") else ""
+                details = (
+                    f'；访问次数={option.get("visits", 0)}'
+                    f'；分支均值={option.get("mean_value", 0):.4f}'
+                    f'；神经先验={option.get("prior", 0):.4f}'
+                    if "visits" in option else ""
+                )
+                lines.append(
+                    f'- `{option["visit_share"]:.3f}` — {translated}'
+                    f'{selected}{details}'
+                )
             lines.append("")
         if step["events"]:
             lines.extend(["本步结算事件：", ""])
