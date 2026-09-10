@@ -356,7 +356,7 @@ class InformationSetMCTSPolicy:
             )
             node = root
             path = [root]
-            for _ in range(self.tree_depth):
+            for depth in range(self.tree_depth):
                 if state.finished:
                     break
                 legal_map = self._legal_map(state)
@@ -431,6 +431,30 @@ class InformationSetMCTSPolicy:
                     node = child
                     path.append(node)
                     break
+                if depth == 0 and self.min_simulations_per_root_action:
+                    minimum_visits = min(
+                        child.visits for child in available_children
+                    )
+                    if minimum_visits < self.min_simulations_per_root_action:
+                        undercovered = [
+                            child for child in available_children
+                            if child.visits == minimum_visits
+                        ]
+                        child = max(
+                            undercovered,
+                            key=lambda item: (
+                                item.prior
+                                if self.policy_value_model is not None
+                                else self.rollout_policy.score(
+                                    state, legal_map[item.action_key]
+                                ),
+                                item.action_key,
+                            ),
+                        )
+                        state.step(legal_map[child.action_key])
+                        node = child
+                        path.append(node)
+                        break
                 direction = 1.0 if state.current == root_player else -1.0
                 log_parent = math.log(max(1, node.visits))
                 child = max(
@@ -510,6 +534,7 @@ class InformationSetMCTSPolicy:
             "configured_iterations": configured_iterations,
             "adaptive_iterations": total_iterations - configured_iterations,
             "min_simulations_per_root_action": self.min_simulations_per_root_action,
+            "minimum_root_action_visits_achieved": min(root_visits),
             "max_total_iterations": self.max_total_iterations,
             "determinizations": total_iterations,
             "root_actions": len(legal),

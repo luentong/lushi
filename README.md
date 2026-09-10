@@ -117,10 +117,15 @@ Run the first policy baseline as a seat-swapped paired experiment:
 
 Each seed is played twice with the heuristic and random policies exchanging
 seats. The report includes first/second-player results and a Wilson 95% confidence
-interval, and is pinned to `dragon-warrior-closed-v2` so it is not confused with
+interval, and is pinned to `dragon-warrior-closed-v3` so it is not confused with
 future full-generation-pool results. `HeuristicPolicy` reads the acting player's
 hand and public board state only; it does not inspect hidden opposing cards or
 deck order.
+
+Ruleset v3 corrects Carrier Whelp's random low-cost Dragon generation and Hooked
+on a Feeling's Pirate Discover plus two Cannoneer summons.  Checkpoints and
+datasets tagged v2 remain historical artifacts and must not be promoted as a v3
+strategy result.
 
 Search code can use `game.clone()` or `game.branch(action)`. Mutable game state
 and the RNG stream are copied independently, while immutable card definitions

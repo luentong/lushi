@@ -66,7 +66,7 @@ def main() -> int:
     low, high = wilson(wins, len(games))
     summary = {
         "schema_version": 1,
-        "ruleset": "dragon-warrior-closed-v2",
+        "ruleset": "dragon-warrior-closed-v3",
         "generation_profile": "closed_generation_pools",
         "candidate": "heuristic-tempo-v1",
         "baseline": "random-v1",

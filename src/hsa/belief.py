@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from .dragon_mirror import (
     DRAGON_DECK_COUNTS,
     DRAGON_IDS,
+    LOW_COST_DRAGON_IDS,
     PIRATE_IDS,
     SPECIAL_TOKEN_IDS,
     SUPPORTED_IDS,
@@ -62,13 +63,11 @@ class HandModifierBelief:
 def _generation_candidates(source_card_id: str) -> tuple[str, ...]:
     """Return candidates for generation sources implemented by this slice."""
     pools = {
-        # The current closed-pool Carrier Whelp rule adds another Carrier.
-        # Expand this entry together with the card rule when its live pool lands.
-        "CATA_556": ("CATA_556",),
+        "CATA_556": tuple(sorted(LOW_COST_DRAGON_IDS)),
         "CAP_107": ("CAP_107t",),
         "EDR_456": tuple(sorted(DRAGON_IDS)),
         "FIR_939": tuple(sorted(WARRIOR_MINION_IDS)),
-        "CAP_105": ("CAP_107",),
+        "CAP_105": tuple(sorted(PIRATE_IDS)),
         "CORE_DRG_024": tuple(sorted(PIRATE_IDS)),
         "TLC_820": ("TLC_813",),
         "CORE_DRG_107": ("CORE_EX1_277",),

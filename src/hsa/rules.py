@@ -566,7 +566,7 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule(
-            "CATA_556", {Hook.BATTLECRY: (AddToHand("CATA_556"),)},
+            "CATA_556", {},
             RuleSource(
                 "local_spec", local,
                 verification=("test_hook_carrier_and_cannonmaster_generation",),

@@ -20,6 +20,7 @@ from hsa.dragon_mirror import (
     GENERATED_MINION_IDS,
     GENERATED_DRAGON_IDS,
     GENERATED_PIRATE_IDS,
+    LOW_COST_DRAGON_IDS,
     Location,
     PIRATE_IDS,
     SUPPORTED_STADIUM_WEAPONS,
@@ -2159,16 +2160,33 @@ class DragonMirrorRulesTests(unittest.TestCase):
 
     def test_hook_carrier_and_cannonmaster_generation(self):
         game = self.game()
+        initial_entities = {card.entity_id for card in game.players[0].hand}
         carrier = self.add_hand(game, "CATA_556")
+        initial_entities.add(carrier.entity_id)
         self.play(game, carrier)
-        self.assertTrue(any(c.card_id == "CATA_556" for c in game.players[0].hand))
+        generated_dragons = [
+            card for card in game.players[0].hand
+            if card.entity_id not in initial_entities
+        ]
+        self.assertEqual(1, len(generated_dragons))
+        self.assertIn(generated_dragons[0].card_id, LOW_COST_DRAGON_IDS)
+        self.assertLessEqual(generated_dragons[0].definition.cost, 3)
+        self.assertEqual("CATA_556", generated_dragons[0].created_by)
         hook = self.add_hand(game, "CAP_105")
         self.play(game, hook)
         self.assertEqual({"DISCOVER_PICK"}, {choice.kind for choice in game.legal_actions()})
-        self.assertEqual(0, sum(m.card_id == "CAP_105t" for m in game.players[0].board))
-        game.step(game.legal_actions()[0])
-        self.assertEqual(2, sum(m.card_id == "CAP_105t" for m in game.players[0].board))
-        self.assertTrue(any(c.card_id == "CAP_107" for c in game.players[0].hand))
+        offered = {option.card_id for option in game.pending_choice["options"]}
+        self.assertTrue(offered.issubset(PIRATE_IDS))
+        self.assertEqual(min(3, len(PIRATE_IDS)), len(offered))
+        first_choice = game.legal_actions()[0]
+        selected_pirate = next(
+            option.card_id for option in game.pending_choice["options"]
+            if option.entity_id == first_choice.source
+        )
+        self.assertEqual(0, sum(m.card_id == "CAP_107t" for m in game.players[0].board))
+        game.step(first_choice)
+        self.assertEqual(2, sum(m.card_id == "CAP_107t" for m in game.players[0].board))
+        self.assertTrue(any(c.card_id == selected_pirate for c in game.players[0].hand))
 
     def test_tiny_pal_frost_ammunition_freezes_two_other_enemies(self):
         game = self.game()

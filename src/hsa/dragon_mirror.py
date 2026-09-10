@@ -393,6 +393,14 @@ DRAGON_IDS = {
     "TLC_600", "TIME_034", "END_033", "CATA_556",
     *GENERATED_DRAGON_IDS,
 } - DISCOVER_BANNED_IDS
+# Standard dragons in the supported generation closure whose printed cost is
+# at most three.  Keep this explicit: card definitions are loaded per game,
+# while public-belief sampling needs the pool at module import time.
+LOW_COST_DRAGON_IDS = {
+    "CATA_111", "CATA_556", "CORE_NEW1_023", "EDR_571", "EDR_889",
+    "END_021", "END_022", "TIME_003", "TIME_045", "TIME_056",
+    "TIME_063", "TLC_888",
+} & DRAGON_IDS
 WARRIOR_MINION_IDS = {
     "CORE_DRG_024",
     "CATA_160",
@@ -2406,6 +2414,19 @@ class DragonMirrorGame:
 
     def _battlecry(self, player: Player, card: CardInstance, action: Action) -> None:
         times = 2 if card.battlecry_twice else 1
+        if card.card_id == "CATA_556":
+            for _ in range(times):
+                generated = self._entity(
+                    self.rng.choice(sorted(LOW_COST_DRAGON_IDS)),
+                    created_by=card.card_id,
+                )
+                destination = self._add_generated(player, generated)
+                self._event(
+                    "generated_from_pool", player=player.index,
+                    card=generated.card_id, entity=generated.entity_id,
+                    source=card.card_id, destination=destination,
+                )
+            return
         if card.card_id == "TIME_034":
             self._offer_rewind(
                 player, "stadium_weapons", remaining_battlecries=times - 1
@@ -3025,8 +3046,8 @@ class DragonMirrorGame:
                 )
         elif card.card_id == "CAP_105":
             self._offer_discover(
-                player, {"CAP_107"}, dark_gift=False,
-                after_pick="summon_cutlass_cutthroats",
+                player, PIRATE_IDS, dark_gift=False,
+                after_pick="summon_cannoneers",
                 source_card_id=card.card_id,
             )
         elif card.card_id == "CORE_EX1_277":
@@ -3531,19 +3552,14 @@ class DragonMirrorGame:
                 repeats=repeats_left, after_pick=pending["after_pick"],
                 source_card_id=pending["source_card_id"],
             )
-        elif pending["after_pick"] == "summon_cutlass_cutthroats":
-            self._summon_cutlass_cutthroats(player)
+        elif pending["after_pick"] == "summon_cannoneers":
+            self._summon_cannoneers(player)
 
-    def _summon_cutlass_cutthroats(self, player: Player) -> None:
+    def _summon_cannoneers(self, player: Player) -> None:
         for _ in range(2):
             if len(player.board) + len(player.locations) >= 7:
                 break
-            token = CardInstance(
-                self.next_entity_id,
-                CardDef("CAP_105t", "Cutlass Cutthroat", "MINION", 1, 1, 1, "PIRATE", ("RUSH",)),
-            )
-            self.next_entity_id += 1
-            token.rush = True
+            token = self._entity("CAP_107t", created_by="CAP_105")
             token.summoned_turn = self.turn
             self._summon(player, token)
 

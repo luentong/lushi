@@ -25,6 +25,7 @@ from hsa.torch_model import (
     BilinearPolicyValueNet,
     InteractionPolicyValueNet,
     PolicyValueNet,
+    ResidualPolicyValueNet,
 )
 from hsa.training import (
     temperature_scale_probabilities,
@@ -255,11 +256,12 @@ def main() -> None:
     parser.add_argument("--action-hidden-size", type=int, default=128)
     parser.add_argument(
         "--architecture",
-        choices=("additive-v1", "interaction-v2", "bilinear-v3"),
+        choices=("additive-v1", "interaction-v2", "bilinear-v3", "residual-v4"),
         default="additive-v1",
         help="Policy head architecture; interaction-v2 models state-action fit.",
     )
     parser.add_argument("--max-records", type=int)
+    parser.add_argument("--residual-blocks", type=int, default=4)
     parser.add_argument("--seed", type=int, default=20260909)
     parser.add_argument(
         "--early-stopping-patience", type=int, default=0,
@@ -293,11 +295,15 @@ def main() -> None:
         "additive-v1": PolicyValueNet,
         "interaction-v2": InteractionPolicyValueNet,
         "bilinear-v3": BilinearPolicyValueNet,
+        "residual-v4": ResidualPolicyValueNet,
     }[args.architecture]
-    model = model_class(
+    model_args = [
         int(schema["state_size"]), int(schema["action_size"]),
         args.hidden_size, args.action_hidden_size,
-    ).to(device)
+    ]
+    if model_class is ResidualPolicyValueNet:
+        model_args.append(args.residual_blocks)
+    model = model_class(*model_args).to(device)
     seeds = sorted({record["game_seed"] for record in dataset.records})
     validation_seeds = stratified_validation_seeds(
         dataset.records, args.validation_ratio, args.seed

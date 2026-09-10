@@ -198,6 +198,23 @@ class MCTSPolicyTests(unittest.TestCase):
             policy.last_search["adaptive_iterations"],
         )
 
+    def test_root_coverage_gives_each_action_requested_repeated_samples(self):
+        game = DragonMirrorGame(CARDS, 146)
+        policy = InformationSetMCTSPolicy(
+            samples=1, iterations_per_sample=2, tree_depth=3,
+            rollout_depth=0, min_simulations_per_root_action=2,
+        )
+        policy.choose(game)
+        self.assertEqual(
+            2, policy.last_search["minimum_root_action_visits_achieved"]
+        )
+        self.assertTrue(
+            all(
+                item["visits"] >= 2
+                for item in policy.last_search["root_action_stats"]
+            )
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

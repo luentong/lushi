@@ -251,7 +251,7 @@ def main() -> None:
     header = {
         "record_type": "header",
         "dataset_schema_version": 3,
-        "ruleset": "dragon-warrior-closed-v2",
+        "ruleset": "dragon-warrior-closed-v3",
         "teacher": args.teacher,
         "teacher_budget": (
             {
