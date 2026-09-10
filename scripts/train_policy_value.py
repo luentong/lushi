@@ -26,6 +26,7 @@ from hsa.torch_model import (
     InteractionPolicyValueNet,
     PolicyValueNet,
     ResidualPolicyValueNet,
+    StructuredResidualPolicyValueNet,
 )
 from hsa.training import (
     temperature_scale_probabilities,
@@ -263,7 +264,10 @@ def main() -> None:
     parser.add_argument("--action-hidden-size", type=int, default=128)
     parser.add_argument(
         "--architecture",
-        choices=("additive-v1", "interaction-v2", "bilinear-v3", "residual-v4"),
+        choices=(
+            "additive-v1", "interaction-v2", "bilinear-v3", "residual-v4",
+            "structured-v5",
+        ),
         default="additive-v1",
         help="Policy head architecture; interaction-v2 models state-action fit.",
     )
@@ -273,6 +277,7 @@ def main() -> None:
         help="Warm-start from a checkpoint with the same architecture and feature schema.",
     )
     parser.add_argument("--residual-blocks", type=int, default=4)
+    parser.add_argument("--card-embedding-size", type=int, default=128)
     parser.add_argument("--seed", type=int, default=20260909)
     parser.add_argument(
         "--early-stopping-patience", type=int, default=0,
@@ -316,6 +321,7 @@ def main() -> None:
         "interaction-v2": InteractionPolicyValueNet,
         "bilinear-v3": BilinearPolicyValueNet,
         "residual-v4": ResidualPolicyValueNet,
+        "structured-v5": StructuredResidualPolicyValueNet,
     }[args.architecture]
     model_args = [
         int(schema["state_size"]), int(schema["action_size"]),
@@ -323,6 +329,11 @@ def main() -> None:
     ]
     if model_class is ResidualPolicyValueNet:
         model_args.append(args.residual_blocks)
+    elif model_class is StructuredResidualPolicyValueNet:
+        model_args.extend((
+            args.residual_blocks, int(schema["card_vocab_size"]),
+            args.card_embedding_size,
+        ))
     model = model_class(*model_args).to(device)
     if args.init_checkpoint is not None:
         initial = torch.load(
