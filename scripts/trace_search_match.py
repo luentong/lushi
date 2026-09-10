@@ -81,6 +81,8 @@ def main() -> int:
     parser.add_argument("--iterations", type=int, default=4)
     parser.add_argument("--tree-depth", type=int, default=4)
     parser.add_argument("--rollout-depth", type=int, default=3)
+    parser.add_argument("--min-simulations-per-root-action", type=int, default=0)
+    parser.add_argument("--max-total-iterations", type=int)
     parser.add_argument("--search-seed", type=int, default=20260909)
     parser.add_argument("--max-actions", type=int, default=1000)
     parser.add_argument("--cards", type=Path, default=ROOT / "cards.251332.enUS.json")
@@ -99,6 +101,8 @@ def main() -> int:
         seed=args.search_seed + args.seed * 2 + args.candidate_seat,
         policy_value_model=model,
         use_model_value=False,
+        min_simulations_per_root_action=args.min_simulations_per_root_action,
+        max_total_iterations=args.max_total_iterations,
     )
     baseline_seat = 1 - args.candidate_seat
     baseline = InformationSetMCTSPolicy(
@@ -168,6 +172,10 @@ def main() -> int:
             "iterations": args.iterations,
             "tree_depth": args.tree_depth,
             "rollout_depth": args.rollout_depth,
+            "min_simulations_per_root_action": (
+                args.min_simulations_per_root_action
+            ),
+            "max_total_iterations": args.max_total_iterations,
             "search_seed": args.search_seed,
             "checkpoint": args.checkpoint.as_posix(),
             "device": args.device,

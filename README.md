@@ -83,8 +83,9 @@ same search seeds and parameters, run:
 ```bash
 python scripts/trace_search_match.py \
   --seed 202609100039 --candidate-seat 0 \
-  --checkpoint reports/policy-independent64b-budget16-e10.pt \
-  --device npu:0
+  --checkpoint reports/policy-v4-relative-targetzone-highteacher128.pt \
+  --device npu:0 \
+  --min-simulations-per-root-action 2 --max-total-iterations 16
 ```
 
 Its Markdown trace shows every chosen action, the five leading alternatives by
