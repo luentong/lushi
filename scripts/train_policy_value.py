@@ -45,6 +45,10 @@ class DecisionDataset(Dataset):
                     header["feature_schema"] != self.headers[0]["feature_schema"]
                 ):
                     raise ValueError("all datasets must use the same feature schema")
+                if len(self.headers) > 1 and (
+                    header.get("ruleset") != self.headers[0].get("ruleset")
+                ):
+                    raise ValueError("all datasets must use the same ruleset")
                 for line in handle:
                     if max_records is not None and len(self.records) >= max_records:
                         break
@@ -432,6 +436,7 @@ def main() -> None:
     )
     report = {
         "schema_version": 1,
+        "ruleset": dataset.header.get("ruleset"),
         "data_sources": [path.as_posix() for path in args.data],
         "device": str(device),
         "records": len(dataset),
