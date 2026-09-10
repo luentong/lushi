@@ -164,8 +164,13 @@ wins against `heuristic-tempo-v1`; six games are a correctness signal, not a
 statistically meaningful strength claim.
 
 Policy/value inputs are frozen in `hsa.encoding` as framework-neutral tuples.
-Schema v1 has a 281-card vocabulary, 867 state features, and 612 action
-features. Opponent hidden identities are excluded by construction. The
+Schema v2 has a 281-card vocabulary, 1,217 state features, and 612 action
+features. It extends the legacy 867-feature schema with public dynamic combat
+state: temporary hero Attack, attacks used, hero status, current hand costs,
+ordered board stats and keywords, and location durability/cooldown. Opponent
+hidden identities remain excluded by construction. Checkpoints record their
+schema and the inference adapter continues to encode old v1 checkpoints with
+the legacy representation. The
 `PolicyValueModel` protocol and `HeuristicPolicyValueModel` provide the model
 boundary before adding a trainable implementation. Generate compressed training
 records with `python scripts/generate_policy_value_data.py`; every decision
@@ -288,6 +293,33 @@ that every seed has both seat assignments.
 Policy-only checkpoints now record `value_trained=false`. The benchmark rejects
 using their untrained value head unless `--policy-only` is supplied, preventing
 an accidentally random leaf-value comparison.
+
+An inference-budget pilot used the same ten seat-swapped seeds and equal
+simulation budgets for policy-prior PUCT and plain ISMCTS. At 4/8/16/32
+simulations the v1 policy prior won 14/13/12/16 of 20 games, with wall times of
+49.7/81.0/115.2/179.4 seconds. The non-monotonic small-sample result does not
+establish an optimum, but confirms that the four-simulation setting was an
+evaluation budget rather than an engine limit. Thirty-two simulations is the
+next production candidate; it still requires a larger paired run.
+
+A 64-simulation teacher explored more root actions than the 16-simulation
+teacher (11.86 versus 9.66) while producing a lower-entropy, more decisive
+target (mean maximum probability 0.516 versus 0.339). However, a 64-game v1
+student overfit the sharper targets (validation KL 0.523) and scored only 12/20
+at both 4 and 32 inference simulations. More teacher compute alone therefore
+does not solve missing observation features.
+
+The trace audit found the concrete omission: schema v1 encoded weapon Attack
+but not temporary hero Attack. At the reported Searing Fissure decision, the
+v1 model therefore could not observe the three points of temporary Attack. The
+v2 encoder fixes this and other analogous dynamic-state gaps. A first 64-game
+v2 student reduced validation KL to 0.241 and raised policy top-1 from 28.1% to
+31.5%. On the audited action its attack prior rose from 0.507 to 0.630 and root
+visits changed from 2:2 to 3:1 in favor of attacking. Its same-seed pilot scored
+14/20 at four simulations and 17/20 at 32, with zero invalid actions. These are
+engineering signals only; the v2 training tranche was seat-imbalanced 43:21
+and needs another balanced tranche plus a larger paired evaluation before
+promotion.
 
 Benchmarks can now load one checkpoint per worker, run independent games in
 parallel, report wall-clock time, and emit a Wilson interval. Multi-process NPU

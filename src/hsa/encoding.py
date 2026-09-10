@@ -9,7 +9,8 @@ from dataclasses import dataclass
 from .dragon_mirror import Action, DragonMirrorGame, SUPPORTED_IDS
 
 
-STATE_SCHEMA_VERSION = 1
+STATE_SCHEMA_VERSION = 2
+LEGACY_STATE_SCHEMA_VERSION = 1
 ACTION_KINDS = (
     "END_TURN", "MULLIGAN_TOGGLE", "MULLIGAN_CONFIRM", "TRADE", "PLAY",
     "PREPARE", "ATTACK", "HERO_ATTACK", "LOCATION", "HERO_POWER",
@@ -40,8 +41,15 @@ def _card_histogram(cards) -> list[float]:
     return result
 
 
-def encode_state(game: DragonMirrorGame, observer: int | None = None) -> tuple[float, ...]:
+def encode_state(
+    game: DragonMirrorGame,
+    observer: int | None = None,
+    *,
+    schema_version: int = STATE_SCHEMA_VERSION,
+) -> tuple[float, ...]:
     """Encode only information visible to ``observer`` into a fixed vector."""
+    if schema_version not in {LEGACY_STATE_SCHEMA_VERSION, STATE_SCHEMA_VERSION}:
+        raise ValueError(f"unsupported state schema version: {schema_version}")
     observer = game.current if observer is None else observer
     if observer not in (0, 1):
         raise ValueError("observer must be player 0 or 1")
@@ -65,6 +73,76 @@ def encode_state(game: DragonMirrorGame, observer: int | None = None) -> tuple[f
     values.extend(_card_histogram(own.hand))
     values.extend(_card_histogram(own.board))
     values.extend(_card_histogram(enemy.board))
+    if schema_version == LEGACY_STATE_SCHEMA_VERSION:
+        return tuple(values)
+
+    # Schema v2 adds public dynamic state that cannot be reconstructed from a
+    # card-id histogram. In particular, temporary hero Attack from spells is
+    # distinct from weapon Attack and is required to compare HERO_ATTACK with
+    # END_TURN correctly.
+    for player in (own, enemy):
+        values.extend((
+            player.attack / 30.0,
+            player.hero_attacks_this_turn / 2.0,
+            float(player.frozen_turn >= 0),
+            float(player.hero_divine_shield),
+            player.corpses / 30.0,
+            player.locked_mana / 10.0,
+            player.overload_next_turn / 10.0,
+            game._spell_damage(player) / 10.0,
+        ))
+
+    # Own hand identities remain in the histogram above; these aligned slots
+    # expose enchantment-dependent cost and stats to source-position actions.
+    for position in range(MAX_HAND_SLOTS):
+        card = own.hand[position] if position < len(own.hand) else None
+        values.extend((
+            card.cost / 10.0 if card else 0.0,
+            card.attack / 20.0 if card else 0.0,
+            card.health / 20.0 if card else 0.0,
+            float(card is not None and not card.started_in_deck),
+        ))
+
+    # Board slots are public. Preserve ordering so the action source/target
+    # position features can be joined with current combat stats and keywords.
+    for player in (own, enemy):
+        for position in range(MAX_BOARD_SLOTS):
+            card = player.board[position] if position < len(player.board) else None
+            if card is None:
+                values.extend((0.0,) * 19)
+                continue
+            values.extend((
+                card.attack / 20.0,
+                card.health / 20.0,
+                card.max_health / 20.0,
+                card.damage / 20.0,
+                card.attacks_this_turn / 2.0,
+                card.dormant_turns / 3.0,
+                float(card.summoned_turn == game.turn),
+                float(card.frozen_turn >= 0),
+                float(card.cant_attack),
+                float(game._has_taunt(player.index, card)),
+                float(card.rush),
+                float(card.charge),
+                float(card.lifesteal),
+                float(card.elusive),
+                float(card.stealth),
+                float(card.divine_shield),
+                float(card.windfury),
+                float(card.reborn),
+                float(card.poisonous or card.aura_poisonous),
+            ))
+
+    for player in (own, enemy):
+        for position in range(MAX_BOARD_SLOTS):
+            location = (
+                player.locations[position]
+                if position < len(player.locations) else None
+            )
+            values.extend((
+                location.durability / 5.0 if location else 0.0,
+                location.cooldown / 5.0 if location else 0.0,
+            ))
     return tuple(values)
 
 
@@ -144,13 +222,23 @@ def encode_decision(game: DragonMirrorGame) -> EncodedDecision:
     )
 
 
-def feature_schema() -> dict[str, object]:
+def feature_schema(
+    schema_version: int = STATE_SCHEMA_VERSION,
+) -> dict[str, object]:
+    if schema_version not in {LEGACY_STATE_SCHEMA_VERSION, STATE_SCHEMA_VERSION}:
+        raise ValueError(f"unsupported state schema version: {schema_version}")
     vocab_json = json.dumps(CARD_VOCAB, separators=(",", ":"))
+    legacy_state_size = 24 + 3 * len(CARD_VOCAB)
+    dynamic_state_size = 16 + MAX_HAND_SLOTS * 4 + 2 * MAX_BOARD_SLOTS * 19 + 2 * MAX_BOARD_SLOTS * 2
     return {
-        "schema_version": STATE_SCHEMA_VERSION,
+        "schema_version": schema_version,
         "card_vocab_size": len(CARD_VOCAB),
         "card_vocab_sha256": hashlib.sha256(vocab_json.encode()).hexdigest(),
-        "state_size": 24 + 3 * len(CARD_VOCAB),
+        "state_size": (
+            legacy_state_size
+            if schema_version == LEGACY_STATE_SCHEMA_VERSION
+            else legacy_state_size + dynamic_state_size
+        ),
         "action_size": (
             len(ACTION_KINDS) + len(ZONE_NAMES) + 2 + len(CARD_VOCAB)
             + MAX_HAND_SLOTS + len(TARGET_KINDS) + 2 + len(CARD_VOCAB)

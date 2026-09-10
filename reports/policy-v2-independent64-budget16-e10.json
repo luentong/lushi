@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "device": "npu:0",
+  "records": 6633,
+  "train_records": 5478,
+  "validation_records": 1155,
+  "train_games": 51,
+  "validation_games": 13,
+  "epochs": 10,
+  "value_weight": 0.0,
+  "value_trained": false,
+  "initial_loss": 2.1662873764370763,
+  "final_loss": 2.0331700381844544,
+  "train_winners": {
+    "player_0": 34,
+    "player_1": 17,
+    "draw": 0
+  },
+  "validation_winners": {
+    "player_0": 9,
+    "player_1": 4,
+    "draw": 0
+  },
+  "train_metrics": {
+    "policy_decisions": 4797,
+    "forced_decisions": 681,
+    "policy_accuracy": 0.5230352303523035,
+    "policy_cross_entropy": 2.0190506728957387,
+    "policy_target_entropy": 1.9162524167463038,
+    "policy_kl": 0.10279825614943494,
+    "value_mae": 1.000563040054728,
+    "value_mse": 1.033659037206677,
+    "value_brier": 0.25841475930166924
+  },
+  "validation_metrics": {
+    "policy_decisions": 1001,
+    "forced_decisions": 154,
+    "policy_accuracy": 0.3146853146853147,
+    "policy_cross_entropy": 2.1069521613411615,
+    "policy_target_entropy": 1.866369495144138,
+    "policy_kl": 0.2405826661970234,
+    "value_mae": 1.0213179243591441,
+    "value_mse": 1.0717557122697046,
+    "value_brier": 0.26793892806742614
+  },
+  "train_policy_accuracy": 0.5230352303523035,
+  "train_value_mae": 1.000563040054728,
+  "validation_policy_accuracy": 0.3146853146853147,
+  "validation_value_mae": 1.0213179243591441,
+  "elapsed_seconds": 67.90394558093976,
+  "model": {
+    "architecture": "policy-value-mlp-v1",
+    "state_size": 1217,
+    "action_size": 612,
+    "hidden_size": 256,
+    "action_hidden_size": 128
+  },
+  "feature_schema": {
+    "schema_version": 2,
+    "card_vocab_size": 281,
+    "card_vocab_sha256": "655f28d160a903ed5b3ce396d6ae0df66a6cb5ce44d19f8417f4c05eca1c5a9a",
+    "state_size": 1217,
+    "action_size": 612,
+    "action_kinds": [
+      "END_TURN",
+      "MULLIGAN_TOGGLE",
+      "MULLIGAN_CONFIRM",
+      "TRADE",
+      "PLAY",
+      "PREPARE",
+      "ATTACK",
+      "HERO_ATTACK",
+      "LOCATION",
+      "HERO_POWER",
+      "DISCOVER_PICK",
+      "REWIND_KEEP",
+      "REWIND_RETRY",
+      "AMMUNITION_PICK",
+      "CORPSE_SPEND"
+    ]
+  }
+}

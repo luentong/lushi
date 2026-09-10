@@ -84,11 +84,12 @@ class TorchPolicyValueModel:
 
     def __init__(
         self, model: PolicyValueNet, device: torch.device,
-        *, value_trained: bool = True,
+        *, value_trained: bool = True, state_schema_version: int = 1,
     ):
         self.model = model.to(device).eval()
         self.device = device
         self.value_trained = value_trained
+        self.state_schema_version = state_schema_version
 
     @classmethod
     def from_checkpoint(
@@ -107,13 +108,21 @@ class TorchPolicyValueModel:
         return cls(
             model, device,
             value_trained=bool(checkpoint["report"].get("value_trained", True)),
+            state_schema_version=int(
+                checkpoint["report"].get("feature_schema", {}).get(
+                    "schema_version", 1
+                )
+            ),
         )
 
     def predict(self, game, actions) -> PolicyValueOutput:
         if not actions:
             return PolicyValueOutput((), 0.0)
         states = torch.tensor(
-            [encode_state(game, game.current)],
+            [encode_state(
+                game, game.current,
+                schema_version=self.state_schema_version,
+            )],
             dtype=torch.float32, device=self.device,
         )
         action_tensor = torch.tensor(

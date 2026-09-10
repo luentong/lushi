@@ -32,6 +32,18 @@ class EncodingTests(unittest.TestCase):
         self.assertTrue(all(
             len(action) == schema["action_size"] for action in decision.actions
         ))
+        self.assertEqual(2, schema["schema_version"])
+        self.assertEqual(867, len(encode_state(game, schema_version=1)))
+
+    def test_v2_observes_temporary_hero_attack_missing_from_v1(self):
+        first = DragonMirrorGame(CARDS, 304)
+        second = first.clone(include_history=True)
+        second.players[second.current].hero_attack_bonus = 3
+        self.assertEqual(
+            encode_state(first, schema_version=1),
+            encode_state(second, schema_version=1),
+        )
+        self.assertNotEqual(encode_state(first), encode_state(second))
 
     def test_legal_action_encodings_are_distinct(self):
         game = DragonMirrorGame(CARDS, 305)
