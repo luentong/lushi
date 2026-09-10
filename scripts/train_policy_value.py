@@ -250,6 +250,8 @@ def main() -> None:
     parser.add_argument("--epochs", type=int, default=20)
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--learning-rate", type=float, default=3e-4)
+    parser.add_argument("--weight-decay", type=float, default=1e-2)
+    parser.add_argument("--gradient-clip", type=float, default=1.0)
     parser.add_argument("--value-weight", type=float, default=0.5)
     parser.add_argument("--validation-ratio", type=float, default=0.2)
     parser.add_argument("--hidden-size", type=int, default=256)
@@ -265,7 +267,12 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=20260909)
     parser.add_argument(
         "--early-stopping-patience", type=int, default=0,
-        help="Stop on validation policy KL after this many non-improving epochs; 0 disables.",
+        help="Stop on the selected validation objective after this many non-improving epochs; 0 disables.",
+    )
+    parser.add_argument(
+        "--early-stopping-metric",
+        choices=("joint", "policy-kl", "value-mse"), default="joint",
+        help="Checkpoint selection metric; joint trains a genuine policy/value model.",
     )
     parser.add_argument(
         "--policy-target",
@@ -340,7 +347,10 @@ def main() -> None:
         )
         if validation_indices else None
     )
-    optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate)
+    optimizer = torch.optim.AdamW(
+        model.parameters(), lr=args.learning_rate,
+        weight_decay=args.weight_decay,
+    )
     losses = []
     validation_history = []
     best_epoch = None
@@ -370,6 +380,10 @@ def main() -> None:
             value_loss = F.mse_loss(values, targets)
             loss = policy_loss + args.value_weight * value_loss
             loss.backward()
+            if args.gradient_clip > 0:
+                torch.nn.utils.clip_grad_norm_(
+                    model.parameters(), args.gradient_clip
+                )
             optimizer.step()
             epoch_loss += float(loss.detach().item())
             batches += 1
@@ -377,8 +391,17 @@ def main() -> None:
         if args.early_stopping_patience > 0 and validation_loader is not None:
             metrics = evaluate(model, validation_loader, device)
             validation_history.append({"epoch": epoch, **metrics})
-            if metrics["policy_kl"] < best_validation_kl - 1e-8:
-                best_validation_kl = metrics["policy_kl"]
+            selection_metric = {
+                "joint": (
+                    metrics["policy_kl"]
+                    + args.value_weight * metrics["value_mse"]
+                ),
+                "policy-kl": metrics["policy_kl"],
+                "value-mse": metrics["value_mse"],
+            }[args.early_stopping_metric]
+            validation_history[-1]["selection_metric"] = selection_metric
+            if selection_metric < best_validation_kl - 1e-8:
+                best_validation_kl = selection_metric
                 best_epoch = epoch
                 best_state = {
                     key: value.detach().cpu().clone()
@@ -421,9 +444,15 @@ def main() -> None:
         "epochs": len(losses),
         "epochs_requested": args.epochs,
         "early_stopping_patience": args.early_stopping_patience,
+        "early_stopping_metric": args.early_stopping_metric,
+        "best_validation_objective": (
+            best_validation_kl if best_epoch is not None else None
+        ),
         "best_epoch": best_epoch,
         "validation_history": validation_history,
         "value_weight": args.value_weight,
+        "weight_decay": args.weight_decay,
+        "gradient_clip": args.gradient_clip,
         "policy_target": args.policy_target,
         "policy_target_temperature": args.policy_target_temperature,
         "policy_value_temperature": (

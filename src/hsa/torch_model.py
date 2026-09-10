@@ -201,7 +201,7 @@ class _ResidualBlock(nn.Module):
         return features + self.layers(self.norm(features))
 
 
-class ResidualPolicyValueNet(PolicyValueNet):
+class ResidualPolicyValueNet(nn.Module):
     """Higher-capacity residual policy/value model for long-lived card pools.
 
     The action head models four complementary interactions: action features,
@@ -220,11 +220,13 @@ class ResidualPolicyValueNet(PolicyValueNet):
         action_hidden_size: int = 256,
         residual_blocks: int = 4,
     ):
-        super().__init__(
-            state_size, action_size, hidden_size, action_hidden_size
-        )
+        super().__init__()
         if residual_blocks < 1:
             raise ValueError("residual_blocks must be positive")
+        self.state_size = state_size
+        self.action_size = action_size
+        self.hidden_size = hidden_size
+        self.action_hidden_size = action_hidden_size
         self.residual_blocks = residual_blocks
         self.state_stem = nn.Sequential(
             nn.Linear(state_size, hidden_size),
@@ -297,12 +299,14 @@ class ResidualPolicyValueNet(PolicyValueNet):
         return logits, values
 
     def metadata(self) -> dict[str, int | str]:
-        metadata = super().metadata()
-        metadata.update({
+        return {
             "architecture": "policy-value-residual-mlp-v4",
+            "state_size": self.state_size,
+            "action_size": self.action_size,
+            "hidden_size": self.hidden_size,
+            "action_hidden_size": self.action_hidden_size,
             "residual_blocks": self.residual_blocks,
-        })
-        return metadata
+        }
 
 
 class TorchPolicyValueModel:
