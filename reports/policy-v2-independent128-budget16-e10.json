@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "data_sources": [
+    "reports/policy-value-ismcts-v2-independent64-budget16.jsonl.gz",
+    "reports/policy-value-ismcts-v2-independent64b-budget16.jsonl.gz"
+  ],
+  "device": "npu:0",
+  "records": 13122,
+  "train_records": 10331,
+  "validation_records": 2791,
+  "train_games": 102,
+  "validation_games": 26,
+  "epochs": 10,
+  "value_weight": 0.0,
+  "value_trained": false,
+  "initial_loss": 2.1313512827220715,
+  "final_loss": 2.005296416326942,
+  "train_winners": {
+    "player_0": 66,
+    "player_1": 36,
+    "draw": 0
+  },
+  "validation_winners": {
+    "player_0": 17,
+    "player_1": 9,
+    "draw": 0
+  },
+  "train_metrics": {
+    "policy_decisions": 9070,
+    "forced_decisions": 1261,
+    "policy_accuracy": 0.5480705622932746,
+    "policy_cross_entropy": 1.993899116389938,
+    "policy_target_entropy": 1.8952429694666753,
+    "policy_kl": 0.09865614692326274,
+    "value_mae": 1.0007677431801676,
+    "value_mse": 1.0117255467411255,
+    "value_brier": 0.25293138668528137
+  },
+  "validation_metrics": {
+    "policy_decisions": 2440,
+    "forced_decisions": 351,
+    "policy_accuracy": 0.2967213114754098,
+    "policy_cross_entropy": 2.1555937548152735,
+    "policy_target_entropy": 1.9225658330761017,
+    "policy_kl": 0.23302792173917175,
+    "value_mae": 0.9998460958953059,
+    "value_mse": 1.0089487525477967,
+    "value_brier": 0.2522371881369492
+  },
+  "train_policy_accuracy": 0.5480705622932746,
+  "train_value_mae": 1.0007677431801676,
+  "validation_policy_accuracy": 0.2967213114754098,
+  "validation_value_mae": 0.9998460958953059,
+  "elapsed_seconds": 124.76664648600854,
+  "model": {
+    "architecture": "policy-value-mlp-v1",
+    "state_size": 1217,
+    "action_size": 612,
+    "hidden_size": 256,
+    "action_hidden_size": 128
+  },
+  "feature_schema": {
+    "schema_version": 2,
+    "card_vocab_size": 281,
+    "card_vocab_sha256": "655f28d160a903ed5b3ce396d6ae0df66a6cb5ce44d19f8417f4c05eca1c5a9a",
+    "state_size": 1217,
+    "action_size": 612,
+    "action_kinds": [
+      "END_TURN",
+      "MULLIGAN_TOGGLE",
+      "MULLIGAN_CONFIRM",
+      "TRADE",
+      "PLAY",
+      "PREPARE",
+      "ATTACK",
+      "HERO_ATTACK",
+      "LOCATION",
+      "HERO_POWER",
+      "DISCOVER_PICK",
+      "REWIND_KEEP",
+      "REWIND_RETRY",
+      "AMMUNITION_PICK",
+      "CORPSE_SPEND"
+    ]
+  }
+}

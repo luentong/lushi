@@ -10,6 +10,7 @@ import random
 import sys
 import time
 from collections import defaultdict
+from functools import partial
 from pathlib import Path
 
 
@@ -20,20 +21,30 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset, Subset
 
-from hsa.torch_model import PolicyValueNet
+from hsa.torch_model import InteractionPolicyValueNet, PolicyValueNet
 
 
 class DecisionDataset(Dataset):
-    def __init__(self, path: Path, max_records: int | None = None):
+    def __init__(self, paths: list[Path], max_records: int | None = None):
         self.records = []
-        with gzip.open(path, "rt", encoding="utf-8") as handle:
-            self.header = json.loads(next(handle))
-            for line in handle:
-                if max_records is not None and len(self.records) >= max_records:
-                    break
-                record = json.loads(line)
-                if record.get("record_type") == "decision":
-                    self.records.append(record)
+        self.headers = []
+        for path in paths:
+            with gzip.open(path, "rt", encoding="utf-8") as handle:
+                header = json.loads(next(handle))
+                self.headers.append(header)
+                if len(self.headers) > 1 and (
+                    header["feature_schema"] != self.headers[0]["feature_schema"]
+                ):
+                    raise ValueError("all datasets must use the same feature schema")
+                for line in handle:
+                    if max_records is not None and len(self.records) >= max_records:
+                        break
+                    record = json.loads(line)
+                    if record.get("record_type") == "decision":
+                        self.records.append(record)
+            if max_records is not None and len(self.records) >= max_records:
+                break
+        self.header = self.headers[0]
         if not self.records:
             raise ValueError("dataset contains no decision records")
 
@@ -44,7 +55,9 @@ class DecisionDataset(Dataset):
         return self.records[index]
 
 
-def collate_decisions(records: list[dict]):
+def collate_decisions(
+    records: list[dict], *, hard_policy_targets: bool = False
+):
     state_size = len(records[0]["state"])
     action_size = len(records[0]["actions"][0])
     max_actions = max(len(record["actions"]) for record in records)
@@ -63,7 +76,7 @@ def collate_decisions(records: list[dict]):
         mask[row, :count] = True
         chosen[row] = int(record["chosen_action"])
         values[row] = float(record["value_target"])
-        target = record.get("policy_target")
+        target = None if hard_policy_targets else record.get("policy_target")
         if target is None:
             policy_targets[row, chosen[row]] = 1.0
         else:
@@ -178,8 +191,8 @@ def stratified_validation_seeds(
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--data", type=Path,
-        default=ROOT / "reports" / "policy-value-smoke.jsonl.gz",
+        "--data", type=Path, nargs="+",
+        default=[ROOT / "reports" / "policy-value-smoke.jsonl.gz"],
     )
     parser.add_argument(
         "--output", type=Path,
@@ -193,15 +206,34 @@ def main() -> None:
     parser.add_argument("--validation-ratio", type=float, default=0.2)
     parser.add_argument("--hidden-size", type=int, default=256)
     parser.add_argument("--action-hidden-size", type=int, default=128)
+    parser.add_argument(
+        "--architecture",
+        choices=("additive-v1", "interaction-v2"),
+        default="additive-v1",
+        help="Policy head architecture; interaction-v2 models state-action fit.",
+    )
     parser.add_argument("--max-records", type=int)
     parser.add_argument("--seed", type=int, default=20260909)
+    parser.add_argument(
+        "--early-stopping-patience", type=int, default=0,
+        help="Stop on validation policy KL after this many non-improving epochs; 0 disables.",
+    )
+    parser.add_argument(
+        "--policy-target", choices=("visits", "chosen"), default="visits",
+        help="Distil root visit shares or the teacher's final selected action.",
+    )
     args = parser.parse_args()
     random.seed(args.seed)
     torch.manual_seed(args.seed)
     device = choose_device(args.device)
     dataset = DecisionDataset(args.data, args.max_records)
     schema = dataset.header["feature_schema"]
-    model = PolicyValueNet(
+    model_class = (
+        InteractionPolicyValueNet
+        if args.architecture == "interaction-v2"
+        else PolicyValueNet
+    )
+    model = model_class(
         int(schema["state_size"]), int(schema["action_size"]),
         args.hidden_size, args.action_hidden_size,
     ).to(device)
@@ -219,26 +251,34 @@ def main() -> None:
         if record["game_seed"] in validation_seeds
     ]
     generator = torch.Generator().manual_seed(args.seed)
+    collate = partial(
+        collate_decisions, hard_policy_targets=args.policy_target == "chosen"
+    )
     loader = DataLoader(
         Subset(dataset, train_indices), batch_size=args.batch_size, shuffle=True,
-        collate_fn=collate_decisions, generator=generator, num_workers=0,
+        collate_fn=collate, generator=generator, num_workers=0,
     )
     train_eval_loader = DataLoader(
         Subset(dataset, train_indices), batch_size=args.batch_size, shuffle=False,
-        collate_fn=collate_decisions, num_workers=0,
+        collate_fn=collate, num_workers=0,
     )
     validation_loader = (
         DataLoader(
             Subset(dataset, validation_indices), batch_size=args.batch_size,
-            shuffle=False, collate_fn=collate_decisions, num_workers=0,
+            shuffle=False, collate_fn=collate, num_workers=0,
         )
         if validation_indices else None
     )
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate)
     losses = []
+    validation_history = []
+    best_epoch = None
+    best_validation_kl = float("inf")
+    best_state = None
+    stale_epochs = 0
     started = time.perf_counter()
     model.train()
-    for _ in range(args.epochs):
+    for epoch in range(1, args.epochs + 1):
         epoch_loss = 0.0
         batches = 0
         for states, actions, mask, chosen, targets, policy_targets in loader:
@@ -263,6 +303,24 @@ def main() -> None:
             epoch_loss += float(loss.detach().item())
             batches += 1
         losses.append(epoch_loss / batches)
+        if args.early_stopping_patience > 0 and validation_loader is not None:
+            metrics = evaluate(model, validation_loader, device)
+            validation_history.append({"epoch": epoch, **metrics})
+            if metrics["policy_kl"] < best_validation_kl - 1e-8:
+                best_validation_kl = metrics["policy_kl"]
+                best_epoch = epoch
+                best_state = {
+                    key: value.detach().cpu().clone()
+                    for key, value in model.state_dict().items()
+                }
+                stale_epochs = 0
+            else:
+                stale_epochs += 1
+            model.train()
+            if stale_epochs >= args.early_stopping_patience:
+                break
+    if best_state is not None:
+        model.load_state_dict(best_state)
     if device.type == "npu":
         torch.npu.synchronize()
     train_metrics = evaluate(model, train_eval_loader, device)
@@ -274,17 +332,28 @@ def main() -> None:
         validation_metrics = None
     report = {
         "schema_version": 1,
+        "data_sources": [path.as_posix() for path in args.data],
         "device": str(device),
         "records": len(dataset),
         "train_records": len(train_indices),
         "validation_records": len(validation_indices),
         "train_games": len(seeds) - validation_games,
         "validation_games": validation_games,
-        "epochs": args.epochs,
+        "split_seed": args.seed,
+        "validation_game_seeds": sorted(validation_seeds),
+        "epochs": len(losses),
+        "epochs_requested": args.epochs,
+        "early_stopping_patience": args.early_stopping_patience,
+        "best_epoch": best_epoch,
+        "validation_history": validation_history,
         "value_weight": args.value_weight,
+        "policy_target": args.policy_target,
         "value_trained": args.value_weight > 0,
         "initial_loss": losses[0],
         "final_loss": losses[-1],
+        "selected_loss": (
+            losses[best_epoch - 1] if best_epoch is not None else losses[-1]
+        ),
         "train_winners": winner_counts(dataset, train_indices),
         "validation_winners": winner_counts(dataset, validation_indices),
         "train_metrics": train_metrics,

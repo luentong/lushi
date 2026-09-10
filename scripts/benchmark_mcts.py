@@ -40,14 +40,39 @@ def load_model(checkpoint: Path, device: str):
 def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> dict:
     game = DragonMirrorGame(cards, seed)
     policies = [HeuristicPolicy(), HeuristicPolicy()]
-    if args.baseline == "ismcts":
+    if args.baseline in {"ismcts", "puct"}:
         baseline_seat = 1 - mcts_seat
+        baseline_model = None
+        if args.baseline == "puct":
+            if args.baseline_checkpoint is None:
+                raise ValueError(
+                    "--baseline-checkpoint is required for puct baseline"
+                )
+            baseline_model = load_model(
+                args.baseline_checkpoint, args.baseline_device
+            )
+            if not baseline_model.value_trained and not args.baseline_policy_only:
+                raise ValueError(
+                    "baseline checkpoint value head was not trained; pass "
+                    "--baseline-policy-only"
+                )
         policies[baseline_seat] = InformationSetMCTSPolicy(
-            samples=args.samples,
-            iterations_per_sample=args.iterations,
-            tree_depth=args.tree_depth,
-            rollout_depth=args.rollout_depth,
+            samples=args.baseline_samples or args.samples,
+            iterations_per_sample=(
+                args.baseline_iterations or args.iterations
+            ),
+            tree_depth=args.baseline_tree_depth or args.tree_depth,
+            rollout_depth=(
+                args.baseline_rollout_depth
+                if args.baseline_rollout_depth is not None
+                else args.rollout_depth
+                if args.baseline != "puct" or args.baseline_policy_only else 0
+            ),
             seed=args.search_seed + seed * 2 + baseline_seat,
+            policy_value_model=baseline_model,
+            use_model_value=(
+                args.baseline == "puct" and not args.baseline_policy_only
+            ),
         )
     if args.mode == "puct":
         if args.checkpoint is None:
@@ -127,11 +152,21 @@ def main() -> int:
         help="use checkpoint priors but retain heuristic rollout leaf values",
     )
     parser.add_argument("--device", default="cpu")
+    parser.add_argument("--baseline-checkpoint", type=Path)
+    parser.add_argument("--baseline-device", default="cpu")
+    parser.add_argument("--baseline-samples", type=int)
+    parser.add_argument("--baseline-iterations", type=int)
+    parser.add_argument("--baseline-tree-depth", type=int)
+    parser.add_argument("--baseline-rollout-depth", type=int)
+    parser.add_argument(
+        "--baseline-policy-only", action="store_true",
+        help="use baseline checkpoint priors with heuristic rollout values",
+    )
     parser.add_argument("--search-seed", type=int, default=20260909)
     parser.add_argument("--max-actions", type=int, default=1000)
     parser.add_argument("--workers", type=int, default=1)
     parser.add_argument(
-        "--baseline", choices=("heuristic", "ismcts"), default="heuristic"
+        "--baseline", choices=("heuristic", "ismcts", "puct"), default="heuristic"
     )
     parser.add_argument("--cards", type=Path, default=ROOT / "cards.251332.enUS.json")
     parser.add_argument("--output", type=Path, default=ROOT / "reports" / "mcts-smoke.json")
@@ -168,8 +203,39 @@ def main() -> int:
             if args.mode in {"determinized", "ismcts", "puct"} else "debug_full_state"
         ),
         "baseline": (
-            "shared-tree-ismcts-v1"
-            if args.baseline == "ismcts" else "heuristic-tempo-v1"
+            "policy-prior-puct-v1"
+            if args.baseline == "puct"
+            else "shared-tree-ismcts-v1"
+            if args.baseline == "ismcts"
+            else "heuristic-tempo-v1"
+        ),
+        "baseline_checkpoint": (
+            str(args.baseline_checkpoint)
+            if args.baseline_checkpoint is not None else None
+        ),
+        "baseline_device": (
+            args.baseline_device if args.baseline == "puct" else None
+        ),
+        "baseline_policy_only": (
+            args.baseline_policy_only if args.baseline == "puct" else None
+        ),
+        "baseline_samples": (
+            (args.baseline_samples or args.samples)
+            if args.baseline in {"ismcts", "puct"} else None
+        ),
+        "baseline_iterations": (
+            (args.baseline_iterations or args.iterations)
+            if args.baseline in {"ismcts", "puct"} else None
+        ),
+        "baseline_tree_depth": (
+            (args.baseline_tree_depth or args.tree_depth)
+            if args.baseline in {"ismcts", "puct"} else None
+        ),
+        "baseline_rollout_depth": (
+            args.baseline_rollout_depth
+            if args.baseline_rollout_depth is not None
+            else args.rollout_depth
+            if args.baseline in {"ismcts", "puct"} else None
         ),
         "iterations": args.iterations,
         "tree_depth": args.tree_depth if args.mode in {"ismcts", "puct"} else None,

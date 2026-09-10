@@ -77,6 +77,61 @@ class PolicyValueNet(nn.Module):
         }
 
 
+class InteractionPolicyValueNet(PolicyValueNet):
+    """Policy/value network with explicit state-action interaction features.
+
+    The v1 additive head can only score a nonlinear transform of ``a + s``.
+    Concatenating the two embeddings and their element-wise product lets the
+    policy learn that the same action can be good or bad in different states.
+    All operators used here are supported by the Ascend PyTorch stack.
+    """
+
+    def __init__(
+        self,
+        state_size: int,
+        action_size: int,
+        hidden_size: int = 256,
+        action_hidden_size: int = 128,
+    ):
+        super().__init__(
+            state_size, action_size, hidden_size, action_hidden_size
+        )
+        self.policy_head = nn.Sequential(
+            nn.Linear(action_hidden_size * 3, action_hidden_size),
+            nn.GELU(),
+            nn.Linear(action_hidden_size, 1),
+        )
+
+    def forward(
+        self,
+        states: Tensor,
+        actions: Tensor,
+        action_mask: Tensor | None = None,
+    ) -> tuple[Tensor, Tensor]:
+        if states.ndim != 2 or states.shape[-1] != self.state_size:
+            raise ValueError("states must have shape [batch, state_size]")
+        if actions.ndim != 3 or actions.shape[-1] != self.action_size:
+            raise ValueError("actions must have shape [batch, legal, action_size]")
+        state_features = self.state_tower(states)
+        action_features = self.action_tower(actions)
+        policy_state = self.policy_state(state_features).unsqueeze(1)
+        policy_state = policy_state.expand(-1, actions.shape[1], -1)
+        joint = torch.cat(
+            (action_features, policy_state, action_features * policy_state),
+            dim=-1,
+        )
+        logits = self.policy_head(joint).squeeze(-1)
+        if action_mask is not None:
+            logits = logits.masked_fill(~action_mask, -1.0e4)
+        values = self.value_head(state_features).squeeze(-1)
+        return logits, values
+
+    def metadata(self) -> dict[str, int | str]:
+        metadata = super().metadata()
+        metadata["architecture"] = "policy-value-interaction-mlp-v2"
+        return metadata
+
+
 class TorchPolicyValueModel:
     """Inference adapter implementing the framework-neutral model protocol."""
 
@@ -87,6 +142,7 @@ class TorchPolicyValueModel:
         *, value_trained: bool = True, state_schema_version: int = 1,
     ):
         self.model = model.to(device).eval()
+        self.name = str(model.metadata()["architecture"])
         self.device = device
         self.value_trained = value_trained
         self.state_schema_version = state_schema_version
@@ -100,7 +156,14 @@ class TorchPolicyValueModel:
         device = torch.device(device)
         checkpoint = torch.load(path, map_location="cpu", weights_only=False)
         metadata = checkpoint["report"]["model"]
-        model = PolicyValueNet(
+        architecture = metadata.get("architecture", "policy-value-mlp-v1")
+        model_class = {
+            "policy-value-mlp-v1": PolicyValueNet,
+            "policy-value-interaction-mlp-v2": InteractionPolicyValueNet,
+        }.get(architecture)
+        if model_class is None:
+            raise ValueError(f"unsupported model architecture: {architecture}")
+        model = model_class(
             int(metadata["state_size"]), int(metadata["action_size"]),
             int(metadata["hidden_size"]), int(metadata["action_hidden_size"]),
         )

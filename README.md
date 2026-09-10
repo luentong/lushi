@@ -328,6 +328,36 @@ tokens are excluded from unresolved hidden-card fallback sampling; otherwise a
 source-less zero-tier Void Soul could enter a determinization. Known generated
 tokens remain represented by their source-specific public belief slots.
 
+The next budget-controlled study separated search strength from distillation.
+On 20 fresh seat-swapped games, plain 64-simulation ISMCTS beat otherwise
+identical 16-simulation ISMCTS 18/20, and beat 32-simulation ISMCTS 18/20.
+Thus four simulations was only a smoke-test budget and 64 simulations is the
+current strength setting; 32 remains a lower-latency candidate, not an
+equivalent-strength replacement. `benchmark_mcts.py` accepts independent
+`--baseline-samples`, `--baseline-iterations`, `--baseline-tree-depth`, and
+`--baseline-rollout-depth` values so unequal-budget controls are explicit in
+the report.
+
+Two independent schema-v2 64-simulation teacher tranches contain 128 games and
+11,262 decisions. Their root targets consistently visit about 12--13 actions,
+with mean maximum probability about 0.506 and entropy 1.55--1.58. A policy-only
+student trained from those stronger targets did not beat the 16-simulation
+student at an equal 32-simulation inference budget (10/20). Mixing 32 strong
+teacher games into the old 128-game set scored 11/20. Replacing visit-share
+targets with the teacher's final hard action was worse, losing 7/20 to the
+soft-target student. The promoted training target therefore remains root visit
+shares; stronger teachers are demonstrably useful search agents but their full
+advantage has not yet been distilled by this small MLP.
+
+An explicit state/action-product head also failed its controlled offline test
+(validation policy KL 0.270 versus 0.245 for the additive head). It remains an
+optional experiment rather than the default architecture. Training now records
+the split seed and validation game seeds, supports multiple input datasets,
+and can early-stop on validation policy KL while restoring the best epoch.
+A 256-game policy/value attempt still overfit its value head: train Brier was
+0.029 but validation Brier was 0.351, worse than the 0.25 constant baseline.
+Neural leaf values therefore remain disabled.
+
 For an equal simulation-budget comparison, run
 `python scripts/compare_search.py --pairs 10 --samples 2 --iterations 8`.
 The small pinned smoke run uses 16 simulations per decision and exists only to
