@@ -26,6 +26,7 @@ from hsa.torch_model import (
     InteractionPolicyValueNet,
     PolicyValueNet,
 )
+from hsa.training import temperature_scale_probabilities
 
 
 class DecisionDataset(Dataset):
@@ -60,8 +61,11 @@ class DecisionDataset(Dataset):
 
 
 def collate_decisions(
-    records: list[dict], *, hard_policy_targets: bool = False
+    records: list[dict], *, hard_policy_targets: bool = False,
+    policy_target_temperature: float = 1.0,
 ):
+    if policy_target_temperature <= 0:
+        raise ValueError("policy target temperature must be positive")
     state_size = len(records[0]["state"])
     action_size = len(records[0]["actions"][0])
     max_actions = max(len(record["actions"]) for record in records)
@@ -84,7 +88,13 @@ def collate_decisions(
         if target is None:
             policy_targets[row, chosen[row]] = 1.0
         else:
-            policy_targets[row, :count] = torch.tensor(target, dtype=torch.float32)
+            probabilities = torch.tensor(
+                temperature_scale_probabilities(
+                    target, policy_target_temperature
+                ),
+                dtype=torch.float32,
+            )
+            policy_targets[row, :count] = probabilities
     return states, actions, mask, chosen, values, policy_targets
 
 
@@ -245,7 +255,13 @@ def main() -> None:
         "--policy-target", choices=("visits", "chosen"), default="visits",
         help="Distil root visit shares or the teacher's final selected action.",
     )
+    parser.add_argument(
+        "--policy-target-temperature", type=float, default=1.0,
+        help="Sharpen (<1) or flatten (>1) soft root-visit targets.",
+    )
     args = parser.parse_args()
+    if args.policy_target_temperature <= 0:
+        parser.error("--policy-target-temperature must be positive")
     random.seed(args.seed)
     torch.manual_seed(args.seed)
     device = choose_device(args.device)
@@ -275,7 +291,9 @@ def main() -> None:
     ]
     generator = torch.Generator().manual_seed(args.seed)
     collate = partial(
-        collate_decisions, hard_policy_targets=args.policy_target == "chosen"
+        collate_decisions,
+        hard_policy_targets=args.policy_target == "chosen",
+        policy_target_temperature=args.policy_target_temperature,
     )
     loader = DataLoader(
         Subset(dataset, train_indices), batch_size=args.batch_size, shuffle=True,
@@ -377,6 +395,7 @@ def main() -> None:
         "validation_history": validation_history,
         "value_weight": args.value_weight,
         "policy_target": args.policy_target,
+        "policy_target_temperature": args.policy_target_temperature,
         "value_trained": args.value_weight > 0,
         "initial_loss": losses[0],
         "final_loss": losses[-1],

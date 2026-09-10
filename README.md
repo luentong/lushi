@@ -340,6 +340,23 @@ compute, not a free algorithmic gain. Dataset generation records the actual
 teacher and adaptive simulation counts per decision so future distillation
 experiments can audit compute rather than relying on the base-budget label.
 
+An independent 128-game adaptive-teacher tranche contains 14,331 decisions and
+took 214.5 seconds with eight CPU workers. Its non-forced decisions averaged
+13.30 simulations; 94.4% triggered adaptive compute. The target remained quite
+diffuse (mean entropy 2.009 and mean maximum probability 0.295). A v4 student
+reached validation KL 0.177 and top-1 34.34%, but won only 10/40 against the v4
+fixed-64-teacher student at equal four-simulation inference (25%, paired
+p=0.00635). It is not a promotion candidate: cheaper adaptive search is useful
+online, but its visit distribution is not yet a strong distillation teacher.
+
+Training can now apply `--policy-target-temperature`. Temperature 0.5 reduced
+adaptive-target validation entropy from 2.053 to 1.703 and increased top-1 from
+34.34% to 37.40%. In a direct same-data match it scored exactly 20/40 against
+temperature 1.0 (paired p=1.0), so sharpening alone did not improve playing
+strength. More aggressive hard labels had already failed in the fixed-teacher
+ablation; the next teacher experiment should improve target information (for
+example value-aware action targets), rather than merely rescale visit counts.
+
 The trace audit found the concrete omission: schema v1 encoded weapon Attack
 but not temporary hero Attack. At the reported Searing Fissure decision, the
 v1 model therefore could not observe the three points of temporary Attack. The
