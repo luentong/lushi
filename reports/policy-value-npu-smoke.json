@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "device": "npu:0",
+  "records": 64,
+  "epochs": 5,
+  "initial_loss": 1.7922990322113037,
+  "final_loss": 0.9153644144535065,
+  "policy_accuracy": 0.796875,
+  "value_mae": 0.14322661980986595,
+  "elapsed_seconds": 1.6595355569734238,
+  "model": {
+    "architecture": "policy-value-mlp-v1",
+    "state_size": 867,
+    "action_size": 612,
+    "hidden_size": 256,
+    "action_hidden_size": 128
+  },
+  "feature_schema": {
+    "schema_version": 1,
+    "card_vocab_size": 281,
+    "card_vocab_sha256": "655f28d160a903ed5b3ce396d6ae0df66a6cb5ce44d19f8417f4c05eca1c5a9a",
+    "state_size": 867,
+    "action_size": 612,
+    "action_kinds": [
+      "END_TURN",
+      "MULLIGAN_TOGGLE",
+      "MULLIGAN_CONFIRM",
+      "TRADE",
+      "PLAY",
+      "PREPARE",
+      "ATTACK",
+      "HERO_ATTACK",
+      "LOCATION",
+      "HERO_POWER",
+      "DISCOVER_PICK",
+      "REWIND_KEEP",
+      "REWIND_RETRY",
+      "AMMUNITION_PICK",
+      "CORPSE_SPEND"
+    ]
+  }
+}

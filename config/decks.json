@@ -1,0 +1,33 @@
+{
+  "snapshot_date": "2026-09-08",
+  "region": "CN",
+  "format": "STANDARD",
+  "client_version": null,
+  "card_data": {
+    "provider": "HearthstoneJSON",
+    "build": 251332,
+    "locale": "zhCN"
+  },
+  "decks": [
+    {
+      "id": "dragon_warrior",
+      "name_zh": "龙战",
+      "deckstring": "AAECAQcEzp4G4+YG69YHstgHDar8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5vCB5zCB6ngB/vgBwAA"
+    },
+    {
+      "id": "aggro_druid",
+      "name_zh": "快攻德",
+      "deckstring": "AAECAZICDM2eBqn1BqGBB5KDB6+HB6yIB4KYB+ixB+DAB+LAB+XEB6PaBwmunwSqrwesrwe+sgfXwAeR2gfH5ge85wfK5wcAAA=="
+    },
+    {
+      "id": "stealth_rogue",
+      "name_zh": "潜行贼",
+      "deckstring": "AAECAaIHDM7+BuylB4aoB4eoB4ioB9C/B7PDB4rUB5vUB4jZB8HgB9DgBwn3nwSWoATBlwedxQfVxQej4Ae04AfO4AfD8gcAAA=="
+    },
+    {
+      "id": "dirty_priest",
+      "name_zh": "脏牧",
+      "deckstring": "AAECAa0GBPypB4CqB4SqB+fYBwjwnwSg+wbD/wb3gQeFhgevyQeq2Qes2QcAAA=="
+    }
+  ]
+}

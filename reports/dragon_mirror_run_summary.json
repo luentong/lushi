@@ -1,0 +1,1002 @@
+[
+  {
+    "seed": 202609080001,
+    "winner": 1,
+    "turn": 46,
+    "actions": 198,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "ed1159e29141ab758627316dc7b95c391d25bc560fffc8d7e1d7ae382a80c7ad",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080002,
+    "winner": 1,
+    "turn": 28,
+    "actions": 112,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "9b7e8164629e6d092468076c7dd294d9aadc4dd08eb946c86606744eed587a27",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080003,
+    "winner": 0,
+    "turn": 22,
+    "actions": 76,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "109096c6bfa0d490c9688190f6c262323baf0076eb7bd0e82fc16e9ec7185271",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080004,
+    "winner": 0,
+    "turn": 17,
+    "actions": 69,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "f785433813fb5d5940447db3554874a3c8340bee385ec2b719ecc50aa5b0b3a2",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080005,
+    "winner": 0,
+    "turn": 27,
+    "actions": 114,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "0d631cc96e7a340be7ae7cf38bfdf8ad09e95697728ebb7c504958a36ecc0191",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080006,
+    "winner": 0,
+    "turn": 42,
+    "actions": 197,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "2a92fc9c2d81c0d920ad7d4f8b9a028658dac5996876f73d31bd76d8362b3cca",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080007,
+    "winner": 0,
+    "turn": 19,
+    "actions": 57,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "258cc369620fe8f30e9d81a858f289118fe4e291d94936a170b0ab121c191426",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080008,
+    "winner": 1,
+    "turn": 28,
+    "actions": 117,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "7212830bc4eeed134978154157dcdbefca398062a791ed38c6cfa0f3fc98d699",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080009,
+    "winner": 1,
+    "turn": 33,
+    "actions": 123,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "90d99299351f4183c10b323ff24fa5d9db25bb828947ed43e72b785a9759ad99",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080010,
+    "winner": 1,
+    "turn": 22,
+    "actions": 83,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "d152fda23a74754ecd85b8aac45a6f85876dc2f1d348af6fac6e2cf9856fb94a",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080011,
+    "winner": 1,
+    "turn": 22,
+    "actions": 91,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "b812a27ba32274780d645f5797f94105b5a2199cc041494c5f2dbdb26f7f35be",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080012,
+    "winner": 0,
+    "turn": 13,
+    "actions": 49,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "6408d6c8de98d4f2c32b70a69f4919a048e0d6526722f500659f190c5fad7e4a",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080013,
+    "winner": 1,
+    "turn": 57,
+    "actions": 197,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "7c14e59640bfd97d129930f4fcd335452d755555a8833db415d50c9185b5ab21",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080014,
+    "winner": 1,
+    "turn": 47,
+    "actions": 161,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "5aafb654d972c944338dafb1f5fa55f36a98a148b32538bbaeebd53805869566",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080015,
+    "winner": 1,
+    "turn": 23,
+    "actions": 82,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "caec7f18d64bf922aeeaa8c12c664a2c71a4c3e27508945ace3d201c2b6e5980",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080016,
+    "winner": 1,
+    "turn": 24,
+    "actions": 80,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "51b68f5bc7215b78efa7d6bc5d63a3d7c9f62a2cced38affa3b7eba2b19352d3",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080017,
+    "winner": 1,
+    "turn": 36,
+    "actions": 123,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "b3310e5241c240e17299a77cbba318a14586eaf97f82a39044d8022dffce9087",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080018,
+    "winner": 0,
+    "turn": 35,
+    "actions": 116,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "a689b20af332c0b0e4858e8d14a03ac67489d7e777dc0574e54443fe32f4362b",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080019,
+    "winner": 1,
+    "turn": 35,
+    "actions": 133,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "8ee737fd25d26ef0d2b3e7ea0f8cc963ffab5893b57e3bb5c422c961ebb8694f",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080020,
+    "winner": 1,
+    "turn": 59,
+    "actions": 216,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "4a2f2597eeef40fd09149e34ae0ed8fd7d47b0d08b823ce88e95cbce08dfedde",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080021,
+    "winner": 0,
+    "turn": 23,
+    "actions": 89,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "8967cd5b033e27582a8514e2133ef084bfbe36f40fb90adfe69ec04eaaf2bd3d",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080022,
+    "winner": 0,
+    "turn": 34,
+    "actions": 141,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "8a5789662e610a7d4307ee9b60cad8de52c821d93ce5ec36dbc05c291e8dc1cd",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080023,
+    "winner": 1,
+    "turn": 32,
+    "actions": 117,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "537226653343b28b63d1d9019f2fe0d34308110945825aadee6ff0bb3ee6f320",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080024,
+    "winner": 0,
+    "turn": 34,
+    "actions": 127,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "bbe4d0a15d99027b15548851c1b879500267201190d723b064ab51ccdc37aa44",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080025,
+    "winner": 0,
+    "turn": 33,
+    "actions": 126,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "c98f0776a5abda95ac2901df8b359c124b6fbd74b1cba75f4d86badbf72e849b",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080026,
+    "winner": 1,
+    "turn": 31,
+    "actions": 105,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "170613259cb4ef4acc697dde495b37b468fcbc672cceae4ad336049c95b81026",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080027,
+    "winner": 1,
+    "turn": 20,
+    "actions": 67,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "a16131e4f6cc576b8be3918d0678e16fde1735d39c0fa2a1f3d151f7ae8faf0e",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080028,
+    "winner": 1,
+    "turn": 32,
+    "actions": 118,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "b2d9d0b0dec44d0d604428b1a89194db6980c5fb13e34577c8570096115f2876",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080029,
+    "winner": 1,
+    "turn": 38,
+    "actions": 148,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "a6af5a512e92761c30821f0c771cd0e43a5721a1d0d87135b54c89c82a189094",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080030,
+    "winner": 1,
+    "turn": 26,
+    "actions": 89,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "225216ebdb76509e3814e9848c6d2ceab415feca4da2c0658e545e0e6f569671",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080031,
+    "winner": 0,
+    "turn": 37,
+    "actions": 119,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "1ff57e8b20b2dbedf583270533a66fb26df151ea960e3d8a212189d13591a67f",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080032,
+    "winner": 1,
+    "turn": 56,
+    "actions": 209,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "e0af1e2d1bd12f42024b91564c66652cfdfa529cdf7eee3c42d40308c56d143e",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080033,
+    "winner": 1,
+    "turn": 53,
+    "actions": 200,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "e47d75b79ad93df94da5d696a2e3f300333a14ad4140f88a0ff88ef0785d3775",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080034,
+    "winner": 0,
+    "turn": 62,
+    "actions": 245,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "9c2836ae43e25d13e5b0cb6a75af08c89f53e83b2e32a497ff0671ebe4fb02e9",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080035,
+    "winner": 0,
+    "turn": 39,
+    "actions": 136,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "4d041132105381d4b999efa54d048dff1b21caf62f6847fa8c1e192bb5c8b92f",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080036,
+    "winner": 0,
+    "turn": 45,
+    "actions": 163,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "01999a7c26f59e874221b8cbedcfb2a7c1988fe1c9d7b82bb976c1c59177aac1",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080037,
+    "winner": 1,
+    "turn": 26,
+    "actions": 110,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "84d6a03d3c63a50f2186a36859c002371751975a98538149ba4702a80c5a8c7c",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080038,
+    "winner": 1,
+    "turn": 61,
+    "actions": 236,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "fc566bd526836285afbb5dbb3fdca107107b3eb2f0f34dcf61d881396a030fa0",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080039,
+    "winner": 0,
+    "turn": 21,
+    "actions": 76,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "ac005b4bcb8e0d8fe56316b2760fc03c4e292394b47724d6671e48c4176d7df6",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080040,
+    "winner": 0,
+    "turn": 49,
+    "actions": 171,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "caede08cc9343ea8ddc6796042a0e32690903e25c8231f486ad406af07d7bee6",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080041,
+    "winner": 1,
+    "turn": 24,
+    "actions": 107,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "30057e7b1e37b9f926381bf0fd1c0b53118df5b1ba2236ef2f8cb008ce8a8cd4",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080042,
+    "winner": 0,
+    "turn": 45,
+    "actions": 158,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "ab6ab52c76de915f1fa11c554010e219fb7e1f1e46e02e8edf05bf9705e0f3b9",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080043,
+    "winner": 1,
+    "turn": 37,
+    "actions": 144,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "6c1ad0cc8a349830e29bd8f467b3679be2a9c0f3999e8b00b58e9970981b77f2",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080044,
+    "winner": 0,
+    "turn": 44,
+    "actions": 165,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "4f5c1c8a0f79968374a0a95b4d7554849b25c7ec9e6d3443f3bf60c03a82dde8",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080045,
+    "winner": 0,
+    "turn": 51,
+    "actions": 205,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "bd8ba251e69801254aafcabdb18b251d432653ae4973dde792b6c6820581608f",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080046,
+    "winner": 0,
+    "turn": 43,
+    "actions": 146,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "83c7f939d5956e05e50bef7faa06d11a1be18986c0d904d677f339941d73d20d",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080047,
+    "winner": 0,
+    "turn": 25,
+    "actions": 88,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "6d49c0338cc1370e959608f4aaabea0e202e4dbfb1e8ef13a441315fc865d9a2",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080048,
+    "winner": 1,
+    "turn": 47,
+    "actions": 155,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "b50f6ea7ced539e03e8d1d457ebf17e62fbf745344e65810eeab030de94382a6",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080049,
+    "winner": 0,
+    "turn": 13,
+    "actions": 39,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "8549f198e0d13a77170b425f4806a605c6a0c0bc95f2f7b7850afb2cf93efe9a",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080050,
+    "winner": 1,
+    "turn": 43,
+    "actions": 143,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "dbe90100571d8f52c3510e4e939e2f2b07dd886fe3affc90fffe4808183bf2c2",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080051,
+    "winner": 0,
+    "turn": 29,
+    "actions": 104,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "9c78619c11f5fb03d264920b4c863593af9ec8400940320c5e4d999a0a0be37a",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080052,
+    "winner": 1,
+    "turn": 25,
+    "actions": 90,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "14f9d1e61bc68006181455c4f3941d8a3d5a02866169744280f0bfce4d23a93b",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080053,
+    "winner": 0,
+    "turn": 29,
+    "actions": 123,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "b9b26fe67b354dc0abfd62a5fd0264e623e0783c442f7d051fb8b2f685a653e1",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080054,
+    "winner": 0,
+    "turn": 31,
+    "actions": 106,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "f3595a554122c18aa72e5ca0f236b2a18c38d6a1ef74df895d095f58289eb6ff",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080055,
+    "winner": 1,
+    "turn": 16,
+    "actions": 68,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "b5b0dbcf7280bad4aaf8e50db7812a5bce9c83de75c2f3ae180979f66fcc444f",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080056,
+    "winner": 1,
+    "turn": 45,
+    "actions": 181,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "29bf14024f7bb073ba16ae20683fbb31076c922b428069e9abbf85afb6993a15",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080057,
+    "winner": 1,
+    "turn": 32,
+    "actions": 132,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "355e3bf0c976f22f63f9cc7481bde8f145ab631bcafb32aa17d9bfcf7c66a4ba",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080058,
+    "winner": 1,
+    "turn": 36,
+    "actions": 118,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "08f26875b100d87ae2284fd2b9f91178f10e36de9c9610776cc9a0b92d6f3895",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080059,
+    "winner": 0,
+    "turn": 26,
+    "actions": 103,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "868ca412ef11bd3523d6c1c3927346656a1049a30d8b3316f32df5ebbed1d4bc",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080060,
+    "winner": 0,
+    "turn": 31,
+    "actions": 114,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "f7d3f655bd5ef62db41219386412ed4e214459c72f29c956ecf7d723877e6c79",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080061,
+    "winner": 0,
+    "turn": 55,
+    "actions": 197,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "3b78ac2a9ab65ac0751527361820ab1e19e37bc2d88eef33ff17d383cf8f5ba2",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080062,
+    "winner": 1,
+    "turn": 44,
+    "actions": 174,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "0bf404ff8f2df112fb90b9bd10cf1296ac233933bcd30dfe763246b8f1794f10",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080063,
+    "winner": 1,
+    "turn": 29,
+    "actions": 91,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "2ec05433750bca68b495e6394e6436bf225892aecb8fa312128483526228cf50",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080064,
+    "winner": 0,
+    "turn": 39,
+    "actions": 152,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "bed655deadf3b588dda987c82414e5d9c68e253aa63e0d37a05a683ba89f7403",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080065,
+    "winner": 0,
+    "turn": 60,
+    "actions": 250,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "5e36f6e6304a03d8682e76e45fe5de45a805774c8f41d1f6c074de4aff7d6625",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080066,
+    "winner": 1,
+    "turn": 61,
+    "actions": 243,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "927ec5f542d19caa8ffc247654ec325189f58ca083703e56a7e98576b34adab3",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080067,
+    "winner": 1,
+    "turn": 56,
+    "actions": 204,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "54a699237d2623e601b87a18c57d0a936dd95bd28c9b78636b58f916ca608c66",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080068,
+    "winner": 1,
+    "turn": 31,
+    "actions": 105,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "6b87c55416f933fd735bce08a40515c411c31cdba46852686039efb86c83ac0e",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080069,
+    "winner": 0,
+    "turn": 20,
+    "actions": 91,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "49f7e48215d0dc04eac8a502c854a91e90b542dc010bad9d77f9c33ebee67172",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080070,
+    "winner": 1,
+    "turn": 28,
+    "actions": 116,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "6874803a6c8149526e872277eb259fa4c0bf34404dd1bf1c098272b105149b4b",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080071,
+    "winner": 0,
+    "turn": 21,
+    "actions": 81,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "bf55c8c75bedab4105eeecbd5c45a673d50d9b7ee5f5abaee78bd68ef5bcdb12",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080072,
+    "winner": 1,
+    "turn": 24,
+    "actions": 97,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "b8be155d71424bf63c74e010cf06737f1d6e142575ff78a55f9566157aea41fa",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080073,
+    "winner": 1,
+    "turn": 50,
+    "actions": 207,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "b71b6344c56544aa16a3540121213de1a1e9057884fec3b3e5b862de39a0743f",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080074,
+    "winner": 1,
+    "turn": 29,
+    "actions": 98,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "e5b62b6a4b9b3b0246cb6374095e23cdb59b03585f8944bb5a178f950e9a05f1",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080075,
+    "winner": 0,
+    "turn": 38,
+    "actions": 168,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "4440fca06cb3ecd4ae30604dace78530df869c670ad520f52185589ddca13272",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080076,
+    "winner": 0,
+    "turn": 31,
+    "actions": 97,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "677960cf3fdfbb7db340985051eeb630007a1ef4502df3fc53e04feaf29d111d",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080077,
+    "winner": 1,
+    "turn": 44,
+    "actions": 161,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "431730b30e39ac09cb12a673c01a611245f7997dff5a63f99afd98285f31f89d",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080078,
+    "winner": 1,
+    "turn": 24,
+    "actions": 98,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "a73e6b3dad8f5b599a8373f7a0d6863fc11288ccebd38c3c4f35b1be1ae0137f",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080079,
+    "winner": 1,
+    "turn": 18,
+    "actions": 69,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "ca21abdea6db2d8a6b08725f6b3eb430896c33f26d2b1165a6823ac2c69962af",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080080,
+    "winner": 1,
+    "turn": 24,
+    "actions": 74,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "9e9bb1a609fd4a25ff9665c8b21871e037711231073190aae2ad1eec5b945afa",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080081,
+    "winner": 0,
+    "turn": 51,
+    "actions": 201,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "997301d8955b845f23cebf935f6a2c034e9a490178e434e82a6b7c910b84d996",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080082,
+    "winner": 1,
+    "turn": 51,
+    "actions": 177,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "c08f3abb297477da3072e1289701ba8c5a52f7c54c76a23e39e148d1959947eb",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080083,
+    "winner": 1,
+    "turn": 58,
+    "actions": 165,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "4dc5a17e73d9b3a0a65c63db16b43d591160c27d2f5f083fb5c10c6a6d01bf10",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080084,
+    "winner": 0,
+    "turn": 31,
+    "actions": 132,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "15d73eba14450eeedf5c6e05d43e54b05a52b320e5d44446f0e27137bb4bd37e",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080085,
+    "winner": 0,
+    "turn": 25,
+    "actions": 109,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "8699ad8602c576bbc2ffe7c68de74ae9c8cc2b934b25029d63659ed3ba650382",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080086,
+    "winner": 0,
+    "turn": 29,
+    "actions": 103,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "b51a3733e2a3313176bc5984c199ea5922de531147f1165855a67a1be5908511",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080087,
+    "winner": 1,
+    "turn": 26,
+    "actions": 73,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "2e2c436c9adba7a1bd80903828e533fe6e910a406ea645b7be8002b4eb034ec7",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080088,
+    "winner": 0,
+    "turn": 28,
+    "actions": 134,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "4dc298cc38d099ce3e572c323cd85077593051cf66f055b0726f67c87f9c7347",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080089,
+    "winner": 0,
+    "turn": 26,
+    "actions": 103,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "e21a2a1b659510625e02221d618d2bd1882501d0a598ea795cda1a86395c727a",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080090,
+    "winner": 1,
+    "turn": 32,
+    "actions": 115,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "25038f4fdea613b4109716c8016fb553b40f9ecac7a0909f1e77f75cc55e79ef",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080091,
+    "winner": 0,
+    "turn": 35,
+    "actions": 136,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "b2a0b945c99353707462c3da719528738b893b4325891e45a7d264e10431d0d7",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080092,
+    "winner": 1,
+    "turn": 20,
+    "actions": 85,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "5355a0041dad591c3bcd4ce675a7d54117b41c3a31454a0cf11691fa63dbe7e5",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080093,
+    "winner": 0,
+    "turn": 19,
+    "actions": 78,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "5be6262ee080139ccf89197bcf1686c4ea9081f292de8396e686da3ce6b09504",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080094,
+    "winner": 1,
+    "turn": 24,
+    "actions": 74,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "a65ba4a70f28713ed24b392ca2d6e0a61dc8a9c1bb70d1fae08436afe54dc546",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080095,
+    "winner": 1,
+    "turn": 36,
+    "actions": 145,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "9a76dc06641b34dc696562934b6ce9fd7d435167c2fb153c4e6877cef9d484ec",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080096,
+    "winner": 0,
+    "turn": 33,
+    "actions": 147,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "3c7a51c438fcfbdb6e4eacec5060de4fd733526f1a970a120e5a80603625cd1a",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080097,
+    "winner": 0,
+    "turn": 39,
+    "actions": 139,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "7774d5b4151db58c7846493ba02bc9aef081b60499012418c11b13adb464413b",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080098,
+    "winner": 1,
+    "turn": 24,
+    "actions": 85,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "302328efbbbf3666da1c502b8d2ba304feb9bf39afd050069004e57ad2b4bb78",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080099,
+    "winner": 0,
+    "turn": 26,
+    "actions": 102,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "295a39850f025ff9ca4f4f00d1a6f719dd02941e01e13808ff35ff6002eb05fc",
+    "generation_profile": "closed_generation_pools"
+  },
+  {
+    "seed": 202609080100,
+    "winner": 1,
+    "turn": 49,
+    "actions": 177,
+    "invalid_actions": 0,
+    "finished": true,
+    "event_sha256": "41696f93487ae2f32b65da00d7d6f35bb8c0f6fc97f19b8a6ff7befd4818e50c",
+    "generation_profile": "closed_generation_pools"
+  }
+]

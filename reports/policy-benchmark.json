@@ -1,0 +1,2027 @@
+{
+  "summary": {
+    "schema_version": 1,
+    "ruleset": "dragon-warrior-closed-v2",
+    "generation_profile": "closed_generation_pools",
+    "candidate": "heuristic-tempo-v1",
+    "baseline": "random-v1",
+    "pairs": 100,
+    "games": 200,
+    "finished": 200,
+    "invalid_actions": 0,
+    "heuristic_wins": 199,
+    "heuristic_win_rate": 0.995,
+    "wilson_95": [
+      0.9722262956021069,
+      0.9991168312843989
+    ],
+    "wins_as_first": 99,
+    "games_as_first": 100,
+    "wins_as_second": 100,
+    "games_as_second": 100,
+    "mean_turns": 14.23,
+    "mean_actions": 57.715
+  },
+  "games": [
+    {
+      "seed": 202609090001,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 58,
+      "turns": 15,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090001,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 51,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090002,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 38,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090002,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 45,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090003,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 39,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090003,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 42,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090004,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 35,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090004,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 50,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090005,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 53,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090005,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 64,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090006,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 48,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090006,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 49,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090007,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 69,
+      "turns": 19,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090007,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 55,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090008,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 77,
+      "turns": 19,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090008,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 55,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090009,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 38,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090009,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 42,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090010,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 81,
+      "turns": 19,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090010,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 100,
+      "turns": 20,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090011,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 57,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090011,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 69,
+      "turns": 16,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090012,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 33,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090012,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 65,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090013,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 45,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090013,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 74,
+      "turns": 16,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090014,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 60,
+      "turns": 15,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090014,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 58,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090015,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 35,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090015,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 50,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090016,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 47,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090016,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 50,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090017,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 32,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090017,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 105,
+      "turns": 20,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090018,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 83,
+      "turns": 19,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090018,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 51,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090019,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 43,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090019,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 45,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090020,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 40,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090020,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 90,
+      "turns": 20,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090021,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 74,
+      "turns": 17,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090021,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 69,
+      "turns": 16,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090022,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 34,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090022,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 40,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090023,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 45,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090023,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 50,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090024,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 33,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090024,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 47,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090025,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 51,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090025,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 49,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090026,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 46,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090026,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 50,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090027,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 58,
+      "turns": 15,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090027,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 44,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090028,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 41,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090028,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 46,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090029,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 75,
+      "turns": 17,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090029,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 47,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090030,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 46,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090030,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 65,
+      "turns": 16,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090031,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 59,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090031,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 113,
+      "turns": 22,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090032,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 65,
+      "turns": 15,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090032,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 65,
+      "turns": 16,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090033,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 36,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090033,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 49,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090034,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 54,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090034,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 54,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090035,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 59,
+      "turns": 15,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090035,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 54,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090036,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 69,
+      "turns": 15,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090036,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 46,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090037,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 43,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090037,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 47,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090038,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 62,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090038,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 80,
+      "turns": 16,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090039,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 36,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090039,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 46,
+      "turns": 10,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090040,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 83,
+      "turns": 17,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090040,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 45,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090041,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 38,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090041,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 49,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090042,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 87,
+      "turns": 17,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090042,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 42,
+      "turns": 10,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090043,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 41,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090043,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 47,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090044,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 48,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090044,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 111,
+      "turns": 22,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090045,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 57,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090045,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 50,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090046,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 38,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090046,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 118,
+      "turns": 24,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090047,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 46,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090047,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 48,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090048,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 105,
+      "turns": 25,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090048,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 50,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090049,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 56,
+      "turns": 15,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090049,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 47,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090050,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 121,
+      "turns": 26,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090050,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 37,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090051,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 48,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090051,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 53,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090052,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 58,
+      "turns": 17,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090052,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 34,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090053,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 57,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090053,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 70,
+      "turns": 19,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090054,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 48,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090054,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 47,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090055,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 78,
+      "turns": 17,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090055,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 44,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090056,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 53,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090056,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 64,
+      "turns": 15,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090057,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 50,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090057,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 42,
+      "turns": 10,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090058,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 50,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090058,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 57,
+      "turns": 16,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090059,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 105,
+      "turns": 25,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090059,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 55,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090060,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 48,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090060,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 69,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090061,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 77,
+      "turns": 17,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090061,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 61,
+      "turns": 16,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090062,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 41,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090062,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 43,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090063,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 54,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090063,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 42,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090064,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 40,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090064,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 50,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090065,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 33,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090065,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 66,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090066,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 66,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090066,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 90,
+      "turns": 16,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090067,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 60,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090067,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 72,
+      "turns": 18,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090068,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 76,
+      "turns": 15,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090068,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 46,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090069,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 61,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090069,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 46,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090070,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 68,
+      "turns": 17,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090070,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 151,
+      "turns": 28,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090071,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 59,
+      "turns": 15,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090071,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 41,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090072,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 43,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090072,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 62,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090073,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 90,
+      "turns": 19,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090073,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 56,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090074,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 73,
+      "turns": 15,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090074,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 84,
+      "turns": 18,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090075,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 34,
+      "turns": 9,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090075,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 47,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090076,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 54,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090076,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 47,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090077,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 47,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090077,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 45,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090078,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 87,
+      "turns": 16,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090078,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 49,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090079,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 39,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090079,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 66,
+      "turns": 17,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090080,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 61,
+      "turns": 17,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090080,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 90,
+      "turns": 22,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090081,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 38,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090081,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 95,
+      "turns": 20,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090082,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 55,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090082,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 62,
+      "turns": 16,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090083,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 76,
+      "turns": 18,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090083,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 48,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090084,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 53,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090084,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 53,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090085,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 47,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090085,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 47,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090086,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 50,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090086,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 84,
+      "turns": 18,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090087,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 37,
+      "turns": 11,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090087,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 86,
+      "turns": 18,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090088,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 39,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090088,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 36,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090089,
+      "heuristic_seat": 0,
+      "winner": 1,
+      "heuristic_win": false,
+      "finished": true,
+      "actions": 169,
+      "turns": 33,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090089,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 38,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090090,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 81,
+      "turns": 21,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090090,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 40,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090091,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 73,
+      "turns": 17,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090091,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 35,
+      "turns": 10,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090092,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 60,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090092,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 51,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090093,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 50,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090093,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 113,
+      "turns": 22,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090094,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 31,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090094,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 36,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090095,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 45,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090095,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 55,
+      "turns": 14,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090096,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 41,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090096,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 65,
+      "turns": 18,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090097,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 70,
+      "turns": 17,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090097,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 97,
+      "turns": 19,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090098,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 38,
+      "turns": 13,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090098,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 39,
+      "turns": 12,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090099,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 57,
+      "turns": 15,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090099,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 85,
+      "turns": 18,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090100,
+      "heuristic_seat": 0,
+      "winner": 0,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 40,
+      "turns": 10,
+      "invalid_actions": 0
+    },
+    {
+      "seed": 202609090100,
+      "heuristic_seat": 1,
+      "winner": 1,
+      "heuristic_win": true,
+      "finished": true,
+      "actions": 49,
+      "turns": 14,
+      "invalid_actions": 0
+    }
+  ]
+}

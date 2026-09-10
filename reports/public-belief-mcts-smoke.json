@@ -1,0 +1,48 @@
+{
+  "summary": {
+    "schema_version": 1,
+    "ruleset": "dragon-warrior-closed-v2",
+    "candidate": "root-determinized-mcts-v3",
+    "information_mode": "public_dragon_mirror_v3",
+    "baseline": "heuristic-tempo-v1",
+    "iterations": 4,
+    "rollout_depth": 3,
+    "samples": 2,
+    "pairs": 1,
+    "games": 2,
+    "finished": 2,
+    "invalid_actions": 0,
+    "mcts_wins": 1,
+    "elapsed_seconds": 5.3885948999086395,
+    "searches": 119,
+    "nodes": 1188
+  },
+  "games": [
+    {
+      "seed": 202609090501,
+      "mcts_seat": 0,
+      "winner": 0,
+      "mcts_win": true,
+      "finished": true,
+      "invalid_actions": 0,
+      "turns": 12,
+      "actions": 50,
+      "searches": 28,
+      "nodes": 278,
+      "elapsed_seconds": 0.9882205999456346
+    },
+    {
+      "seed": 202609090501,
+      "mcts_seat": 1,
+      "winner": 0,
+      "mcts_win": false,
+      "finished": true,
+      "invalid_actions": 0,
+      "turns": 30,
+      "actions": 170,
+      "searches": 91,
+      "nodes": 910,
+      "elapsed_seconds": 4.400374299963005
+    }
+  ]
+}

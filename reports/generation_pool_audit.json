@@ -1,0 +1,332 @@
+{
+  "schema_version": 7,
+  "cards_build": 251332,
+  "standard_sets": [
+    "CATACLYSM",
+    "CORE",
+    "EMERALD_DREAM",
+    "ESCAPEFROM_VIOLET_HOLD",
+    "THE_LOST_CITY",
+    "TIME_TRAVEL"
+  ],
+  "pool_semantics": "Discover uses the fixed deck's eligible Warrior/Neutral pool and excludes Fabled plus conditionally banned Herald cards; Stadium random equip uses all collectible Standard weapons; Undefeated Champion uses all collectible Standard 1-Cost minions; Champion and Void Soul pools are evaluated in summon context where Battlecries do not execute; Void Soul tiers 1-10 are closed; Demon, Mech, 5-Cost, 2-Cost, and 4-Cost play-from-hand pools plus Warrior/Neutral Legendary minions track the remaining transitive generators",
+  "summary": {
+    "dragon": {
+      "candidate_count": 47,
+      "direct_supported": 4,
+      "generated_supported": 38,
+      "metadata_only": 0,
+      "needs_rule": 5,
+      "unimplemented": 5
+    },
+    "warrior_minion": {
+      "candidate_count": 40,
+      "direct_supported": 7,
+      "generated_supported": 32,
+      "metadata_only": 0,
+      "needs_rule": 1,
+      "unimplemented": 1
+    },
+    "pirate": {
+      "candidate_count": 11,
+      "direct_supported": 1,
+      "generated_supported": 10,
+      "metadata_only": 0,
+      "needs_rule": 0,
+      "unimplemented": 0
+    },
+    "weapon": {
+      "candidate_count": 35,
+      "direct_supported": 0,
+      "generated_supported": 32,
+      "metadata_only": 0,
+      "needs_rule": 3,
+      "unimplemented": 3
+    },
+    "one_cost_minion": {
+      "candidate_count": 65,
+      "direct_supported": 3,
+      "generated_supported": 57,
+      "metadata_only": 0,
+      "needs_rule": 5,
+      "unimplemented": 5
+    },
+    "tortotem_multi_type_minion": {
+      "candidate_count": 55,
+      "direct_supported": 1,
+      "generated_supported": 49,
+      "metadata_only": 0,
+      "needs_rule": 5,
+      "unimplemented": 5
+    },
+    "demon_play": {
+      "candidate_count": 38,
+      "direct_supported": 0,
+      "generated_supported": 36,
+      "metadata_only": 0,
+      "needs_rule": 2,
+      "unimplemented": 2
+    },
+    "mech_play": {
+      "candidate_count": 29,
+      "direct_supported": 0,
+      "generated_supported": 23,
+      "metadata_only": 0,
+      "needs_rule": 6,
+      "unimplemented": 6
+    },
+    "five_cost_minion_play": {
+      "candidate_count": 83,
+      "direct_supported": 0,
+      "generated_supported": 22,
+      "metadata_only": 0,
+      "needs_rule": 61,
+      "unimplemented": 61
+    },
+    "two_cost_minion_play": {
+      "candidate_count": 121,
+      "direct_supported": 1,
+      "generated_supported": 20,
+      "metadata_only": 0,
+      "needs_rule": 100,
+      "unimplemented": 100
+    },
+    "four_cost_minion_play": {
+      "candidate_count": 127,
+      "direct_supported": 4,
+      "generated_supported": 27,
+      "metadata_only": 0,
+      "needs_rule": 96,
+      "unimplemented": 96
+    },
+    "legendary_minion_play": {
+      "candidate_count": 54,
+      "direct_supported": 2,
+      "generated_supported": 33,
+      "metadata_only": 0,
+      "needs_rule": 19,
+      "unimplemented": 19
+    },
+    "rewind_card_play": {
+      "candidate_count": 18,
+      "direct_supported": 1,
+      "generated_supported": 7,
+      "metadata_only": 0,
+      "needs_rule": 10,
+      "unimplemented": 10
+    },
+    "aura_card_play": {
+      "candidate_count": 29,
+      "direct_supported": 0,
+      "generated_supported": 24,
+      "metadata_only": 0,
+      "needs_rule": 5,
+      "unimplemented": 5
+    },
+    "void_soul_demon_1": {
+      "candidate_count": 5,
+      "direct_supported": 1,
+      "generated_supported": 4,
+      "metadata_only": 0,
+      "needs_rule": 0,
+      "unimplemented": 0
+    },
+    "void_soul_demon_2": {
+      "candidate_count": 3,
+      "direct_supported": 0,
+      "generated_supported": 3,
+      "metadata_only": 0,
+      "needs_rule": 0,
+      "unimplemented": 0
+    },
+    "void_soul_demon_3": {
+      "candidate_count": 4,
+      "direct_supported": 0,
+      "generated_supported": 4,
+      "metadata_only": 0,
+      "needs_rule": 0,
+      "unimplemented": 0
+    },
+    "void_soul_demon_4": {
+      "candidate_count": 5,
+      "direct_supported": 0,
+      "generated_supported": 5,
+      "metadata_only": 0,
+      "needs_rule": 0,
+      "unimplemented": 0
+    },
+    "void_soul_demon_5": {
+      "candidate_count": 4,
+      "direct_supported": 0,
+      "generated_supported": 4,
+      "metadata_only": 0,
+      "needs_rule": 0,
+      "unimplemented": 0
+    },
+    "void_soul_demon_6": {
+      "candidate_count": 4,
+      "direct_supported": 0,
+      "generated_supported": 4,
+      "metadata_only": 0,
+      "needs_rule": 0,
+      "unimplemented": 0
+    },
+    "void_soul_demon_7": {
+      "candidate_count": 4,
+      "direct_supported": 0,
+      "generated_supported": 4,
+      "metadata_only": 0,
+      "needs_rule": 0,
+      "unimplemented": 0
+    },
+    "void_soul_demon_8": {
+      "candidate_count": 3,
+      "direct_supported": 0,
+      "generated_supported": 3,
+      "metadata_only": 0,
+      "needs_rule": 0,
+      "unimplemented": 0
+    },
+    "void_soul_demon_9": {
+      "candidate_count": 4,
+      "direct_supported": 0,
+      "generated_supported": 4,
+      "metadata_only": 0,
+      "needs_rule": 0,
+      "unimplemented": 0
+    },
+    "void_soul_demon_10": {
+      "candidate_count": 2,
+      "direct_supported": 0,
+      "generated_supported": 2,
+      "metadata_only": 0,
+      "needs_rule": 0,
+      "unimplemented": 0
+    }
+  },
+  "weapon_closure_backlog": [
+    {
+      "card_id": "JAIL_458",
+      "name": "Tiny Pal",
+      "mechanic": "Choose elemental ammunition after each hero attack",
+      "transitive_dependencies": [
+        "Frost and Fire ammunition are implemented",
+        "random collectible 3-Cost minion pool",
+        "random collectible Battlecry-minion pool"
+      ]
+    },
+    {
+      "card_id": "JAIL_875",
+      "name": "Staff of Trickery",
+      "mechanic": "Discover a Druid card and reduce its Cost by hero Attack",
+      "transitive_dependencies": [
+        "full collectible Standard Druid Discover pool",
+        "persistent generated-card Cost modifier"
+      ]
+    },
+    {
+      "card_id": "TIME_444",
+      "name": "Time-Lost Glaive",
+      "mechanic": "Deathrattle generates a random Demon from the past",
+      "transitive_dependencies": [
+        "historical Demon pool definition for build 251332",
+        "rules for every eligible generated Demon"
+      ]
+    }
+  ],
+  "priority_closure_backlog": [
+    {
+      "card_id": "CATA_614",
+      "pool": "dragon",
+      "name": "Shadowed Informant",
+      "mechanic": "Discover a spell from the current class; class swaps each turn",
+      "transitive_dependencies": [
+        "turn-indexed class identity",
+        "complete eligible Standard class-spell Discover pools",
+        "playable rules for every offered spell"
+      ]
+    },
+    {
+      "card_id": "CATA_723",
+      "pool": "dragon",
+      "name": "Drakeadon Mongrel",
+      "mechanic": "Deathrattle summons two random 4-Cost minions",
+      "transitive_dependencies": [
+        "complete collectible Standard 4-Cost minion summon pool",
+        "summon-time static, aura, Deathrattle and trigger behavior"
+      ]
+    },
+    {
+      "card_id": "CORE_EX1_189",
+      "pool": "dragon",
+      "name": "Brightwing",
+      "mechanic": "Battlecry adds a random Legendary minion to hand",
+      "transitive_dependencies": [
+        "complete eligible Standard Legendary-minion pool",
+        "playable rules for every generated Legendary"
+      ]
+    },
+    {
+      "card_id": "FIR_959",
+      "pool": "dragon",
+      "name": "Fyrakk the Blazing",
+      "mechanic": "Immune to Fire spells; casts 15 Mana of Fire spells at random enemies",
+      "transitive_dependencies": [
+        "complete eligible Standard Fire-spell pool",
+        "automatic target selection and repeated-cast semantics",
+        "Fire-spell immunity in damage resolution"
+      ]
+    },
+    {
+      "card_id": "TIME_052",
+      "pool": "dragon",
+      "name": "Amber Warden",
+      "mechanic": "Deathrattle summons a random minion from the past",
+      "transitive_dependencies": [
+        "build-251332 historical 'from the past' pool definition",
+        "summon-time rules for every eligible historical minion"
+      ]
+    },
+    {
+      "card_id": "TIME_872",
+      "pool": "warrior_minion",
+      "name": "Undefeated Champion",
+      "mechanic": "Battlecry fills the opponent board with random 1-Cost minions",
+      "transitive_dependencies": [
+        "complete collectible Standard 1-Cost summon pool",
+        "five remaining summon-time triggered/Deathrattle rules"
+      ]
+    },
+    {
+      "card_id": "JAIL_458",
+      "pool": "weapon",
+      "name": "Tiny Pal",
+      "mechanic": "Choose elemental ammunition after each hero attack",
+      "transitive_dependencies": [
+        "Frost and Fire ammunition are implemented",
+        "random collectible 3-Cost minion pool",
+        "random collectible Battlecry-minion pool"
+      ]
+    },
+    {
+      "card_id": "JAIL_875",
+      "pool": "weapon",
+      "name": "Staff of Trickery",
+      "mechanic": "Discover a Druid card and reduce its Cost by hero Attack",
+      "transitive_dependencies": [
+        "full collectible Standard Druid Discover pool",
+        "persistent generated-card Cost modifier"
+      ]
+    },
+    {
+      "card_id": "TIME_444",
+      "pool": "weapon",
+      "name": "Time-Lost Glaive",
+      "mechanic": "Deathrattle generates a random Demon from the past",
+      "transitive_dependencies": [
+        "historical Demon pool definition for build 251332",
+        "rules for every eligible generated Demon"
+      ]
+    }
+  ]
+}

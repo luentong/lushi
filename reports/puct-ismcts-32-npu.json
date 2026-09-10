@@ -1,0 +1,76 @@
+{
+  "summary": {
+    "schema_version": 1,
+    "ruleset": "dragon-warrior-closed-v2",
+    "candidate": "policy-value-puct-v1",
+    "information_mode": "public_dragon_mirror_v3",
+    "baseline": "heuristic-tempo-v1",
+    "iterations": 4,
+    "tree_depth": 4,
+    "rollout_depth": 0,
+    "samples": 1,
+    "checkpoint": "reports/policy-value-ismcts-32.pt",
+    "pairs": 2,
+    "games": 4,
+    "finished": 4,
+    "invalid_actions": 0,
+    "mcts_wins": 1,
+    "elapsed_seconds": 26.60617556096986,
+    "searches": 430,
+    "nodes": 1970
+  },
+  "games": [
+    {
+      "seed": 202609090501,
+      "mcts_seat": 0,
+      "winner": 0,
+      "mcts_win": true,
+      "finished": true,
+      "invalid_actions": 0,
+      "turns": 60,
+      "actions": 583,
+      "searches": 281,
+      "nodes": 1309,
+      "elapsed_seconds": 20.35272048902698
+    },
+    {
+      "seed": 202609090501,
+      "mcts_seat": 1,
+      "winner": 0,
+      "mcts_win": false,
+      "finished": true,
+      "invalid_actions": 0,
+      "turns": 11,
+      "actions": 49,
+      "searches": 22,
+      "nodes": 98,
+      "elapsed_seconds": 0.7482483659987338
+    },
+    {
+      "seed": 202609090502,
+      "mcts_seat": 0,
+      "winner": 1,
+      "mcts_win": false,
+      "finished": true,
+      "invalid_actions": 0,
+      "turns": 26,
+      "actions": 172,
+      "searches": 88,
+      "nodes": 400,
+      "elapsed_seconds": 3.9571027969941497
+    },
+    {
+      "seed": 202609090502,
+      "mcts_seat": 1,
+      "winner": 0,
+      "mcts_win": false,
+      "finished": true,
+      "invalid_actions": 0,
+      "turns": 17,
+      "actions": 94,
+      "searches": 39,
+      "nodes": 163,
+      "elapsed_seconds": 1.5481039089499973
+    }
+  ]
+}

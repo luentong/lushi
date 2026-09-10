@@ -1,0 +1,24 @@
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Local dependency/reference checkouts
+.deps/
+vendor/
+
+# Generated training artifacts
+reports/*.pt
+reports/*.jsonl.gz
+
+# Large reproducible traces
+reports/dragon_mirror_trace.json
+
+# Editor and operating-system files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

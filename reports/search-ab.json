@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "budget": {
+    "samples": 2,
+    "iterations_per_sample": 8,
+    "simulations_per_decision": 16,
+    "rollout_depth": 4
+  },
+  "baseline": "heuristic-tempo-v1",
+  "summaries": [
+    {
+      "candidate": "root-determinized-mcts-v3",
+      "games": 4,
+      "finished": 4,
+      "wins": 3,
+      "win_rate": 0.75,
+      "invalid_actions": 0,
+      "elapsed_seconds": 20.88242689985782,
+      "median_game_seconds": 3.396206599951256,
+      "searches": 227,
+      "nodes": 4046
+    },
+    {
+      "candidate": "shared-tree-ismcts-v1",
+      "games": 4,
+      "finished": 4,
+      "wins": 4,
+      "win_rate": 1.0,
+      "invalid_actions": 0,
+      "elapsed_seconds": 31.852372199995443,
+      "median_game_seconds": 5.784726649988443,
+      "searches": 305,
+      "nodes": 4581
+    }
+  ],
+  "runs": {
+    "root-determinized-mcts-v3": [
+      {
+        "seed": 202609091000,
+        "seat": 0,
+        "winner": 1,
+        "candidate_win": false,
+        "finished": true,
+        "invalid_actions": 0,
+        "turns": 20,
+        "actions": 109,
+        "searches": 42,
+        "nodes": 756,
+        "elapsed_seconds": 3.450068000005558
+      },
+      {
+        "seed": 202609091000,
+        "seat": 1,
+        "winner": 1,
+        "candidate_win": true,
+        "finished": true,
+        "invalid_actions": 0,
+        "turns": 14,
+        "actions": 63,
+        "searches": 38,
+        "nodes": 677,
+        "elapsed_seconds": 3.152222599950619
+      },
+      {
+        "seed": 202609091001,
+        "seat": 0,
+        "winner": 0,
+        "candidate_win": true,
+        "finished": true,
+        "invalid_actions": 0,
+        "turns": 14,
+        "actions": 66,
+        "searches": 40,
+        "nodes": 698,
+        "elapsed_seconds": 3.342345199896954
+      },
+      {
+        "seed": 202609091001,
+        "seat": 1,
+        "winner": 1,
+        "candidate_win": true,
+        "finished": true,
+        "invalid_actions": 0,
+        "turns": 30,
+        "actions": 189,
+        "searches": 107,
+        "nodes": 1915,
+        "elapsed_seconds": 10.937791100004688
+      }
+    ],
+    "shared-tree-ismcts-v1": [
+      {
+        "seed": 202609091000,
+        "seat": 0,
+        "winner": 0,
+        "candidate_win": true,
+        "finished": true,
+        "invalid_actions": 0,
+        "turns": 23,
+        "actions": 132,
+        "searches": 66,
+        "nodes": 957,
+        "elapsed_seconds": 5.508887900039554
+      },
+      {
+        "seed": 202609091000,
+        "seat": 1,
+        "winner": 1,
+        "candidate_win": true,
+        "finished": true,
+        "invalid_actions": 0,
+        "turns": 28,
+        "actions": 154,
+        "searches": 67,
+        "nodes": 1043,
+        "elapsed_seconds": 6.060565399937332
+      },
+      {
+        "seed": 202609091001,
+        "seat": 0,
+        "winner": 0,
+        "candidate_win": true,
+        "finished": true,
+        "invalid_actions": 0,
+        "turns": 14,
+        "actions": 70,
+        "searches": 44,
+        "nodes": 629,
+        "elapsed_seconds": 4.006527399993502
+      },
+      {
+        "seed": 202609091001,
+        "seat": 1,
+        "winner": 1,
+        "candidate_win": true,
+        "finished": true,
+        "invalid_actions": 0,
+        "turns": 45,
+        "actions": 316,
+        "searches": 128,
+        "nodes": 1952,
+        "elapsed_seconds": 16.276391500025056
+      }
+    ]
+  }
+}

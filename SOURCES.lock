@@ -1,0 +1,6 @@
+HearthstoneJSON build=251332 locale=zhCN fetched=2026-09-08
+RosettaStone commit=e10749b5f0c08d3a6135bce317cb11d1738846ad
+python-hearthstone commit=1505698821923b8d19869dd966207e19db1418f7
+python-hslog commit=015c0dec197779c90cd3131ecda2c990292342b6
+hearthstone-lab commit=7f6f14459d6b3dec3156bbc902447c8d0023614a status=evaluation-only
+fireplace commit=47a2572a000db66645bb74a425a090d51f1004fa license=AGPL-3.0 status=reference-only

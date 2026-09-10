@@ -1,0 +1,5 @@
+﻿deck_id,deck_name_zh,format,hero_dbf_ids,encoded_entries,unique_entities,sideboards,rosetta_implemented_unique,rosetta_implemented_copies,rosetta_coverage_unique_pct,project_runtime_supported_unique,project_runtime_supported_copies,project_runtime_coverage_unique_pct,project_deck_validated_unique,project_deck_validated_copies,project_deck_validated_unique_pct,project_deck_validated_copies_pct,deck_ready
+dragon_warrior,龙战,FT_STANDARD,[7],30,17,0,0,0,0.0,17,30,100.0,17,30,100.0,100.0,True
+aggro_druid,快攻德,FT_STANDARD,[274],30,21,0,1,2,4.76,3,4,14.29,0,0,0.0,0.0,False
+stealth_rogue,潜行贼,FT_STANDARD,[930],30,21,0,2,4,9.52,3,5,14.29,0,0,0.0,0.0,False
+dirty_priest,脏牧,FT_STANDARD,[813],20,12,0,1,2,8.33,0,0,0.0,0,0,0.0,0.0,False

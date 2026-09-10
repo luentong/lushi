@@ -1,0 +1,94 @@
+{
+  "schema_version": 3,
+  "cards_build": 251332,
+  "standard_sets": [
+    "CATACLYSM",
+    "CORE",
+    "EMERALD_DREAM",
+    "ESCAPEFROM_VIOLET_HOLD",
+    "THE_LOST_CITY",
+    "TIME_TRAVEL"
+  ],
+  "pool_semantics": "Discover uses the fixed deck's eligible Warrior/Neutral pool and excludes Fabled plus conditionally banned Herald cards; Stadium random equip uses all collectible Standard weapons; Undefeated Champion uses all collectible Standard 1-Cost minions, evaluated in summon context where Battlecries do not execute",
+  "summary": {
+    "dragon": {
+      "candidate_count": 47,
+      "direct_supported": 4,
+      "generated_supported": 38,
+      "metadata_only": 0,
+      "needs_rule": 5,
+      "unimplemented": 5
+    },
+    "warrior_minion": {
+      "candidate_count": 40,
+      "direct_supported": 7,
+      "generated_supported": 32,
+      "metadata_only": 0,
+      "needs_rule": 1,
+      "unimplemented": 1
+    },
+    "pirate": {
+      "candidate_count": 11,
+      "direct_supported": 1,
+      "generated_supported": 10,
+      "metadata_only": 0,
+      "needs_rule": 0,
+      "unimplemented": 0
+    },
+    "weapon": {
+      "candidate_count": 35,
+      "direct_supported": 0,
+      "generated_supported": 31,
+      "metadata_only": 0,
+      "needs_rule": 4,
+      "unimplemented": 4
+    },
+    "one_cost_minion": {
+      "candidate_count": 65,
+      "direct_supported": 3,
+      "generated_supported": 45,
+      "metadata_only": 0,
+      "needs_rule": 17,
+      "unimplemented": 17
+    }
+  },
+  "weapon_closure_backlog": [
+    {
+      "card_id": "JAIL_458",
+      "name": "Tiny Pal",
+      "mechanic": "Choose elemental ammunition after each hero attack",
+      "transitive_dependencies": [
+        "four ammunition modes",
+        "random collectible 3-Cost minion pool",
+        "random collectible Battlecry-minion pool"
+      ]
+    },
+    {
+      "card_id": "JAIL_730",
+      "name": "Stardust Scythe",
+      "mechanic": "Generate an improving Void Soul after each hero attack",
+      "transitive_dependencies": [
+        "Void Soul upgrade state",
+        "random collectible 1-Cost Demon pool"
+      ]
+    },
+    {
+      "card_id": "JAIL_875",
+      "name": "Staff of Trickery",
+      "mechanic": "Discover a Druid card and reduce its Cost by hero Attack",
+      "transitive_dependencies": [
+        "full collectible Standard Druid Discover pool",
+        "persistent generated-card Cost modifier"
+      ]
+    },
+    {
+      "card_id": "TIME_444",
+      "name": "Time-Lost Glaive",
+      "mechanic": "Deathrattle generates a random Demon from the past",
+      "transitive_dependencies": [
+        "historical Demon pool definition for build 251332",
+        "rules for every eligible generated Demon"
+      ]
+    }
+  ]
+}

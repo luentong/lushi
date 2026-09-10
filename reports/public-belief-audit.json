@@ -1,0 +1,808 @@
+{
+  "schema_version": 1,
+  "belief_model": "public_dragon_mirror_v3",
+  "games": 50,
+  "finished": 50,
+  "decisions": 10158,
+  "unresolved_decisions": 0,
+  "games_with_unresolved_slots": 0,
+  "max_unresolved_slots": 0,
+  "generated_source_observations": {
+    "CAP_105": 259,
+    "CAP_107": 16171,
+    "CATA_556": 7924,
+    "CATA_585": 7228,
+    "EDR_456": 713,
+    "FIR_939": 1407,
+    "JAIL_730": 70
+  },
+  "hand_modifier_observations": {
+    "CORE_WW_329": 361,
+    "END_021": 30,
+    "FIR_928": 52
+  },
+  "runs": [
+    {
+      "seed": 202609090000,
+      "finished": true,
+      "decisions": 304,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 7,
+        "CAP_107": 679,
+        "CATA_556": 302,
+        "CATA_585": 241,
+        "FIR_939": 9
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090001,
+      "finished": true,
+      "decisions": 247,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 6,
+        "CAP_107": 116,
+        "CATA_556": 158,
+        "CATA_585": 213,
+        "FIR_939": 11,
+        "JAIL_730": 11
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090002,
+      "finished": true,
+      "decisions": 203,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_107": 226,
+        "CATA_556": 186,
+        "CATA_585": 24,
+        "FIR_939": 41
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090003,
+      "finished": true,
+      "decisions": 263,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_107": 466,
+        "CATA_556": 210,
+        "CATA_585": 91,
+        "FIR_939": 17,
+        "JAIL_730": 21
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090004,
+      "finished": true,
+      "decisions": 121,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 4,
+        "CAP_107": 43,
+        "CATA_556": 20,
+        "CATA_585": 51,
+        "EDR_456": 11,
+        "FIR_939": 20
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090005,
+      "finished": true,
+      "decisions": 733,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 8,
+        "CAP_107": 1799,
+        "CATA_556": 713,
+        "CATA_585": 767,
+        "FIR_939": 21
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090006,
+      "finished": true,
+      "decisions": 96,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 19,
+        "CAP_107": 83,
+        "CATA_556": 76,
+        "CATA_585": 33
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090007,
+      "finished": true,
+      "decisions": 68,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 13,
+        "CAP_107": 13,
+        "FIR_939": 40,
+        "JAIL_730": 8
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090008,
+      "finished": true,
+      "decisions": 111,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 4,
+        "CAP_107": 87,
+        "CATA_556": 115,
+        "CATA_585": 30,
+        "FIR_939": 15
+      },
+      "hand_modifier_observations": {
+        "FIR_928": 36
+      }
+    },
+    {
+      "seed": 202609090009,
+      "finished": true,
+      "decisions": 48,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 10,
+        "CAP_107": 11,
+        "FIR_939": 9
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090010,
+      "finished": true,
+      "decisions": 89,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 8,
+        "CAP_107": 60,
+        "CATA_556": 40,
+        "CATA_585": 4,
+        "FIR_939": 42
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090011,
+      "finished": true,
+      "decisions": 127,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 2,
+        "CAP_107": 47,
+        "CATA_556": 43,
+        "CATA_585": 13,
+        "FIR_939": 23
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090012,
+      "finished": true,
+      "decisions": 108,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 14,
+        "CAP_107": 41,
+        "CATA_556": 40,
+        "CATA_585": 37,
+        "EDR_456": 41,
+        "FIR_939": 20
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090013,
+      "finished": true,
+      "decisions": 221,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_107": 282,
+        "CATA_556": 212,
+        "CATA_585": 146,
+        "FIR_939": 38
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090014,
+      "finished": true,
+      "decisions": 57,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_107": 5,
+        "CATA_556": 26,
+        "CATA_585": 39
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090015,
+      "finished": true,
+      "decisions": 168,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_107": 243,
+        "CATA_556": 166,
+        "EDR_456": 7,
+        "FIR_939": 26
+      },
+      "hand_modifier_observations": {
+        "END_021": 30
+      }
+    },
+    {
+      "seed": 202609090016,
+      "finished": true,
+      "decisions": 42,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_107": 13,
+        "FIR_939": 32
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090017,
+      "finished": true,
+      "decisions": 186,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 20,
+        "CAP_107": 262,
+        "CATA_556": 160,
+        "CATA_585": 142,
+        "FIR_939": 15
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090018,
+      "finished": true,
+      "decisions": 217,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 6,
+        "CAP_107": 27,
+        "CATA_556": 40,
+        "CATA_585": 192,
+        "EDR_456": 70,
+        "FIR_939": 10
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090019,
+      "finished": true,
+      "decisions": 86,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 5,
+        "CAP_107": 31,
+        "CATA_556": 38,
+        "FIR_939": 10
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090020,
+      "finished": true,
+      "decisions": 91,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 6,
+        "CAP_107": 43,
+        "CATA_556": 43,
+        "CATA_585": 27,
+        "FIR_939": 43
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090021,
+      "finished": true,
+      "decisions": 698,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_107": 1191,
+        "CATA_556": 630,
+        "CATA_585": 787,
+        "FIR_939": 42
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090022,
+      "finished": true,
+      "decisions": 46,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CATA_556": 12,
+        "CATA_585": 7
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090023,
+      "finished": true,
+      "decisions": 57,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CATA_556": 48,
+        "CATA_585": 25,
+        "FIR_939": 6
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090024,
+      "finished": true,
+      "decisions": 110,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_107": 61,
+        "CATA_556": 52,
+        "EDR_456": 13,
+        "FIR_939": 22
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090025,
+      "finished": true,
+      "decisions": 730,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 4,
+        "CAP_107": 2293,
+        "CATA_556": 697,
+        "CATA_585": 734,
+        "FIR_939": 32
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090026,
+      "finished": true,
+      "decisions": 181,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 5,
+        "CAP_107": 199,
+        "CATA_556": 161,
+        "CATA_585": 111,
+        "FIR_939": 58
+      },
+      "hand_modifier_observations": {
+        "CORE_WW_329": 28
+      }
+    },
+    {
+      "seed": 202609090027,
+      "finished": true,
+      "decisions": 156,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 18,
+        "CAP_107": 29,
+        "CATA_556": 54,
+        "CATA_585": 92,
+        "FIR_939": 74
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090028,
+      "finished": true,
+      "decisions": 161,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 3,
+        "CATA_556": 22,
+        "CATA_585": 71,
+        "EDR_456": 25,
+        "FIR_939": 33
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090029,
+      "finished": true,
+      "decisions": 101,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_107": 17,
+        "CATA_556": 37,
+        "CATA_585": 17,
+        "EDR_456": 38,
+        "FIR_939": 30
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090030,
+      "finished": true,
+      "decisions": 217,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 15,
+        "CAP_107": 277,
+        "CATA_556": 215,
+        "CATA_585": 83,
+        "FIR_939": 23
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090031,
+      "finished": true,
+      "decisions": 164,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_107": 75,
+        "CATA_556": 76,
+        "CATA_585": 28,
+        "FIR_939": 35
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090032,
+      "finished": true,
+      "decisions": 58,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 8,
+        "CAP_107": 31,
+        "CATA_556": 26,
+        "FIR_939": 64
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090033,
+      "finished": true,
+      "decisions": 72,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_107": 7,
+        "CATA_556": 27,
+        "CATA_585": 20,
+        "FIR_939": 43
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090034,
+      "finished": true,
+      "decisions": 458,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_107": 1152,
+        "CATA_556": 456,
+        "CATA_585": 194,
+        "FIR_939": 13
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090035,
+      "finished": true,
+      "decisions": 82,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 11,
+        "CAP_107": 22,
+        "CATA_585": 28,
+        "EDR_456": 9,
+        "FIR_939": 37,
+        "JAIL_730": 11
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090036,
+      "finished": true,
+      "decisions": 62,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 4,
+        "CAP_107": 35,
+        "FIR_939": 46
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090037,
+      "finished": true,
+      "decisions": 84,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 23,
+        "CAP_107": 36,
+        "CATA_556": 1,
+        "CATA_585": 40,
+        "FIR_939": 28
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090038,
+      "finished": true,
+      "decisions": 79,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_107": 27,
+        "CATA_556": 86,
+        "EDR_456": 9,
+        "FIR_939": 14
+      },
+      "hand_modifier_observations": {
+        "FIR_928": 16
+      }
+    },
+    {
+      "seed": 202609090039,
+      "finished": true,
+      "decisions": 110,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 9,
+        "CAP_107": 29,
+        "CATA_556": 100,
+        "CATA_585": 56,
+        "FIR_939": 28
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090040,
+      "finished": true,
+      "decisions": 79,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 11,
+        "CAP_107": 8,
+        "CATA_556": 1,
+        "EDR_456": 53,
+        "FIR_939": 54
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090041,
+      "finished": true,
+      "decisions": 729,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_107": 2147,
+        "CATA_556": 700,
+        "CATA_585": 546,
+        "EDR_456": 360,
+        "FIR_939": 98
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090042,
+      "finished": true,
+      "decisions": 89,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_107": 20,
+        "CATA_556": 61,
+        "CATA_585": 45,
+        "EDR_456": 33,
+        "FIR_939": 32
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090043,
+      "finished": true,
+      "decisions": 46,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "EDR_456": 23,
+        "FIR_939": 23,
+        "JAIL_730": 19
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090044,
+      "finished": true,
+      "decisions": 60,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 9,
+        "CAP_107": 28,
+        "CATA_556": 21,
+        "CATA_585": 8,
+        "FIR_939": 9
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090045,
+      "finished": true,
+      "decisions": 828,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_107": 2552,
+        "CATA_556": 822,
+        "CATA_585": 755,
+        "FIR_939": 15
+      },
+      "hand_modifier_observations": {
+        "CORE_WW_329": 333
+      }
+    },
+    {
+      "seed": 202609090046,
+      "finished": true,
+      "decisions": 127,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_105": 7,
+        "CAP_107": 30,
+        "CATA_556": 55,
+        "EDR_456": 8,
+        "FIR_939": 9
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090047,
+      "finished": true,
+      "decisions": 790,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_107": 1279,
+        "CATA_556": 893,
+        "CATA_585": 1436,
+        "EDR_456": 13,
+        "FIR_939": 8
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090048,
+      "finished": true,
+      "decisions": 137,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_107": 38,
+        "CATA_556": 53,
+        "CATA_585": 95,
+        "FIR_939": 29
+      },
+      "hand_modifier_observations": {}
+    },
+    {
+      "seed": 202609090049,
+      "finished": true,
+      "decisions": 61,
+      "unresolved_decisions": 0,
+      "max_unresolved": 0,
+      "first_unresolved_context": [],
+      "generated_source_observations": {
+        "CAP_107": 11,
+        "CATA_556": 30,
+        "FIR_939": 60
+      },
+      "hand_modifier_observations": {}
+    }
+  ]
+}

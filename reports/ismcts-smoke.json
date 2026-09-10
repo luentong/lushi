@@ -1,0 +1,100 @@
+{
+  "summary": {
+    "schema_version": 1,
+    "ruleset": "dragon-warrior-closed-v2",
+    "candidate": "shared-tree-ismcts-v1",
+    "information_mode": "public_dragon_mirror_v3",
+    "baseline": "heuristic-tempo-v1",
+    "iterations": 8,
+    "rollout_depth": 4,
+    "samples": 2,
+    "pairs": 3,
+    "games": 6,
+    "finished": 6,
+    "invalid_actions": 0,
+    "mcts_wins": 4,
+    "elapsed_seconds": 30.62282759998925,
+    "searches": 307,
+    "nodes": 4690
+  },
+  "games": [
+    {
+      "seed": 202609090501,
+      "mcts_seat": 0,
+      "winner": 0,
+      "mcts_win": true,
+      "finished": true,
+      "invalid_actions": 0,
+      "turns": 15,
+      "actions": 64,
+      "searches": 32,
+      "nodes": 428,
+      "elapsed_seconds": 2.0663975999923423
+    },
+    {
+      "seed": 202609090501,
+      "mcts_seat": 1,
+      "winner": 0,
+      "mcts_win": false,
+      "finished": true,
+      "invalid_actions": 0,
+      "turns": 13,
+      "actions": 44,
+      "searches": 19,
+      "nodes": 307,
+      "elapsed_seconds": 1.4583327999571338
+    },
+    {
+      "seed": 202609090502,
+      "mcts_seat": 0,
+      "winner": 0,
+      "mcts_win": true,
+      "finished": true,
+      "invalid_actions": 0,
+      "turns": 21,
+      "actions": 122,
+      "searches": 67,
+      "nodes": 1027,
+      "elapsed_seconds": 6.694403199944645
+    },
+    {
+      "seed": 202609090502,
+      "mcts_seat": 1,
+      "winner": 0,
+      "mcts_win": false,
+      "finished": true,
+      "invalid_actions": 0,
+      "turns": 13,
+      "actions": 53,
+      "searches": 14,
+      "nodes": 206,
+      "elapsed_seconds": 1.109965700074099
+    },
+    {
+      "seed": 202609090503,
+      "mcts_seat": 0,
+      "winner": 0,
+      "mcts_win": true,
+      "finished": true,
+      "invalid_actions": 0,
+      "turns": 17,
+      "actions": 76,
+      "searches": 27,
+      "nodes": 360,
+      "elapsed_seconds": 1.9043354999739677
+    },
+    {
+      "seed": 202609090503,
+      "mcts_seat": 1,
+      "winner": 1,
+      "mcts_win": true,
+      "finished": true,
+      "invalid_actions": 0,
+      "turns": 45,
+      "actions": 296,
+      "searches": 148,
+      "nodes": 2362,
+      "elapsed_seconds": 17.389392800047062
+    }
+  ]
+}

@@ -1,0 +1,313 @@
+#!/usr/bin/env python3
+"""Train the small policy/value model on generated JSONL.GZ decisions."""
+
+from __future__ import annotations
+
+import argparse
+import gzip
+import json
+import random
+import sys
+import time
+from collections import defaultdict
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+import torch
+import torch.nn.functional as F
+from torch.utils.data import DataLoader, Dataset, Subset
+
+from hsa.torch_model import PolicyValueNet
+
+
+class DecisionDataset(Dataset):
+    def __init__(self, path: Path, max_records: int | None = None):
+        self.records = []
+        with gzip.open(path, "rt", encoding="utf-8") as handle:
+            self.header = json.loads(next(handle))
+            for line in handle:
+                if max_records is not None and len(self.records) >= max_records:
+                    break
+                record = json.loads(line)
+                if record.get("record_type") == "decision":
+                    self.records.append(record)
+        if not self.records:
+            raise ValueError("dataset contains no decision records")
+
+    def __len__(self) -> int:
+        return len(self.records)
+
+    def __getitem__(self, index: int):
+        return self.records[index]
+
+
+def collate_decisions(records: list[dict]):
+    state_size = len(records[0]["state"])
+    action_size = len(records[0]["actions"][0])
+    max_actions = max(len(record["actions"]) for record in records)
+    states = torch.zeros((len(records), state_size), dtype=torch.float32)
+    actions = torch.zeros(
+        (len(records), max_actions, action_size), dtype=torch.float32
+    )
+    mask = torch.zeros((len(records), max_actions), dtype=torch.bool)
+    chosen = torch.empty(len(records), dtype=torch.long)
+    values = torch.empty(len(records), dtype=torch.float32)
+    policy_targets = torch.zeros((len(records), max_actions), dtype=torch.float32)
+    for row, record in enumerate(records):
+        count = len(record["actions"])
+        states[row] = torch.tensor(record["state"], dtype=torch.float32)
+        actions[row, :count] = torch.tensor(record["actions"], dtype=torch.float32)
+        mask[row, :count] = True
+        chosen[row] = int(record["chosen_action"])
+        values[row] = float(record["value_target"])
+        target = record.get("policy_target")
+        if target is None:
+            policy_targets[row, chosen[row]] = 1.0
+        else:
+            policy_targets[row, :count] = torch.tensor(target, dtype=torch.float32)
+    return states, actions, mask, chosen, values, policy_targets
+
+
+def choose_device(requested: str) -> torch.device:
+    if requested == "cpu":
+        return torch.device("cpu")
+    try:
+        import torch_npu  # noqa: F401
+        available = torch.npu.is_available()
+    except (ImportError, AttributeError):
+        available = False
+    if requested == "npu" and not available:
+        raise RuntimeError("NPU requested but torch-npu is unavailable")
+    return torch.device("npu:0" if available else "cpu")
+
+
+def evaluate(model, loader, device):
+    model.eval()
+    correct = count = policy_count = 0
+    absolute_error = 0.0
+    squared_error = 0.0
+    policy_cross_entropy = 0.0
+    policy_target_entropy = 0.0
+    with torch.no_grad():
+        for states, actions, mask, chosen, targets, policy_targets in loader:
+            states, actions, mask = states.to(device), actions.to(device), mask.to(device)
+            chosen, targets = chosen.to(device), targets.to(device)
+            policy_targets = policy_targets.to(device)
+            logits, values = model(states, actions, mask)
+            log_probabilities = F.log_softmax(logits, dim=1)
+            nontrivial = mask.sum(dim=1) > 1
+            correct += int(
+                ((logits.argmax(dim=1) == chosen) & nontrivial).sum().item()
+            )
+            policy_count += int(nontrivial.sum().item())
+            count += len(chosen)
+            absolute_error += float((values - targets).abs().sum().item())
+            squared_error += float(((values - targets) ** 2).sum().item())
+            row_cross_entropy = -(policy_targets * log_probabilities).sum(dim=1)
+            policy_cross_entropy += float(row_cross_entropy[nontrivial].sum().item())
+            target_logs = torch.where(
+                policy_targets > 0,
+                torch.log(policy_targets.clamp_min(1e-12)),
+                torch.zeros_like(policy_targets),
+            )
+            row_target_entropy = -(policy_targets * target_logs).sum(dim=1)
+            policy_target_entropy += float(
+                row_target_entropy[nontrivial].sum().item()
+            )
+    cross_entropy = policy_cross_entropy / max(1, policy_count)
+    target_entropy = policy_target_entropy / max(1, policy_count)
+    value_mse = squared_error / count
+    return {
+        "policy_decisions": policy_count,
+        "forced_decisions": count - policy_count,
+        "policy_accuracy": correct / max(1, policy_count),
+        "policy_cross_entropy": cross_entropy,
+        "policy_target_entropy": target_entropy,
+        "policy_kl": max(0.0, cross_entropy - target_entropy),
+        "value_mae": absolute_error / count,
+        "value_mse": value_mse,
+        # Targets and predictions are mapped from [-1, 1] to win probability.
+        "value_brier": value_mse / 4.0,
+    }
+
+
+def winner_counts(dataset, indices: list[int]) -> dict[str, int]:
+    """Count complete games by winner without weighting long games more."""
+    winners = {}
+    for index in indices:
+        record = dataset.records[index]
+        winners.setdefault(record["game_seed"], record.get("winner"))
+    counts = {"player_0": 0, "player_1": 0, "draw": 0}
+    for winner in winners.values():
+        key = "draw" if winner is None else f"player_{int(winner)}"
+        counts[key] += 1
+    return counts
+
+
+def stratified_validation_seeds(
+    records: list[dict], validation_ratio: float, seed: int
+) -> set[int]:
+    """Split complete games while approximately preserving winner balance."""
+    winner_by_seed = {}
+    for record in records:
+        winner_by_seed.setdefault(record["game_seed"], record.get("winner"))
+    if len(winner_by_seed) <= 1 or validation_ratio <= 0:
+        return set()
+    buckets: dict[object, list[int]] = defaultdict(list)
+    for game_seed, winner in winner_by_seed.items():
+        buckets[winner].append(game_seed)
+    rng = random.Random(seed)
+    selected: set[int] = set()
+    for winner in sorted(buckets, key=lambda value: str(value)):
+        game_seeds = sorted(buckets[winner])
+        rng.shuffle(game_seeds)
+        count = round(len(game_seeds) * validation_ratio)
+        if len(game_seeds) > 1:
+            count = min(len(game_seeds) - 1, max(1, count))
+        else:
+            count = 0
+        selected.update(game_seeds[:count])
+    if not selected:
+        selected.add(sorted(winner_by_seed)[0])
+    return selected
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--data", type=Path,
+        default=ROOT / "reports" / "policy-value-smoke.jsonl.gz",
+    )
+    parser.add_argument(
+        "--output", type=Path,
+        default=ROOT / "reports" / "policy-value-smoke.pt",
+    )
+    parser.add_argument("--device", choices=("auto", "cpu", "npu"), default="auto")
+    parser.add_argument("--epochs", type=int, default=20)
+    parser.add_argument("--batch-size", type=int, default=32)
+    parser.add_argument("--learning-rate", type=float, default=3e-4)
+    parser.add_argument("--value-weight", type=float, default=0.5)
+    parser.add_argument("--validation-ratio", type=float, default=0.2)
+    parser.add_argument("--hidden-size", type=int, default=256)
+    parser.add_argument("--action-hidden-size", type=int, default=128)
+    parser.add_argument("--max-records", type=int)
+    parser.add_argument("--seed", type=int, default=20260909)
+    args = parser.parse_args()
+    random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    device = choose_device(args.device)
+    dataset = DecisionDataset(args.data, args.max_records)
+    schema = dataset.header["feature_schema"]
+    model = PolicyValueNet(
+        int(schema["state_size"]), int(schema["action_size"]),
+        args.hidden_size, args.action_hidden_size,
+    ).to(device)
+    seeds = sorted({record["game_seed"] for record in dataset.records})
+    validation_seeds = stratified_validation_seeds(
+        dataset.records, args.validation_ratio, args.seed
+    )
+    validation_games = len(validation_seeds)
+    train_indices = [
+        index for index, record in enumerate(dataset.records)
+        if record["game_seed"] not in validation_seeds
+    ]
+    validation_indices = [
+        index for index, record in enumerate(dataset.records)
+        if record["game_seed"] in validation_seeds
+    ]
+    generator = torch.Generator().manual_seed(args.seed)
+    loader = DataLoader(
+        Subset(dataset, train_indices), batch_size=args.batch_size, shuffle=True,
+        collate_fn=collate_decisions, generator=generator, num_workers=0,
+    )
+    train_eval_loader = DataLoader(
+        Subset(dataset, train_indices), batch_size=args.batch_size, shuffle=False,
+        collate_fn=collate_decisions, num_workers=0,
+    )
+    validation_loader = (
+        DataLoader(
+            Subset(dataset, validation_indices), batch_size=args.batch_size,
+            shuffle=False, collate_fn=collate_decisions, num_workers=0,
+        )
+        if validation_indices else None
+    )
+    optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate)
+    losses = []
+    started = time.perf_counter()
+    model.train()
+    for _ in range(args.epochs):
+        epoch_loss = 0.0
+        batches = 0
+        for states, actions, mask, chosen, targets, policy_targets in loader:
+            states, actions, mask = states.to(device), actions.to(device), mask.to(device)
+            chosen, targets = chosen.to(device), targets.to(device)
+            policy_targets = policy_targets.to(device)
+            optimizer.zero_grad(set_to_none=True)
+            logits, values = model(states, actions, mask)
+            policy_loss_rows = -(
+                policy_targets * F.log_softmax(logits, dim=1)
+            ).sum(dim=1)
+            nontrivial = mask.sum(dim=1) > 1
+            policy_loss = (
+                policy_loss_rows[nontrivial].mean()
+                if bool(nontrivial.any().item())
+                else policy_loss_rows.sum() * 0.0
+            )
+            value_loss = F.mse_loss(values, targets)
+            loss = policy_loss + args.value_weight * value_loss
+            loss.backward()
+            optimizer.step()
+            epoch_loss += float(loss.detach().item())
+            batches += 1
+        losses.append(epoch_loss / batches)
+    if device.type == "npu":
+        torch.npu.synchronize()
+    train_metrics = evaluate(model, train_eval_loader, device)
+    if validation_loader is not None:
+        validation_metrics = evaluate(
+            model, validation_loader, device
+        )
+    else:
+        validation_metrics = None
+    report = {
+        "schema_version": 1,
+        "device": str(device),
+        "records": len(dataset),
+        "train_records": len(train_indices),
+        "validation_records": len(validation_indices),
+        "train_games": len(seeds) - validation_games,
+        "validation_games": validation_games,
+        "epochs": args.epochs,
+        "initial_loss": losses[0],
+        "final_loss": losses[-1],
+        "train_winners": winner_counts(dataset, train_indices),
+        "validation_winners": winner_counts(dataset, validation_indices),
+        "train_metrics": train_metrics,
+        "validation_metrics": validation_metrics,
+        # Retain the first report's flat fields for downstream compatibility.
+        "train_policy_accuracy": train_metrics["policy_accuracy"],
+        "train_value_mae": train_metrics["value_mae"],
+        "validation_policy_accuracy": (
+            validation_metrics["policy_accuracy"] if validation_metrics else None
+        ),
+        "validation_value_mae": (
+            validation_metrics["value_mae"] if validation_metrics else None
+        ),
+        "elapsed_seconds": time.perf_counter() - started,
+        "model": model.metadata(),
+        "feature_schema": schema,
+    }
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(
+        {"model_state_dict": model.state_dict(), "report": report}, args.output
+    )
+    report_path = args.output.with_suffix(".json")
+    report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps(report, indent=2))
+
+
+if __name__ == "__main__":
+    main()

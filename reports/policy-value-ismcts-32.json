@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "device": "npu:0",
+  "records": 3361,
+  "train_records": 2472,
+  "validation_records": 889,
+  "train_games": 26,
+  "validation_games": 6,
+  "epochs": 25,
+  "initial_loss": 1.9471566200256347,
+  "final_loss": 1.2689774453639984,
+  "train_policy_accuracy": 0.48058252427184467,
+  "train_value_mae": 0.004540123431235069,
+  "validation_policy_accuracy": 0.38020247469066365,
+  "validation_value_mae": 0.483615647821244,
+  "elapsed_seconds": 115.50459606398363,
+  "model": {
+    "architecture": "policy-value-mlp-v1",
+    "state_size": 867,
+    "action_size": 612,
+    "hidden_size": 256,
+    "action_hidden_size": 128
+  },
+  "feature_schema": {
+    "schema_version": 1,
+    "card_vocab_size": 281,
+    "card_vocab_sha256": "655f28d160a903ed5b3ce396d6ae0df66a6cb5ce44d19f8417f4c05eca1c5a9a",
+    "state_size": 867,
+    "action_size": 612,
+    "action_kinds": [
+      "END_TURN",
+      "MULLIGAN_TOGGLE",
+      "MULLIGAN_CONFIRM",
+      "TRADE",
+      "PLAY",
+      "PREPARE",
+      "ATTACK",
+      "HERO_ATTACK",
+      "LOCATION",
+      "HERO_POWER",
+      "DISCOVER_PICK",
+      "REWIND_KEEP",
+      "REWIND_RETRY",
+      "AMMUNITION_PICK",
+      "CORPSE_SPEND"
+    ]
+  }
+}

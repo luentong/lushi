@@ -1,0 +1,50 @@
+{
+  "summary": {
+    "schema_version": 1,
+    "ruleset": "dragon-warrior-closed-v2",
+    "candidate": "policy-value-puct-v1",
+    "information_mode": "public_dragon_mirror_v3",
+    "baseline": "heuristic-tempo-v1",
+    "iterations": 2,
+    "tree_depth": 3,
+    "rollout_depth": 0,
+    "samples": 1,
+    "checkpoint": "reports/policy-value-npu-smoke.pt",
+    "pairs": 1,
+    "games": 2,
+    "finished": 2,
+    "invalid_actions": 0,
+    "mcts_wins": 0,
+    "elapsed_seconds": 4.84213314607041,
+    "searches": 51,
+    "nodes": 127
+  },
+  "games": [
+    {
+      "seed": 202609090501,
+      "mcts_seat": 0,
+      "winner": 1,
+      "mcts_win": false,
+      "finished": true,
+      "invalid_actions": 0,
+      "turns": 14,
+      "actions": 58,
+      "searches": 31,
+      "nodes": 77,
+      "elapsed_seconds": 2.8333168850513175
+    },
+    {
+      "seed": 202609090501,
+      "mcts_seat": 1,
+      "winner": 0,
+      "mcts_win": false,
+      "finished": true,
+      "invalid_actions": 0,
+      "turns": 11,
+      "actions": 37,
+      "searches": 20,
+      "nodes": 50,
+      "elapsed_seconds": 2.008816261019092
+    }
+  ]
+}
