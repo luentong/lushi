@@ -250,6 +250,23 @@ smaller than the first 30/40 result and is not yet statistically decisive.
 Policy-prior search remains experimental pending more independent training
 runs or a pooled hierarchical analysis.
 
+A third checkpoint was trained from another 64-game teacher set (6,849
+decisions) and evaluated on another disjoint 50-pair range. It also won 60/100
+against plain ISMCTS, sweeping 18 pairs, splitting 24, and losing 8 (paired
+p=0.0755). The two 100-game replications used different training data,
+evaluation seeds, and checkpoint hashes. Across all three direct matches the
+policy-prior agents won 150/240 games (62.5%, descriptive Wilson 95% interval
+56.2%-68.4%); the pooled pair counts were 46 swept, 58 split, and 16 lost
+(descriptive paired p=0.00018). Pooling games is not a substitute for more
+independent checkpoints, but the repeated 60% result makes the direction more
+credible and revises the likely effect down from the initial 75% estimate.
+`aggregate_policy_prior_runs.py` reproduces these statistics and validates
+that every seed has both seat assignments.
+
+Policy-only checkpoints now record `value_trained=false`. The benchmark rejects
+using their untrained value head unless `--policy-only` is supplied, preventing
+an accidentally random leaf-value comparison.
+
 Benchmarks can now load one checkpoint per worker, run independent games in
 parallel, report wall-clock time, and emit a Wilson interval. Multi-process NPU
 inference was verified with four workers on Ascend 910C. Special generated

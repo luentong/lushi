@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "runs": [
+    {
+      "report": "reports/policy-prior-vs-ismcts-40games-npu.json",
+      "checkpoint": "reports/policy-value-budget16-e10.pt",
+      "games": 40,
+      "wins": 30,
+      "win_rate": 0.75,
+      "wilson95": [
+        0.598057409330299,
+        0.8581303210445048
+      ],
+      "pairs": 20,
+      "swept_pairs": 10,
+      "split_pairs": 10,
+      "lost_pairs": 0,
+      "decisive_pairs": 10,
+      "exact_two_sided_sign_p": 0.001953125
+    },
+    {
+      "report": "reports/policy-independent64-vs-ismcts-100games-npu.json",
+      "checkpoint": "reports/policy-independent64-budget16-e10.pt",
+      "games": 100,
+      "wins": 60,
+      "win_rate": 0.6,
+      "wilson95": [
+        0.5020007846184025,
+        0.6906002538863971
+      ],
+      "pairs": 50,
+      "swept_pairs": 18,
+      "split_pairs": 24,
+      "lost_pairs": 8,
+      "decisive_pairs": 26,
+      "exact_two_sided_sign_p": 0.07551869750022888
+    },
+    {
+      "report": "reports/policy-independent64b-vs-ismcts-100games-npu.json",
+      "checkpoint": "reports/policy-independent64b-budget16-e10.pt",
+      "games": 100,
+      "wins": 60,
+      "win_rate": 0.6,
+      "wilson95": [
+        0.5020007846184025,
+        0.6906002538863971
+      ],
+      "pairs": 50,
+      "swept_pairs": 18,
+      "split_pairs": 24,
+      "lost_pairs": 8,
+      "decisive_pairs": 26,
+      "exact_two_sided_sign_p": 0.07551869750022888
+    }
+  ],
+  "pooled": {
+    "independent_runs": 3,
+    "games": 240,
+    "wins": 150,
+    "win_rate": 0.625,
+    "wilson95": [
+      0.5622331827935879,
+      0.6838281947564281
+    ],
+    "pairs": 120,
+    "swept_pairs": 46,
+    "split_pairs": 58,
+    "lost_pairs": 16,
+    "decisive_pairs": 62,
+    "exact_two_sided_sign_p": 0.00017632711255144299
+  },
+  "interpretation": "Pooled statistics are descriptive; checkpoint-level replication remains the unit of generalization."
+}

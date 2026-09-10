@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
 import sys
 import time
 from concurrent.futures import ProcessPoolExecutor
@@ -22,22 +21,10 @@ from hsa import (
     InformationSetMCTSPolicy,
     MCTSPolicy,
 )
+from hsa.evaluation import wilson_interval
 
 
 _MODEL_CACHE = {}
-
-
-def wilson_interval(wins: int, games: int, z: float = 1.96) -> list[float]:
-    if games <= 0:
-        return [0.0, 0.0]
-    proportion = wins / games
-    denominator = 1.0 + z * z / games
-    center = (proportion + z * z / (2.0 * games)) / denominator
-    radius = z * math.sqrt(
-        proportion * (1.0 - proportion) / games
-        + z * z / (4.0 * games * games)
-    ) / denominator
-    return [max(0.0, center - radius), min(1.0, center + radius)]
 
 
 def load_model(checkpoint: Path, device: str):
@@ -66,6 +53,10 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
         if args.checkpoint is None:
             raise ValueError("--checkpoint is required for puct mode")
         model = load_model(args.checkpoint, args.device)
+        if not args.policy_only and not model.value_trained:
+            raise ValueError(
+                "checkpoint value head was not trained; pass --policy-only"
+            )
         search = InformationSetMCTSPolicy(
             samples=args.samples,
             iterations_per_sample=args.iterations,

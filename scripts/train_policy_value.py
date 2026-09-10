@@ -281,6 +281,8 @@ def main() -> None:
         "train_games": len(seeds) - validation_games,
         "validation_games": validation_games,
         "epochs": args.epochs,
+        "value_weight": args.value_weight,
+        "value_trained": args.value_weight > 0,
         "initial_loss": losses[0],
         "final_loss": losses[-1],
         "train_winners": winner_counts(dataset, train_indices),

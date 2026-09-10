@@ -82,9 +82,13 @@ class TorchPolicyValueModel:
 
     name = "torch-policy-value-mlp-v1"
 
-    def __init__(self, model: PolicyValueNet, device: torch.device):
+    def __init__(
+        self, model: PolicyValueNet, device: torch.device,
+        *, value_trained: bool = True,
+    ):
         self.model = model.to(device).eval()
         self.device = device
+        self.value_trained = value_trained
 
     @classmethod
     def from_checkpoint(
@@ -100,7 +104,10 @@ class TorchPolicyValueModel:
             int(metadata["hidden_size"]), int(metadata["action_hidden_size"]),
         )
         model.load_state_dict(checkpoint["model_state_dict"])
-        return cls(model, device)
+        return cls(
+            model, device,
+            value_trained=bool(checkpoint["report"].get("value_trained", True)),
+        )
 
     def predict(self, game, actions) -> PolicyValueOutput:
         if not actions:
