@@ -7,7 +7,7 @@ import argparse
 import json
 import sys
 import time
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
 
@@ -176,17 +176,21 @@ def main() -> int:
         for offset in range(args.pairs) for seat in (0, 1)
     ]
     benchmark_started = time.perf_counter()
+    games = []
     if args.workers > 1:
         with ProcessPoolExecutor(max_workers=args.workers) as executor:
-            games = list(executor.map(
-                play,
-                (job[0] for job in jobs),
-                (job[1] for job in jobs),
-                (job[2] for job in jobs),
-                (job[3] for job in jobs),
-            ))
+            futures = [executor.submit(play, *job) for job in jobs]
+            for future in as_completed(futures):
+                games.append(future.result())
+                print(
+                    f"progress {len(games)}/{len(jobs)} games",
+                    flush=True,
+                )
     else:
-        games = [play(*job) for job in jobs]
+        for job in jobs:
+            games.append(play(*job))
+            print(f"progress {len(games)}/{len(jobs)} games", flush=True)
+    games.sort(key=lambda row: (row["seed"], row["mcts_seat"]))
     wins = sum(row["mcts_win"] for row in games)
     summary = {
         "schema_version": 1,

@@ -46,6 +46,11 @@ def dataset_statistics(games: list[list[dict]]) -> dict[str, object]:
         "forced_action_fraction": (
             1.0 - len(nontrivial_records) / max(1, len(records))
         ),
+        "teacher_behavior_disagreement_fraction": sum(
+            record.get("executed_action", record["chosen_action"])
+            != record["chosen_action"]
+            for record in nontrivial_records
+        ) / max(1, len(nontrivial_records)),
     }
     if soft_targets:
         entropies = [
@@ -81,17 +86,37 @@ def play_game(cards: Path, seed: int, teacher: str, args) -> list[dict]:
             )
             for seat in (0, 1)
         ]
+    if args.behavior == "teacher":
+        behavior_policies = policies
+    elif args.behavior == "heuristic":
+        behavior_policies = [HeuristicPolicy(), HeuristicPolicy()]
+    else:
+        behavior_policies = [
+            InformationSetMCTSPolicy(
+                samples=args.behavior_samples,
+                iterations_per_sample=args.behavior_iterations,
+                rollout_depth=args.behavior_rollout_depth,
+                seed=args.behavior_search_seed + seed * 2 + seat,
+            )
+            for seat in (0, 1)
+        ]
     records: list[dict] = []
     ply = 0
     while not game.finished and ply < args.max_actions:
         actor = game.current
         decision = encode_decision(game)
-        action = policies[actor].choose(game)
-        chosen = decision.action_keys.index(action.key())
+        teacher_action = policies[actor].choose(game)
+        chosen = decision.action_keys.index(teacher_action.key())
         policy_target = (
             policies[actor].last_search.get("root_policy")
             if teacher == "ismcts" else None
         )
+        behavior_action = (
+            teacher_action
+            if behavior_policies is policies
+            else behavior_policies[actor].choose(game)
+        )
+        executed = decision.action_keys.index(behavior_action.key())
         records.append({
             "record_type": "decision",
             "game_seed": seed,
@@ -100,10 +125,11 @@ def play_game(cards: Path, seed: int, teacher: str, args) -> list[dict]:
             "state": decision.state,
             "actions": decision.actions,
             "chosen_action": chosen,
+            "executed_action": executed,
             "policy_target": policy_target,
             "legal_action_count": len(decision.actions),
         })
-        game.step(action)
+        game.step(behavior_action)
         ply += 1
     if not game.finished:
         raise RuntimeError(f"game {seed} exceeded {args.max_actions} actions")
@@ -125,6 +151,15 @@ def main() -> None:
     parser.add_argument("--iterations", type=int, default=4)
     parser.add_argument("--rollout-depth", type=int, default=3)
     parser.add_argument("--search-seed", type=int, default=20260909)
+    parser.add_argument(
+        "--behavior", choices=("teacher", "heuristic", "ismcts"),
+        default="teacher",
+        help="Policy that advances the game; teacher still supplies labels.",
+    )
+    parser.add_argument("--behavior-samples", type=int, default=2)
+    parser.add_argument("--behavior-iterations", type=int, default=8)
+    parser.add_argument("--behavior-rollout-depth", type=int, default=3)
+    parser.add_argument("--behavior-search-seed", type=int, default=20260911)
     parser.add_argument("--max-actions", type=int, default=1000)
     parser.add_argument("--workers", type=int, default=1)
     parser.add_argument("--cards", type=Path, default=ROOT / "cards.251332.enUS.json")
@@ -151,7 +186,7 @@ def main() -> None:
         ]
     header = {
         "record_type": "header",
-        "dataset_schema_version": 2,
+        "dataset_schema_version": 3,
         "ruleset": "dragon-warrior-closed-v2",
         "teacher": args.teacher,
         "teacher_budget": (
@@ -162,6 +197,18 @@ def main() -> None:
                 "rollout_depth": args.rollout_depth,
             }
             if args.teacher == "ismcts" else None
+        ),
+        "behavior": args.behavior,
+        "behavior_budget": (
+            {
+                "samples": args.behavior_samples,
+                "iterations_per_sample": args.behavior_iterations,
+                "simulations_per_decision": (
+                    args.behavior_samples * args.behavior_iterations
+                ),
+                "rollout_depth": args.behavior_rollout_depth,
+            }
+            if args.behavior == "ismcts" else None
         ),
         "feature_schema": feature_schema(),
         "games": args.games,

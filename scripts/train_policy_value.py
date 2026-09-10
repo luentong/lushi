@@ -21,7 +21,11 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset, Subset
 
-from hsa.torch_model import InteractionPolicyValueNet, PolicyValueNet
+from hsa.torch_model import (
+    BilinearPolicyValueNet,
+    InteractionPolicyValueNet,
+    PolicyValueNet,
+)
 
 
 class DecisionDataset(Dataset):
@@ -160,6 +164,25 @@ def winner_counts(dataset, indices: list[int]) -> dict[str, int]:
     return counts
 
 
+def actor_metrics(model, dataset, indices, collate, batch_size, device):
+    """Report policy/value generalization separately for each acting seat."""
+    result = {}
+    for actor in (0, 1):
+        actor_indices = [
+            index for index in indices
+            if int(dataset.records[index]["actor"]) == actor
+        ]
+        if not actor_indices:
+            result[f"player_{actor}"] = None
+            continue
+        loader = DataLoader(
+            Subset(dataset, actor_indices), batch_size=batch_size,
+            shuffle=False, collate_fn=collate, num_workers=0,
+        )
+        result[f"player_{actor}"] = evaluate(model, loader, device)
+    return result
+
+
 def stratified_validation_seeds(
     records: list[dict], validation_ratio: float, seed: int
 ) -> set[int]:
@@ -208,7 +231,7 @@ def main() -> None:
     parser.add_argument("--action-hidden-size", type=int, default=128)
     parser.add_argument(
         "--architecture",
-        choices=("additive-v1", "interaction-v2"),
+        choices=("additive-v1", "interaction-v2", "bilinear-v3"),
         default="additive-v1",
         help="Policy head architecture; interaction-v2 models state-action fit.",
     )
@@ -228,11 +251,11 @@ def main() -> None:
     device = choose_device(args.device)
     dataset = DecisionDataset(args.data, args.max_records)
     schema = dataset.header["feature_schema"]
-    model_class = (
-        InteractionPolicyValueNet
-        if args.architecture == "interaction-v2"
-        else PolicyValueNet
-    )
+    model_class = {
+        "additive-v1": PolicyValueNet,
+        "interaction-v2": InteractionPolicyValueNet,
+        "bilinear-v3": BilinearPolicyValueNet,
+    }[args.architecture]
     model = model_class(
         int(schema["state_size"]), int(schema["action_size"]),
         args.hidden_size, args.action_hidden_size,
@@ -330,6 +353,12 @@ def main() -> None:
         )
     else:
         validation_metrics = None
+    train_actor_metrics = actor_metrics(
+        model, dataset, train_indices, collate, args.batch_size, device
+    )
+    validation_actor_metrics = actor_metrics(
+        model, dataset, validation_indices, collate, args.batch_size, device
+    )
     report = {
         "schema_version": 1,
         "data_sources": [path.as_posix() for path in args.data],
@@ -358,6 +387,8 @@ def main() -> None:
         "validation_winners": winner_counts(dataset, validation_indices),
         "train_metrics": train_metrics,
         "validation_metrics": validation_metrics,
+        "train_actor_metrics": train_actor_metrics,
+        "validation_actor_metrics": validation_actor_metrics,
         # Retain the first report's flat fields for downstream compatibility.
         "train_policy_accuracy": train_metrics["policy_accuracy"],
         "train_value_mae": train_metrics["value_mae"],

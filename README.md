@@ -358,6 +358,32 @@ A 256-game policy/value attempt still overfit its value head: train Brier was
 0.029 but validation Brier was 0.351, worse than the 0.25 constant baseline.
 Neural leaf values therefore remain disabled.
 
+Feature schema v3 fixes an observer-frame mismatch: states were encoded as
+own/enemy while action source and target players were encoded as absolute seat
+0/1. New checkpoints use relative action players; v1/v2 checkpoints retain
+their original encoder. A 128-game v3 high-budget student scored 56/100 against
+an independently trained v2 high-budget student at equal 32-simulation search
+(Wilson 95% interval 46.2%-65.3%, paired sign p=0.210). This is a correctness
+fix with only directional, non-significant strength evidence.
+
+A first DAgger-style tranche executes a 16-simulation behavior policy while a
+64-simulation teacher labels every reached state. The agents disagreed on
+58.8% of non-forced decisions, confirming meaningful deployment-distribution
+shift. Adding 32 such games to the 128 teacher-self-play games scored 13/24
+against the base v3 student, so one tranche is insufficient evidence of gain.
+The data generator records both `chosen_action` and `executed_action`, behavior
+configuration, and disagreement rate.
+
+Feature schema v4 additionally records the target zone. Schema v3 could not
+distinguish an otherwise identical target in hand from one on board. The v4
+student improved offline validation top-1 from 38.4% to 40.9% and policy KL
+from 0.489 to 0.464 across independent splits, but scored only 9/24 against the
+v3 student. The information fix remains, while the v4 checkpoint is not a
+promoted strength model. A constrained bilinear policy head also failed its
+offline gate (validation KL 0.498 versus 0.489 for additive v1) and was not sent
+to direct play. Long benchmarks now print progress after every completed game,
+including out-of-order worker completions.
+
 For an equal simulation-budget comparison, run
 `python scripts/compare_search.py --pairs 10 --samples 2 --iterations 8`.
 The small pinned smoke run uses 16 simulations per decision and exists only to

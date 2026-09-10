@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Aggregate independent policy-prior versus plain-ISMCTS replications."""
+"""Aggregate compatible seat-swapped search-agent replications."""
 
 from __future__ import annotations
 
@@ -25,13 +25,25 @@ def main() -> None:
     args = parser.parse_args()
     runs = []
     all_games = []
+    expected_signature = None
     for path in args.reports:
         document = json.loads(path.read_text(encoding="utf-8"))
         summary = document["summary"]
-        if summary["candidate"] != "policy-prior-puct-v1":
-            raise ValueError(f"{path} is not a policy-prior PUCT report")
-        if summary["baseline"] != "shared-tree-ismcts-v1":
-            raise ValueError(f"{path} is not a direct ISMCTS comparison")
+        signature_fields = (
+            "candidate", "baseline", "checkpoint", "baseline_checkpoint",
+            "samples", "iterations", "tree_depth", "rollout_depth",
+            "baseline_samples", "baseline_iterations", "baseline_tree_depth",
+            "baseline_rollout_depth", "leaf_value_source",
+        )
+        signature = {
+            field: summary.get(field) for field in signature_fields
+        }
+        if expected_signature is None:
+            expected_signature = signature
+        elif signature != expected_signature:
+            raise ValueError(
+                f"{path} has an incompatible candidate/baseline configuration"
+            )
         games = document["games"]
         wins = sum(bool(game["mcts_win"]) for game in games)
         runs.append({
@@ -48,6 +60,7 @@ def main() -> None:
     pooled_pairs = paired_seed_summary(all_games)
     result = {
         "schema_version": 1,
+        "comparison": expected_signature,
         "runs": runs,
         "pooled": {
             "independent_runs": len(runs),

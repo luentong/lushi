@@ -9,7 +9,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from hsa import DragonMirrorGame
-from hsa.encoding import encode_decision, encode_state, feature_schema
+from hsa.dragon_mirror import Action
+from hsa.encoding import encode_action, encode_decision, encode_state, feature_schema
 from hsa.policy_value import HeuristicPolicyValueModel
 
 
@@ -32,8 +33,49 @@ class EncodingTests(unittest.TestCase):
         self.assertTrue(all(
             len(action) == schema["action_size"] for action in decision.actions
         ))
-        self.assertEqual(2, schema["schema_version"])
+        self.assertEqual(4, schema["schema_version"])
         self.assertEqual(867, len(encode_state(game, schema_version=1)))
+        self.assertEqual(1217, len(encode_state(game, schema_version=2)))
+        self.assertEqual(1217, len(encode_state(game, schema_version=3)))
+        self.assertEqual(
+            feature_schema(3)["action_size"] + 6,
+            schema["action_size"],
+        )
+
+    def test_v3_action_players_are_relative_to_the_actor(self):
+        game = DragonMirrorGame(CARDS, 3031)
+        game.current = 0
+        first = encode_action(
+            game, Action("HERO_ATTACK", target_player=1), schema_version=3
+        )
+        first_legacy = encode_action(
+            game, Action("HERO_ATTACK", target_player=1), schema_version=2
+        )
+        game.current = 1
+        second = encode_action(
+            game, Action("HERO_ATTACK", target_player=0), schema_version=3
+        )
+        second_legacy = encode_action(
+            game, Action("HERO_ATTACK", target_player=0), schema_version=2
+        )
+        self.assertEqual(first, second)
+        self.assertNotEqual(first_legacy, second_legacy)
+
+    def test_v4_action_identifies_target_zone(self):
+        game = DragonMirrorGame(CARDS, 3032)
+        own = game.players[game.current]
+        hand_action = Action("PLAY", target_entity=own.hand[0].entity_id)
+        board_card = game._entity(own.hand[0].card_id)
+        own.board.append(board_card)
+        board_action = Action("PLAY", target_entity=board_card.entity_id)
+        self.assertEqual(
+            encode_action(game, hand_action, schema_version=3),
+            encode_action(game, board_action, schema_version=3),
+        )
+        self.assertNotEqual(
+            encode_action(game, hand_action, schema_version=4),
+            encode_action(game, board_action, schema_version=4),
+        )
 
     def test_v2_observes_temporary_hero_attack_missing_from_v1(self):
         first = DragonMirrorGame(CARDS, 304)

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 import torch
 from torch import Tensor, nn
 
@@ -132,6 +134,56 @@ class InteractionPolicyValueNet(PolicyValueNet):
         return metadata
 
 
+class BilinearPolicyValueNet(PolicyValueNet):
+    """Constrained two-tower policy using state/action compatibility."""
+
+    def __init__(
+        self,
+        state_size: int,
+        action_size: int,
+        hidden_size: int = 256,
+        action_hidden_size: int = 128,
+    ):
+        super().__init__(
+            state_size, action_size, hidden_size, action_hidden_size
+        )
+        self.policy_head = nn.Identity()
+        self.policy_state_norm = nn.LayerNorm(action_hidden_size)
+        self.policy_action_norm = nn.LayerNorm(action_hidden_size)
+        self.policy_action_bias = nn.Linear(action_hidden_size, 1)
+
+    def forward(
+        self,
+        states: Tensor,
+        actions: Tensor,
+        action_mask: Tensor | None = None,
+    ) -> tuple[Tensor, Tensor]:
+        if states.ndim != 2 or states.shape[-1] != self.state_size:
+            raise ValueError("states must have shape [batch, state_size]")
+        if actions.ndim != 3 or actions.shape[-1] != self.action_size:
+            raise ValueError("actions must have shape [batch, legal, action_size]")
+        state_features = self.state_tower(states)
+        action_features = self.action_tower(actions)
+        policy_state = self.policy_state_norm(
+            self.policy_state(state_features)
+        ).unsqueeze(1)
+        policy_actions = self.policy_action_norm(action_features)
+        compatibility = (policy_actions * policy_state).sum(dim=-1)
+        logits = (
+            compatibility / math.sqrt(self.action_hidden_size)
+            + self.policy_action_bias(action_features).squeeze(-1)
+        )
+        if action_mask is not None:
+            logits = logits.masked_fill(~action_mask, -1.0e4)
+        values = self.value_head(state_features).squeeze(-1)
+        return logits, values
+
+    def metadata(self) -> dict[str, int | str]:
+        metadata = super().metadata()
+        metadata["architecture"] = "policy-value-bilinear-mlp-v3"
+        return metadata
+
+
 class TorchPolicyValueModel:
     """Inference adapter implementing the framework-neutral model protocol."""
 
@@ -160,6 +212,7 @@ class TorchPolicyValueModel:
         model_class = {
             "policy-value-mlp-v1": PolicyValueNet,
             "policy-value-interaction-mlp-v2": InteractionPolicyValueNet,
+            "policy-value-bilinear-mlp-v3": BilinearPolicyValueNet,
         }.get(architecture)
         if model_class is None:
             raise ValueError(f"unsupported model architecture: {architecture}")
@@ -189,7 +242,13 @@ class TorchPolicyValueModel:
             dtype=torch.float32, device=self.device,
         )
         action_tensor = torch.tensor(
-            [[encode_action(game, action) for action in actions]],
+            [[
+                encode_action(
+                    game, action,
+                    schema_version=self.state_schema_version,
+                )
+                for action in actions
+            ]],
             dtype=torch.float32, device=self.device,
         )
         mask = torch.ones(

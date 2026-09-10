@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "data_sources": [
+    "reports/policy-value-ismcts-v3-independent32-budget64.jsonl.gz",
+    "reports/policy-value-ismcts-v3-independent96-budget64.jsonl.gz"
+  ],
+  "device": "npu:0",
+  "records": 11205,
+  "train_records": 9007,
+  "validation_records": 2198,
+  "train_games": 103,
+  "validation_games": 25,
+  "split_seed": 20260910,
+  "validation_game_seeds": [
+    202609112008,
+    202609112017,
+    202609112024,
+    202609112026,
+    202609113003,
+    202609113011,
+    202609113013,
+    202609113015,
+    202609113018,
+    202609113022,
+    202609113030,
+    202609113035,
+    202609113037,
+    202609113039,
+    202609113041,
+    202609113055,
+    202609113056,
+    202609113064,
+    202609113065,
+    202609113067,
+    202609113068,
+    202609113071,
+    202609113076,
+    202609113077,
+    202609113085
+  ],
+  "epochs": 5,
+  "epochs_requested": 20,
+  "early_stopping_patience": 3,
+  "best_epoch": 2,
+  "validation_history": [
+    {
+      "epoch": 1,
+      "policy_decisions": 1889,
+      "forced_decisions": 309,
+      "policy_accuracy": 0.35468501852832185,
+      "policy_cross_entropy": 2.0355234262235204,
+      "policy_target_entropy": 1.5220820082123787,
+      "policy_kl": 0.5134414180111417,
+      "value_mae": 1.0105024863634464,
+      "value_mse": 1.0260075602995689,
+      "value_brier": 0.2565018900748922
+    },
+    {
+      "epoch": 2,
+      "policy_decisions": 1889,
+      "forced_decisions": 309,
+      "policy_accuracy": 0.38433033350979356,
+      "policy_cross_entropy": 2.0109966574931915,
+      "policy_target_entropy": 1.5220820082123787,
+      "policy_kl": 0.48891464928081274,
+      "value_mae": 1.0108611512119061,
+      "value_mse": 1.027937075135055,
+      "value_brier": 0.25698426878376374
+    },
+    {
+      "epoch": 3,
+      "policy_decisions": 1889,
+      "forced_decisions": 309,
+      "policy_accuracy": 0.39332980412916885,
+      "policy_cross_entropy": 2.012275136419552,
+      "policy_target_entropy": 1.5220820082123787,
+      "policy_kl": 0.4901931282071732,
+      "value_mae": 1.011385249484117,
+      "value_mse": 1.0313791868576037,
+      "value_brier": 0.2578447967144009
+    },
+    {
+      "epoch": 4,
+      "policy_decisions": 1889,
+      "forced_decisions": 309,
+      "policy_accuracy": 0.39597670725251455,
+      "policy_cross_entropy": 2.016729955637878,
+      "policy_target_entropy": 1.5220820082123787,
+      "policy_kl": 0.4946479474254992,
+      "value_mae": 1.0130173255358097,
+      "value_mse": 1.0350331305589755,
+      "value_brier": 0.2587582826397439
+    },
+    {
+      "epoch": 5,
+      "policy_decisions": 1889,
+      "forced_decisions": 309,
+      "policy_accuracy": 0.3875066172578084,
+      "policy_cross_entropy": 2.0311028443675245,
+      "policy_target_entropy": 1.5220820082123787,
+      "policy_kl": 0.5090208361551458,
+      "value_mae": 1.009050495088697,
+      "value_mse": 1.024817949213474,
+      "value_brier": 0.2562044873033685
+    }
+  ],
+  "value_weight": 0.0,
+  "policy_target": "visits",
+  "value_trained": false,
+  "initial_loss": 2.040729025576977,
+  "final_loss": 1.9025738480243277,
+  "selected_loss": 1.9899709647428905,
+  "train_winners": {
+    "player_0": 58,
+    "player_1": 45,
+    "draw": 0
+  },
+  "validation_winners": {
+    "player_0": 14,
+    "player_1": 11,
+    "draw": 0
+  },
+  "train_metrics": {
+    "policy_decisions": 7711,
+    "forced_decisions": 1296,
+    "policy_accuracy": 0.4514330177668266,
+    "policy_cross_entropy": 1.954528934497064,
+    "policy_target_entropy": 1.537831394391956,
+    "policy_kl": 0.41669754010510807,
+    "value_mae": 1.0089021023944809,
+    "value_mse": 1.0247454613073295,
+    "value_brier": 0.25618636532683237
+  },
+  "validation_metrics": {
+    "policy_decisions": 1889,
+    "forced_decisions": 309,
+    "policy_accuracy": 0.38433033350979356,
+    "policy_cross_entropy": 2.0109966574931915,
+    "policy_target_entropy": 1.5220820082123787,
+    "policy_kl": 0.48891464928081274,
+    "value_mae": 1.0108611512119061,
+    "value_mse": 1.027937075135055,
+    "value_brier": 0.25698426878376374
+  },
+  "train_actor_metrics": {
+    "player_0": {
+      "policy_decisions": 3812,
+      "forced_decisions": 688,
+      "policy_accuracy": 0.45487932843651624,
+      "policy_cross_entropy": 1.9639898202101556,
+      "policy_target_entropy": 1.5441949099833918,
+      "policy_kl": 0.41979491022676374,
+      "value_mae": 1.015394863128662,
+      "value_mse": 1.0378274981180826,
+      "value_brier": 0.25945687452952065
+    },
+    "player_1": {
+      "policy_decisions": 3899,
+      "forced_decisions": 608,
+      "policy_accuracy": 0.4480636060528341,
+      "policy_cross_entropy": 1.9452791407218986,
+      "policy_target_entropy": 1.5316098754483634,
+      "policy_kl": 0.4136692652735352,
+      "value_mae": 1.0024194283630357,
+      "value_mse": 1.01168374568786,
+      "value_brier": 0.252920936421965
+    }
+  },
+  "validation_actor_metrics": {
+    "player_0": {
+      "policy_decisions": 982,
+      "forced_decisions": 163,
+      "policy_accuracy": 0.37474541751527496,
+      "policy_cross_entropy": 2.0442563190965206,
+      "policy_target_entropy": 1.5502998212204446,
+      "policy_kl": 0.493956497876076,
+      "value_mae": 1.0091877283487778,
+      "value_mse": 1.0253435226507062,
+      "value_brier": 0.25633588066267654
+    },
+    "player_1": {
+      "policy_decisions": 907,
+      "forced_decisions": 146,
+      "policy_accuracy": 0.3947078280044101,
+      "policy_cross_entropy": 1.9749867356204671,
+      "policy_target_entropy": 1.491530833722738,
+      "policy_kl": 0.48345590189772913,
+      "value_mae": 1.0126807637590516,
+      "value_mse": 1.0307572103067455,
+      "value_brier": 0.2576893025766864
+    }
+  },
+  "train_policy_accuracy": 0.4514330177668266,
+  "train_value_mae": 1.0089021023944809,
+  "validation_policy_accuracy": 0.38433033350979356,
+  "validation_value_mae": 1.0108611512119061,
+  "elapsed_seconds": 290.2537441949826,
+  "model": {
+    "architecture": "policy-value-mlp-v1",
+    "state_size": 1217,
+    "action_size": 612,
+    "hidden_size": 256,
+    "action_hidden_size": 128
+  },
+  "feature_schema": {
+    "schema_version": 3,
+    "card_vocab_size": 281,
+    "card_vocab_sha256": "655f28d160a903ed5b3ce396d6ae0df66a6cb5ce44d19f8417f4c05eca1c5a9a",
+    "state_size": 1217,
+    "action_size": 612,
+    "action_kinds": [
+      "END_TURN",
+      "MULLIGAN_TOGGLE",
+      "MULLIGAN_CONFIRM",
+      "TRADE",
+      "PLAY",
+      "PREPARE",
+      "ATTACK",
+      "HERO_ATTACK",
+      "LOCATION",
+      "HERO_POWER",
+      "DISCOVER_PICK",
+      "REWIND_KEEP",
+      "REWIND_RETRY",
+      "AMMUNITION_PICK",
+      "CORPSE_SPEND"
+    ],
+    "action_player_encoding": "relative"
+  }
+}

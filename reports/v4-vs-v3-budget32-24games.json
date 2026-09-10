@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "comparison": {
+    "candidate": "policy-prior-puct-v1",
+    "baseline": "policy-prior-puct-v1",
+    "checkpoint": "reports/policy-v4-relative-targetzone-highteacher128.pt",
+    "baseline_checkpoint": "reports/policy-v3-relative-highteacher128.pt",
+    "samples": 4,
+    "iterations": 8,
+    "tree_depth": 8,
+    "rollout_depth": 3,
+    "baseline_samples": 4,
+    "baseline_iterations": 8,
+    "baseline_tree_depth": 8,
+    "baseline_rollout_depth": 3,
+    "leaf_value_source": "heuristic_rollout"
+  },
+  "runs": [
+    {
+      "report": "reports/v4-vs-v3-budget32-pilot-npu0.json",
+      "checkpoint": "reports/policy-v4-relative-targetzone-highteacher128.pt",
+      "games": 6,
+      "wins": 3,
+      "win_rate": 0.5,
+      "wilson95": [
+        0.18761280689940868,
+        0.8123871931005913
+      ],
+      "pairs": 3,
+      "swept_pairs": 1,
+      "split_pairs": 1,
+      "lost_pairs": 1,
+      "decisive_pairs": 2,
+      "exact_two_sided_sign_p": 1.0
+    },
+    {
+      "report": "reports/v4-vs-v3-budget32-pilot-npu1.json",
+      "checkpoint": "reports/policy-v4-relative-targetzone-highteacher128.pt",
+      "games": 6,
+      "wins": 3,
+      "win_rate": 0.5,
+      "wilson95": [
+        0.18761280689940868,
+        0.8123871931005913
+      ],
+      "pairs": 3,
+      "swept_pairs": 0,
+      "split_pairs": 3,
+      "lost_pairs": 0,
+      "decisive_pairs": 0,
+      "exact_two_sided_sign_p": 1.0
+    },
+    {
+      "report": "reports/v4-vs-v3-budget32-pilot-npu2.json",
+      "checkpoint": "reports/policy-v4-relative-targetzone-highteacher128.pt",
+      "games": 6,
+      "wins": 0,
+      "win_rate": 0.0,
+      "wilson95": [
+        0.0,
+        0.3903430336530645
+      ],
+      "pairs": 3,
+      "swept_pairs": 0,
+      "split_pairs": 0,
+      "lost_pairs": 3,
+      "decisive_pairs": 3,
+      "exact_two_sided_sign_p": 0.25
+    },
+    {
+      "report": "reports/v4-vs-v3-budget32-pilot-npu3.json",
+      "checkpoint": "reports/policy-v4-relative-targetzone-highteacher128.pt",
+      "games": 6,
+      "wins": 3,
+      "win_rate": 0.5,
+      "wilson95": [
+        0.18761280689940868,
+        0.8123871931005913
+      ],
+      "pairs": 3,
+      "swept_pairs": 0,
+      "split_pairs": 3,
+      "lost_pairs": 0,
+      "decisive_pairs": 0,
+      "exact_two_sided_sign_p": 1.0
+    }
+  ],
+  "pooled": {
+    "independent_runs": 4,
+    "games": 24,
+    "wins": 9,
+    "win_rate": 0.375,
+    "wilson95": [
+      0.21159133433631458,
+      0.5729038096209293
+    ],
+    "pairs": 12,
+    "swept_pairs": 1,
+    "split_pairs": 7,
+    "lost_pairs": 4,
+    "decisive_pairs": 5,
+    "exact_two_sided_sign_p": 0.375
+  },
+  "interpretation": "Pooled statistics are descriptive; checkpoint-level replication remains the unit of generalization."
+}

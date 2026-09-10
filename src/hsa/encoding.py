@@ -9,8 +9,10 @@ from dataclasses import dataclass
 from .dragon_mirror import Action, DragonMirrorGame, SUPPORTED_IDS
 
 
-STATE_SCHEMA_VERSION = 2
+STATE_SCHEMA_VERSION = 4
 LEGACY_STATE_SCHEMA_VERSION = 1
+ABSOLUTE_ACTION_PLAYER_SCHEMA_VERSION = 2
+RELATIVE_ACTION_PLAYER_SCHEMA_VERSION = 3
 ACTION_KINDS = (
     "END_TURN", "MULLIGAN_TOGGLE", "MULLIGAN_CONFIRM", "TRADE", "PLAY",
     "PREPARE", "ATTACK", "HERO_ATTACK", "LOCATION", "HERO_POWER",
@@ -48,7 +50,12 @@ def encode_state(
     schema_version: int = STATE_SCHEMA_VERSION,
 ) -> tuple[float, ...]:
     """Encode only information visible to ``observer`` into a fixed vector."""
-    if schema_version not in {LEGACY_STATE_SCHEMA_VERSION, STATE_SCHEMA_VERSION}:
+    if schema_version not in {
+        LEGACY_STATE_SCHEMA_VERSION,
+        ABSOLUTE_ACTION_PLAYER_SCHEMA_VERSION,
+        RELATIVE_ACTION_PLAYER_SCHEMA_VERSION,
+        STATE_SCHEMA_VERSION,
+    }:
         raise ValueError(f"unsupported state schema version: {schema_version}")
     observer = game.current if observer is None else observer
     if observer not in (0, 1):
@@ -165,8 +172,20 @@ def _locate_entity(game: DragonMirrorGame, entity_id: int | None) -> tuple:
     return "literal", None, entity_id, None
 
 
-def encode_action(game: DragonMirrorGame, action: Action) -> tuple[float, ...]:
+def encode_action(
+    game: DragonMirrorGame,
+    action: Action,
+    *,
+    schema_version: int = STATE_SCHEMA_VERSION,
+) -> tuple[float, ...]:
     """Encode a legal action without depending on raw entity-number magnitude."""
+    if schema_version not in {
+        LEGACY_STATE_SCHEMA_VERSION,
+        ABSOLUTE_ACTION_PLAYER_SCHEMA_VERSION,
+        RELATIVE_ACTION_PLAYER_SCHEMA_VERSION,
+        STATE_SCHEMA_VERSION,
+    }:
+        raise ValueError(f"unsupported action schema version: {schema_version}")
     kind_index = ACTION_KINDS.index(action.kind)
     source_zone, source_player, source_position, source_card = _locate_entity(
         game, action.source
@@ -174,6 +193,7 @@ def encode_action(game: DragonMirrorGame, action: Action) -> tuple[float, ...]:
     if action.kind in {"AMMUNITION_PICK", "CORPSE_SPEND"}:
         source_zone, source_position = "literal", action.source
     if action.target_player is not None and action.target_entity is None:
+        target_zone = "none"
         target_kind = "hero"
         target_player, target_position, target_card = action.target_player, None, None
     else:
@@ -183,6 +203,15 @@ def encode_action(game: DragonMirrorGame, action: Action) -> tuple[float, ...]:
         target_kind = "none" if target_zone == "none" else (
             "literal" if target_zone == "literal" else "card"
         )
+    if schema_version >= RELATIVE_ACTION_PLAYER_SCHEMA_VERSION:
+        source_player = (
+            None if source_player is None
+            else 0 if source_player == game.current else 1
+        )
+        target_player = (
+            None if target_player is None
+            else 0 if target_player == game.current else 1
+        )
     values = _one_hot(kind_index, len(ACTION_KINDS))
     values += _one_hot(ZONE_NAMES.index(source_zone), len(ZONE_NAMES))
     values += _one_hot(source_player, 2)
@@ -191,6 +220,8 @@ def encode_action(game: DragonMirrorGame, action: Action) -> tuple[float, ...]:
         source_position if isinstance(source_position, int) else None,
         MAX_HAND_SLOTS,
     )
+    if schema_version >= STATE_SCHEMA_VERSION:
+        values += _one_hot(ZONE_NAMES.index(target_zone), len(ZONE_NAMES))
     values += _one_hot(TARGET_KINDS.index(target_kind), len(TARGET_KINDS))
     values += _one_hot(target_player, 2)
     values += _one_hot(CARD_INDEX.get(target_card), len(CARD_VOCAB))
@@ -217,7 +248,10 @@ def encode_decision(game: DragonMirrorGame) -> EncodedDecision:
     legal = game.legal_actions()
     return EncodedDecision(
         state=encode_state(game, game.current),
-        actions=tuple(encode_action(game, action) for action in legal),
+        actions=tuple(
+            encode_action(game, action, schema_version=STATE_SCHEMA_VERSION)
+            for action in legal
+        ),
         action_keys=tuple(action.key() for action in legal),
     )
 
@@ -225,7 +259,12 @@ def encode_decision(game: DragonMirrorGame) -> EncodedDecision:
 def feature_schema(
     schema_version: int = STATE_SCHEMA_VERSION,
 ) -> dict[str, object]:
-    if schema_version not in {LEGACY_STATE_SCHEMA_VERSION, STATE_SCHEMA_VERSION}:
+    if schema_version not in {
+        LEGACY_STATE_SCHEMA_VERSION,
+        ABSOLUTE_ACTION_PLAYER_SCHEMA_VERSION,
+        RELATIVE_ACTION_PLAYER_SCHEMA_VERSION,
+        STATE_SCHEMA_VERSION,
+    }:
         raise ValueError(f"unsupported state schema version: {schema_version}")
     vocab_json = json.dumps(CARD_VOCAB, separators=(",", ":"))
     legacy_state_size = 24 + 3 * len(CARD_VOCAB)
@@ -241,8 +280,16 @@ def feature_schema(
         ),
         "action_size": (
             len(ACTION_KINDS) + len(ZONE_NAMES) + 2 + len(CARD_VOCAB)
-            + MAX_HAND_SLOTS + len(TARGET_KINDS) + 2 + len(CARD_VOCAB)
+            + MAX_HAND_SLOTS
+            + (len(ZONE_NAMES) if schema_version >= STATE_SCHEMA_VERSION else 0)
+            + len(TARGET_KINDS) + 2 + len(CARD_VOCAB)
             + MAX_HAND_SLOTS + 1
         ),
         "action_kinds": list(ACTION_KINDS),
+        "action_player_encoding": (
+            "relative"
+            if schema_version >= RELATIVE_ACTION_PLAYER_SCHEMA_VERSION
+            else "absolute"
+        ),
+        "action_target_zone": schema_version >= STATE_SCHEMA_VERSION,
     }
