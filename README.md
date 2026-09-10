@@ -373,6 +373,19 @@ a new default checkpoint. The next training iteration should apply the same
 target to fixed-64 teacher data instead of spending more compute tuning the
 weaker adaptive-teacher student.
 
+That fixed-64 control has now been completed. Replaying the original 128 seeds
+with the current exporter reproduced all 11,490 decisions, the 81:47 winner
+split, every validation metric, and all 18 tensors of the ordinary visit-target
+checkpoint exactly. The additional Q audit measured a 0.519 mean visited-action
+value range. Value weighting at T=0.2 reduced validation target entropy from
+1.515 to 1.288, while T=0.5 reduced it to 1.399. Both students scored exactly
+20/40 against the reproduced ordinary student at equal four-simulation
+inference (three swept and three lost seat-swapped pairs, paired p=1.0).
+Therefore value-aware targets help the noisier adaptive teacher but add no
+measurable strength to the fixed-64 teacher. The fixed-64 ordinary visit-target
+checkpoint remains the default; further work should improve model capacity or
+train a calibrated value head rather than tune more Q temperatures.
+
 The trace audit found the concrete omission: schema v1 encoded weapon Attack
 but not temporary hero Attack. At the reported Searing Fissure decision, the
 v1 model therefore could not observe the three points of temporary Attack. The
