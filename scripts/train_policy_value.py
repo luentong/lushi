@@ -257,6 +257,7 @@ def main() -> None:
     parser.add_argument("--weight-decay", type=float, default=1e-2)
     parser.add_argument("--gradient-clip", type=float, default=1.0)
     parser.add_argument("--value-weight", type=float, default=0.5)
+    parser.add_argument("--policy-weight", type=float, default=1.0)
     parser.add_argument("--validation-ratio", type=float, default=0.2)
     parser.add_argument("--hidden-size", type=int, default=256)
     parser.add_argument("--action-hidden-size", type=int, default=128)
@@ -267,6 +268,10 @@ def main() -> None:
         help="Policy head architecture; interaction-v2 models state-action fit.",
     )
     parser.add_argument("--max-records", type=int)
+    parser.add_argument(
+        "--init-checkpoint", type=Path,
+        help="Warm-start from a checkpoint with the same architecture and feature schema.",
+    )
     parser.add_argument("--residual-blocks", type=int, default=4)
     parser.add_argument("--seed", type=int, default=20260909)
     parser.add_argument(
@@ -297,6 +302,10 @@ def main() -> None:
         parser.error("--policy-target-temperature must be positive")
     if args.policy_value_temperature <= 0:
         parser.error("--policy-value-temperature must be positive")
+    if args.policy_weight < 0 or args.value_weight < 0:
+        parser.error("policy and value weights must be non-negative")
+    if args.policy_weight == 0 and args.value_weight == 0:
+        parser.error("at least one loss weight must be positive")
     random.seed(args.seed)
     torch.manual_seed(args.seed)
     device = choose_device(args.device)
@@ -315,6 +324,17 @@ def main() -> None:
     if model_class is ResidualPolicyValueNet:
         model_args.append(args.residual_blocks)
     model = model_class(*model_args).to(device)
+    if args.init_checkpoint is not None:
+        initial = torch.load(
+            args.init_checkpoint, map_location="cpu", weights_only=False
+        )
+        initial_model = initial["report"]["model"]
+        if initial_model != model.metadata():
+            raise ValueError("initial checkpoint model architecture does not match")
+        initial_schema = initial["report"].get("feature_schema")
+        if initial_schema != schema:
+            raise ValueError("initial checkpoint feature schema does not match")
+        model.load_state_dict(initial["model_state_dict"])
     seeds = sorted({record["game_seed"] for record in dataset.records})
     validation_seeds = stratified_validation_seeds(
         dataset.records, args.validation_ratio, args.seed
@@ -382,7 +402,7 @@ def main() -> None:
                 else policy_loss_rows.sum() * 0.0
             )
             value_loss = F.mse_loss(values, targets)
-            loss = policy_loss + args.value_weight * value_loss
+            loss = args.policy_weight * policy_loss + args.value_weight * value_loss
             loss.backward()
             if args.gradient_clip > 0:
                 torch.nn.utils.clip_grad_norm_(
@@ -456,6 +476,10 @@ def main() -> None:
         "best_epoch": best_epoch,
         "validation_history": validation_history,
         "value_weight": args.value_weight,
+        "policy_weight": args.policy_weight,
+        "init_checkpoint": (
+            str(args.init_checkpoint) if args.init_checkpoint else None
+        ),
         "weight_decay": args.weight_decay,
         "gradient_clip": args.gradient_clip,
         "policy_target": args.policy_target,
