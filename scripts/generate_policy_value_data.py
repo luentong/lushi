@@ -76,6 +76,24 @@ def dataset_statistics(games: list[list[dict]]) -> dict[str, object]:
                 record.get("teacher_adaptive_simulations", 0) > 0
                 for record in nontrivial_records
             ) / len(nontrivial_records),
+            "mean_visited_value_range": sum(
+                (
+                    max(
+                        value for value, probability in zip(
+                            record.get("teacher_action_values", ()),
+                            record["policy_target"], strict=True,
+                        ) if probability > 0
+                    )
+                    - min(
+                        value for value, probability in zip(
+                            record.get("teacher_action_values", ()),
+                            record["policy_target"], strict=True,
+                        ) if probability > 0
+                    )
+                )
+                if record.get("teacher_action_values") else 0.0
+                for record in nontrivial_records
+            ) / len(nontrivial_records),
         }
     return statistics
 
@@ -135,6 +153,18 @@ def play_game(cards: Path, seed: int, teacher: str, args) -> list[dict]:
             int(policies[actor].last_search.get("adaptive_iterations", 0))
             if teacher == "ismcts" else 0
         )
+        root_action_stats = (
+            policies[actor].last_search.get("root_action_stats", ())
+            if teacher == "ismcts" else ()
+        )
+        teacher_action_values = (
+            [float(item["mean_value"]) for item in root_action_stats]
+            if root_action_stats else [0.0] * len(decision.actions)
+        )
+        teacher_action_visits = (
+            [int(item["visits"]) for item in root_action_stats]
+            if root_action_stats else [0] * len(decision.actions)
+        )
         behavior_action = (
             teacher_action
             if behavior_policies is policies
@@ -153,6 +183,8 @@ def play_game(cards: Path, seed: int, teacher: str, args) -> list[dict]:
             "policy_target": policy_target,
             "teacher_simulations": teacher_simulations,
             "teacher_adaptive_simulations": teacher_adaptive_simulations,
+            "teacher_action_values": teacher_action_values,
+            "teacher_action_visits": teacher_action_visits,
             "legal_action_count": len(decision.actions),
         })
         game.step(behavior_action)

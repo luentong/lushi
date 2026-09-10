@@ -357,6 +357,22 @@ strength. More aggressive hard labels had already failed in the fixed-teacher
 ablation; the next teacher experiment should improve target information (for
 example value-aware action targets), rather than merely rescale visit counts.
 
+Dataset generation now also records each legal root action's visit count and
+search mean value. `train_policy_value.py --policy-target
+value-weighted-visits --policy-value-temperature T` can distil a normalized
+`visit_share * exp((Q - max(Q)) / T)` target. On an exactly regenerated copy of
+the 128-game adaptive tranche, visited root actions had a mean Q range of
+0.523. At T=0.5, the student scored 21/40 against the ordinary visit-target
+student, providing no evidence of improvement. T=0.2 scored 26/40 in a pilot
+and then 64/104 on independent seeds (61.5%, Wilson 95% interval 51.9%-70.3%);
+it swept 16 seat-swapped pairs and lost four (paired sign-test p=0.0118).
+This confirms that teacher Q values recover useful information discarded by
+visit counts. The model still scored only 14/40 against the stronger fixed-64
+teacher student, however, so this is a useful experimental target rather than
+a new default checkpoint. The next training iteration should apply the same
+target to fixed-64 teacher data instead of spending more compute tuning the
+weaker adaptive-teacher student.
+
 The trace audit found the concrete omission: schema v1 encoded weapon Attack
 but not temporary hero Attack. At the reported Searing Fissure decision, the
 v1 model therefore could not observe the three points of temporary Attack. The

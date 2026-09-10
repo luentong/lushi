@@ -26,7 +26,10 @@ from hsa.torch_model import (
     InteractionPolicyValueNet,
     PolicyValueNet,
 )
-from hsa.training import temperature_scale_probabilities
+from hsa.training import (
+    temperature_scale_probabilities,
+    value_weighted_policy_target,
+)
 
 
 class DecisionDataset(Dataset):
@@ -63,6 +66,8 @@ class DecisionDataset(Dataset):
 def collate_decisions(
     records: list[dict], *, hard_policy_targets: bool = False,
     policy_target_temperature: float = 1.0,
+    value_weighted_targets: bool = False,
+    policy_value_temperature: float = 0.5,
 ):
     if policy_target_temperature <= 0:
         raise ValueError("policy target temperature must be positive")
@@ -88,6 +93,15 @@ def collate_decisions(
         if target is None:
             policy_targets[row, chosen[row]] = 1.0
         else:
+            if value_weighted_targets:
+                action_values = record.get("teacher_action_values")
+                if action_values is None:
+                    raise ValueError(
+                        "value-weighted targets require teacher_action_values"
+                    )
+                target = value_weighted_policy_target(
+                    target, action_values, policy_value_temperature
+                )
             probabilities = torch.tensor(
                 temperature_scale_probabilities(
                     target, policy_target_temperature
@@ -252,16 +266,24 @@ def main() -> None:
         help="Stop on validation policy KL after this many non-improving epochs; 0 disables.",
     )
     parser.add_argument(
-        "--policy-target", choices=("visits", "chosen"), default="visits",
+        "--policy-target",
+        choices=("visits", "chosen", "value-weighted-visits"),
+        default="visits",
         help="Distil root visit shares or the teacher's final selected action.",
     )
     parser.add_argument(
         "--policy-target-temperature", type=float, default=1.0,
         help="Sharpen (<1) or flatten (>1) soft root-visit targets.",
     )
+    parser.add_argument(
+        "--policy-value-temperature", type=float, default=0.5,
+        help="Q-value temperature for value-weighted visit targets.",
+    )
     args = parser.parse_args()
     if args.policy_target_temperature <= 0:
         parser.error("--policy-target-temperature must be positive")
+    if args.policy_value_temperature <= 0:
+        parser.error("--policy-value-temperature must be positive")
     random.seed(args.seed)
     torch.manual_seed(args.seed)
     device = choose_device(args.device)
@@ -294,6 +316,8 @@ def main() -> None:
         collate_decisions,
         hard_policy_targets=args.policy_target == "chosen",
         policy_target_temperature=args.policy_target_temperature,
+        value_weighted_targets=args.policy_target == "value-weighted-visits",
+        policy_value_temperature=args.policy_value_temperature,
     )
     loader = DataLoader(
         Subset(dataset, train_indices), batch_size=args.batch_size, shuffle=True,
@@ -396,6 +420,10 @@ def main() -> None:
         "value_weight": args.value_weight,
         "policy_target": args.policy_target,
         "policy_target_temperature": args.policy_target_temperature,
+        "policy_value_temperature": (
+            args.policy_value_temperature
+            if args.policy_target == "value-weighted-visits" else None
+        ),
         "value_trained": args.value_weight > 0,
         "initial_loss": losses[0],
         "final_loss": losses[-1],
