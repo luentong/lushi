@@ -309,6 +309,26 @@ student overfit the sharper targets (validation KL 0.523) and scored only 12/20
 at both 4 and 32 inference simulations. More teacher compute alone therefore
 does not solve missing observation features.
 
+A strict schema-v3/schema-v4 paired experiment reused the same 11,490 teacher
+decisions, action ordering, visit targets, game split, optimizer seed, and
+architecture. Schema v4 only retained the six target-zone dimensions that were
+removed for the paired v3 input. The v4 validation top-1 was 40.95% versus
+40.74% for v3, while its KL was slightly worse (0.4641 versus 0.4615). Target
+zone is still a correctness fix because it prevents hand/board aliasing, but
+this dataset does not demonstrate a strength improvement attributable to it.
+
+The low-budget PUCT expansion rule was also isolated. Standard prior-first
+expansion was tested against the existing force-unvisited rule with the same
+checkpoint, four simulations, four 910C workers, and 52 seat-swapped seed
+pairs. Prior-first expansion won only 23/104 games (22.1%, Wilson 95% interval
+15.2%-31.0%); it swept one pair, split 21, and lost 30 (paired sign-test
+p=2.98e-8). The learned prior is therefore not calibrated strongly enough to
+control first visits. Force-unvisited remains the safe default, while
+`benchmark_mcts.py --prior-first-expansion` retains the alternative for future
+calibration experiments. This result rules out a tempting code-only shortcut:
+raising teacher/search quality still requires better policy targets or a
+stronger model, not simply trusting the current prior earlier.
+
 The trace audit found the concrete omission: schema v1 encoded weapon Attack
 but not temporary hero Attack. At the reported Searing Fissure decision, the
 v1 model therefore could not observe the three points of temporary Attack. The

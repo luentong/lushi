@@ -281,6 +281,7 @@ class InformationSetMCTSPolicy:
         seed: int = 20260909,
         policy_value_model=None,
         use_model_value: bool = True,
+        force_uniform_expansion: bool = True,
     ):
         if samples < 1 or iterations_per_sample < 1:
             raise ValueError("samples and iterations_per_sample must be positive")
@@ -294,6 +295,7 @@ class InformationSetMCTSPolicy:
         self.seed = seed
         self.policy_value_model = policy_value_model
         self.use_model_value = use_model_value
+        self.force_uniform_expansion = force_uniform_expansion
         self.decision_index = 0
         self.rollout_policy = HeuristicPolicy()
         self.last_search: dict[str, object] = {}
@@ -362,7 +364,25 @@ class InformationSetMCTSPolicy:
                     action for key, action in legal_map.items()
                     if key not in node.children
                 ]
-                if unexpanded:
+                if (
+                    self.policy_value_model is not None
+                    and not self.force_uniform_expansion
+                ):
+                    # PUCT must be allowed to revisit a high-prior action before
+                    # every legal action has received one visit.  Forcing one
+                    # visit per action makes low-budget searches nearly uniform
+                    # whenever the branching factor approaches the simulation
+                    # count, effectively discarding the learned prior.
+                    for action in unexpanded:
+                        key = information_action_key(state, action)
+                        child = _InformationNode(
+                            action_key=key, availability=1,
+                            prior=priors.get(key, 0.0),
+                        )
+                        node.children[key] = child
+                        available_children.append(child)
+                        nodes += 1
+                elif unexpanded:
                     if self.policy_value_model is not None:
                         ordered = sorted(
                             unexpanded,
@@ -412,6 +432,8 @@ class InformationSetMCTSPolicy:
                 state.step(legal_map[child.action_key])
                 node = child
                 path.append(node)
+                if child.visits == 0:
+                    break
             if self.policy_value_model is not None and self.use_model_value:
                 if state.finished:
                     value = evaluate_state(state, root_player)
@@ -479,6 +501,13 @@ class InformationSetMCTSPolicy:
             "leaf_value_source": (
                 "model" if self.policy_value_model is not None and self.use_model_value
                 else "heuristic_rollout"
+            ),
+            "expansion_mode": (
+                "force_unvisited"
+                if self.policy_value_model is not None and self.force_uniform_expansion
+                else "puct_prior"
+                if self.policy_value_model is not None
+                else "uct"
             ),
         }
         return root_map[best.action_key]

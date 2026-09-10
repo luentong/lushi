@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "comparison": {
+    "candidate": "policy-prior-puct-v1",
+    "baseline": "policy-prior-puct-v1",
+    "checkpoint": "reports/policy-value-budget16-e10.pt",
+    "baseline_checkpoint": "reports/policy-value-budget16-e10.pt",
+    "samples": 1,
+    "iterations": 4,
+    "tree_depth": 4,
+    "rollout_depth": 3,
+    "baseline_samples": 1,
+    "baseline_iterations": 4,
+    "baseline_tree_depth": 4,
+    "baseline_rollout_depth": 3,
+    "leaf_value_source": "heuristic_rollout",
+    "candidate_expansion_mode": "puct_prior",
+    "baseline_expansion_mode": "legacy_force_unvisited"
+  },
+  "runs": [
+    {
+      "report": "reports/puct-expansion-ab-run0.json",
+      "checkpoint": "reports/policy-value-budget16-e10.pt",
+      "games": 26,
+      "wins": 3,
+      "win_rate": 0.11538461538461539,
+      "wilson95": [
+        0.04003171821149494,
+        0.28976293086898336
+      ],
+      "pairs": 13,
+      "swept_pairs": 0,
+      "split_pairs": 3,
+      "lost_pairs": 10,
+      "decisive_pairs": 10,
+      "exact_two_sided_sign_p": 0.001953125
+    },
+    {
+      "report": "reports/puct-expansion-ab-run1.json",
+      "checkpoint": "reports/policy-value-budget16-e10.pt",
+      "games": 26,
+      "wins": 7,
+      "win_rate": 0.2692307692307692,
+      "wilson95": [
+        0.13704275525067386,
+        0.46083403419761304
+      ],
+      "pairs": 13,
+      "swept_pairs": 0,
+      "split_pairs": 7,
+      "lost_pairs": 6,
+      "decisive_pairs": 6,
+      "exact_two_sided_sign_p": 0.03125
+    },
+    {
+      "report": "reports/puct-expansion-ab-run2.json",
+      "checkpoint": "reports/policy-value-budget16-e10.pt",
+      "games": 26,
+      "wins": 4,
+      "win_rate": 0.15384615384615385,
+      "wilson95": [
+        0.06149933998929477,
+        0.33531584418313565
+      ],
+      "pairs": 13,
+      "swept_pairs": 0,
+      "split_pairs": 4,
+      "lost_pairs": 9,
+      "decisive_pairs": 9,
+      "exact_two_sided_sign_p": 0.00390625
+    },
+    {
+      "report": "reports/puct-expansion-ab-run3.json",
+      "checkpoint": "reports/policy-value-budget16-e10.pt",
+      "games": 26,
+      "wins": 9,
+      "win_rate": 0.34615384615384615,
+      "wilson95": [
+        0.19412014972852126,
+        0.5377977099036699
+      ],
+      "pairs": 13,
+      "swept_pairs": 1,
+      "split_pairs": 7,
+      "lost_pairs": 5,
+      "decisive_pairs": 6,
+      "exact_two_sided_sign_p": 0.21875
+    }
+  ],
+  "pooled": {
+    "independent_runs": 4,
+    "games": 104,
+    "wins": 23,
+    "win_rate": 0.22115384615384615,
+    "wilson95": [
+      0.15212835010666392,
+      0.3100458016121533
+    ],
+    "pairs": 52,
+    "swept_pairs": 1,
+    "split_pairs": 21,
+    "lost_pairs": 30,
+    "decisive_pairs": 31,
+    "exact_two_sided_sign_p": 2.9802322387695312e-08
+  },
+  "interpretation": "Pooled statistics are descriptive; checkpoint-level replication remains the unit of generalization."
+}

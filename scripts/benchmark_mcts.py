@@ -73,6 +73,7 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
             use_model_value=(
                 args.baseline == "puct" and not args.baseline_policy_only
             ),
+            force_uniform_expansion=not args.baseline_prior_first_expansion,
         )
     if args.mode == "puct":
         if args.checkpoint is None:
@@ -90,6 +91,7 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
             seed=args.search_seed + seed * 2 + mcts_seat,
             policy_value_model=model,
             use_model_value=not args.policy_only,
+            force_uniform_expansion=not args.prior_first_expansion,
         )
     else:
         search = (
@@ -151,6 +153,10 @@ def main() -> int:
         "--policy-only", action="store_true",
         help="use checkpoint priors but retain heuristic rollout leaf values",
     )
+    parser.add_argument(
+        "--prior-first-expansion", action="store_true",
+        help="experimental PUCT expansion that may revisit before all actions",
+    )
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--baseline-checkpoint", type=Path)
     parser.add_argument("--baseline-device", default="cpu")
@@ -161,6 +167,10 @@ def main() -> int:
     parser.add_argument(
         "--baseline-policy-only", action="store_true",
         help="use baseline checkpoint priors with heuristic rollout values",
+    )
+    parser.add_argument(
+        "--baseline-prior-first-expansion", action="store_true",
+        help="use experimental prior-first expansion for a PUCT baseline",
     )
     parser.add_argument("--search-seed", type=int, default=20260909)
     parser.add_argument("--max-actions", type=int, default=1000)
@@ -250,6 +260,16 @@ def main() -> int:
         "leaf_value_source": (
             "heuristic_rollout" if args.mode == "puct" and args.policy_only
             else "model" if args.mode == "puct" else "heuristic_rollout"
+        ),
+        "candidate_expansion_mode": (
+            "puct_prior"
+            if args.mode == "puct" and args.prior_first_expansion
+            else "force_unvisited" if args.mode == "puct" else "uct"
+        ),
+        "baseline_expansion_mode": (
+            "puct_prior"
+            if args.baseline == "puct" and args.baseline_prior_first_expansion
+            else "force_unvisited" if args.baseline == "puct" else "uct"
         ),
         "samples": args.samples if args.mode in {"determinized", "ismcts", "puct"} else 1,
         "checkpoint": str(args.checkpoint) if args.mode == "puct" else None,

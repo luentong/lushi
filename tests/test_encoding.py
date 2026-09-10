@@ -7,11 +7,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT / "scripts"))
 
 from hsa import DragonMirrorGame
 from hsa.dragon_mirror import Action
 from hsa.encoding import encode_action, encode_decision, encode_state, feature_schema
 from hsa.policy_value import HeuristicPolicyValueModel
+from convert_policy_dataset_schema import v4_action_to_v3
 
 
 CARDS = ROOT / "cards.251332.enUS.json"
@@ -76,6 +78,16 @@ class EncodingTests(unittest.TestCase):
             encode_action(game, hand_action, schema_version=4),
             encode_action(game, board_action, schema_version=4),
         )
+
+    def test_v4_to_v3_dataset_conversion_only_drops_target_zone(self):
+        game = DragonMirrorGame(CARDS, 3033)
+        own = game.players[game.current]
+        target = game._entity(own.hand[0].card_id)
+        own.board.append(target)
+        action = Action("PLAY", own.hand[0].entity_id, game.current, target.entity_id)
+        encoded_v4 = encode_action(game, action, schema_version=4)
+        encoded_v3 = encode_action(game, action, schema_version=3)
+        self.assertEqual(list(encoded_v3), v4_action_to_v3(list(encoded_v4)))
 
     def test_v2_observes_temporary_hero_attack_missing_from_v1(self):
         first = DragonMirrorGame(CARDS, 304)

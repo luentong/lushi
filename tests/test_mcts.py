@@ -14,10 +14,22 @@ from hsa import (
     InformationSetMCTSPolicy,
     MCTSPolicy,
 )
-from hsa.policy_value import HeuristicPolicyValueModel
+from hsa.policy_value import HeuristicPolicyValueModel, PolicyValueOutput
 
 
 CARDS = ROOT / "cards.251332.enUS.json"
+
+
+class _EndTurnPrior:
+    name = "end-turn-prior-test"
+
+    def predict(self, game, actions):
+        weights = tuple(1.0 if action.kind == "END_TURN" else 0.0 for action in actions)
+        total = sum(weights)
+        return PolicyValueOutput(
+            tuple(weight / total for weight in weights),
+            0.0,
+        )
 
 
 class MCTSPolicyTests(unittest.TestCase):
@@ -134,6 +146,41 @@ class MCTSPolicyTests(unittest.TestCase):
         action = policy.choose(game)
         self.assertIn(action.key(), {item.key() for item in game.legal_actions()})
         self.assertEqual("heuristic_rollout", policy.last_search["leaf_value_source"])
+
+    def test_low_budget_puct_does_not_force_one_visit_per_legal_action(self):
+        game = DragonMirrorGame(CARDS, 141)
+        policy = InformationSetMCTSPolicy(
+            samples=1, iterations_per_sample=4, tree_depth=3,
+            rollout_depth=0, exploration=100.0,
+            policy_value_model=_EndTurnPrior(), use_model_value=False,
+            force_uniform_expansion=False,
+        )
+        action = policy.choose(game)
+        legal = game.legal_actions()
+        stats = policy.last_search["root_action_stats"]
+        end_turn = next(
+            item for candidate, item in zip(legal, stats, strict=True)
+            if candidate.kind == "END_TURN"
+        )
+        self.assertEqual("END_TURN", action.kind)
+        self.assertEqual(4, end_turn["visits"])
+        self.assertTrue(any(item["visits"] == 0 for item in stats))
+        self.assertEqual("puct_prior", policy.last_search["expansion_mode"])
+
+    def test_legacy_puct_expansion_remains_available_for_ab_comparison(self):
+        game = DragonMirrorGame(CARDS, 143)
+        policy = InformationSetMCTSPolicy(
+            samples=1, iterations_per_sample=len(game.legal_actions()),
+            tree_depth=3, rollout_depth=0, exploration=100.0,
+            policy_value_model=_EndTurnPrior(), use_model_value=False,
+            force_uniform_expansion=True,
+        )
+        policy.choose(game)
+        stats = policy.last_search["root_action_stats"]
+        self.assertTrue(all(item["visits"] == 1 for item in stats))
+        self.assertEqual(
+            "force_unvisited", policy.last_search["expansion_mode"]
+        )
 
 
 if __name__ == "__main__":
