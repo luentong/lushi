@@ -238,6 +238,18 @@ lost. This is evidence that the prior changes relative search strength even
 though the heuristic benchmark is saturated, but it still needs a larger direct
 match and an independent checkpoint before promotion.
 
+An independent replication then generated 64 new strong-teacher games (6,511
+decisions) from a disjoint seed range. Its winner balance was 35:29, mean
+non-forced policy entropy was 1.937, and each target visited 9.96 actions on
+average. A second checkpoint trained with `value_weight=0` reached validation
+policy KL 0.226. On a third disjoint seed range it beat plain ISMCTS 60/100 in
+direct play (Wilson 95% interval 50.2%-69.1%) with zero invalid actions. Across
+the 50 seat-swapped pairs it swept 18, split 24, and lost 8; the two-sided paired
+sign test is p=0.0755. The effect therefore replicated directionally but is
+smaller than the first 30/40 result and is not yet statistically decisive.
+Policy-prior search remains experimental pending more independent training
+runs or a pooled hierarchical analysis.
+
 Benchmarks can now load one checkpoint per worker, run independent games in
 parallel, report wall-clock time, and emit a Wilson interval. Multi-process NPU
 inference was verified with four workers on Ascend 910C. Special generated
