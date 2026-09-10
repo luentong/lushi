@@ -282,11 +282,17 @@ class InformationSetMCTSPolicy:
         policy_value_model=None,
         use_model_value: bool = True,
         force_uniform_expansion: bool = True,
+        min_simulations_per_root_action: int = 0,
+        max_total_iterations: int | None = None,
     ):
         if samples < 1 or iterations_per_sample < 1:
             raise ValueError("samples and iterations_per_sample must be positive")
         if tree_depth < 1 or rollout_depth < 0:
             raise ValueError("tree_depth must be positive and rollout_depth non-negative")
+        if min_simulations_per_root_action < 0:
+            raise ValueError("min simulations per root action must be non-negative")
+        if max_total_iterations is not None and max_total_iterations < 1:
+            raise ValueError("max total iterations must be positive")
         self.samples = samples
         self.iterations_per_sample = iterations_per_sample
         self.tree_depth = tree_depth
@@ -296,6 +302,8 @@ class InformationSetMCTSPolicy:
         self.policy_value_model = policy_value_model
         self.use_model_value = use_model_value
         self.force_uniform_expansion = force_uniform_expansion
+        self.min_simulations_per_root_action = min_simulations_per_root_action
+        self.max_total_iterations = max_total_iterations
         self.decision_index = 0
         self.rollout_policy = HeuristicPolicy()
         self.last_search: dict[str, object] = {}
@@ -328,8 +336,20 @@ class InformationSetMCTSPolicy:
         belief = PublicBelief.from_game(game, root_player)
         root = _InformationNode()
         nodes = 1
-        total_iterations = self.samples * self.iterations_per_sample
-        seed_base = self.seed + self.decision_index * total_iterations
+        configured_iterations = self.samples * self.iterations_per_sample
+        adaptive_floor = len(legal) * self.min_simulations_per_root_action
+        total_iterations = max(configured_iterations, adaptive_floor)
+        if self.max_total_iterations is not None:
+            total_iterations = min(
+                total_iterations,
+                max(configured_iterations, self.max_total_iterations),
+            )
+        seed_stride = (
+            max(configured_iterations, self.max_total_iterations or 4096)
+            if self.min_simulations_per_root_action
+            else configured_iterations
+        )
+        seed_base = self.seed + self.decision_index * seed_stride
         for iteration in range(total_iterations):
             state = belief.sample_determinization(
                 game, seed=seed_base + iteration
@@ -487,6 +507,10 @@ class InformationSetMCTSPolicy:
         self.last_search = {
             "information_mode": self.information_mode,
             "iterations": total_iterations,
+            "configured_iterations": configured_iterations,
+            "adaptive_iterations": total_iterations - configured_iterations,
+            "min_simulations_per_root_action": self.min_simulations_per_root_action,
+            "max_total_iterations": self.max_total_iterations,
             "determinizations": total_iterations,
             "root_actions": len(legal),
             "root_children": len(root.children),

@@ -329,6 +329,17 @@ calibration experiments. This result rules out a tempting code-only shortcut:
 raising teacher/search quality still requires better policy targets or a
 stronger model, not simply trusting the current prior earlier.
 
+Adaptive root budgeting is now available through
+`--min-simulations-per-root-action` and `--max-total-iterations`. With a base
+budget of four, a floor of two simulations per legal root action, and a cap of
+16, it beat fixed-four PUCT 29/40 (72.5%); nine seat-swapped pairs were swept
+and none lost (paired p=0.0039). It averaged about 10.4 simulations per
+non-forced search. Against a fixed-ten baseline it scored 22/40 (55%, paired
+p=0.6875), so the pilot supports comparable strength at comparable nominal
+compute, not a free algorithmic gain. Dataset generation records the actual
+teacher and adaptive simulation counts per decision so future distillation
+experiments can audit compute rather than relying on the base-budget label.
+
 The trace audit found the concrete omission: schema v1 encoded weapon Attack
 but not temporary hero Attack. At the reported Searing Fissure decision, the
 v1 model therefore could not observe the three points of temporary Attack. The

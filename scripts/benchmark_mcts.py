@@ -74,6 +74,10 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
                 args.baseline == "puct" and not args.baseline_policy_only
             ),
             force_uniform_expansion=not args.baseline_prior_first_expansion,
+            min_simulations_per_root_action=(
+                args.baseline_min_simulations_per_root_action
+            ),
+            max_total_iterations=args.baseline_max_total_iterations,
         )
     if args.mode == "puct":
         if args.checkpoint is None:
@@ -92,6 +96,8 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
             policy_value_model=model,
             use_model_value=not args.policy_only,
             force_uniform_expansion=not args.prior_first_expansion,
+            min_simulations_per_root_action=args.min_simulations_per_root_action,
+            max_total_iterations=args.max_total_iterations,
         )
     else:
         search = (
@@ -113,7 +119,7 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
             else MCTSPolicy(args.iterations, args.rollout_depth)
         )
     policies[mcts_seat] = search
-    actions = searches = nodes = 0
+    actions = searches = nodes = simulations = adaptive_searches = 0
     started = time.perf_counter()
     while not game.finished and actions < args.max_actions:
         actor = game.current
@@ -121,6 +127,10 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
         if actor == mcts_seat:
             searches += 1
             nodes += int(search.last_search.get("nodes", 0))
+            simulations += int(search.last_search.get("iterations", 0))
+            adaptive_searches += int(
+                search.last_search.get("adaptive_iterations", 0) > 0
+            )
         actions += 1
     return {
         "seed": seed,
@@ -133,6 +143,8 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
         "actions": actions,
         "searches": searches,
         "nodes": nodes,
+        "simulations": simulations,
+        "adaptive_searches": adaptive_searches,
         "elapsed_seconds": time.perf_counter() - started,
     }
 
@@ -148,6 +160,8 @@ def main() -> int:
     )
     parser.add_argument("--samples", type=int, default=4)
     parser.add_argument("--tree-depth", type=int, default=8)
+    parser.add_argument("--min-simulations-per-root-action", type=int, default=0)
+    parser.add_argument("--max-total-iterations", type=int)
     parser.add_argument("--checkpoint", type=Path)
     parser.add_argument(
         "--policy-only", action="store_true",
@@ -164,6 +178,10 @@ def main() -> int:
     parser.add_argument("--baseline-iterations", type=int)
     parser.add_argument("--baseline-tree-depth", type=int)
     parser.add_argument("--baseline-rollout-depth", type=int)
+    parser.add_argument(
+        "--baseline-min-simulations-per-root-action", type=int, default=0
+    )
+    parser.add_argument("--baseline-max-total-iterations", type=int)
     parser.add_argument(
         "--baseline-policy-only", action="store_true",
         help="use baseline checkpoint priors with heuristic rollout values",
@@ -251,7 +269,23 @@ def main() -> int:
             else args.rollout_depth
             if args.baseline in {"ismcts", "puct"} else None
         ),
+        "baseline_min_simulations_per_root_action": (
+            args.baseline_min_simulations_per_root_action
+            if args.baseline in {"ismcts", "puct"} else None
+        ),
+        "baseline_max_total_iterations": (
+            args.baseline_max_total_iterations
+            if args.baseline in {"ismcts", "puct"} else None
+        ),
         "iterations": args.iterations,
+        "min_simulations_per_root_action": (
+            args.min_simulations_per_root_action
+            if args.mode in {"ismcts", "puct"} else 0
+        ),
+        "max_total_iterations": (
+            args.max_total_iterations
+            if args.mode in {"ismcts", "puct"} else None
+        ),
         "tree_depth": args.tree_depth if args.mode in {"ismcts", "puct"} else None,
         "rollout_depth": (
             args.rollout_depth
@@ -286,7 +320,13 @@ def main() -> int:
         "wall_clock_seconds": time.perf_counter() - benchmark_started,
         "searches": sum(row["searches"] for row in games),
         "nodes": sum(row["nodes"] for row in games),
+        "simulations": sum(row["simulations"] for row in games),
+        "adaptive_searches": sum(row["adaptive_searches"] for row in games),
     }
+    summary["mean_simulations_per_search"] = (
+        summary["simulations"] / summary["searches"]
+        if summary["searches"] else 0.0
+    )
     document = {"summary": summary, "games": games}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_bytes((json.dumps(document, indent=2) + "\n").encode())

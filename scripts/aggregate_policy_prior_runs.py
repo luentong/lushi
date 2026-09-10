@@ -35,6 +35,9 @@ def main() -> None:
             "baseline_samples", "baseline_iterations", "baseline_tree_depth",
             "baseline_rollout_depth", "leaf_value_source",
             "candidate_expansion_mode", "baseline_expansion_mode",
+            "min_simulations_per_root_action", "max_total_iterations",
+            "baseline_min_simulations_per_root_action",
+            "baseline_max_total_iterations",
         )
         signature = {
             field: summary.get(field) for field in signature_fields

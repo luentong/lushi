@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "comparison": {
+    "candidate": "policy-prior-puct-v1",
+    "baseline": "policy-prior-puct-v1",
+    "checkpoint": "reports/policy-value-budget16-e10.pt",
+    "baseline_checkpoint": "reports/policy-value-budget16-e10.pt",
+    "samples": 1,
+    "iterations": 4,
+    "tree_depth": 4,
+    "rollout_depth": 3,
+    "baseline_samples": 1,
+    "baseline_iterations": 4,
+    "baseline_tree_depth": 4,
+    "baseline_rollout_depth": 3,
+    "leaf_value_source": "heuristic_rollout",
+    "candidate_expansion_mode": "force_unvisited",
+    "baseline_expansion_mode": "force_unvisited",
+    "min_simulations_per_root_action": 2,
+    "max_total_iterations": 16,
+    "baseline_min_simulations_per_root_action": 0,
+    "baseline_max_total_iterations": null
+  },
+  "runs": [
+    {
+      "report": "reports/puct-adaptive2-cap16-pilot-run0.json",
+      "checkpoint": "reports/policy-value-budget16-e10.pt",
+      "games": 10,
+      "wins": 7,
+      "win_rate": 0.7,
+      "wilson95": [
+        0.39677321997956516,
+        0.892210712513788
+      ],
+      "pairs": 5,
+      "swept_pairs": 2,
+      "split_pairs": 3,
+      "lost_pairs": 0,
+      "decisive_pairs": 2,
+      "exact_two_sided_sign_p": 0.5
+    },
+    {
+      "report": "reports/puct-adaptive2-cap16-pilot-run1.json",
+      "checkpoint": "reports/policy-value-budget16-e10.pt",
+      "games": 10,
+      "wins": 9,
+      "win_rate": 0.9,
+      "wilson95": [
+        0.5958436145024278,
+        0.9821242504842788
+      ],
+      "pairs": 5,
+      "swept_pairs": 4,
+      "split_pairs": 1,
+      "lost_pairs": 0,
+      "decisive_pairs": 4,
+      "exact_two_sided_sign_p": 0.125
+    },
+    {
+      "report": "reports/puct-adaptive2-cap16-pilot-run2.json",
+      "checkpoint": "reports/policy-value-budget16-e10.pt",
+      "games": 10,
+      "wins": 6,
+      "win_rate": 0.6,
+      "wilson95": [
+        0.3126695474501864,
+        0.8318224187964902
+      ],
+      "pairs": 5,
+      "swept_pairs": 1,
+      "split_pairs": 4,
+      "lost_pairs": 0,
+      "decisive_pairs": 1,
+      "exact_two_sided_sign_p": 1.0
+    },
+    {
+      "report": "reports/puct-adaptive2-cap16-pilot-run3.json",
+      "checkpoint": "reports/policy-value-budget16-e10.pt",
+      "games": 10,
+      "wins": 7,
+      "win_rate": 0.7,
+      "wilson95": [
+        0.39677321997956516,
+        0.892210712513788
+      ],
+      "pairs": 5,
+      "swept_pairs": 2,
+      "split_pairs": 3,
+      "lost_pairs": 0,
+      "decisive_pairs": 2,
+      "exact_two_sided_sign_p": 0.5
+    }
+  ],
+  "pooled": {
+    "independent_runs": 4,
+    "games": 40,
+    "wins": 29,
+    "win_rate": 0.725,
+    "wilson95": [
+      0.5716474916687543,
+      0.8389214656685692
+    ],
+    "pairs": 20,
+    "swept_pairs": 9,
+    "split_pairs": 11,
+    "lost_pairs": 0,
+    "decisive_pairs": 9,
+    "exact_two_sided_sign_p": 0.00390625
+  },
+  "interpretation": "Pooled statistics are descriptive; checkpoint-level replication remains the unit of generalization."
+}

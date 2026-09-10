@@ -182,6 +182,22 @@ class MCTSPolicyTests(unittest.TestCase):
             "force_unvisited", policy.last_search["expansion_mode"]
         )
 
+    def test_adaptive_budget_scales_with_root_branching_and_honors_cap(self):
+        game = DragonMirrorGame(CARDS, 145)
+        root_actions = len(game.legal_actions())
+        policy = InformationSetMCTSPolicy(
+            samples=1, iterations_per_sample=2, tree_depth=3,
+            rollout_depth=0, min_simulations_per_root_action=3,
+            max_total_iterations=4,
+        )
+        policy.choose(game)
+        self.assertEqual(2, policy.last_search["configured_iterations"])
+        self.assertEqual(min(root_actions * 3, 4), policy.last_search["iterations"])
+        self.assertEqual(
+            policy.last_search["iterations"] - 2,
+            policy.last_search["adaptive_iterations"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -68,6 +68,14 @@ def dataset_statistics(games: list[list[dict]]) -> dict[str, object]:
             "one_hot_fraction": sum(
                 max(target) >= 1.0 - 1e-12 for target in soft_targets
             ) / len(soft_targets),
+            "mean_simulations": sum(
+                record.get("teacher_simulations", 0)
+                for record in nontrivial_records
+            ) / len(nontrivial_records),
+            "adaptive_decision_fraction": sum(
+                record.get("teacher_adaptive_simulations", 0) > 0
+                for record in nontrivial_records
+            ) / len(nontrivial_records),
         }
     return statistics
 
@@ -83,6 +91,10 @@ def play_game(cards: Path, seed: int, teacher: str, args) -> list[dict]:
                 iterations_per_sample=args.iterations,
                 rollout_depth=args.rollout_depth,
                 seed=args.search_seed + seed * 2 + seat,
+                min_simulations_per_root_action=(
+                    args.min_simulations_per_root_action
+                ),
+                max_total_iterations=args.max_total_iterations,
             )
             for seat in (0, 1)
         ]
@@ -97,6 +109,10 @@ def play_game(cards: Path, seed: int, teacher: str, args) -> list[dict]:
                 iterations_per_sample=args.behavior_iterations,
                 rollout_depth=args.behavior_rollout_depth,
                 seed=args.behavior_search_seed + seed * 2 + seat,
+                min_simulations_per_root_action=(
+                    args.behavior_min_simulations_per_root_action
+                ),
+                max_total_iterations=args.behavior_max_total_iterations,
             )
             for seat in (0, 1)
         ]
@@ -110,6 +126,14 @@ def play_game(cards: Path, seed: int, teacher: str, args) -> list[dict]:
         policy_target = (
             policies[actor].last_search.get("root_policy")
             if teacher == "ismcts" else None
+        )
+        teacher_simulations = (
+            int(policies[actor].last_search.get("iterations", 0))
+            if teacher == "ismcts" else 0
+        )
+        teacher_adaptive_simulations = (
+            int(policies[actor].last_search.get("adaptive_iterations", 0))
+            if teacher == "ismcts" else 0
         )
         behavior_action = (
             teacher_action
@@ -127,6 +151,8 @@ def play_game(cards: Path, seed: int, teacher: str, args) -> list[dict]:
             "chosen_action": chosen,
             "executed_action": executed,
             "policy_target": policy_target,
+            "teacher_simulations": teacher_simulations,
+            "teacher_adaptive_simulations": teacher_adaptive_simulations,
             "legal_action_count": len(decision.actions),
         })
         game.step(behavior_action)
@@ -150,6 +176,8 @@ def main() -> None:
     parser.add_argument("--samples", type=int, default=2)
     parser.add_argument("--iterations", type=int, default=4)
     parser.add_argument("--rollout-depth", type=int, default=3)
+    parser.add_argument("--min-simulations-per-root-action", type=int, default=0)
+    parser.add_argument("--max-total-iterations", type=int)
     parser.add_argument("--search-seed", type=int, default=20260909)
     parser.add_argument(
         "--behavior", choices=("teacher", "heuristic", "ismcts"),
@@ -159,6 +187,10 @@ def main() -> None:
     parser.add_argument("--behavior-samples", type=int, default=2)
     parser.add_argument("--behavior-iterations", type=int, default=8)
     parser.add_argument("--behavior-rollout-depth", type=int, default=3)
+    parser.add_argument(
+        "--behavior-min-simulations-per-root-action", type=int, default=0
+    )
+    parser.add_argument("--behavior-max-total-iterations", type=int)
     parser.add_argument("--behavior-search-seed", type=int, default=20260911)
     parser.add_argument("--max-actions", type=int, default=1000)
     parser.add_argument("--workers", type=int, default=1)
@@ -195,6 +227,10 @@ def main() -> None:
                 "iterations_per_sample": args.iterations,
                 "simulations_per_decision": args.samples * args.iterations,
                 "rollout_depth": args.rollout_depth,
+                "min_simulations_per_root_action": (
+                    args.min_simulations_per_root_action
+                ),
+                "max_total_iterations": args.max_total_iterations,
             }
             if args.teacher == "ismcts" else None
         ),
@@ -207,6 +243,10 @@ def main() -> None:
                     args.behavior_samples * args.behavior_iterations
                 ),
                 "rollout_depth": args.behavior_rollout_depth,
+                "min_simulations_per_root_action": (
+                    args.behavior_min_simulations_per_root_action
+                ),
+                "max_total_iterations": args.behavior_max_total_iterations,
             }
             if args.behavior == "ismcts" else None
         ),
