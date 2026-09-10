@@ -90,6 +90,13 @@ python scripts/trace_search_match.py \
 Its Markdown trace shows every chosen action, the five leading alternatives by
 root visit share, resolved engine events, and both players' state after the
 action. The compact JSON trace retains all ranked alternatives for analysis.
+Use the bundled HearthstoneJSON Chinese card data to render a complete Chinese
+version without rerunning the match:
+
+```bash
+python scripts/localize_search_trace_zhcn.py \
+  reports/search-trace-202609100039-seat0.json
+```
 
 Opening hands now use an explicit mulligan phase. Each player may independently
 toggle any offered card between keep/replace and confirm the whole selection;
