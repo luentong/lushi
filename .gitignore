@@ -16,6 +16,7 @@ reports/*.jsonl.gz
 
 # Large reproducible traces
 reports/dragon_mirror_trace.json
+reports/search-trace-*.json
 
 # Editor and operating-system files
 .idea/

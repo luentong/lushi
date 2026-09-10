@@ -77,6 +77,20 @@ The readable report is `reports/dragon_mirror_trace.md`. The JSON report records
 the selected action, number of legal alternatives, new events, and complete
 before/after state for both players at every step.
 
+To replay one policy-prior PUCT versus plain ISMCTS benchmark game with the
+same search seeds and parameters, run:
+
+```bash
+python scripts/trace_search_match.py \
+  --seed 202609100039 --candidate-seat 0 \
+  --checkpoint reports/policy-independent64b-budget16-e10.pt \
+  --device npu:0
+```
+
+Its Markdown trace shows every chosen action, the five leading alternatives by
+root visit share, resolved engine events, and both players' state after the
+action. The compact JSON trace retains all ranked alternatives for analysis.
+
 Opening hands now use an explicit mulligan phase. Each player may independently
 toggle any offered card between keep/replace and confirm the whole selection;
 replacement cards are drawn before rejected cards return to the shuffled deck,
