@@ -51,6 +51,29 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(3, target.max_health)
         self.assertEqual(before_hand, len(game.players[0].hand))
 
+    def test_simple_core_spell_tranche(self):
+        game = self.game()
+        game.players[0].health = 20
+        friendly = self.add_board(game, "CAP_107t", 0)
+        enemy = self.add_board(game, "CORE_LOOT_137", 1)
+        heal = self.add_hand(game, "CORE_AT_055")
+        game.step(Action("PLAY", heal.entity_id, 0, None))
+        self.assertEqual(25, game.players[0].health)
+
+        shot = self.add_hand(game, "CORE_DS1_185")
+        game.step(Action("PLAY", shot.entity_id, 1, enemy.entity_id))
+        self.assertEqual(2, enemy.damage)
+
+        intellect = self.add_hand(game, "CORE_CS2_023")
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True)] * 2
+        game.step(Action("PLAY", intellect.entity_id))
+        # The played spell leaves the hand, then draws two cards.
+        self.assertEqual(2, len(game.players[0].hand))
+
+        assassinate = self.add_hand(game, "CORE_CS2_076")
+        game.step(Action("PLAY", assassinate.entity_id, 1, enemy.entity_id))
+        self.assertNotIn(enemy, game.players[1].board)
+
     def test_first_flame_generates_second_flame(self):
         game = self.game()
         target = self.add_board(game, "CORE_LOOT_137", 1)

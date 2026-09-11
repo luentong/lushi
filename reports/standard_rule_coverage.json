@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 121,
+      "declarative": 125,
       "legacy_compatibility": 245,
-      "not_implemented": 1795
+      "not_implemented": 1791
     },
     "collectible_implementation": {
-      "declarative": 102,
+      "declarative": 106,
       "legacy_compatibility": 225,
-      "not_implemented": 839
+      "not_implemented": 835
     },
     "fully_implemented": false
   },
@@ -5235,9 +5235,9 @@
       "mechanics": "",
       "text": "Restore #5 Health.",
       "text_sha256": "caebafaf154d01d22e7685b6b599baa74bc1c50753cc29b97c77e153fa7b04a8",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_AT_062",
@@ -6210,9 +6210,9 @@
       "mechanics": "",
       "text": "Draw 2 cards.",
       "text_sha256": "d431f7496ea56cf6c2970ab414d18e15ae296393776c135f4ec582d724ae5ae1",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_CS2_024",
@@ -6375,9 +6375,9 @@
       "mechanics": "",
       "text": "Destroy an enemy minion.",
       "text_sha256": "72562e1de706442e27e115722d5e083e43f949be4b3c6d3c9503cafff3522041",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_CS2_093",
@@ -6660,9 +6660,9 @@
       "mechanics": "",
       "text": "Deal $2 damage.",
       "text_sha256": "6b79a356d18c7b60fad009c20e6529ff4e9b278842b7459d77365aaca1ddaeff",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_EDR_001",

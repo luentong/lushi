@@ -346,7 +346,7 @@ CATA_COIN5,130518,The Coin,CATACLYSM,NEUTRAL,SPELL,False,,Gain 1 Mana Crystal th
 CATA_COIN6,130740,The Coin,CATACLYSM,NEUTRAL,SPELL,False,,Gain 1 Mana Crystal this turn only.,7e0b9838c71ab2fca09f4defa0790398e06cf2d4f4f0c10ea1634a74b712d126,not_implemented,False,missing
 CORE_AT_037,76289,Living Roots,CORE,DRUID,SPELL,True,CHOOSE_ONE,Choose One - Deal $2 damage; or Summon two 1/1 Saplings.,d2199bf00d912368d69cb7101a6ae34dd08b0ff209b5d18e6e05634591942610,not_implemented,False,missing
 CORE_AT_052,129849,Totem Golem,CORE,SHAMAN,MINION,True,OVERLOAD,Overload: (1),aaed179d533ad14cdc3a2e24517455e22d574c244eeabaf943426d219efb74e9,not_implemented,False,missing
-CORE_AT_055,69707,Flash Heal,CORE,PRIEST,SPELL,True,,Restore #5 Health.,caebafaf154d01d22e7685b6b599baa74bc1c50753cc29b97c77e153fa7b04a8,not_implemented,False,missing
+CORE_AT_055,69707,Flash Heal,CORE,PRIEST,SPELL,True,,Restore #5 Health.,caebafaf154d01d22e7685b6b599baa74bc1c50753cc29b97c77e153fa7b04a8,declarative,True,focused_or_regression_tests
 CORE_AT_062,111364,Ball of Spiders,CORE,HUNTER,SPELL,True,,"Summon three 1/1 Webspinners with ""Deathrattle: Get a random Beast.""",4783fdc91246e16104eeb6e85c158037823207aaac73de7a442774d76131fbb8,not_implemented,False,missing
 CORE_AT_064,76304,Bash,CORE,WARRIOR,SPELL,True,,Deal $3 damage. Gain 3 Armor.,928fd318ba579f2b5e05c1f8bac672a385b663af517a469a8d3f15f6c0c2acd8,not_implemented,False,missing
 CORE_AT_123,120524,Chillmaw,CORE,NEUTRAL,MINION,True,"DEATHRATTLE,TAUNT","Taunt Deathrattle: If you're holding a Dragon, deal 3 damage to all minions.",21f10ccb294afbffb9b0bf21c2a95a1fb2ceef70827ee31eae859bfcac7e6f0e,legacy_compatibility,True,focused_or_regression_tests
@@ -411,7 +411,7 @@ CORE_CS1_112,69508,Holy Nova,CORE,PRIEST,SPELL,True,,Deal $2 damage to all enemy
 CORE_CS1_130,69509,Holy Smite,CORE,PRIEST,SPELL,True,,Deal $3 damage to a minion.,44499b054fe6189fafafb21af7c3caa6d643b930340e3b31c760ec0f4bb99424,not_implemented,False,missing
 CORE_CS2_004,120786,Power Word: Shield,CORE,PRIEST,SPELL,True,,Give a minion +2 Health. Draw a card.,8a285589fbf9ae9fba2a614406ac46fc4a89745286226dbe6ad15ceb0bc6b337,declarative,True,focused_or_regression_tests
 CORE_CS2_009,69511,Mark of the Wild,CORE,DRUID,SPELL,True,,Give a minion Taunt and +2/+3. (+2 Attack/+3 Health),1465b8a2c13afe5e27f9232591d786909c16f6c67f28ce5cbb180fb6f9dc6c00,not_implemented,False,missing
-CORE_CS2_023,69500,Arcane Intellect,CORE,MAGE,SPELL,True,,Draw 2 cards.,d431f7496ea56cf6c2970ab414d18e15ae296393776c135f4ec582d724ae5ae1,not_implemented,False,missing
+CORE_CS2_023,69500,Arcane Intellect,CORE,MAGE,SPELL,True,,Draw 2 cards.,d431f7496ea56cf6c2970ab414d18e15ae296393776c135f4ec582d724ae5ae1,declarative,True,focused_or_regression_tests
 CORE_CS2_024,111365,Frostbolt,CORE,MAGE,SPELL,True,FREEZE,Deal $3 damage to a character and Freeze it.,6eb2b8e19a847744609c55370d69793ebfc8040db877696e8404df1b13ecdaf6,not_implemented,False,missing
 CORE_CS2_028,76273,Blizzard,CORE,MAGE,SPELL,True,FREEZE,Deal $2 damage to all enemy minions and Freeze them.,15d7cf52e1958ef856bde7a8d1351ad184cbb5cbe700e04f8075ae41c1b623eb,not_implemented,False,missing
 CORE_CS2_029,69501,Fireball,CORE,MAGE,SPELL,True,,Deal $6 damage.,c1a9b901409f63e6d95dc0ff0d1e1b1d6e5618496ee56570ca98b3d455867ed3,declarative,True,focused_or_regression_tests
@@ -422,7 +422,7 @@ CORE_CS2_053,76293,Far Sight,CORE,SHAMAN,SPELL,True,,Draw a card. That card cost
 CORE_CS2_062,69519,Hellfire,CORE,WARLOCK,SPELL,True,,Deal $3 damage to ALL characters.,63052469523ecf7c4f5a06dedf728fd8ff00db4e998a4084af7a70e171fd39a7,declarative,True,focused_or_regression_tests
 CORE_CS2_072,69521,Backstab,CORE,ROGUE,SPELL,True,,Deal $2 damage to an undamaged minion.,01eb3c1228aa95e51cb84c7a307be72d65d72bff423a5de2483927582587e911,not_implemented,False,missing
 CORE_CS2_074,69522,Deadly Poison,CORE,ROGUE,SPELL,True,,Give your weapon +2 Attack.,62ebadccf21b504d9da1aa52e1d7eae476c330dd5643cb0d951a274bd063ab78,not_implemented,False,missing
-CORE_CS2_076,69525,Assassinate,CORE,ROGUE,SPELL,True,,Destroy an enemy minion.,72562e1de706442e27e115722d5e083e43f949be4b3c6d3c9503cafff3522041,not_implemented,False,missing
+CORE_CS2_076,69525,Assassinate,CORE,ROGUE,SPELL,True,,Destroy an enemy minion.,72562e1de706442e27e115722d5e083e43f949be4b3c6d3c9503cafff3522041,declarative,True,focused_or_regression_tests
 CORE_CS2_093,69532,Consecration,CORE,PALADIN,SPELL,True,,Deal $2 damage to all enemies.,a856d816bd952d82386f48eb1d36293be42f6aaf47ef5a11f30cf96773764506,not_implemented,False,missing
 CORE_CS2_094,102790,Hammer of Wrath,CORE,PALADIN,SPELL,True,,Deal $3 damage. Draw a card.,572d1eb2f460f659685ff148dec15aa2df6b63c2a51870b89155b9c905674023,not_implemented,False,missing
 CORE_CS2_108,69535,Execute,CORE,WARRIOR,SPELL,True,,Destroy a damaged enemy minion.,a67629a656c26eb76d901524a98751999532a5474d56cd41b5097d70ee81f6eb,not_implemented,False,missing
@@ -441,7 +441,7 @@ CORE_DRG_107,120971,Violet Spellwing,CORE,MAGE,MINION,True,DEATHRATTLE,Deathratt
 CORE_DRG_256,102191,Dragonbane,CORE,HUNTER,MINION,True,TRIGGER_VISUAL,"After you use your Hero Power, deal 5 damage to a random enemy.",95f2fbb3a34fbcbf7bacc4e6298d0e2e705a72a9638d87e10f9f2e0d9b49489d,legacy_compatibility,True,focused_or_regression_tests
 CORE_DRG_403,120433,Blowtorch Saboteur,CORE,NEUTRAL,MINION,True,BATTLECRY,Battlecry: Your opponent's next Hero Power costs (2) more.,64f18a5c39087f4362eb713c8f4274aa4c3efe18359e2bf4b87c4e59b367ad57,not_implemented,False,missing
 CORE_DS1_184,69545,Tracking,CORE,HUNTER,SPELL,True,DISCOVER,Discover a card from your deck.,84e4a1e792313de264a2c8806bdb9bffd922fe36c3f5ebed5c3b20eb758c6984,not_implemented,False,missing
-CORE_DS1_185,69546,Arcane Shot,CORE,HUNTER,SPELL,True,,Deal $2 damage.,6b79a356d18c7b60fad009c20e6529ff4e9b278842b7459d77365aaca1ddaeff,not_implemented,False,missing
+CORE_DS1_185,69546,Arcane Shot,CORE,HUNTER,SPELL,True,,Deal $2 damage.,6b79a356d18c7b60fad009c20e6529ff4e9b278842b7459d77365aaca1ddaeff,declarative,True,focused_or_regression_tests
 CORE_EDR_001,117307,Babbling Bookcase,CORE,MAGE,MINION,True,BATTLECRY,Battlecry: Add 2 random Mage spells to your hand.,5899d8e9e3efa8d1a35216950809169f9b880d491e69fdd5447c4e038bb6813c,not_implemented,False,missing
 CORE_EDR_002,117308,Poison Breath,CORE,DEATHKNIGHT,SPELL,True,,Give a friendly Undead Poisonous.,bcbfc66709a0bdef24a9de0d7f3105573cd42bcd93536e802f845de74a87b29e,not_implemented,False,missing
 CORE_EDR_002e,117309,Deathly Poison,CORE,DEATHKNIGHT,ENCHANTMENT,False,POISONOUS,Poisonous,573c8b628420891981b2eb72fec57c17cfa2cade0f4010bcd47c87c019783164,not_implemented,False,missing

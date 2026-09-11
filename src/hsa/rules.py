@@ -82,6 +82,11 @@ DECLARATIVE_METADATA_ALIASES = {
 # New full-Standard rules are kept separate from the historical Dragon slice
 # so adding cards does not mutate the vocabulary of existing neural models.
 STANDARD_DECLARATIVE_IDS = {
+    # Simple Core rule tranche: direct draw, heal, damage, and destroy.
+    "CORE_AT_055",  # Flash Heal
+    "CORE_CS2_023",  # Arcane Intellect
+    "CORE_CS2_076",  # Assassinate
+    "CORE_DS1_185",  # Arcane Shot
     "CATA_131",
     "CATA_303",
     "CATA_138",
@@ -2668,5 +2673,36 @@ def build_rule_registry() -> RuleRegistry:
                     "test_genn_transforms_reversibly_and_upgrades_warrior_hero_power",
                 ),
             ),
+        ),
+        CardRule(
+            "CORE_AT_055", {Hook.SPELL: (HealActionTarget(5),)},
+            RuleSource(
+                "upstream_adapted", rosetta, "AT_055", "AGPL-3.0",
+                ("test_simple_core_spell_rules",),
+            ),
+            TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "CORE_CS2_023", {Hook.SPELL: (Draw(2),)},
+            RuleSource(
+                "upstream_adapted", rosetta, "CS2_023", "AGPL-3.0",
+                ("test_simple_core_spell_rules",),
+            ),
+        ),
+        CardRule(
+            "CORE_CS2_076", {Hook.SPELL: (DestroyActionTarget(),)},
+            RuleSource(
+                "upstream_adapted", rosetta, "CS2_076", "AGPL-3.0",
+                ("test_simple_core_spell_rules",),
+            ),
+            TargetSpec(TargetKind.ENEMY_MINION),
+        ),
+        CardRule(
+            "CORE_DS1_185", {Hook.SPELL: (DamageActionTarget(2),)},
+            RuleSource(
+                "upstream_adapted", rosetta, "DS1_185", "AGPL-3.0",
+                ("test_simple_core_spell_rules",),
+            ),
+            TargetSpec(TargetKind.ANY_CHARACTER),
         ),
     ))
