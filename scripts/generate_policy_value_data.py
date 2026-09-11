@@ -24,6 +24,25 @@ from hsa.encoding import encode_decision, feature_schema
 from hsa.lineage import ruleset_manifest
 
 
+def matchup_deck_counts(config_path: Path, deck_a: str, deck_b: str):
+    """Decode two configured deckstrings into runtime card-count maps."""
+    try:
+        from hearthstone.deckstrings import Deck
+    except ImportError:
+        sys.path.insert(0, str(ROOT / ".deps"))
+        from hearthstone.deckstrings import Deck
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    by_id = {item["id"]: item for item in config["decks"]}
+    cards = json.loads((ROOT / "cards.zhCN.json").read_text(encoding="utf-8"))
+    by_dbf = {int(card["dbfId"]): card["id"] for card in cards if "dbfId" in card}
+
+    def decode(name: str):
+        deck = Deck.from_deckstring(by_id[name]["deckstring"])
+        return {by_dbf[dbf_id]: count for dbf_id, count in deck.cards}
+
+    return decode(deck_a), decode(deck_b)
+
+
 class DatasetStatistics:
     """Accumulate dataset metrics without retaining completed games."""
 
@@ -152,7 +171,10 @@ def generated_games(args, game_seeds: list[int]):
 
 
 def play_game(cards: Path, seed: int, teacher: str, args) -> list[dict]:
-    game = DragonMirrorGame(cards, seed)
+    deck_counts = None
+    if args.deck_a and args.deck_b:
+        deck_counts = matchup_deck_counts(args.deck_config, args.deck_a, args.deck_b)
+    game = DragonMirrorGame(cards, seed, deck_counts=deck_counts)
     if teacher == "heuristic":
         policies = [HeuristicPolicy(), HeuristicPolicy()]
     else:
@@ -280,6 +302,9 @@ def main() -> None:
     parser.add_argument("--max-actions", type=int, default=1000)
     parser.add_argument("--workers", type=int, default=1)
     parser.add_argument("--cards", type=Path, default=ROOT / "cards.251332.enUS.json")
+    parser.add_argument("--deck-config", type=Path, default=ROOT / "config" / "decks.json")
+    parser.add_argument("--deck-a")
+    parser.add_argument("--deck-b")
     parser.add_argument(
         "--output", type=Path,
         default=ROOT / "reports" / "policy-value-smoke.jsonl.gz",
