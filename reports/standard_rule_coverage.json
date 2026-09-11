@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 134,
+      "declarative": 137,
       "legacy_compatibility": 245,
-      "not_implemented": 1782
+      "not_implemented": 1779
     },
     "collectible_implementation": {
-      "declarative": 115,
+      "declarative": 117,
       "legacy_compatibility": 225,
-      "not_implemented": 826
+      "not_implemented": 824
     },
     "fully_implemented": false
   },
@@ -2460,9 +2460,9 @@
       "mechanics": "",
       "text": "Restore a minion to full Health. Draw a card.",
       "text_sha256": "16533fa582ebcc155f96322ced5154fd5b35db6fa994ae75c72022f68ff763a5",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_303",
@@ -2625,9 +2625,9 @@
       "mechanics": "",
       "text": "Deal $4 damage to all minions. Costs (1) if you control a Legendary card.",
       "text_sha256": "171f61f442142bec864dfeac75f567b78a9a832d2c520e9e63d3287be6f008cf",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_432",
@@ -21240,9 +21240,9 @@
       "mechanics": "",
       "text": "Gain 1 Mana Crystal this turn only.",
       "text_sha256": "7e0b9838c71ab2fca09f4defa0790398e06cf2d4f4f0c10ea1634a74b712d126",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_COIN2",

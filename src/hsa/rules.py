@@ -97,6 +97,9 @@ STANDARD_DECLARATIVE_IDS = {
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "JAIL_730",  # Stardust Scythe
+    "CATA_302",  # Mend
+    "CATA_308",  # Medivh's Triumph
+    "JAIL_COIN1",  # The Coin
     "CATA_131",
     "CATA_303",
     "CATA_138",
@@ -1523,6 +1526,21 @@ class HealActionTarget:
 
 
 @dataclass(frozen=True)
+class HealActionTargetToFull:
+    """Restore a targeted minion to full Health."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        if context.action.target_entity is None:
+            raise ValueError("minion target is required")
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        target.damage = 0
+
+
+@dataclass(frozen=True)
 class HealFriendlyCharacters:
     amount: int
 
@@ -2815,6 +2833,28 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "powerlog_verified", local, "JAIL_730", "internal",
                 ("test_powerlog_cards_and_triggers",),
+            ),
+        ),
+        CardRule(
+            "CATA_302", {Hook.SPELL: (HealActionTargetToFull(), Draw())},
+            RuleSource(
+                "powerlog_verified", local, "CATA_302", "internal",
+                ("test_latest_powerlog_simple_rules",),
+            ),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "CATA_308", {Hook.SPELL: (DamageAllMinions(4), ResolveDeaths())},
+            RuleSource(
+                "powerlog_verified", local, "CATA_308", "internal",
+                ("test_latest_powerlog_simple_rules",),
+            ),
+        ),
+        CardRule(
+            "JAIL_COIN1", {Hook.SPELL: (GainMana(1),)},
+            RuleSource(
+                "powerlog_verified", local, "JAIL_COIN1", "internal",
+                ("test_latest_powerlog_simple_rules",),
             ),
         ),
     ))

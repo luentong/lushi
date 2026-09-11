@@ -136,6 +136,26 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         )
         self.assertIn("JAIL_732", [card.card_id for card in game.players[0].hand])
 
+    def test_latest_powerlog_simple_rules(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_LOOT_137", 0)
+        target.damage = 4
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True)]
+        mend = self.add_hand(game, "CATA_302")
+        game.step(Action("PLAY", mend.entity_id, 0, target.entity_id))
+        self.assertEqual(0, target.damage)
+        self.assertEqual(1, len(game.players[0].hand))
+
+        enemy = self.add_board(game, "CAP_107t", 1)
+        sweep = self.add_hand(game, "CATA_308")
+        game.step(Action("PLAY", sweep.entity_id))
+        self.assertNotIn(enemy, game.players[1].board)
+
+        game.players[0].mana = 0
+        coin = self.add_hand(game, "JAIL_COIN1")
+        game.step(Action("PLAY", coin.entity_id))
+        self.assertEqual(1, game.players[0].mana)
+
     def test_first_flame_generates_second_flame(self):
         game = self.game()
         target = self.add_board(game, "CORE_LOOT_137", 1)
