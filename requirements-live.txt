@@ -1,0 +1,4 @@
+# Local Windows companion dependencies. The commit pin makes Power.log parsing
+# reproducible without checking the vendor checkout into this repository.
+-r requirements.txt
+hslog @ git+https://github.com/HearthSim/python-hslog.git@015c0dec197779c90cd3131ecda2c990292342b6

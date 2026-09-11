@@ -175,6 +175,50 @@ deck and reachable generated-card closure are both complete; this is deliberate
 fail-closed behavior, not a weak recommendation. The current Dragon Warrior
 policy/value model is valid only for its closed mirror simulator.
 
+## Windows local companion (RTX GPU)
+
+For a Hearthstone PC that cannot reach FusionOne, run the companion entirely on
+that PC. It reads the local `Power.log`, writes only local sanitized reports,
+and never automates the client. An RTX 4070 Ti Super is more than sufficient
+for the current 22 MB Dragon Warrior policy checkpoint; the search itself is
+still limited by Python game simulation, so begin with the validated 16
+simulation budget.
+
+Clone this repository, install a CUDA-enabled PyTorch build appropriate for
+your installed NVIDIA driver, then install the remaining pinned dependencies:
+
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+# Install the CUDA-enabled command selected for this PC by pytorch.org/get-started.
+# Do not install a CPU-only wheel.
+python -m pip install -r requirements-live.txt
+```
+
+Manually copy `policy-value-v5-structured-256.pt` into `models\`; model files
+are deliberately ignored by Git. Verify both CUDA and exact source/checkpoint
+identity before using it:
+
+```powershell
+python scripts\verify_cuda_policy.py `
+  --checkpoint models\policy-value-v5-structured-256.pt --device cuda
+```
+
+Start local-only shadow mode against the default client log path:
+
+```powershell
+powershell.exe -ExecutionPolicy Bypass -File scripts\start_local_shadow.ps1 `
+  -Python .\.venv\Scripts\python.exe
+```
+
+The report is written to `%LOCALAPPDATA%\LushiAgent\shadow\live.shadow.json`
+and the automatically deduplicated rule backlog to
+`live.shadow.backlog.jsonl`. The raw log never leaves the gaming PC. Current
+mode is coverage/engineering shadow analysis, not real-time move automation;
+the latter remains gated by complete live-state reconstruction and matchup
+coverage.
+
 Dataset generation streams each completed game into a compressed temporary
 spool and keeps at most `2 * workers` parallel game results in memory. The final
 JSONL.GZ header and aggregate statistics remain compatible with existing

@@ -15,6 +15,9 @@ vendor/
 reports/*.pt
 reports/*.jsonl.gz
 
+# User-supplied local inference weights. Do not commit model artifacts.
+models/
+
 # Large reproducible traces
 reports/dragon_mirror_trace.json
 reports/search-trace-*.json
