@@ -259,11 +259,14 @@ ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "CORE_CS2_032",  # Flamestrike
     "CORE_SW_108",  # First Flame
     "FIR_909",  # Bursting Shot
+    "FIR_906",  # Overheat
+    "FIR_910",  # Scorching Winds
     "FIR_923",  # Flames of the Firelord
     "FIR_954",  # Conflagrate
     "JAIL_307",  # Crowd Control
     "SW_108t",  # Second Flame
     "TLC_227",  # Lava Flow
+    "TLC_221",  # Sizzling Swarm
 }
 
 SPECIAL_TOKEN_IDS = {

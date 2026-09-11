@@ -213,9 +213,9 @@ fire_spell,DINO_406,Fire Breath,SHAMAN,THE_LOST_CITY,SPELL,3,0,0,,,Deal $4 damag
 fire_spell,END_024,Flames of Infinity,MAGE,TIME_TRAVEL,SPELL,3,0,0,,"SECRET,ImmuneToSpellpower","<b>Secret:</b> When your enemy's turn ends, deal INFINITE damage to their highest Health minion.",needs_rule
 fire_spell,END_025,Eternal Firebolt,"MAGE,PRIEST",TIME_TRAVEL,SPELL,3,0,0,,LIFESTEAL,"<b>Lifesteal</b> Deal $3 damage to a minion. If it dies, return this to your hand at the end of your turn.",needs_rule
 fire_spell,FIR_900,Cremate,DEATHKNIGHT,EMERALD_DREAM,SPELL,3,0,0,,DISCOVER,<b>Discover</b> a minion with a <b>Dark Gift</b>. It costs (2) less.,needs_rule
-fire_spell,FIR_906,Overheat,DRUID,EMERALD_DREAM,SPELL,3,0,0,,,Give your minions +1/+1. Discard a random Nature spell to give them +1/+1 more.,needs_rule
+fire_spell,FIR_906,Overheat,DRUID,EMERALD_DREAM,SPELL,3,0,0,,,Give your minions +1/+1. Discard a random Nature spell to give them +1/+1 more.,generated_supported
 fire_spell,FIR_909,Bursting Shot,HUNTER,EMERALD_DREAM,SPELL,2,0,0,,,Deal $2 damage to three random enemies.,generated_supported
-fire_spell,FIR_910,Scorching Winds,MAGE,EMERALD_DREAM,SPELL,3,0,0,,,Deal $3 damage. Discard a random Fire spell to deal $3 more.,needs_rule
+fire_spell,FIR_910,Scorching Winds,MAGE,EMERALD_DREAM,SPELL,3,0,0,,,Deal $3 damage. Discard a random Fire spell to deal $3 more.,generated_supported
 fire_spell,FIR_911,Smoldering Grove,MAGE,EMERALD_DREAM,SPELL,2,0,0,,,"Draw {0} card. <i>(Upgrades each turn, but discards after {1}!)</i>1Draw {0} cards. <i>(Discards this turn!)</i>",needs_rule
 fire_spell,FIR_914,Smoldering Strength,PALADIN,EMERALD_DREAM,SPELL,1,0,0,,,"Give a friendly minion +{0}/+{0}. <i>(Upgrades each turn, but discards after {1}!)</i>1Give a friendly minion +{0}/+{0}. <i>(Discards this turn!)</i>",needs_rule
 fire_spell,FIR_916,Smoldering Ascent,PRIEST,EMERALD_DREAM,SPELL,2,0,0,,,"Deal ${0} damage to all enemy minions. <i>(Upgrades each turn, but discards after {1}!)</i>1Deal ${0} damage to all enemy minions. <i>(Discards this turn!)</i>",needs_rule
@@ -226,7 +226,7 @@ fire_spell,FIR_941,Searing Reflection,PALADIN,EMERALD_DREAM,SPELL,7,0,0,,,Draw a
 fire_spell,FIR_954,Conflagrate,WARLOCK,EMERALD_DREAM,SPELL,1,0,0,,,Deal $5 damage to a minion. Its owner draws a card.,generated_supported
 fire_spell,JAIL_307,Crowd Control,WARRIOR,ESCAPEFROM_VIOLET_HOLD,SPELL,5,0,0,,,"Deal $2 damage to all minions twice. If your deck has 25 or more cards, this costs (2) less.",generated_supported
 fire_spell,JAIL_801,Molten Gold,SHAMAN,ESCAPEFROM_VIOLET_HOLD,SPELL,3,0,0,,,Deal $4 damage. <i>(Cast 3 spells to turn into a minion!)</i>,needs_rule
-fire_spell,TLC_221,Sizzling Swarm,SHAMAN,THE_LOST_CITY,SPELL,6,0,0,,,Deal $3 damage. Summon that many 2/1 Sizzling Cinders.,needs_rule
+fire_spell,TLC_221,Sizzling Swarm,SHAMAN,THE_LOST_CITY,SPELL,6,0,0,,,Deal $3 damage. Summon that many 2/1 Sizzling Cinders.,generated_supported
 fire_spell,TLC_222,Flight of the Firehawk,SHAMAN,THE_LOST_CITY,SPELL,3,0,0,,,Draw two minions of different minion types. Give them +1/+1.,needs_rule
 fire_spell,TLC_227,Lava Flow,SHAMAN,THE_LOST_CITY,SPELL,3,0,0,,OVERLOAD,"Deal $2 damage to the lowest Health enemy, three times. <b>Overload:</b> (1)",generated_supported
 fire_spell,TLC_632,Story of Sulfuras,WARRIOR,THE_LOST_CITY,SPELL,5,0,0,,,"[x]Swap your Hero Power to ""Deal 8 damage to a random enemy."" After 2 uses, swap back.",needs_rule

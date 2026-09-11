@@ -127,7 +127,9 @@ STANDARD_DECLARATIVE_IDS = {
     "EDR_846t5",
     "EDR_852",
     "FIR_907",
+    "FIR_906",
     "FIR_909",
+    "FIR_910",
     "FIR_923",
     "FIR_954",
     "EDR_476",
@@ -157,6 +159,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_701",
     "TLC_451",
     "TLC_227",
+    "TLC_221",
     "SW_108t",
     "TLC_COIN1",
 }
@@ -551,6 +554,108 @@ class DamageLowestHealthEnemyRepeated:
         game._event(
             "lowest_health_enemy_damage", player=context.player.index,
             source=context.card.card_id, amount=amount, targets=targets,
+        )
+
+
+@dataclass(frozen=True)
+class BuffFriendlyMinionsDiscardRandomSpellSchool:
+    attack: int
+    health: int
+    spell_school: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        def buff() -> None:
+            for minion in player.board:
+                minion.attack_delta += self.attack
+                minion.health_delta += self.health
+        buff()
+        candidates = [
+            card for card in player.hand
+            if card.definition.card_type == "SPELL"
+            and card.definition.spell_school == self.spell_school
+        ]
+        discarded = None
+        if candidates:
+            discarded = game.rng.choice(candidates)
+            player.hand.remove(discarded)
+            game._event(
+                "discard", player=player.index, card=discarded.card_id,
+                entity=discarded.entity_id, source=context.card.card_id,
+            )
+            buff()
+        game._event(
+            "buff_discard_spell_school", player=player.index,
+            source=context.card.card_id, spell_school=self.spell_school,
+            discarded=None if discarded is None else discarded.card_id,
+            attack=self.attack, health=self.health,
+        )
+
+
+@dataclass(frozen=True)
+class DamageActionTargetDiscardRandomSpellSchool:
+    amount: int
+    spell_school: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
+        target = (context.action.target_player, context.action.target_entity)
+        game._deal_to_target(context.player.index, target, amount, context.card)
+        candidates = [
+            card for card in context.player.hand
+            if card.definition.card_type == "SPELL"
+            and card.definition.spell_school == self.spell_school
+        ]
+        discarded = None
+        if candidates:
+            discarded = game.rng.choice(candidates)
+            context.player.hand.remove(discarded)
+            game._event(
+                "discard", player=context.player.index, card=discarded.card_id,
+                entity=discarded.entity_id, source=context.card.card_id,
+            )
+            game._deal_to_target(context.player.index, target, amount, context.card)
+        game._resolve_deaths()
+        game._event(
+            "damage_discard_spell_school", player=context.player.index,
+            source=context.card.card_id, target=target,
+            amount=amount, discarded=None if discarded is None else discarded.card_id,
+        )
+
+
+@dataclass(frozen=True)
+class DamageActionTargetThenSummonByDamage:
+    amount: int
+    card_id: str
+    attack: int
+    health: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
+        game._deal_to_target(
+            context.player.index,
+            (context.action.target_player, context.action.target_entity),
+            amount, context.card,
+        )
+        game._resolve_deaths()
+        summoned = []
+        for _ in range(amount):
+            if len(context.player.board) + len(context.player.locations) >= 7:
+                break
+            token = game._entity(self.card_id, created_by=context.card.card_id)
+            token.attack_delta += self.attack - token.definition.attack
+            token.health_delta += self.health - token.definition.health
+            token.summoned_turn = game.turn
+            game._summon(context.player, token)
+            summoned.append(token.entity_id)
+        game._event(
+            "damage_then_summon", player=context.player.index,
+            source=context.card.card_id, amount=amount,
+            summoned=summoned,
         )
 
 
@@ -1836,6 +1941,23 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule(
+            "FIR_906",
+            {Hook.SPELL: (BuffFriendlyMinionsDiscardRandomSpellSchool(1, 1, "NATURE"),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_overheat_discards_nature_spell_for_second_buff",),
+            ),
+        ),
+        CardRule(
+            "FIR_910",
+            {Hook.SPELL: (DamageActionTargetDiscardRandomSpellSchool(3, "FIRE"),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_scorching_winds_discards_fire_spell_for_second_hit",),
+            ),
+            TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
             "FIR_923",
             {Hook.SPELL: (DamageRandomEnemyMinionWithHeldCost(4, 8, 8),)},
             RuleSource(
@@ -1868,6 +1990,15 @@ def build_rule_registry() -> RuleRegistry:
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_lava_flow_retargets_lowest_health_enemy",),
             ),
+        ),
+        CardRule(
+            "TLC_221",
+            {Hook.SPELL: (DamageActionTargetThenSummonByDamage(3, "TLC_249", 2, 1),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_sizzling_swarm_summons_one_cinder_per_damage",),
+            ),
+            TargetSpec(TargetKind.ANY_CHARACTER),
         ),
         CardRule(
             "SW_108t",

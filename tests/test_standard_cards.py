@@ -138,6 +138,34 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertNotIn(target, game.players[1].board)
         self.assertEqual(26, game.players[1].health)
 
+    def test_overheat_discards_nature_spell_for_second_buff(self):
+        game = self.game()
+        minion = self.add_board(game, "CAP_107t", 0)
+        nature_spell = self.add_hand(game, "EDR_270")
+        spell = self.add_hand(game, "FIR_906")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual((3, 3), (minion.attack, minion.max_health))
+        self.assertNotIn(nature_spell, game.players[0].hand)
+
+    def test_scorching_winds_discards_fire_spell_for_second_hit(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        fuel = self.add_hand(game, "CORE_CS2_029")
+        spell = self.add_hand(game, "FIR_910")
+        game.step(Action("PLAY", spell.entity_id, 1, target.entity_id))
+        self.assertEqual(6, target.damage)
+        self.assertNotIn(fuel, game.players[0].hand)
+
+    def test_sizzling_swarm_summons_one_cinder_per_damage(self):
+        game = self.game()
+        game.players[1].health = 20
+        spell = self.add_hand(game, "TLC_221")
+        game.step(Action("PLAY", spell.entity_id, 1, None))
+        self.assertEqual(17, game.players[1].health)
+        cinders = [card for card in game.players[0].board if card.card_id == "TLC_249"]
+        self.assertEqual(3, len(cinders))
+        self.assertTrue(all((card.attack, card.max_health) == (2, 1) for card in cinders))
+
     def test_wickerfang_colossal_legs_grow_and_sync_their_stats(self):
         game = self.game()
         wickerfang = self.add_hand(game, "CATA_139")
