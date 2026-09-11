@@ -14,13 +14,18 @@ from hsa.rules import CardRule, Hook, RuleRegistry, RuleSource, build_rule_regis
 class RuleRegistryTests(unittest.TestCase):
     def test_first_migration_has_machine_readable_provenance(self):
         rows = build_rule_registry().manifest()
-        self.assertEqual(71, len(rows))
+        self.assertEqual(74, len(rows))
         by_id = {row["card_id"]: row for row in rows}
         self.assertEqual(["deathrattle"], by_id["CORE_EX1_110"]["hooks"])
         self.assertEqual(
             "upstream_adapted", by_id["CORE_EX1_110"]["source"]["kind"]
         )
         self.assertTrue(by_id["CORE_EX1_110"]["source"]["verification"])
+        self.assertEqual(["hero_power"], by_id["EDR_449p"]["hooks"])
+        self.assertEqual(
+            "official_text_and_powerlog_verified",
+            by_id["EDR_449p"]["source"]["kind"],
+        )
 
     def test_duplicate_registration_is_rejected(self):
         rule = CardRule("TEST", {Hook.BATTLECRY: ()}, RuleSource("test", "test"))
