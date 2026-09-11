@@ -81,6 +81,15 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_131",
     "CATA_138",
     "CATA_190p",
+    # Deathwing, Worldbreaker and its four non-collectible Cataclysms.  The
+    # sequencing is engine-owned because the Hero card makes one, two, or four
+    # consecutive *distinct* choices based on Herald count.
+    "CATA_190h",
+    "CATA_190t10",
+    "CATA_190t11",
+    "CATA_190t12",
+    "CATA_190t13",
+    "CATA_190t14",
     "CATA_492",
     "CATA_496",
     "CATA_725",

@@ -540,6 +540,9 @@ class CardDef:
     text: str = ""
     spell_school: str = ""
     spell_damage: int = 0
+    rarity: str = ""
+    collectible: bool = False
+    armor: int = 0
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "CardDef":
         # Definitions are immutable and shared by every search branch.
@@ -861,6 +864,9 @@ class DragonMirrorGame:
                     text=card.get("text", "") or "",
                     spell_school=card.get("spellSchool", "") or "",
                     spell_damage=int(card.get("spellDamage", 0)),
+                    rarity=card.get("rarity", "") or "",
+                    collectible=bool(card.get("collectible", False)),
+                    armor=int(card.get("armor", 0)),
                 )
         return result
 
@@ -2403,6 +2409,11 @@ class DragonMirrorGame:
                     Action("RULE_CHOICE_PICK", index)
                     for index in range(len(self.pending_choice["options"]))
                 ]
+            if self.pending_choice["kind"] == "DEATHWING_CATACLYSM":
+                return [
+                    Action("CATACLYSM_PICK", index)
+                    for index in range(len(self.pending_choice["options"]))
+                ]
         player = self.players[self.current]
         self._refresh_genn(player)
         for candidate in self.players:
@@ -2660,6 +2671,8 @@ class DragonMirrorGame:
             self._resolve_corpse_spend(action.source)
         elif action.kind == "RULE_CHOICE_PICK":
             self._resolve_rule_choice(action.source)
+        elif action.kind == "CATACLYSM_PICK":
+            self._resolve_deathwing_cataclysm(action.source)
         self._resolve_deaths()
         self._check_winner()
 
@@ -2679,6 +2692,124 @@ class DragonMirrorGame:
         self._event(
             "rule_choice_pick", player=player.index, card=card.card_id,
             option=label,
+        )
+
+    def _play_hero_card(self, player: Player, card: CardInstance) -> None:
+        """Resolve hero transformation cards that have engine-level choices.
+
+        A Hero card replaces the hero power and adds its printed Armor; it does
+        not heal the player.  Deathwing's Cataclysms are selected one at a time
+        from the four different modes, so a later choice sees the board/deck
+        mutations made by the earlier one.
+        """
+        player.max_health = card.definition.health or player.max_health
+        player.health = min(player.health, player.max_health)
+        player.armor += card.definition.armor
+        if card.card_id == "CATA_190h":
+            player.hero_power_id = "CATA_190p"
+            choices = self._herald_power(player.herald_count)
+            self.pending_choice = {
+                "kind": "DEATHWING_CATACLYSM",
+                "player": player.index,
+                "card": card,
+                "remaining": choices,
+                "options": [
+                    "CATA_190t10", "CATA_190t11", "CATA_190t12", "CATA_190t13",
+                ],
+                "chosen": [],
+            }
+            self._event(
+                "deathwing_transform", player=player.index, card=card.card_id,
+                armor=card.definition.armor, cataclysms=choices,
+            )
+        else:
+            self._event("hero_transform", player=player.index, card=card.card_id)
+
+    def _resolve_deathwing_cataclysm(self, option_index: int | None) -> None:
+        pending = self.pending_choice
+        if pending is None or pending["kind"] != "DEATHWING_CATACLYSM":
+            raise ValueError("no Deathwing Cataclysm is pending")
+        options = pending["options"]
+        if option_index is None or not 0 <= option_index < len(options):
+            raise ValueError("invalid Deathwing Cataclysm")
+        card_id = options.pop(option_index)
+        player = self.players[pending["player"]]
+        pending["chosen"].append(card_id)
+        self._unleash_deathwing_cataclysm(player, card_id)
+        pending["remaining"] -= 1
+        self._event(
+            "deathwing_cataclysm", player=player.index, card=card_id,
+            remaining=pending["remaining"], choices=list(pending["chosen"]),
+        )
+        # The official Herald text says 1 / 2 / 4 Cataclysms, while there are
+        # exactly four modes.  Remove a chosen mode, rather than allowing the
+        # same Cataclysm to be picked twice in one transformation.
+        if pending["remaining"] > 0 and options:
+            return
+        self.pending_choice = None
+
+    def _unleash_deathwing_cataclysm(self, player: Player, card_id: str) -> None:
+        enemy = self.players[1 - player.index]
+        if card_id == "CATA_190t10":
+            if len(player.board) + len(player.locations) < 7:
+                minion = self._entity(card_id="CATA_190t14", created_by=card_id)
+                minion.summoned_turn = self.turn
+                self._summon(player, minion)
+            return
+        if card_id == "CATA_190t11":
+            candidates = [
+                minion for minion in enemy.board if minion.dormant_turns == 0
+            ]
+            if candidates:
+                highest_health = max(minion.health for minion in candidates)
+                target = self.rng.choice([
+                    minion for minion in candidates
+                    if minion.health == highest_health
+                ])
+                target.damage = max(target.damage, target.max_health)
+                self._event(
+                    "deathwing_topple", player=player.index,
+                    target_player=enemy.index, target=target.entity_id,
+                )
+            return
+        if card_id == "CATA_190t12":
+            for minion in list(enemy.board):
+                if minion.dormant_turns == 0:
+                    # Raze specifies a fixed 4; it is not modified by the
+                    # controller's spell damage.
+                    self._damage_minion(enemy.index, minion, 4)
+            return
+        if card_id == "CATA_190t13":
+            pool = self._executable_legendary_dragons()
+            for _ in range(5):
+                if not pool:
+                    break
+                generated = self._entity(self.rng.choice(pool), created_by=card_id)
+                generated.cost_delta = 1 - generated.definition.cost
+                generated.started_in_deck = False
+                player.deck.insert(self.rng.randrange(len(player.deck) + 1), generated)
+                self._event(
+                    "deathwing_enthrall", player=player.index,
+                    card=generated.card_id, entity=generated.entity_id,
+                    cost=generated.cost,
+                )
+            return
+        raise UnsupportedGeneratedCard(f"Deathwing Cataclysm {card_id}")
+
+    def _executable_legendary_dragons(self) -> list[str]:
+        """Return the closed, playable subset of Standard Legendary Dragons.
+
+        The live game can generate from the complete Standard pool.  This
+        simulator deliberately excludes cards without executable behavior;
+        keeping that boundary explicit prevents an unsupported card silently
+        becoming a vanilla minion when it is later drawn and played.
+        """
+        return sorted(
+            card_id for card_id, definition in self.card_defs.items()
+            if card_id in EXECUTABLE_CARD_IDS
+            and definition.card_type == "MINION"
+            and definition.rarity == "LEGENDARY"
+            and (definition.race == "DRAGON" or "DRAGON" in definition.races)
         )
 
     def _prepare(self, entity_id: int | None) -> None:
@@ -2852,6 +2983,8 @@ class DragonMirrorGame:
             self._refresh_continuous(controller)
         elif card.definition.card_type == "LOCATION":
             player.locations.append(Location(card.entity_id, card.card_id, card.definition.health, 1))
+        elif card.definition.card_type == "HERO":
+            self._play_hero_card(player, card)
         else:
             lorewalkers = []
             if card.definition.card_type == "SPELL":
@@ -5821,6 +5954,12 @@ class DragonMirrorGame:
         if action.kind == "RULE_CHOICE_PICK":
             label = self.pending_choice["options"][action.source][0]
             return f"P{self.current + 1} CHOOSE_ONE {label}"
+        if action.kind == "CATACLYSM_PICK":
+            card_id = self.pending_choice["options"][action.source]
+            return (
+                f"P{self.current + 1} CATACLYSM_PICK "
+                f"{self.card_defs[card_id].name}[{card_id}]"
+            )
         source_card = next(
             (c for c in player.hand + player.board if c.entity_id == action.source),
             None,
@@ -5971,6 +6110,15 @@ class DragonMirrorGame:
             elif self.pending_choice["kind"] == "RULE_CHOICE":
                 pending["options"] = [
                     label for label, _ in self.pending_choice["options"]
+                ]
+            elif self.pending_choice["kind"] == "DEATHWING_CATACLYSM":
+                pending["remaining"] = self.pending_choice["remaining"]
+                pending["options"] = [
+                    {
+                        "id": card_id,
+                        "name": self.card_defs[card_id].name,
+                    }
+                    for card_id in self.pending_choice["options"]
                 ]
             else:
                 pending["options"] = list(self.pending_choice["options"])

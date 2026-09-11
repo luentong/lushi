@@ -539,6 +539,43 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(5, game.players[0].hero_attack_bonus)
         self.assertTrue(game.players[0].hero_power_used)
 
+    def test_deathwing_worldbreaker_unleashes_distinct_cataclysms(self):
+        game = self.game()
+        game.players[0].herald_count = 2
+        game.players[0].armor = 3
+        enemy = self.add_board(game, "CORE_LOOT_137", 1)
+        enemy.health_delta = 8
+        deathwing = self.add_hand(game, "CATA_190h")
+        game.step(Action("PLAY", deathwing.entity_id))
+        self.assertEqual("CATA_190p", game.players[0].hero_power_id)
+        self.assertEqual(15, game.players[0].armor)
+        self.assertEqual("DEATHWING_CATACLYSM", game.pending_choice["kind"])
+        self.assertEqual(2, game.pending_choice["remaining"])
+        # Topple targets highest current Health.  The second choice cannot
+        # select Topple again and sees the state left by the first choice.
+        topple = game.pending_choice["options"].index("CATA_190t11")
+        game.step(Action("CATACLYSM_PICK", topple))
+        self.assertNotIn(enemy, game.players[1].board)
+        self.assertEqual(1, game.pending_choice["remaining"])
+        self.assertNotIn("CATA_190t11", game.pending_choice["options"])
+        reign = game.pending_choice["options"].index("CATA_190t10")
+        game.step(Action("CATACLYSM_PICK", reign))
+        self.assertIsNone(game.pending_choice)
+        self.assertTrue(any(
+            minion.card_id == "CATA_190t14" for minion in game.players[0].board
+        ))
+
+    def test_deathwing_enthrall_shuffles_discounted_closed_pool_dragons(self):
+        game = self.game()
+        game._unleash_deathwing_cataclysm(game.players[0], "CATA_190t13")
+        generated = [card for card in game.players[0].deck if card.created_by == "CATA_190t13"]
+        self.assertEqual(5, len(generated))
+        self.assertTrue(all(card.cost == 1 for card in generated))
+        self.assertTrue(all(
+            card.definition.rarity == "LEGENDARY" and card.has_race("DRAGON")
+            for card in generated
+        ))
+
     def test_lunarwing_messenger_imbues_hero_power(self):
         game = self.game()
         messenger = self.add_hand(game, "EDR_449")
