@@ -67,6 +67,6 @@ dirty_priest,脏牧,120060,TIME_890,圣者麦迪文,1,True,TIME_TRAVEL,MINION,Fa
 dirty_priest,脏牧,120064,TIME_890t,圣杖埃提耶什,1,False,TIME_TRAVEL,WEAPON,False,True,True
 dirty_priest,脏牧,120068,TIME_890t2,圣地卡拉赞,1,False,TIME_TRAVEL,LOCATION,False,True,True
 dirty_priest,脏牧,124079,JAIL_912,预言师,2,True,ESCAPEFROM_VIOLET_HOLD,MINION,False,True,True
-dirty_priest,脏牧,126055,JAIL_430,裂魂者阿扎莉娜,1,True,ESCAPEFROM_VIOLET_HOLD,MINION,False,False,False
+dirty_priest,脏牧,126055,JAIL_430,裂魂者阿扎莉娜,1,True,ESCAPEFROM_VIOLET_HOLD,MINION,False,True,True
 dirty_priest,脏牧,126122,JAIL_432,心灵扫荡者,2,True,ESCAPEFROM_VIOLET_HOLD,MINION,False,True,True
 dirty_priest,脏牧,126124,JAIL_433,无拘之魂,2,True,ESCAPEFROM_VIOLET_HOLD,SPELL,False,True,True

@@ -590,6 +590,34 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", knight.entity_id))
         self.assertEqual("EDR_449p", game.players[0].hero_power_id)
 
+    def test_azalina_rebuilds_starting_deck_and_draws_to_hand_limit(self):
+        game = DragonMirrorGame(
+            CARDS, 43,
+            deck_counts=(
+                {"JAIL_430": 1, "GAME_005": 29},
+                {"CORE_CS2_004": 30},
+            ),
+            player_classes=("PRIEST", "WARRIOR"),
+        )
+        player = game.players[0]
+        all_starting_cards = player.hand + player.deck
+        self.assertEqual(40, player.max_health)
+        self.assertEqual(40, len(all_starting_cards))
+        self.assertEqual(20, sum(
+            card.created_by == "JAIL_430" for card in all_starting_cards
+        ))
+
+        game = self.game()
+        for _ in range(3):
+            self.add_hand(game, "GAME_005")
+        azalina = self.add_hand(game, "JAIL_430")
+        game.step(Action("PLAY", azalina.entity_id))
+        self.assertEqual(10, len(game.players[0].hand))
+        self.assertTrue(any(
+            event["kind"] == "azalina_draw_to_full" and event["drawn"] == 7
+            for event in game.events
+        ))
+
     def test_blessing_of_the_moon_offers_discounted_temporary_cards(self):
         game = self.game()
         game.players[0].hero_power_id = "EDR_449p"

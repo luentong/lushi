@@ -822,6 +822,8 @@ class DragonMirrorGame:
         ]
         for player in self.players:
             player.deck = self._new_deck(player.index)
+        self._apply_pre_game_deck_rules()
+        for player in self.players:
             self.rng.shuffle(player.deck)
         self._initial_draw()
         if manual_mulligan:
@@ -959,6 +961,41 @@ class DragonMirrorGame:
             for card_id, count in self.deck_counts[player_index].items()
             for _ in range(count)
         ]
+
+    def _apply_pre_game_deck_rules(self) -> None:
+        """Apply Start of Game rules before opening hands are dealt.
+
+        This is deliberately separate from ``_start_of_game``: effects that
+        modify deck composition or starting health must be complete before
+        shuffling, the opening draw, and the mulligan.  In particular,
+        Azalina's copied cards are real initial-deck cards rather than
+        generated cards added after the game begins.
+        """
+        original_definitions = [
+            [card.definition for card in player.deck] for player in self.players
+        ]
+        for player in self.players:
+            if not any(card.card_id == "JAIL_430" for card in player.deck):
+                continue
+            enemy_definitions = original_definitions[1 - player.index]
+            own = self.rng.sample(player.deck, min(20, len(player.deck)))
+            copied_definitions = self.rng.sample(
+                enemy_definitions, min(20, len(enemy_definitions))
+            )
+            copies = [
+                self._instance_from_definition(
+                    definition, started_in_deck=True, created_by="JAIL_430"
+                )
+                for definition in copied_definitions
+            ]
+            player.deck = own + copies
+            player.max_health = 40
+            player.health = 40
+            self._event(
+                "start_of_game_deck_rebuild", player=player.index,
+                card="JAIL_430", own_cards=len(own), copied_cards=len(copies),
+                starting_health=40,
+            )
 
     def _initial_draw(self) -> None:
         for _ in range(3):
@@ -3043,6 +3080,19 @@ class DragonMirrorGame:
 
     def _battlecry(self, player: Player, card: CardInstance, action: Action) -> None:
         times = 2 if card.battlecry_twice else 1
+        if card.card_id == "JAIL_430":
+            # This Battlecry is distinct from the card's pre-game deck rebuild:
+            # draw repeatedly only after Azalina itself has occupied a board
+            # slot, stopping naturally at the hand-size cap.
+            drawn = 0
+            while len(player.hand) < 10 and player.deck:
+                self._draw(player)
+                drawn += 1
+            self._event(
+                "azalina_draw_to_full", player=player.index,
+                source=card.entity_id, drawn=drawn, hand_size=len(player.hand),
+            )
+            return
         if card.card_id == "CATA_556":
             for _ in range(times):
                 generated = self._entity(
