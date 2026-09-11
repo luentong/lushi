@@ -597,6 +597,19 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             for card in game.players[0].hand
         ))
 
+    def test_lifebloom_heals_friendly_characters_and_summons_eight_costs(self):
+        game = self.game()
+        game.players[0].health = 20
+        friendly = self.add_board(game, "CORE_LOOT_137", 0)
+        friendly.damage = 3
+        spell = self.add_hand(game, "MEND_042")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(28, game.players[0].health)
+        self.assertEqual(0, friendly.damage)
+        summoned = [card for card in game.players[0].board if card != friendly]
+        self.assertEqual(2, len(summoned))
+        self.assertTrue(all(card.definition.cost == 8 for card in summoned))
+
 
 if __name__ == "__main__":
     unittest.main()

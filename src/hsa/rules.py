@@ -107,6 +107,7 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_875",
     "JAIL_941",
     "JAIL_941t",
+    "MEND_042",
     "TIME_702",
     "TIME_432",
     "TIME_701",
@@ -729,13 +730,15 @@ class SummonRandomExecutableMinion:
     cost: int | None = None
     min_cost: int | None = None
     require_taunt: bool = False
+    count: int = 1
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        game._summon_random_executable_minion(
-            context.player, source_card_id=context.card.card_id,
-            cost=self.cost, min_cost=self.min_cost,
-            require_taunt=self.require_taunt,
-        )
+        for _ in range(self.count):
+            game._summon_random_executable_minion(
+                context.player, source_card_id=context.card.card_id,
+                cost=self.cost, min_cost=self.min_cost,
+                require_taunt=self.require_taunt,
+            )
 
 
 @dataclass(frozen=True)
@@ -1291,6 +1294,17 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_dark_embrace_deals_damage",),
             ),
             TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "MEND_042", {Hook.SPELL: (
+                HealFriendlyCharacters(8),
+                SummonRandomExecutableMinion(cost=8, count=2),
+            )},
+            RuleSource(
+                "powerlog_verified",
+                "Power.log 61e3baf3 + HearthstoneJSON 251332",
+                verification=("test_lifebloom_heals_friendly_characters_and_summons_eight_costs",),
+            ),
         ),
         CardRule(
             "TIME_432", {Hook.SPELL: (OfferIntertwinedFate(),)},
