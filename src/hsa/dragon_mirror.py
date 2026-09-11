@@ -2044,6 +2044,20 @@ class DragonMirrorGame:
         )
         return dynamic_seer_damage + generic_damage
 
+    def _spell_effect_amount(self, player: Player, card: CardInstance, amount: int) -> int:
+        """Apply shared spell-damage and spell-doubling replacement effects.
+
+        This is intentionally the one entry point used by declarative damage
+        and healing effects.  A weapon such as Atiesh doubles the final spell
+        effect (base amount plus Spell Damage), not merely the Spell Damage.
+        """
+        if card.definition.card_type != "SPELL":
+            return amount
+        amount += self._spell_damage(player)
+        if player.weapon is not None and player.weapon.card_id == "TIME_890t":
+            amount *= 2
+        return amount
+
     def _hero_power_cost(self, player: Player) -> int:
         if player.hero_power_id is not None:
             return self.card_defs[player.hero_power_id].cost

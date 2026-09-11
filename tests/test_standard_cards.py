@@ -229,6 +229,41 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         }
         self.assertNotIn((1, None), targets)
 
+    def test_atiesh_doubles_generic_spell_damage_and_healing(self):
+        damage_game = self.game()
+        damage_game.players[0].weapon = Weapon("TIME_890t", "Atiesh the Greatstaff", 1, 3)
+        spell = self.add_hand(damage_game, "END_007")
+        damage_game.step(Action("PLAY", spell.entity_id, 1, None))
+        self.assertEqual(28, damage_game.players[1].health)
+
+        heal_game = self.game()
+        heal_game.players[0].weapon = Weapon("TIME_890t", "Atiesh the Greatstaff", 1, 3)
+        heal_game.players[0].health = 20
+        spell = self.add_hand(heal_game, "JAIL_941")
+        heal_game.step(Action("PLAY", spell.entity_id, 0, None))
+        self.assertEqual(28, heal_game.players[0].health)
+
+    def test_medivh_battlecry_and_fabled_cost_reductions(self):
+        game = self.game()
+        friendly = self.add_board(game, "CORE_CS2_065", 0)
+        enemy = self.add_board(game, "CORE_LOOT_137", 1)
+        medivh = self.add_hand(game, "TIME_890")
+        game.step(Action("PLAY", medivh.entity_id))
+        self.assertIn(medivh, game.players[0].board)
+        self.assertNotIn(friendly, game.players[0].board)
+        self.assertNotIn(enemy, game.players[1].board)
+
+        location = Location(99_890, "TIME_890t2", durability=2, cooldown=0)
+        game.players[0].locations.append(location)
+        second_medivh = game._entity("TIME_890")
+        self.assertEqual(0, game._effective_cost(game.players[0], second_medivh))
+        atiesh = game._entity("TIME_890t")
+        self.assertEqual(0, game._effective_cost(game.players[0], atiesh))
+
+        game.players[0].weapon = Weapon("TIME_890t", "Atiesh the Greatstaff", 1, 3)
+        sanctum = game._entity("TIME_890t2")
+        self.assertEqual(0, game._effective_cost(game.players[0], sanctum))
+
     def test_press_the_advantage_all_effects(self):
         game = self.game()
         spell = self.add_hand(game, "END_007")

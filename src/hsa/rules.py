@@ -64,6 +64,8 @@ DECLARATIVE_METADATA_IDS = {
     "DREAM_05",  # Nightmare
     "EDR_846t3",  # Corrupted Laughing Sister
     "EDR_846t5",  # Corrupted Drake
+    "TIME_890t",  # Atiesh the Greatstaff
+    "TIME_890t2",  # Karazhan the Sanctum
 }
 
 # Some Core printings retain the historical behavior ID while the pinned JSON
@@ -121,6 +123,9 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_941t",
     "MEND_042",
     "TIME_702",
+    "TIME_890",
+    "TIME_890t",
+    "TIME_890t2",
     "TIME_432",
     "TIME_701",
     "TLC_451",
@@ -306,14 +311,25 @@ class CostWhenSourceAttribute:
 
 
 @dataclass(frozen=True)
+class CostZeroIfControlling:
+    card_id: str
+
+    def adjustment(self, game: Any, player: Any, card: Any) -> int:
+        controls = (
+            any(minion.card_id == self.card_id for minion in player.board)
+            or any(location.card_id == self.card_id for location in player.locations)
+            or (player.weapon is not None and player.weapon.card_id == self.card_id)
+        )
+        return -card.cost if controls else 0
+
+
+@dataclass(frozen=True)
 class DamageHero:
     amount: int
     side: str = "controller"
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        amount = self.amount
-        if context.card.definition.card_type == "SPELL":
-            amount += game._spell_damage(context.player)
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
         game._damage_hero(
             _recipient(game, context, self.side), amount, context.card
         )
@@ -327,9 +343,7 @@ class DamageBoard:
 
     def execute(self, game: Any, context: RuleContext) -> None:
         player = _recipient(game, context, self.side)
-        amount = self.amount
-        if context.card.definition.card_type == "SPELL":
-            amount += game._spell_damage(context.player)
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
         for target in list(player.board):
             if self.exclude_source and target.entity_id == context.card.entity_id:
                 continue
@@ -349,9 +363,7 @@ class DamageActionTarget:
     def execute(self, game: Any, context: RuleContext) -> None:
         if context.action is None or context.action.target_player is None:
             raise ValueError("action target is required")
-        amount = self.amount
-        if context.card.definition.card_type == "SPELL":
-            amount += game._spell_damage(context.player)
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
         game._deal_to_target(
             context.player.index,
             (context.action.target_player, context.action.target_entity),
@@ -365,9 +377,7 @@ class DamageAllCharacters:
     amount: int
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        amount = self.amount
-        if context.card.definition.card_type == "SPELL":
-            amount += game._spell_damage(context.player)
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
         for player in game.players:
             game._damage_hero(player, amount, context.card)
             for minion in list(player.board):
@@ -401,6 +411,24 @@ class DestroyAllMinions:
         for player in game.players:
             for minion in player.board:
                 minion.damage = minion.max_health
+
+
+@dataclass(frozen=True)
+class SilenceAndDestroyAllOtherMinions:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        destroyed: list[int] = []
+        for player in game.players:
+            for minion in list(player.board):
+                if minion.entity_id == context.card.entity_id:
+                    continue
+                game._silence_minion(minion)
+                minion.damage = minion.max_health
+                destroyed.append(minion.entity_id)
+        game._resolve_deaths()
+        game._event(
+            "silence_destroy_all_other_minions", player=context.player.index,
+            source=context.card.card_id, targets=destroyed,
+        )
 
 
 @dataclass(frozen=True)
@@ -900,7 +928,7 @@ class DamageAllCharactersExceptYsera:
     amount: int
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        amount = self.amount + game._spell_damage(context.player)
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
         for player in game.players:
             game._damage_hero(player, amount, context.card)
             for minion in list(player.board):
@@ -955,7 +983,8 @@ class HealHero:
 
     def execute(self, game: Any, context: RuleContext) -> None:
         player = _recipient(game, context, self.side)
-        player.health = min(player.max_health, player.health + self.amount)
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
+        player.health = min(player.max_health, player.health + amount)
 
 
 @dataclass(frozen=True)
@@ -965,14 +994,15 @@ class HealActionTarget:
     def execute(self, game: Any, context: RuleContext) -> None:
         if context.action is None or context.action.target_player is None:
             raise ValueError("action target is required")
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
         if context.action.target_entity is None:
             target = game.players[context.action.target_player]
-            target.health = min(target.max_health, target.health + self.amount)
+            target.health = min(target.max_health, target.health + amount)
         else:
             target = game._find_minion(
                 context.action.target_player, context.action.target_entity
             )
-            target.damage = max(0, target.damage - self.amount)
+            target.damage = max(0, target.damage - amount)
 
 
 @dataclass(frozen=True)
@@ -981,9 +1011,10 @@ class HealFriendlyCharacters:
 
     def execute(self, game: Any, context: RuleContext) -> None:
         player = context.player
-        player.health = min(player.max_health, player.health + self.amount)
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
+        player.health = min(player.max_health, player.health + amount)
         for minion in player.board:
-            minion.damage = max(0, minion.damage - self.amount)
+            minion.damage = max(0, minion.damage - amount)
 
 
 @dataclass(frozen=True)
@@ -1458,6 +1489,35 @@ def build_rule_registry() -> RuleRegistry:
                 "Power.log 61e3baf3 + HearthstoneJSON 251332",
                 verification=("test_lifebloom_heals_friendly_characters_and_summons_eight_costs",),
             ),
+        ),
+        CardRule(
+            "TIME_890",
+            {Hook.BATTLECRY: (SilenceAndDestroyAllOtherMinions(),)},
+            RuleSource(
+                "official_text_and_powerlog_verified",
+                "HearthstoneJSON 251332 + Power.log 61e3baf3",
+                verification=("test_medivh_battlecry_and_fabled_cost_reductions",),
+            ),
+            cost_modifier=CostZeroIfControlling("TIME_890t2"),
+        ),
+        CardRule(
+            "TIME_890t",
+            {},
+            RuleSource(
+                "official_text_and_powerlog_verified",
+                "HearthstoneJSON 251332 + Power.log 61e3baf3",
+                verification=("test_atiesh_doubles_generic_spell_damage_and_healing",),
+            ),
+            cost_modifier=CostZeroIfControlling("TIME_890"),
+        ),
+        CardRule(
+            "TIME_890t2",
+            {Hook.LOCATION: (SummonRandomExecutableMinion(8, count=2),)},
+            RuleSource(
+                "official_text", "HearthstoneJSON 251332",
+                verification=("test_medivh_battlecry_and_fabled_cost_reductions",),
+            ),
+            cost_modifier=CostZeroIfControlling("TIME_890t"),
         ),
         CardRule(
             "TIME_432", {Hook.SPELL: (OfferIntertwinedFate(),)},

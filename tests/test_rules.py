@@ -14,7 +14,7 @@ from hsa.rules import CardRule, Hook, RuleRegistry, RuleSource, build_rule_regis
 class RuleRegistryTests(unittest.TestCase):
     def test_first_migration_has_machine_readable_provenance(self):
         rows = build_rule_registry().manifest()
-        self.assertEqual(92, len(rows))
+        self.assertEqual(95, len(rows))
         by_id = {row["card_id"]: row for row in rows}
         self.assertEqual(["deathrattle"], by_id["CORE_EX1_110"]["hooks"])
         self.assertEqual(
