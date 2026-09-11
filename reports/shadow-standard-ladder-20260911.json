@@ -1,0 +1,1322 @@
+{
+  "schema_version": 1,
+  "mode": "shadow-advisory-only",
+  "source_sha256": "23282dea458ed0dfb0cbd50cc051655e47650f780c9ab2e2f566f1d4d0e06743",
+  "ruleset_manifest": {
+    "schema_version": 1,
+    "ruleset": "dragon-warrior-closed-v5",
+    "fingerprint_sha256": "af31f09933b967304bac09a01999d8de0c165445d30ce10545f0284b48a2858e",
+    "dragon_deckstring": "AAECAQcEzp4G4+YG69YHstgHDar8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5vCB5zCB6ngB/vgBwAA",
+    "semantic_files": {
+      "src/hsa/dragon_mirror.py": "9b8f29068c4221e1400ceb6789989e4589d548bb7608897c6fcea9657ea4e510",
+      "src/hsa/rules.py": "f1e8e876b17189e7306a5ed43a11245dcdcbc9a7dbf577527654ae1194265ba2",
+      "src/hsa/encoding.py": "6248b2e216123df7200e78d0292d65814fd30a4ec7c9a8789c9276014e0a596c",
+      "config/decks.json": "000bbab01a7a2ca8eb3741696c9c83613ed14c9a858db0fda0b34b2760360ed1"
+    }
+  },
+  "coverage_build": 251332,
+  "game_count": 1,
+  "summary": {
+    "red_divergence_count": 20,
+    "amber_divergence_count": 29,
+    "action_recommendations_emitted": 0
+  },
+  "games": [
+    {
+      "game_index": 0,
+      "revealed_card_count": 80,
+      "direct_event_card_count": 55,
+      "direct_event_cards": {
+        "CAP_404": 4,
+        "CAP_404e": 2,
+        "CATA_155": 5,
+        "CATA_155e2": 2,
+        "CATA_155t": 1,
+        "CATA_155t1": 1,
+        "CATA_190h": 9,
+        "CATA_190p": 10,
+        "CATA_492": 26,
+        "CATA_496": 6,
+        "CATA_497": 2,
+        "CATA_725": 7,
+        "CATA_725t": 9,
+        "CORE_CS2_004": 2,
+        "CORE_CS2_062": 4,
+        "CORE_EX1_193": 2,
+        "CORE_EX1_197": 4,
+        "CORE_ICC_055": 6,
+        "CORE_SW_072": 7,
+        "CS2_017o": 4,
+        "CS2_056_H1": 10,
+        "DINO_132": 1,
+        "DINO_431": 3,
+        "EDR_449": 7,
+        "EDR_449e": 3,
+        "EDR_449p": 6,
+        "EDR_476": 2,
+        "EDR_970": 3,
+        "EDR_970e": 2,
+        "GBL_001e": 1,
+        "GBL_999e": 12,
+        "HERO_09am_Anduin_hnv": 1,
+        "JAIL_384": 2,
+        "JAIL_399": 13,
+        "JAIL_399t1": 2,
+        "JAIL_430": 2,
+        "JAIL_432": 15,
+        "JAIL_509": 3,
+        "JAIL_509e": 157,
+        "JAIL_510": 12,
+        "JAIL_511": 18,
+        "JAIL_511t": 7,
+        "JAIL_513": 12,
+        "JAIL_514": 6,
+        "JAIL_907e": 1,
+        "JAIL_907e02": 1,
+        "JAIL_912": 5,
+        "JAIL_941": 2,
+        "JAIL_941t": 2,
+        "TIME_432": 4,
+        "TIME_890": 2,
+        "TIME_890t": 2,
+        "TLC_110": 1,
+        "TLC_451": 6,
+        "TTN_COIN2": 2
+      },
+      "confidence": "red",
+      "action_recommendation": {
+        "available": false,
+        "reason": "Power.log coverage analysis is advisory-only; an arbitrary Standard state is not yet replayable by this closed Dragon Warrior simulator."
+      },
+      "divergences": [
+        {
+          "card_id": "JAIL_509e",
+          "reason": "trigger_source_missing_rule",
+          "severity": "red",
+          "name": "Godfrey's Atlas",
+          "class": "NEUTRAL",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": 344,
+          "occurrences": 157
+        },
+        {
+          "card_id": "GBL_999e",
+          "reason": "unknown_card_id",
+          "severity": "red",
+          "name": null,
+          "class": null,
+          "type": null,
+          "collectible": null,
+          "first_packet_id": 1211,
+          "occurrences": 13
+        },
+        {
+          "card_id": "CS2_056_H1",
+          "reason": "unknown_card_id",
+          "severity": "red",
+          "name": null,
+          "class": null,
+          "type": null,
+          "collectible": null,
+          "first_packet_id": 616,
+          "occurrences": 11
+        },
+        {
+          "card_id": "CATA_725t",
+          "reason": "trigger_source_missing_rule",
+          "severity": "red",
+          "name": "Soldier of Cho'gall",
+          "class": "WARLOCK",
+          "type": "MINION",
+          "collectible": false,
+          "first_packet_id": 2056,
+          "occurrences": 9
+        },
+        {
+          "card_id": "CATA_190h",
+          "reason": "trigger_source_missing_rule",
+          "severity": "red",
+          "name": "Deathwing, Worldbreaker",
+          "class": "DEATHKNIGHT,ROGUE,SHAMAN,WARLOCK,WARRIOR,DEMONHUNTER",
+          "type": "HERO",
+          "collectible": true,
+          "first_packet_id": 7637,
+          "occurrences": 8
+        },
+        {
+          "card_id": "CS2_017o",
+          "reason": "unknown_card_id",
+          "severity": "red",
+          "name": null,
+          "class": null,
+          "type": null,
+          "collectible": null,
+          "first_packet_id": 7858,
+          "occurrences": 5
+        },
+        {
+          "card_id": "EDR_449e",
+          "reason": "trigger_source_missing_rule",
+          "severity": "red",
+          "name": "Fleeting Magic",
+          "class": "PRIEST",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": 1199,
+          "occurrences": 3
+        },
+        {
+          "card_id": "TTN_COIN2",
+          "reason": "unknown_card_id",
+          "severity": "red",
+          "name": null,
+          "class": null,
+          "type": null,
+          "collectible": null,
+          "first_packet_id": 5115,
+          "occurrences": 3
+        },
+        {
+          "card_id": "CAP_404e",
+          "reason": "trigger_source_missing_rule",
+          "severity": "red",
+          "name": "Harshing My Vibe",
+          "class": "NEUTRAL",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": 4358,
+          "occurrences": 2
+        },
+        {
+          "card_id": "CATA_155e2",
+          "reason": "trigger_source_missing_rule",
+          "severity": "red",
+          "name": "Onyxia's Blood",
+          "class": "NEUTRAL",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": 10757,
+          "occurrences": 2
+        },
+        {
+          "card_id": "EDR_970e",
+          "reason": "trigger_source_missing_rule",
+          "severity": "red",
+          "name": "Pacified",
+          "class": "PRIEST",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": 2892,
+          "occurrences": 2
+        },
+        {
+          "card_id": "GBL_001e",
+          "reason": "unknown_card_id",
+          "severity": "red",
+          "name": null,
+          "class": null,
+          "type": null,
+          "collectible": null,
+          "first_packet_id": 10549,
+          "occurrences": 2
+        },
+        {
+          "card_id": "HERO_09am_Anduin_hnv",
+          "reason": "unknown_card_id",
+          "severity": "red",
+          "name": null,
+          "class": null,
+          "type": null,
+          "collectible": null,
+          "first_packet_id": 5446,
+          "occurrences": 2
+        },
+        {
+          "card_id": "JAIL_430",
+          "reason": "trigger_source_missing_rule",
+          "severity": "red",
+          "name": "Azalina Soulsever",
+          "class": "PRIEST",
+          "type": "MINION",
+          "collectible": true,
+          "first_packet_id": 61,
+          "occurrences": 2
+        },
+        {
+          "card_id": "CATA_190h",
+          "reason": "played_card_missing_rule",
+          "severity": "red",
+          "name": "Deathwing, Worldbreaker",
+          "class": "DEATHKNIGHT,ROGUE,SHAMAN,WARLOCK,WARRIOR,DEMONHUNTER",
+          "type": "HERO",
+          "collectible": true,
+          "first_packet_id": 7597,
+          "occurrences": 1
+        },
+        {
+          "card_id": "CS2_004e",
+          "reason": "unknown_card_id",
+          "severity": "red",
+          "name": null,
+          "class": null,
+          "type": null,
+          "collectible": null,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "HERO_07a",
+          "reason": "unknown_card_id",
+          "severity": "red",
+          "name": null,
+          "class": null,
+          "type": null,
+          "collectible": null,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "HERO_09dbp",
+          "reason": "unknown_card_id",
+          "severity": "red",
+          "name": null,
+          "class": null,
+          "type": null,
+          "collectible": null,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "JAIL_907e",
+          "reason": "trigger_source_missing_rule",
+          "severity": "red",
+          "name": "Prepared",
+          "class": "NEUTRAL",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": 9025,
+          "occurrences": 1
+        },
+        {
+          "card_id": "JAIL_907e02",
+          "reason": "trigger_source_missing_rule",
+          "severity": "red",
+          "name": "Preparing",
+          "class": "NEUTRAL",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": 6291,
+          "occurrences": 1
+        },
+        {
+          "card_id": "CAP_401",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Corrupt Constable",
+          "class": "WARLOCK",
+          "type": "MINION",
+          "collectible": true,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "CAP_404e",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Harshing My Vibe",
+          "class": "NEUTRAL",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "CATA_155e",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Black Scales",
+          "class": "NEUTRAL",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "CATA_155e2",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Onyxia's Blood",
+          "class": "NEUTRAL",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "CATA_190h",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Deathwing, Worldbreaker",
+          "class": "DEATHKNIGHT,ROGUE,SHAMAN,WARLOCK,WARRIOR,DEMONHUNTER",
+          "type": "HERO",
+          "collectible": true,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "CATA_190t10",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Dragon's Reign",
+          "class": "NEUTRAL",
+          "type": "SPELL",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "CATA_190t11",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Topple",
+          "class": "NEUTRAL",
+          "type": "SPELL",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "CATA_190t12",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Raze",
+          "class": "NEUTRAL",
+          "type": "SPELL",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "CATA_190t13",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Enthrall",
+          "class": "NEUTRAL",
+          "type": "SPELL",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "CATA_190t14",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Progeny of Deathwing",
+          "class": "NEUTRAL",
+          "type": "MINION",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "CATA_432",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Chromatus",
+          "class": "PALADIN",
+          "type": "MINION",
+          "collectible": true,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "CATA_496e",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Cursed Chains",
+          "class": "WARLOCK",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "CATA_497e",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Ultraxion Heralded",
+          "class": "NEUTRAL",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "CATA_725t",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Soldier of Cho'gall",
+          "class": "WARLOCK",
+          "type": "MINION",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "CATA_726",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Cho'gall, Mastermind",
+          "class": "WARLOCK",
+          "type": "MINION",
+          "collectible": true,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "CATA_726t1",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Gall's Arm",
+          "class": "WARLOCK",
+          "type": "MINION",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "CATA_726te",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Souldrain",
+          "class": "NEUTRAL",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "CORE_ICC_210",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Shadow Ascendant",
+          "class": "PRIEST",
+          "type": "MINION",
+          "collectible": true,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "EDR_449e",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Fleeting Magic",
+          "class": "PRIEST",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "EDR_970e",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Pacified",
+          "class": "PRIEST",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "END_027",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Wings of Eternity",
+          "class": "PRIEST",
+          "type": "SPELL",
+          "collectible": true,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "FIR_777",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Spirit of the Kaldorei",
+          "class": "PRIEST",
+          "type": "MINION",
+          "collectible": true,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "JAIL_430",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Azalina Soulsever",
+          "class": "PRIEST",
+          "type": "MINION",
+          "collectible": true,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "JAIL_430e1",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Severed Soul",
+          "class": "PRIEST",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "JAIL_509e",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Godfrey's Atlas",
+          "class": "NEUTRAL",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "JAIL_513e",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Uncaged",
+          "class": "NEUTRAL",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "JAIL_907e",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Prepared",
+          "class": "NEUTRAL",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "JAIL_907e02",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Preparing",
+          "class": "NEUTRAL",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        },
+        {
+          "card_id": "TLC_835e",
+          "reason": "observed_entity_not_executable",
+          "severity": "amber",
+          "name": "Warded By Amara",
+          "class": "PRIEST",
+          "type": "ENCHANTMENT",
+          "collectible": false,
+          "first_packet_id": null,
+          "occurrences": 1
+        }
+      ]
+    }
+  ],
+  "backlog": [
+    {
+      "card_id": "JAIL_509e",
+      "reason": "trigger_source_missing_rule",
+      "severity": "red",
+      "name": "Godfrey's Atlas",
+      "class": "NEUTRAL",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": 344,
+      "occurrences": 157,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "GBL_999e",
+      "reason": "unknown_card_id",
+      "severity": "red",
+      "name": null,
+      "class": null,
+      "type": null,
+      "collectible": null,
+      "first_packet_id": 1211,
+      "occurrences": 13,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CS2_056_H1",
+      "reason": "unknown_card_id",
+      "severity": "red",
+      "name": null,
+      "class": null,
+      "type": null,
+      "collectible": null,
+      "first_packet_id": 616,
+      "occurrences": 11,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CATA_725t",
+      "reason": "trigger_source_missing_rule",
+      "severity": "red",
+      "name": "Soldier of Cho'gall",
+      "class": "WARLOCK",
+      "type": "MINION",
+      "collectible": false,
+      "first_packet_id": 2056,
+      "occurrences": 9,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CATA_190h",
+      "reason": "trigger_source_missing_rule",
+      "severity": "red",
+      "name": "Deathwing, Worldbreaker",
+      "class": "DEATHKNIGHT,ROGUE,SHAMAN,WARLOCK,WARRIOR,DEMONHUNTER",
+      "type": "HERO",
+      "collectible": true,
+      "first_packet_id": 7637,
+      "occurrences": 8,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CS2_017o",
+      "reason": "unknown_card_id",
+      "severity": "red",
+      "name": null,
+      "class": null,
+      "type": null,
+      "collectible": null,
+      "first_packet_id": 7858,
+      "occurrences": 5,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "EDR_449e",
+      "reason": "trigger_source_missing_rule",
+      "severity": "red",
+      "name": "Fleeting Magic",
+      "class": "PRIEST",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": 1199,
+      "occurrences": 3,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "TTN_COIN2",
+      "reason": "unknown_card_id",
+      "severity": "red",
+      "name": null,
+      "class": null,
+      "type": null,
+      "collectible": null,
+      "first_packet_id": 5115,
+      "occurrences": 3,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CAP_404e",
+      "reason": "trigger_source_missing_rule",
+      "severity": "red",
+      "name": "Harshing My Vibe",
+      "class": "NEUTRAL",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": 4358,
+      "occurrences": 2,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CATA_155e2",
+      "reason": "trigger_source_missing_rule",
+      "severity": "red",
+      "name": "Onyxia's Blood",
+      "class": "NEUTRAL",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": 10757,
+      "occurrences": 2,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "EDR_970e",
+      "reason": "trigger_source_missing_rule",
+      "severity": "red",
+      "name": "Pacified",
+      "class": "PRIEST",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": 2892,
+      "occurrences": 2,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "GBL_001e",
+      "reason": "unknown_card_id",
+      "severity": "red",
+      "name": null,
+      "class": null,
+      "type": null,
+      "collectible": null,
+      "first_packet_id": 10549,
+      "occurrences": 2,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "HERO_09am_Anduin_hnv",
+      "reason": "unknown_card_id",
+      "severity": "red",
+      "name": null,
+      "class": null,
+      "type": null,
+      "collectible": null,
+      "first_packet_id": 5446,
+      "occurrences": 2,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "JAIL_430",
+      "reason": "trigger_source_missing_rule",
+      "severity": "red",
+      "name": "Azalina Soulsever",
+      "class": "PRIEST",
+      "type": "MINION",
+      "collectible": true,
+      "first_packet_id": 61,
+      "occurrences": 2,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CATA_190h",
+      "reason": "played_card_missing_rule",
+      "severity": "red",
+      "name": "Deathwing, Worldbreaker",
+      "class": "DEATHKNIGHT,ROGUE,SHAMAN,WARLOCK,WARRIOR,DEMONHUNTER",
+      "type": "HERO",
+      "collectible": true,
+      "first_packet_id": 7597,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CS2_004e",
+      "reason": "unknown_card_id",
+      "severity": "red",
+      "name": null,
+      "class": null,
+      "type": null,
+      "collectible": null,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "HERO_07a",
+      "reason": "unknown_card_id",
+      "severity": "red",
+      "name": null,
+      "class": null,
+      "type": null,
+      "collectible": null,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "HERO_09dbp",
+      "reason": "unknown_card_id",
+      "severity": "red",
+      "name": null,
+      "class": null,
+      "type": null,
+      "collectible": null,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "JAIL_907e",
+      "reason": "trigger_source_missing_rule",
+      "severity": "red",
+      "name": "Prepared",
+      "class": "NEUTRAL",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": 9025,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "JAIL_907e02",
+      "reason": "trigger_source_missing_rule",
+      "severity": "red",
+      "name": "Preparing",
+      "class": "NEUTRAL",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": 6291,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CAP_401",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Corrupt Constable",
+      "class": "WARLOCK",
+      "type": "MINION",
+      "collectible": true,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CAP_404e",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Harshing My Vibe",
+      "class": "NEUTRAL",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CATA_155e",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Black Scales",
+      "class": "NEUTRAL",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CATA_155e2",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Onyxia's Blood",
+      "class": "NEUTRAL",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CATA_190h",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Deathwing, Worldbreaker",
+      "class": "DEATHKNIGHT,ROGUE,SHAMAN,WARLOCK,WARRIOR,DEMONHUNTER",
+      "type": "HERO",
+      "collectible": true,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CATA_190t10",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Dragon's Reign",
+      "class": "NEUTRAL",
+      "type": "SPELL",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CATA_190t11",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Topple",
+      "class": "NEUTRAL",
+      "type": "SPELL",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CATA_190t12",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Raze",
+      "class": "NEUTRAL",
+      "type": "SPELL",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CATA_190t13",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Enthrall",
+      "class": "NEUTRAL",
+      "type": "SPELL",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CATA_190t14",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Progeny of Deathwing",
+      "class": "NEUTRAL",
+      "type": "MINION",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CATA_432",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Chromatus",
+      "class": "PALADIN",
+      "type": "MINION",
+      "collectible": true,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CATA_496e",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Cursed Chains",
+      "class": "WARLOCK",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CATA_497e",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Ultraxion Heralded",
+      "class": "NEUTRAL",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CATA_725t",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Soldier of Cho'gall",
+      "class": "WARLOCK",
+      "type": "MINION",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CATA_726",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Cho'gall, Mastermind",
+      "class": "WARLOCK",
+      "type": "MINION",
+      "collectible": true,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CATA_726t1",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Gall's Arm",
+      "class": "WARLOCK",
+      "type": "MINION",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CATA_726te",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Souldrain",
+      "class": "NEUTRAL",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "CORE_ICC_210",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Shadow Ascendant",
+      "class": "PRIEST",
+      "type": "MINION",
+      "collectible": true,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "EDR_449e",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Fleeting Magic",
+      "class": "PRIEST",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "EDR_970e",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Pacified",
+      "class": "PRIEST",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "END_027",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Wings of Eternity",
+      "class": "PRIEST",
+      "type": "SPELL",
+      "collectible": true,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "FIR_777",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Spirit of the Kaldorei",
+      "class": "PRIEST",
+      "type": "MINION",
+      "collectible": true,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "JAIL_430",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Azalina Soulsever",
+      "class": "PRIEST",
+      "type": "MINION",
+      "collectible": true,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "JAIL_430e1",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Severed Soul",
+      "class": "PRIEST",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "JAIL_509e",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Godfrey's Atlas",
+      "class": "NEUTRAL",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "JAIL_513e",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Uncaged",
+      "class": "NEUTRAL",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "JAIL_907e",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Prepared",
+      "class": "NEUTRAL",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "JAIL_907e02",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Preparing",
+      "class": "NEUTRAL",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    },
+    {
+      "card_id": "TLC_835e",
+      "reason": "observed_entity_not_executable",
+      "severity": "amber",
+      "name": "Warded By Amara",
+      "class": "PRIEST",
+      "type": "ENCHANTMENT",
+      "collectible": false,
+      "first_packet_id": null,
+      "occurrences": 1,
+      "game_indices": [
+        0
+      ]
+    }
+  ]
+}

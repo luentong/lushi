@@ -50,6 +50,11 @@ class DecisionDataset(Dataset):
                     header.get("ruleset") != self.headers[0].get("ruleset")
                 ):
                     raise ValueError("all datasets must use the same ruleset")
+                if len(self.headers) > 1 and (
+                    header.get("ruleset_fingerprint")
+                    != self.headers[0].get("ruleset_fingerprint")
+                ):
+                    raise ValueError("all datasets must use the same ruleset fingerprint")
                 for line in handle:
                     if max_records is not None and len(self.records) >= max_records:
                         break
@@ -468,6 +473,7 @@ def main() -> None:
     report = {
         "schema_version": 1,
         "ruleset": dataset.header.get("ruleset"),
+        "ruleset_fingerprint": dataset.header.get("ruleset_fingerprint"),
         "data_sources": [path.as_posix() for path in args.data],
         "device": str(device),
         "records": len(dataset),

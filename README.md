@@ -45,7 +45,7 @@ or an LLM decision layer before closing this card/mechanic gap would produce an
 invalid benchmark.
 
 The Dragon Warrior mirror vertical slice is now implemented and suitable for
-search and learning experiments under ruleset `dragon-warrior-closed-v4`.
+search and learning experiments under ruleset `dragon-warrior-closed-v5`.
 This result does not yet generalize to the other supplied decks or to full
 Standard. Cross-match expansion remains gated on implementing and validating
 their cards and reachable generated-card closure. Every added card needs a
@@ -143,8 +143,37 @@ strategy result.
 Ruleset v4 separates targetable enemies from random-enemy pools (random effects
 can hit Stealth), records Cannoneer shots independently from minion attacks, and
 applies Captain Crowley's additional shot to every Cannoneer firing source.
-Ruleset-v3 checkpoints remain historical until retrained or explicitly
-revalidated under v4.
+Ruleset-v3/v4 checkpoints remain historical until retrained or explicitly
+revalidated under v5.
+
+Ruleset v5 adds the current declarative-rule tranche and attaches an immutable
+source fingerprint to every newly generated dataset and checkpoint. Generate
+`reports/ruleset-manifest.json` before a run; do not mix JSONL.GZ inputs whose
+`ruleset_fingerprint` differs, even if their friendly ruleset labels match.
+
+## Real Power.log shadow mode
+
+The project can inspect a real game **without sending clicks, keystrokes, or
+commands to the client**. First sanitize the raw log so account identifiers and
+player names never enter a shared report, then create an advisory-only report:
+
+```bash
+python scripts/import_power_log.py /path/to/Power.log \
+  --output reports/live.sanitized.json
+python scripts/shadow_power_log.py reports/live.sanitized.json \
+  --output reports/live.shadow.json \
+  --backlog reports/live.shadow.backlog.jsonl
+```
+
+`live.shadow.json` has one confidence gate per game. A red task means a played
+card, trigger source, or observed generated entity cannot be faithfully replayed
+by the current rules; it is automatically written to the JSONL engineering
+backlog with the card ID, printed metadata, first packet, and occurrence count.
+Amber means the revealed effects are covered but arbitrary Standard state replay
+is still not implemented. No action recommendation is emitted until the matchup
+deck and reachable generated-card closure are both complete; this is deliberate
+fail-closed behavior, not a weak recommendation. The current Dragon Warrior
+policy/value model is valid only for its closed mirror simulator.
 
 Dataset generation streams each completed game into a compressed temporary
 spool and keeps at most `2 * workers` parallel game results in memory. The final

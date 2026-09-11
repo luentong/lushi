@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "ruleset": "dragon-warrior-closed-v5",
+  "fingerprint_sha256": "af31f09933b967304bac09a01999d8de0c165445d30ce10545f0284b48a2858e",
+  "dragon_deckstring": "AAECAQcEzp4G4+YG69YHstgHDar8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5vCB5zCB6ngB/vgBwAA",
+  "semantic_files": {
+    "src/hsa/dragon_mirror.py": "9b8f29068c4221e1400ceb6789989e4589d548bb7608897c6fcea9657ea4e510",
+    "src/hsa/rules.py": "f1e8e876b17189e7306a5ed43a11245dcdcbc9a7dbf577527654ae1194265ba2",
+    "src/hsa/encoding.py": "6248b2e216123df7200e78d0292d65814fd30a4ec7c9a8789c9276014e0a596c",
+    "config/decks.json": "000bbab01a7a2ca8eb3741696c9c83613ed14c9a858db0fda0b34b2760360ed1"
+  }
+}

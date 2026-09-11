@@ -21,6 +21,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from hsa import DragonMirrorGame, HeuristicPolicy, InformationSetMCTSPolicy, RULESET
 from hsa.encoding import encode_decision, feature_schema
+from hsa.lineage import ruleset_manifest
 
 
 class DatasetStatistics:
@@ -305,6 +306,7 @@ def main() -> None:
             "record_type": "header",
             "dataset_schema_version": 3,
             "ruleset": RULESET,
+            "ruleset_fingerprint": ruleset_manifest(ROOT)["fingerprint_sha256"],
             "teacher": args.teacher,
             "teacher_budget": (
                 {

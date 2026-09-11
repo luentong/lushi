@@ -29,7 +29,9 @@ from .rules import (
 DRAGON_DECKSTRING = (
     "AAECAQcEzp4G4+YG69YHstgHDar8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5vCB5zCB6ngB/vgBwAA"
 )
-RULESET = "dragon-warrior-closed-v4"
+# Bump whenever executable rule semantics change. A source fingerprint is
+# recorded beside this label in generated training data and shadow reports.
+RULESET = "dragon-warrior-closed-v5"
 
 DIRECT_IDS = {
     "CORE_SW_066",
