@@ -2886,6 +2886,9 @@ def build_rule_registry() -> RuleRegistry:
                 "powerlog_verified", local, "EDR_463", "internal",
                 ("test_latest_powerlog_choice_rules",),
             ),
-            TargetSpec(TargetKind.ANY_MINION, optional=True),
+            # The current action encoding has one target slot for the whole
+            # Choose One card.  Requiring a minion target keeps the destroy
+            # branch legal; the summon branch simply ignores that target.
+            TargetSpec(TargetKind.ANY_MINION),
         ),
     ))
