@@ -134,9 +134,14 @@ def main() -> int:
     rows = []
     for card_id in sorted(SUPPORTED_IDS):
         rule = declarative.get(card_id)
+        implementation = (
+            "declarative" if rule and rule["hooks"]
+            else "legacy_special_case" if rule
+            else "legacy_compatibility"
+        )
         rows.append({
             "card_id": card_id,
-            "implementation": "declarative" if rule else "legacy_compatibility",
+            "implementation": implementation,
             "hooks": [] if rule is None else rule["hooks"],
             "effects": {} if rule is None else rule["effects"],
             "rule_source": (
@@ -159,8 +164,15 @@ def main() -> int:
         "schema_version": 1,
         "summary": {
             "supported_cards": len(rows),
-            "declarative_rules": len(declarative),
-            "legacy_compatibility_rules": len(rows) - len(declarative),
+            "declarative_rules": sum(
+                row["implementation"] == "declarative" for row in rows
+            ),
+            "legacy_special_case_rules": sum(
+                row["implementation"] == "legacy_special_case" for row in rows
+            ),
+            "legacy_compatibility_rules": sum(
+                row["implementation"] == "legacy_compatibility" for row in rows
+            ),
             "cards_with_upstream_match": sum(
                 bool(row["upstream_matches"]) for row in rows
             ),

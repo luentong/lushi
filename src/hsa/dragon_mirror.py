@@ -27,6 +27,7 @@ from .rules import (
 DRAGON_DECKSTRING = (
     "AAECAQcEzp4G4+YG69YHstgHDar8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5vCB5zCB6ngB/vgBwAA"
 )
+RULESET = "dragon-warrior-closed-v4"
 
 DIRECT_IDS = {
     "CORE_SW_066",
@@ -1312,24 +1313,14 @@ class DragonMirrorGame:
     def _end_turn(self) -> None:
         player = self.players[self.current]
         for minion in list(player.board):
-            if minion.dormant_turns > 0:
+            if (
+                minion not in player.board
+                or minion.health <= 0
+                or minion.dormant_turns > 0
+            ):
                 continue
             if minion.card_id == "CAP_107t" and not minion.silenced:
-                extra_shots = sum(
-                    captain.card_id == "CAP_106"
-                    and not captain.silenced
-                    and captain.dormant_turns == 0
-                    for captain in player.board
-                )
-                for _ in range(1 + extra_shots):
-                    targets = self._enemy_characters(player.index)
-                    if not targets:
-                        break
-                    self._deal_to_target(
-                        player.index, self.rng.choice(targets), 1,
-                        source=minion,
-                    )
-                    self._resolve_deaths()
+                self._fire_cannoneer(player, minion, reason="end_turn")
             elif minion.card_id == "JAIL_450t" and not minion.silenced:
                 minion.damage = minion.max_health
             elif minion.card_id == "CATA_999" and not minion.silenced:
@@ -1361,7 +1352,7 @@ class DragonMirrorGame:
                     self._summon(player, token)
             elif minion.card_id == "CORE_BT_493" and not minion.silenced:
                 for _ in range(6):
-                    targets = self._enemy_characters(player.index)
+                    targets = self._random_enemy_characters(player.index)
                     if not targets:
                         break
                     self._deal_to_target(
@@ -1391,7 +1382,7 @@ class DragonMirrorGame:
                     self._resolve_deaths()
             elif minion.card_id == "EDR_810t" and not minion.silenced:
                 enemy = self.players[1 - player.index]
-                targets = self._enemy_characters(player.index)
+                targets = self._random_enemy_characters(player.index)
                 if targets:
                     def current_health(target: tuple[int, int | None]) -> int:
                         return (
@@ -1525,6 +1516,34 @@ class DragonMirrorGame:
         player.played_races_this_turn.clear()
         self._event("turn_end", player=self.current)
         self._start_turn(1 - self.current)
+
+    def _fire_cannoneer(
+        self, player: Player, minion: CardInstance, *, reason: str
+    ) -> None:
+        extra_shots = sum(
+            captain.card_id == "CAP_106"
+            and not captain.silenced
+            and captain.dormant_turns == 0
+            and captain.health > 0
+            for captain in player.board
+        )
+        for _ in range(1 + extra_shots):
+            targets = self._random_enemy_characters(player.index)
+            if not targets:
+                break
+            target = self.rng.choice(targets)
+            target_card = (
+                None if target[1] is None
+                else self._find_minion(*target).card_id
+            )
+            self._event(
+                "cannoneer_shot", player=player.index,
+                card=minion.card_id, entity=minion.entity_id,
+                target_player=target[0], target_entity=target[1],
+                target_card=target_card, amount=1, reason=reason,
+            )
+            self._deal_to_target(player.index, target, 1, source=minion)
+            self._resolve_deaths()
 
     def _effective_cost(self, player: Player, card: CardInstance) -> int:
         cost = card.cost
@@ -1814,6 +1833,17 @@ class DragonMirrorGame:
             (enemy.index, minion.entity_id)
             for minion in enemy.board
             if minion.dormant_turns == 0 and not minion.stealth
+        ]
+
+    def _random_enemy_characters(
+        self, player_index: int
+    ) -> list[tuple[int, int | None]]:
+        """Random effects can hit Stealth enemies; Dormant is not a character."""
+        enemy = self.players[1 - player_index]
+        return [(enemy.index, None)] + [
+            (enemy.index, minion.entity_id)
+            for minion in enemy.board
+            if minion.dormant_turns == 0
         ]
 
     def _has_taunt(self, owner_index: int, minion: CardInstance) -> bool:
@@ -2189,7 +2219,7 @@ class DragonMirrorGame:
                     and not dragonbane.silenced
                     and dragonbane.dormant_turns == 0
                 ):
-                    targets = self._enemy_characters(player.index)
+                    targets = self._random_enemy_characters(player.index)
                     if targets:
                         self._deal_to_target(
                             player.index, self.rng.choice(targets), 5,
@@ -3025,7 +3055,7 @@ class DragonMirrorGame:
             player.hero_attack_bonus += 3
         elif card.card_id == "CATA_584":
             for _ in range(6 if prior_fire else 3):
-                targets = self._enemy_characters(player.index)
+                targets = self._random_enemy_characters(player.index)
                 if not targets:
                     break
                 self._deal_to_target(player.index, self.rng.choice(targets), 1)
@@ -3052,7 +3082,7 @@ class DragonMirrorGame:
             )
         elif card.card_id == "CORE_EX1_277":
             for _ in range(3 + spell_damage):
-                targets = self._enemy_characters(player.index)
+                targets = self._random_enemy_characters(player.index)
                 if not targets:
                     break
                 self._deal_to_target(
@@ -3299,7 +3329,7 @@ class DragonMirrorGame:
             and attacker in self.players[attacker_owner].board
         ):
             for _ in range(attacker.attack):
-                targets = self._enemy_characters(attacker_owner)
+                targets = self._random_enemy_characters(attacker_owner)
                 if not targets:
                     break
                 self._deal_to_target(
@@ -3640,9 +3670,10 @@ class DragonMirrorGame:
         elif weapon.card_id == "CATA_472":
             end_turn_minions = [m for m in player.board if m.card_id == "CAP_107t" and not m.silenced]
             if end_turn_minions:
-                targets = self._enemy_characters(player.index)
-                if targets:
-                    self._deal_to_target(player.index, self.rng.choice(targets), 1)
+                self._fire_cannoneer(
+                    player, self.rng.choice(end_turn_minions),
+                    reason="copied_end_turn",
+                )
         elif weapon.card_id == "CORE_DAL_720" and player.board and len(player.hand) < 10:
             minion = self.rng.choice(player.board)
             player.board.remove(minion)
@@ -3695,11 +3726,16 @@ class DragonMirrorGame:
         if weapon is None:
             return
         if weapon.card_id == "CAP_103":
-            for _ in (m for m in player.board if m.card_id == "CAP_107t" and not m.silenced):
-                targets = self._enemy_characters(player.index)
-                if targets:
-                    self._deal_to_target(player.index, self.rng.choice(targets), 1)
-                    self._resolve_deaths()
+            cannoneers = [
+                minion for minion in player.board
+                if minion.card_id == "CAP_107t" and not minion.silenced
+            ]
+            for cannoneer in cannoneers:
+                if cannoneer not in player.board or cannoneer.health <= 0:
+                    continue
+                self._fire_cannoneer(
+                    player, cannoneer, reason="hero_attack"
+                )
         elif weapon.card_id == "TLC_478":
             for owner, entity in list(self._all_minions()):
                 self._damage_minion(owner, self._find_minion(owner, entity), 1)
@@ -3710,7 +3746,7 @@ class DragonMirrorGame:
             self._draw(player)
         elif weapon.card_id == "EDR_842":
             targets = [
-                target for target in self._enemy_characters(player.index)
+                target for target in self._random_enemy_characters(player.index)
                 if target != attacked
             ]
             if targets:
@@ -3862,7 +3898,7 @@ class DragonMirrorGame:
         enemy = self.players[1 - player.index]
         if mode == 1:
             candidates = [
-                target for target in self._enemy_characters(player.index)
+                target for target in self._random_enemy_characters(player.index)
                 if target != attacked
             ]
             for target in self.rng.sample(candidates, min(2, len(candidates))):
@@ -3934,7 +3970,7 @@ class DragonMirrorGame:
                 "card": drawn.card_id, "entity": drawn.entity_id,
             }
         if effect == "conflux_crasher":
-            targets = self._enemy_characters(player.index)
+            targets = self._random_enemy_characters(player.index)
             if not targets:
                 return None
             target = self.rng.choice(targets)
@@ -3959,7 +3995,7 @@ class DragonMirrorGame:
             hits = []
             damage = 2 + self._spell_damage(player)
             for _ in range(3):
-                targets = self._enemy_characters(player.index)
+                targets = self._random_enemy_characters(player.index)
                 if not targets:
                     break
                 target = self.rng.choice(targets)
@@ -3981,7 +4017,7 @@ class DragonMirrorGame:
             self._resolve_deaths()
             return {"player": enemy.index, "entity": target.entity_id}
         if effect == "aeon_rend":
-            targets = self._enemy_characters(player.index)
+            targets = self._random_enemy_characters(player.index)
             chosen = self.rng.sample(targets, min(2, len(targets)))
             damage = 4 + self._spell_damage(player)
             hits = []
@@ -4061,7 +4097,7 @@ class DragonMirrorGame:
         elif location.card_id == "CATA_584":
             missiles = 6 if player.fire_spell_played else 3
             for _ in range(missiles):
-                targets = self._enemy_characters(player.index)
+                targets = self._random_enemy_characters(player.index)
                 if not targets:
                     break
                 self._deal_to_target(player.index, self.rng.choice(targets), 1)
@@ -4586,7 +4622,7 @@ class DragonMirrorGame:
                 self._damage_minion(enemy.index, target, amount, minion)
         elif minion.card_id == "CORE_BT_201":
             for _ in range(minion.attack):
-                targets = self._enemy_characters(player.index)
+                targets = self._random_enemy_characters(player.index)
                 if not targets:
                     break
                 self._deal_to_target(
@@ -4594,7 +4630,7 @@ class DragonMirrorGame:
                 )
                 self._resolve_deaths()
         elif minion.card_id == "TLC_401":
-            targets = self._enemy_characters(player.index)
+            targets = self._random_enemy_characters(player.index)
             for target in self.rng.sample(targets, min(3, len(targets))):
                 self._deal_to_target(player.index, target, 6, source=minion)
             self._resolve_deaths()
@@ -4828,7 +4864,7 @@ class DragonMirrorGame:
                 )
         elif minion.card_id == "TLC_249":
             for _ in range(2):
-                targets = self._enemy_characters(player.index)
+                targets = self._random_enemy_characters(player.index)
                 if not targets:
                     break
                 self._deal_to_target(
@@ -4854,14 +4890,14 @@ class DragonMirrorGame:
                 profile="closed_pool",
             )
         elif minion.card_id in {"CATA_580t", "CATA_150t"}:
-            targets = self._enemy_characters(player.index)
+            targets = self._random_enemy_characters(player.index)
             if targets:
                 self._deal_to_target(
                     player.index, self.rng.choice(targets),
                     2 * minion.herald_power,
                 )
         elif minion.card_id == "CATA_586":
-            targets = self._enemy_characters(player.index)
+            targets = self._random_enemy_characters(player.index)
             if targets:
                 self._deal_to_target(
                     player.index, self.rng.choice(targets), 2,

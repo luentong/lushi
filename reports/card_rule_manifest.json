@@ -1,9 +1,10 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 280,
-    "declarative_rules": 42,
-    "legacy_compatibility_rules": 238,
+    "supported_cards": 281,
+    "declarative_rules": 41,
+    "legacy_special_case_rules": 1,
+    "legacy_compatibility_rules": 239,
     "cards_with_upstream_match": 78
   },
   "cards": [
@@ -385,15 +386,9 @@
     },
     {
       "card_id": "CATA_556",
-      "implementation": "declarative",
-      "hooks": [
-        "battlecry"
-      ],
-      "effects": {
-        "battlecry": [
-          "AddToHand"
-        ]
-      },
+      "implementation": "legacy_special_case",
+      "hooks": [],
+      "effects": {},
       "rule_source": {
         "kind": "local_spec",
         "reference": "HearthstoneJSON build 251332 + local rule tests",
@@ -7571,6 +7566,22 @@
     },
     {
       "card_id": "JAIL_703",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "JAIL_732",
       "implementation": "legacy_compatibility",
       "hooks": [],
       "effects": {},

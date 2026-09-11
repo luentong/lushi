@@ -19,7 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from hsa import DragonMirrorGame, HeuristicPolicy, InformationSetMCTSPolicy
+from hsa import DragonMirrorGame, HeuristicPolicy, InformationSetMCTSPolicy, RULESET
 from hsa.encoding import encode_decision, feature_schema
 
 
@@ -304,7 +304,7 @@ def main() -> None:
         header = {
             "record_type": "header",
             "dataset_schema_version": 3,
-            "ruleset": "dragon-warrior-closed-v3",
+            "ruleset": RULESET,
             "teacher": args.teacher,
             "teacher_budget": (
                 {

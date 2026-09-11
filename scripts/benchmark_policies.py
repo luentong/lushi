@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from hsa.dragon_mirror import DragonMirrorGame
+from hsa.dragon_mirror import DragonMirrorGame, RULESET
 from hsa.policy import HeuristicPolicy, RandomPolicy
 
 
@@ -66,7 +66,7 @@ def main() -> int:
     low, high = wilson(wins, len(games))
     summary = {
         "schema_version": 1,
-        "ruleset": "dragon-warrior-closed-v3",
+        "ruleset": RULESET,
         "generation_profile": "closed_generation_pools",
         "candidate": "heuristic-tempo-v1",
         "baseline": "random-v1",

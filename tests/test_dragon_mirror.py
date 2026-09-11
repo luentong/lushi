@@ -1434,6 +1434,60 @@ class DragonMirrorRulesTests(unittest.TestCase):
         enemy_health = game.players[1].health
         game.step(Action("END_TURN"))
         self.assertEqual(enemy_health - 4, game.players[1].health)
+        self.assertEqual(
+            4, sum(event["kind"] == "cannoneer_shot" for event in game.events)
+        )
+
+    def test_crowley_adds_shots_when_hand_cannon_triggers_cannoneers(self):
+        game = self.game(234)
+        player = game.players[0]
+        self.add_board(game, "CAP_106")
+        self.add_board(game, "CAP_107t")
+        self.add_board(game, "CAP_107t")
+        player.weapon = Weapon("CAP_103", "Hand Cannon", 3, 2)
+        enemy_health = game.players[1].health
+
+        game.step(Action("HERO_ATTACK", None, 1, None))
+
+        self.assertEqual(enemy_health - 7, game.players[1].health)
+        shots = [
+            event for event in game.events
+            if event["kind"] == "cannoneer_shot"
+        ]
+        self.assertEqual(4, len(shots))
+        self.assertTrue(all(event["reason"] == "hero_attack" for event in shots))
+
+    def test_cannoneer_attack_and_end_turn_shot_are_separate_actions(self):
+        game = self.game(235)
+        cannoneer = self.add_board(game, "CAP_107t")
+        enemy_health = game.players[1].health
+
+        attack = Action("ATTACK", cannoneer.entity_id, 1, None)
+        self.assertIn(attack, game.legal_actions())
+        game.step(attack)
+        self.assertEqual(enemy_health - 1, game.players[1].health)
+        self.assertEqual(1, cannoneer.attacks_this_turn)
+        self.assertFalse(any(
+            event["kind"] == "cannoneer_shot" for event in game.events
+        ))
+
+        game.step(Action("END_TURN"))
+        self.assertEqual(enemy_health - 2, game.players[1].health)
+        shots = [
+            event for event in game.events
+            if event["kind"] == "cannoneer_shot"
+        ]
+        self.assertEqual(1, len(shots))
+        self.assertIsNone(shots[0]["target_entity"])
+
+    def test_random_enemy_pool_includes_stealth_but_targeting_does_not(self):
+        game = self.game(237)
+        stealth = self.add_board(game, "CORE_EX1_010", 1)
+        stealth.stealth = True
+
+        target = (1, stealth.entity_id)
+        self.assertIn(target, game._random_enemy_characters(0))
+        self.assertNotIn(target, game._enemy_characters(0))
 
     def test_destructive_blaze_survival_and_deathrattle(self):
         game = self.game(239)

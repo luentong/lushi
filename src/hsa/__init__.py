@@ -1,7 +1,7 @@
 """Deterministic Hearthstone vertical-slice simulator."""
 
 from .belief import GeneratedCardBelief, HandModifierBelief, PublicBelief
-from .dragon_mirror import DragonMirrorGame, UnsupportedGeneratedCard
+from .dragon_mirror import DragonMirrorGame, RULESET, UnsupportedGeneratedCard
 from .encoding import EncodedDecision, encode_action, encode_decision, encode_state
 from .mcts import DeterminizedMCTSPolicy, InformationSetMCTSPolicy, MCTSPolicy
 from .policy import HeuristicPolicy, RandomPolicy
@@ -12,6 +12,6 @@ __all__ = [
     "EncodedDecision", "HandModifierBelief", "HeuristicPolicy",
     "HeuristicPolicyValueModel", "InformationSetMCTSPolicy", "PolicyValueOutput",
     "PublicBelief", "encode_action", "encode_decision", "encode_state",
-    "MCTSPolicy", "RandomPolicy",
+    "MCTSPolicy", "RandomPolicy", "RULESET",
     "UnsupportedGeneratedCard",
 ]

@@ -107,6 +107,25 @@ def event_text(event: dict, names: dict[str, str]) -> str:
         return f"玩家{player}获得{event.get('amount', 0)}点护甲"
     if kind == "hero_power":
         return f"玩家{player}使用英雄技能"
+    if kind == "cannoneer_shot":
+        reason = {
+            "end_turn": "在回合结束时开火",
+            "hero_attack": "因英雄攻击而开火",
+            "copied_end_turn": "因回合结束效果被触发而开火",
+        }.get(event.get("reason"), "开火")
+        target = (
+            f"玩家{int(event['target_player']) + 1}英雄"
+            if event.get("target_entity") is None
+            else (
+                f"玩家{int(event['target_player']) + 1}的"
+                f"{localized_name(event.get('target_card'), names)}"
+                f"（实体#{event['target_entity']}）"
+            )
+        )
+        return (
+            f"玩家{player}的{card}{reason}，对{target}造成"
+            f"{event.get('amount', 1)}点伤害（这不是随从攻击）"
+        )
     if kind == "equip_weapon":
         return (
             f"玩家{player}装备{card}，攻击力/耐久度="

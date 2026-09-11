@@ -1,7 +1,10 @@
-# Current best Dragon Warrior mirror policy
+# Historical best Dragon Warrior mirror policy (ruleset v3)
 
-This file records the promoted strategy for the closed Dragon Warrior mirror
-ruleset. It is not a claim about full Standard Hearthstone strength.
+This file records the strongest measured strategy for the former closed Dragon
+Warrior mirror ruleset v3. Ruleset v4 corrected random targeting and Cannoneer
+firing semantics after this benchmark, so this checkpoint is now a historical
+baseline rather than the promoted current strategy. It is not a claim about
+full Standard Hearthstone strength.
 
 ## Runtime configuration
 

@@ -20,6 +20,7 @@ from hsa import (
     HeuristicPolicy,
     InformationSetMCTSPolicy,
     MCTSPolicy,
+    RULESET,
 )
 from hsa.evaluation import wilson_interval
 
@@ -222,7 +223,7 @@ def main() -> int:
     wins = sum(row["mcts_win"] for row in games)
     summary = {
         "schema_version": 1,
-        "ruleset": "dragon-warrior-closed-v3",
+        "ruleset": RULESET,
         "candidate": (
             "policy-prior-puct-v1" if args.mode == "puct" and args.policy_only
             else "policy-value-puct-v1" if args.mode == "puct"

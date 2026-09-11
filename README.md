@@ -45,7 +45,7 @@ or an LLM decision layer before closing this card/mechanic gap would produce an
 invalid benchmark.
 
 The Dragon Warrior mirror vertical slice is now implemented and suitable for
-search and learning experiments under ruleset `dragon-warrior-closed-v3`.
+search and learning experiments under ruleset `dragon-warrior-closed-v4`.
 This result does not yet generalize to the other supplied decks or to full
 Standard. Cross-match expansion remains gated on implementing and validating
 their cards and reachable generated-card closure. Every added card needs a
@@ -92,11 +92,12 @@ python scripts/trace_search_match.py \
   --min-simulations-per-root-action 1 --max-total-iterations 32
 ```
 
-The promoted strategy is the structured residual v5 checkpoint used as a
-**policy prior only**. In 104 seat-swapped games it defeated ordinary ISMCTS
+The strongest ruleset-v3 strategy was the structured residual v5 checkpoint
+used as a **policy prior only**. In 104 seat-swapped games it defeated ordinary ISMCTS
 75-29 (72.12%, Wilson 95% CI 62.83%-79.83%). Enabling the same checkpoint's
 value head won only 32/104 against policy-only PUCT, so model leaf values are
-disabled in the current best configuration. See
+disabled. Because the simulator is now ruleset v4, these measurements are a
+historical baseline and no v4 neural checkpoint is promoted yet. See
 `reports/current-best-policy.md` for the exact artifact hash, experiment design,
 and reproducible report paths.
 
@@ -129,7 +130,7 @@ Run the first policy baseline as a seat-swapped paired experiment:
 
 Each seed is played twice with the heuristic and random policies exchanging
 seats. The report includes first/second-player results and a Wilson 95% confidence
-interval, and is pinned to `dragon-warrior-closed-v3` so it is not confused with
+interval, and is pinned to the current ruleset so it is not confused with
 future full-generation-pool results. `HeuristicPolicy` reads the acting player's
 hand and public board state only; it does not inspect hidden opposing cards or
 deck order.
@@ -138,6 +139,12 @@ Ruleset v3 corrects Carrier Whelp's random low-cost Dragon generation and Hooked
 on a Feeling's Pirate Discover plus two Cannoneer summons.  Checkpoints and
 datasets tagged v2 remain historical artifacts and must not be promoted as a v3
 strategy result.
+
+Ruleset v4 separates targetable enemies from random-enemy pools (random effects
+can hit Stealth), records Cannoneer shots independently from minion attacks, and
+applies Captain Crowley's additional shot to every Cannoneer firing source.
+Ruleset-v3 checkpoints remain historical until retrained or explicitly
+revalidated under v4.
 
 Dataset generation streams each completed game into a compressed temporary
 spool and keeps at most `2 * workers` parallel game results in memory. The final

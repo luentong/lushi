@@ -21,7 +21,7 @@ CATA_484,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_490,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_497,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_550,legacy_compatibility,,local_legacy,,0,regression_suite_only
-CATA_556,declarative,battlecry,local_spec,,0,focused_test_and_regression
+CATA_556,legacy_special_case,,local_spec,,0,focused_test_and_regression
 CATA_558,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_582,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_584,legacy_compatibility,,local_legacy,,0,regression_suite_only
@@ -211,6 +211,7 @@ JAIL_459,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_501,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_502,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_703,legacy_compatibility,,local_legacy,,0,regression_suite_only
+JAIL_732,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_850,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_852,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_880,legacy_compatibility,,local_legacy,,0,regression_suite_only
