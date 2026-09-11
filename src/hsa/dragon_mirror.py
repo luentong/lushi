@@ -272,6 +272,8 @@ ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "TLC_222",  # Flight of the Firehawk
     "TLC_632",  # Story of Sulfuras
     "CATA_581",  # Decimation
+    "END_025",  # Eternal Firebolt
+    "JAIL_801",  # Molten Gold
 }
 
 SPECIAL_TOKEN_IDS = {
@@ -631,6 +633,7 @@ class CardInstance:
     spell_damage_bonus: int = 0
     prepared_turn: int = -1
     dynamic_spell_damage: int = 0
+    spells_cast_while_held: int = 0
     illusion_fake: bool = False
     cant_attack_heroes_turn: int = -1
     dies_at_end_of_turn: bool = False
@@ -784,6 +787,7 @@ class Player:
     minion_cost_increase_amount: int = 0
     recover_overdrawn_cards: bool = False
     overdrawn_cards: list[CardInstance] = field(default_factory=list)
+    pending_end_turn_returns: list[CardInstance] = field(default_factory=list)
 
     @property
     def attack(self) -> int:
@@ -1472,6 +1476,14 @@ class DragonMirrorGame:
         self._receive_drawn_card(player, card)
         return card
 
+    def _queue_end_turn_return(self, player: Player, card: CardInstance) -> None:
+        """Keep an already-played card out of zones until its owner's end step."""
+        player.pending_end_turn_returns.append(card)
+        self._event(
+            "return_queued_end_turn", player=player.index,
+            card=card.card_id, entity=card.entity_id,
+        )
+
     def _start_turn(self, index: int) -> None:
         self.current = index
         self.turn += 1
@@ -1828,6 +1840,20 @@ class DragonMirrorGame:
                         "generated_burned", player=owner.index,
                         card=phoenix.card_id, source="FIR_919",
                     )
+        while player.pending_end_turn_returns:
+            card = player.pending_end_turn_returns.pop(0)
+            if len(player.hand) < 10:
+                player.hand.append(card)
+                self._event(
+                    "returned_to_hand", player=player.index,
+                    card=card.card_id, entity=card.entity_id,
+                    source=card.card_id, destination="hand",
+                )
+            else:
+                self._event(
+                    "burn", player=player.index, card=card.card_id,
+                    entity=card.entity_id, source="end_turn_return",
+                )
         for minion in player.board:
             minion.immune = False
             # A character frozen before this turn has now missed its attack
@@ -3982,6 +4008,16 @@ class DragonMirrorGame:
                 Hook.AFTER_PLAY, minion.card_id, self,
                 RuleContext(player=player, card=minion, payload={"spell": spell}),
             )
+        for held in list(player.hand):
+            if held.card_id != "JAIL_801":
+                continue
+            held.spells_cast_while_held += 1
+            if held.spells_cast_while_held >= 3:
+                held.definition = self.card_defs["JAIL_801t"]
+                self._event(
+                    "molten_gold_transform", player=player.index,
+                    entity=held.entity_id, spells=held.spells_cast_while_held,
+                )
 
     def _holding_dragon(self, player: Player) -> bool:
         return any(card.has_race("DRAGON") for card in player.hand)
@@ -5590,6 +5626,7 @@ class DragonMirrorGame:
                 minion.divine_shield = False
                 minion.divine_shield_toreth = False
             return
+        health_before_damage = max(0, minion.health)
         minion.damage += amount
         if minion.illusion_fake and not minion.silenced:
             minion.damage = max(minion.damage, minion.max_health)
@@ -5644,8 +5681,13 @@ class DragonMirrorGame:
                     source=minion.entity_id, entity=copy_minion.entity_id,
                 )
         if source and source.lifesteal:
-            owner = self.players[1 - player_index]
-            owner.health = min(owner.max_health, owner.health + amount)
+            # Lifesteal uses damage actually dealt, not the printed amount.
+            # This matters for overkill and applies correctly when a spell can
+            # target either side: a spell source is not on board, so resolve
+            # its controller through the regular source-controller helper.
+            dealt = health_before_damage - max(0, minion.health)
+            owner = self._source_controller(source)
+            owner.health = min(owner.max_health, owner.health + dealt)
         self._check_warptooth(player_index)
 
     def _check_warptooth(self, damaged_owner: int) -> None:
@@ -6264,6 +6306,7 @@ class DragonMirrorGame:
                 "spell_damage_bonus": card.spell_damage_bonus,
                 "prepared_turn": card.prepared_turn,
                 "dynamic_spell_damage": card.dynamic_spell_damage,
+                "spells_cast_while_held": card.spells_cast_while_held,
                 "illusion_fake": card.illusion_fake,
                 "cant_attack_heroes_turn": card.cant_attack_heroes_turn,
                 "divine_shield_hits": card.divine_shield_hits,
@@ -6294,6 +6337,9 @@ class DragonMirrorGame:
                 "hero_power_cost": self._hero_power_cost(player),
                 "hero_power_id": player.hero_power_id,
                 "hero_power_armor": player.hero_power_armor,
+                "pending_end_turn_returns": [
+                    card.card_id for card in player.pending_end_turn_returns
+                ],
                 "spell_damage": self._spell_damage(player),
                 "herald_count": player.herald_count,
                 "geddon_draw": player.geddon_draw,

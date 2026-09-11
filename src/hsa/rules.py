@@ -138,9 +138,12 @@ STANDARD_DECLARATIVE_IDS = {
     "EDR_476",
     "END_007",
     "END_011",
+    "END_025",
     "JAIL_201",
     "JAIL_200",
     "JAIL_307",
+    "JAIL_801",
+    "JAIL_801t",
     "JAIL_430",
     "JAIL_872",
     "JAIL_510",
@@ -470,6 +473,35 @@ class DamageActionTargetThenDrawOwner:
             "damage_target_owner_draw", player=context.player.index,
             source=context.card.card_id, target=target.entity_id,
             target_owner=owner.index,
+        )
+
+
+@dataclass(frozen=True)
+class DamageActionTargetLifestealReturnOnKill:
+    """Eternal Firebolt's exact minion-only damage/lifesteal/return sequence."""
+
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        before = max(0, target.health)
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
+        game._damage_minion(
+            context.action.target_player, target, amount, context.card
+        )
+        dealt = before - max(0, target.health)
+        killed = target.health <= 0
+        game._resolve_deaths()
+        if killed:
+            game._queue_end_turn_return(context.player, context.card)
+        game._event(
+            "lifesteal_damage_return_on_kill", player=context.player.index,
+            source=context.card.card_id, target=target.entity_id,
+            amount=amount, dealt=dealt, killed=killed,
         )
 
 
@@ -2133,6 +2165,15 @@ def build_rule_registry() -> RuleRegistry:
             TargetSpec(TargetKind.ANY_CHARACTER),
         ),
         CardRule(
+            "END_025",
+            {Hook.SPELL: (DamageActionTargetLifestealReturnOnKill(3),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_eternal_firebolt_lifesteals_and_returns_at_end_turn_on_kill",),
+            ),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
             "JAIL_307",
             {Hook.SPELL: (DamageAllMinions(2, repeats=2),)},
             RuleSource(
@@ -2140,6 +2181,24 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_crowd_control_damages_all_minions_twice",),
             ),
             cost_modifier=CostDiscountIfDeckAtLeast(25, 2),
+        ),
+        CardRule(
+            "JAIL_801",
+            {Hook.SPELL: (DamageActionTarget(4), ResolveDeaths())},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_molten_gold_transforms_after_three_spells_and_battlecries",),
+            ),
+            TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "JAIL_801t",
+            {Hook.BATTLECRY: (DamageActionTarget(4), ResolveDeaths())},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_molten_gold_transforms_after_three_spells_and_battlecries",),
+            ),
+            TargetSpec(TargetKind.ANY_CHARACTER),
         ),
         CardRule(
             "TLC_227",

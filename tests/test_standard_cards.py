@@ -96,6 +96,28 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(4, enemy_a.damage)
         self.assertEqual(4, enemy_b.damage)
 
+    def test_eternal_firebolt_lifesteals_and_returns_at_end_turn_on_kill(self):
+        game = self.game()
+        game.players[0].health = 20
+        target = self.add_board(game, "CAP_107t", 1)
+        spell = self.add_hand(game, "END_025")
+        game.step(Action("PLAY", spell.entity_id, 1, target.entity_id))
+        self.assertNotIn(target, game.players[1].board)
+        self.assertEqual(21, game.players[0].health)
+        self.assertFalse(game.players[0].hand)
+        game._end_turn()
+        self.assertEqual(["END_025"], [card.card_id for card in game.players[0].hand])
+
+    def test_molten_gold_transforms_after_three_spells_and_battlecries(self):
+        game = self.game()
+        gold = self.add_hand(game, "JAIL_801")
+        coins = [self.add_hand(game, "GAME_005") for _ in range(3)]
+        for coin in coins:
+            game.step(Action("PLAY", coin.entity_id))
+        self.assertEqual("JAIL_801t", gold.card_id)
+        game.step(Action("PLAY", gold.entity_id, 1, None))
+        self.assertEqual(26, game.players[1].health)
+
     def test_searing_reflection_draws_and_summons_divine_shield_copy(self):
         game = self.game()
         dragon = game._entity("CORE_LOOT_137", started_in_deck=True)

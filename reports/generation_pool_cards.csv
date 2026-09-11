@@ -211,7 +211,7 @@ fire_spell,CORE_SW_108,First Flame,MAGE,CORE,SPELL,1,0,0,,,Deal $2 damage to a m
 fire_spell,CORE_WON_337,Ironforge Portal,WARRIOR,CORE,SPELL,4,0,0,,,Gain 4 Armor. Summon a random 4-Cost minion.,needs_rule
 fire_spell,DINO_406,Fire Breath,SHAMAN,THE_LOST_CITY,SPELL,3,0,0,,,Deal $4 damage. Give your Elementals +1/+1.,generated_supported
 fire_spell,END_024,Flames of Infinity,MAGE,TIME_TRAVEL,SPELL,3,0,0,,"SECRET,ImmuneToSpellpower","<b>Secret:</b> When your enemy's turn ends, deal INFINITE damage to their highest Health minion.",needs_rule
-fire_spell,END_025,Eternal Firebolt,"MAGE,PRIEST",TIME_TRAVEL,SPELL,3,0,0,,LIFESTEAL,"<b>Lifesteal</b> Deal $3 damage to a minion. If it dies, return this to your hand at the end of your turn.",needs_rule
+fire_spell,END_025,Eternal Firebolt,"MAGE,PRIEST",TIME_TRAVEL,SPELL,3,0,0,,LIFESTEAL,"<b>Lifesteal</b> Deal $3 damage to a minion. If it dies, return this to your hand at the end of your turn.",generated_supported
 fire_spell,FIR_900,Cremate,DEATHKNIGHT,EMERALD_DREAM,SPELL,3,0,0,,DISCOVER,<b>Discover</b> a minion with a <b>Dark Gift</b>. It costs (2) less.,needs_rule
 fire_spell,FIR_906,Overheat,DRUID,EMERALD_DREAM,SPELL,3,0,0,,,Give your minions +1/+1. Discard a random Nature spell to give them +1/+1 more.,generated_supported
 fire_spell,FIR_909,Bursting Shot,HUNTER,EMERALD_DREAM,SPELL,2,0,0,,,Deal $2 damage to three random enemies.,generated_supported
@@ -225,7 +225,7 @@ fire_spell,FIR_939,Shadowflame Suffusion,WARRIOR,EMERALD_DREAM,SPELL,2,0,0,,DISC
 fire_spell,FIR_941,Searing Reflection,PALADIN,EMERALD_DREAM,SPELL,7,0,0,,,Draw a minion. Summon an 8/8 copy of it with <b>Divine Shield</b>.,generated_supported
 fire_spell,FIR_954,Conflagrate,WARLOCK,EMERALD_DREAM,SPELL,1,0,0,,,Deal $5 damage to a minion. Its owner draws a card.,generated_supported
 fire_spell,JAIL_307,Crowd Control,WARRIOR,ESCAPEFROM_VIOLET_HOLD,SPELL,5,0,0,,,"Deal $2 damage to all minions twice. If your deck has 25 or more cards, this costs (2) less.",generated_supported
-fire_spell,JAIL_801,Molten Gold,SHAMAN,ESCAPEFROM_VIOLET_HOLD,SPELL,3,0,0,,,Deal $4 damage. <i>(Cast 3 spells to turn into a minion!)</i>,needs_rule
+fire_spell,JAIL_801,Molten Gold,SHAMAN,ESCAPEFROM_VIOLET_HOLD,SPELL,3,0,0,,,Deal $4 damage. <i>(Cast 3 spells to turn into a minion!)</i>,generated_supported
 fire_spell,TLC_221,Sizzling Swarm,SHAMAN,THE_LOST_CITY,SPELL,6,0,0,,,Deal $3 damage. Summon that many 2/1 Sizzling Cinders.,generated_supported
 fire_spell,TLC_222,Flight of the Firehawk,SHAMAN,THE_LOST_CITY,SPELL,3,0,0,,,Draw two minions of different minion types. Give them +1/+1.,generated_supported
 fire_spell,TLC_227,Lava Flow,SHAMAN,THE_LOST_CITY,SPELL,3,0,0,,OVERLOAD,"Deal $2 damage to the lowest Health enemy, three times. <b>Overload:</b> (1)",generated_supported
