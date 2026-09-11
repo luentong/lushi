@@ -80,6 +80,7 @@ DECLARATIVE_METADATA_ALIASES = {
 STANDARD_DECLARATIVE_IDS = {
     "CATA_131",
     "CATA_138",
+    "CATA_140",
     "CATA_190p",
     # Deathwing, Worldbreaker and its four non-collectible Cataclysms.  The
     # sequencing is engine-owned because the Hero card makes one, two, or four
@@ -121,6 +122,7 @@ STANDARD_DECLARATIVE_IDS = {
     "END_007",
     "END_011",
     "JAIL_201",
+    "JAIL_200",
     "JAIL_430",
     "JAIL_872",
     "JAIL_510",

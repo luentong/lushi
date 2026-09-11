@@ -713,6 +713,7 @@ class Player:
     weapon: Weapon | None = None
     hero_attack_bonus: int = 0
     hero_attacks_this_turn: int = 0
+    hero_attacks_this_game: int = 0
     void_soul_level: int = 1
     hero_power_used: bool = False
     hero_power_cost_override: int | None = None
@@ -3094,6 +3095,28 @@ class DragonMirrorGame:
                 source=card.entity_id, drawn=drawn, hand_size=len(player.hand),
             )
             return
+        if card.card_id == "CATA_140":
+            # Merithra's generated cards use the Dragon closure, rather than
+            # all metadata rows, so a later play cannot degrade into an
+            # unsupported vanilla card.  The held-mana counter is accumulated
+            # by _spend_mana while the card remains in hand.
+            discounted = card.mana_spent_while_held >= 25
+            generated_ids: list[str] = []
+            while len(player.hand) < 10:
+                generated = self._entity(
+                    self.rng.choice(sorted(DRAGON_IDS)), created_by=card.card_id,
+                )
+                if discounted:
+                    generated.cost_delta = 1 - generated.definition.cost
+                destination = self._add_generated(player, generated)
+                generated_ids.append(generated.card_id)
+                if destination != "hand":
+                    break
+            self._event(
+                "merithra_fill_hand", player=player.index, source=card.entity_id,
+                discounted=discounted, generated=generated_ids,
+            )
+            return
         if card.card_id == "CATA_556":
             for _ in range(times):
                 generated = self._entity(
@@ -3680,7 +3703,21 @@ class DragonMirrorGame:
             RuleContext(player=player, card=card, action=action),
         ):
             return
-        if card.card_id == "TIME_001":
+        if card.card_id == "JAIL_200":
+            # Sanitized Power.log observed 3 prior hero attacks producing two
+            # 6-Cost minions and 7 prior attacks producing two 10-Cost
+            # minions. The printed 3-Cost baseline upgrades by one per hero
+            # attack, capped at ten.
+            cost = min(10, 3 + player.hero_attacks_this_game)
+            for _ in range(2):
+                self._summon_random_executable_minion(
+                    player, source_card_id=card.card_id, cost=cost,
+                )
+            self._event(
+                "infest_scullery", player=player.index, source=card.entity_id,
+                hero_attacks=player.hero_attacks_this_game, summoned_cost=cost,
+            )
+        elif card.card_id == "TIME_001":
             self._offer_rewind(player, "chrono_daggers")
         elif card.card_id == "TIME_433":
             self._offer_rewind(player, "cease_to_exist")
@@ -5166,6 +5203,7 @@ class DragonMirrorGame:
         attacked_weapon = copy.deepcopy(player.weapon)
         attack_amount = player.attack
         player.hero_attacks_this_turn += 1
+        player.hero_attacks_this_game += 1
         if action.target_entity is None:
             enemy = self.players[action.target_player]
             before = enemy.health + enemy.armor
@@ -6110,6 +6148,7 @@ class DragonMirrorGame:
                 "mana": player.mana,
                 "max_mana": player.max_mana,
                 "hero_attack": player.attack,
+                "hero_attacks_this_game": player.hero_attacks_this_game,
                 "hero_power_cost": self._hero_power_cost(player),
                 "hero_power_id": player.hero_power_id,
                 "hero_power_armor": player.hero_power_armor,

@@ -643,6 +643,56 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(2, game.players[0].armor)
         self.assertEqual(3, location.next_refresh)
 
+    def test_merithra_fills_hand_with_executable_dragons_and_discount_gate(self):
+        game = self.game()
+        for _ in range(3):
+            self.add_hand(game, "GAME_005")
+        merithra = self.add_hand(game, "CATA_140")
+        game.step(Action("PLAY", merithra.entity_id))
+        generated = [
+            card for card in game.players[0].hand
+            if card.created_by == "CATA_140"
+        ]
+        self.assertEqual(7, len(generated))
+        self.assertTrue(all(card.has_race("DRAGON") for card in generated))
+        self.assertTrue(any(card.cost != 1 for card in generated))
+
+        game = self.game()
+        for _ in range(3):
+            self.add_hand(game, "GAME_005")
+        merithra = self.add_hand(game, "CATA_140")
+        merithra.mana_spent_while_held = 25
+        game.step(Action("PLAY", merithra.entity_id))
+        generated = [
+            card for card in game.players[0].hand
+            if card.created_by == "CATA_140"
+        ]
+        self.assertEqual(7, len(generated))
+        self.assertTrue(all(card.cost == 1 for card in generated))
+
+    def test_infest_scullery_scales_summon_cost_with_hero_attacks(self):
+        game = self.game()
+        game.players[0].hero_attacks_this_game = 3
+        spell = self.add_hand(game, "JAIL_200")
+        game.step(Action("PLAY", spell.entity_id))
+        generated = [
+            minion for minion in game.players[0].board
+            if minion.created_by == "JAIL_200"
+        ]
+        self.assertEqual(2, len(generated))
+        self.assertTrue(all(minion.definition.cost == 6 for minion in generated))
+
+        game = self.game()
+        game.players[0].hero_attacks_this_game = 11
+        spell = self.add_hand(game, "JAIL_200")
+        game.step(Action("PLAY", spell.entity_id))
+        generated = [
+            minion for minion in game.players[0].board
+            if minion.created_by == "JAIL_200"
+        ]
+        self.assertEqual(2, len(generated))
+        self.assertTrue(all(minion.definition.cost == 10 for minion in generated))
+
     def test_blessing_of_the_moon_offers_discounted_temporary_cards(self):
         game = self.game()
         game.players[0].hero_power_id = "EDR_449p"
