@@ -148,6 +148,20 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertIn(low, game.players[0].board)
         self.assertFalse(game.players[1].secrets)
 
+    def test_explosive_runes_deals_excess_to_enemy_hero(self):
+        game = self.game()
+        secret = game._entity("CORE_LOOT_101")
+        game.players[1].hand.append(secret)
+        game.current = 1
+        game.players[1].mana = 10
+        game.step(Action("PLAY", secret.entity_id))
+        game._end_turn()
+        minion = self.add_hand(game, "CAP_107t")
+        game.step(Action("PLAY", minion.entity_id))
+        self.assertNotIn(minion, game.players[0].board)
+        self.assertEqual(25, game.players[0].health)
+        self.assertFalse(game.players[1].secrets)
+
     def test_searing_reflection_draws_and_summons_divine_shield_copy(self):
         game = self.game()
         dragon = game._entity("CORE_LOOT_137", started_in_deck=True)

@@ -276,6 +276,7 @@ ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "JAIL_801",  # Molten Gold
     "CORE_EX1_610",  # Explosive Trap
     "END_024",  # Flames of Infinity
+    "CORE_LOOT_101",  # Explosive Runes
 }
 
 SPECIAL_TOKEN_IDS = {
@@ -1549,6 +1550,31 @@ class DragonMirrorGame:
                 target_player=ending_player.index, target=target.entity_id,
             )
             self._resolve_deaths()
+
+    def _trigger_secrets_after_enemy_minion_play(
+        self, player: Player, minion: CardInstance
+    ) -> None:
+        """Resolve implemented opponent-minion-play Secrets after Battlecry."""
+        owner = self.players[1 - player.index]
+        for secret in list(owner.secrets):
+            if secret.card_id != "CORE_LOOT_101":
+                continue
+            before = max(0, minion.health)
+            had_shield = minion.divine_shield
+            self._consume_secret(owner, secret)
+            self._damage_minion(player.index, minion, 6, secret)
+            dealt = before - max(0, minion.health)
+            excess = 0
+            if not had_shield and dealt == before:
+                excess = max(0, 6 - before)
+            if excess:
+                self._damage_hero(player, excess, secret)
+            self._resolve_deaths()
+            self._event(
+                "explosive_runes", player=owner.index,
+                target_player=player.index, target=minion.entity_id,
+                dealt=dealt, excess=excess,
+            )
 
     def _start_turn(self, index: int) -> None:
         self.current = index
@@ -3193,6 +3219,8 @@ class DragonMirrorGame:
                 controller.magmaw_entity = card.entity_id
                 self._summon_magmaw_bodies(controller)
             self._battlecry(controller, card, action)
+            if card in controller.board:
+                self._trigger_secrets_after_enemy_minion_play(controller, card)
             if card.living_nightmare and len(controller.board) + len(controller.locations) < 7:
                 token = card.clone(self.next_entity_id)
                 self.next_entity_id += 1

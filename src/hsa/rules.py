@@ -104,6 +104,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_CS2_029",
     "CORE_CS2_032",
     "CORE_EX1_610",
+    "CORE_LOOT_101",
     "CAP_404",
     "CORE_CS2_004",
     "CORE_CS2_062",
@@ -2111,6 +2112,15 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_explosive_trap_triggers_after_hero_is_attacked",),
+            ),
+        ),
+        CardRule(
+            "CORE_LOOT_101", {Hook.SPELL: (ArmSecret(),)},
+            RuleSource(
+                "upstream_adapted",
+                "vendor/fireplace/cards/kobolds/mage.py; RosettaStone CoreCardsGenTests",
+                "LOOT_101", "AGPL-3.0",
+                ("test_explosive_runes_deals_excess_to_enemy_hero",),
             ),
         ),
         CardRule(

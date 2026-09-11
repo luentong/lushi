@@ -206,7 +206,7 @@ fire_spell,CORE_CS2_032,Flamestrike,MAGE,CORE,SPELL,7,0,0,,,Deal $5 damage to al
 fire_spell,CORE_CS2_062,Hellfire,WARLOCK,CORE,SPELL,3,0,0,,,Deal $3 damage to ALL characters.,generated_supported
 fire_spell,CORE_EX1_610,Explosive Trap,HUNTER,CORE,SPELL,2,0,0,,SECRET,"<b>Secret:</b> When your hero is attacked, deal $2 damage to all enemies.",generated_supported
 fire_spell,CORE_GIL_836,Blazing Invocation,SHAMAN,CORE,SPELL,1,0,0,,DISCOVER,[x]<b>Discover</b> a <b>Battlecry</b> minion. It costs (1) less.,needs_rule
-fire_spell,CORE_LOOT_101,Explosive Runes,MAGE,CORE,SPELL,3,0,0,,"SECRET,ImmuneToSpellpower","<b>Secret:</b> After your opponent plays a minion, deal $6 damage to it and any excess to their hero.",needs_rule
+fire_spell,CORE_LOOT_101,Explosive Runes,MAGE,CORE,SPELL,3,0,0,,"SECRET,ImmuneToSpellpower","<b>Secret:</b> After your opponent plays a minion, deal $6 damage to it and any excess to their hero.",generated_supported
 fire_spell,CORE_SW_108,First Flame,MAGE,CORE,SPELL,1,0,0,,,Deal $2 damage to a minion. Add a Second Flame to your hand.,generated_supported
 fire_spell,CORE_WON_337,Ironforge Portal,WARRIOR,CORE,SPELL,4,0,0,,,Gain 4 Armor. Summon a random 4-Cost minion.,needs_rule
 fire_spell,DINO_406,Fire Breath,SHAMAN,THE_LOST_CITY,SPELL,3,0,0,,,Deal $4 damage. Give your Elementals +1/+1.,generated_supported
