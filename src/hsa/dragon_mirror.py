@@ -3940,6 +3940,36 @@ class DragonMirrorGame:
                               for card in opponent_options],
         )
 
+    def _offer_class_discover(
+        self, player: Player, *, card_class: str, source_card_id: str,
+        cost_delta: int = 0,
+    ) -> None:
+        candidates = sorted(
+            card_id for card_id, definition in self.card_defs.items()
+            if card_id in EXECUTABLE_CARD_IDS
+            and definition.card_class == card_class
+        )
+        self.rng.shuffle(candidates)
+        options = [
+            self._entity(card_id, created_by=source_card_id)
+            for card_id in candidates[:3]
+        ]
+        for option in options:
+            option.cost_delta += cost_delta
+        self.pending_choice = {
+            "kind": "DISCOVER", "player": player.index,
+            "pool": tuple(candidates), "dark_gift": False,
+            "repeats_left": 0, "after_pick": None,
+            "source_card_id": source_card_id, "options": options,
+        }
+        self._event(
+            "class_discover_offer", player=player.index, source=source_card_id,
+            card_class=card_class, cost_delta=cost_delta,
+            profile="executable_standard_pool_v1",
+            options=[{"entity": card.entity_id, "card": card.card_id}
+                     for card in options],
+        )
+
     def _summon_random_executable_minion(
         self, player: Player, *, source_card_id: str,
         cost: int | None = None, min_cost: int | None = None,
@@ -4238,7 +4268,9 @@ class DragonMirrorGame:
         attack_amount: int,
     ) -> None:
         if weapon is None:
-            self._dispatch_after_hero_attack(player)
+            self._dispatch_after_hero_attack(
+                player, attack_amount=attack_amount, weapon=None
+            )
             return
         if weapon.card_id == "CAP_103":
             cannoneers = [
@@ -4336,9 +4368,14 @@ class DragonMirrorGame:
                 )
         elif weapon.card_id == "JAIL_458" and weapon.ammunition is not None:
             self._fire_tiny_pal_ammunition(player, weapon, attacked)
-        self._dispatch_after_hero_attack(player)
+        self._dispatch_after_hero_attack(
+            player, attack_amount=attack_amount, weapon=weapon
+        )
 
-    def _dispatch_after_hero_attack(self, player: Player) -> None:
+    def _dispatch_after_hero_attack(
+        self, player: Player, *, attack_amount: int | None = None,
+        weapon: Weapon | None = None,
+    ) -> None:
         """Run friendly-minion triggers after every hero attack.
 
         The hook is independent of weapons: Spider Rider must draw after an
@@ -4354,7 +4391,21 @@ class DragonMirrorGame:
                 continue
             self.rule_registry.dispatch(
                 Hook.AFTER_HERO_ATTACK, minion.card_id, self,
-                RuleContext(player=player, card=minion),
+                RuleContext(
+                    player=player, card=minion,
+                    payload={"hero_attack": attack_amount},
+                ),
+            )
+        if weapon is not None and self.rule_registry.has_hook(
+            Hook.AFTER_HERO_ATTACK, weapon.card_id
+        ):
+            card = CardInstance(-1, self.card_defs[weapon.card_id])
+            self.rule_registry.dispatch(
+                Hook.AFTER_HERO_ATTACK, weapon.card_id, self,
+                RuleContext(
+                    player=player, card=card,
+                    payload={"hero_attack": attack_amount},
+                ),
             )
 
     def _offer_ammunition(

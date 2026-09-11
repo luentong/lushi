@@ -99,6 +99,7 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_432",
     "JAIL_433",
     "JAIL_912",
+    "JAIL_875",
     "JAIL_941",
     "JAIL_941t",
     "TIME_702",
@@ -194,6 +195,20 @@ class OfferIntertwinedFate:
     def execute(self, game: Any, context: RuleContext) -> None:
         game._offer_intertwined_fate(
             context.player, source_card_id=context.card.card_id
+        )
+
+
+@dataclass(frozen=True)
+class OfferClassDiscoverDiscountedByHeroAttack:
+    card_class: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        attack = context.payload.get("hero_attack")
+        if attack is None:
+            attack = context.player.attack
+        game._offer_class_discover(
+            context.player, card_class=self.card_class,
+            source_card_id=context.card.card_id, cost_delta=-attack,
         )
 
 
@@ -1071,6 +1086,18 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "powerlog_verified", "Power.log 61e3baf3 + HearthstoneJSON 251332",
                 verification=("test_spider_rider_draws_after_hero_attack",),
+            ),
+        ),
+        CardRule(
+            "JAIL_875", {
+                Hook.AFTER_HERO_ATTACK: (
+                    OfferClassDiscoverDiscountedByHeroAttack("DRUID"),
+                ),
+            },
+            RuleSource(
+                "powerlog_verified",
+                "Power.log 61e3baf3 + HearthstoneJSON 251332",
+                verification=("test_staff_of_trickery_discovers_druid_card_discounted_by_attack",),
             ),
         ),
         CardRule(

@@ -540,6 +540,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual((3, 3), (infiltrator.attack, infiltrator.max_health))
         self.assertEqual(1, location.durability)
 
+    def test_staff_of_trickery_discovers_druid_card_discounted_by_attack(self):
+        game = self.game()
+        game.players[0].weapon = Weapon("JAIL_875", "Staff of Trickery", 4, 1)
+        game.step(Action("HERO_ATTACK", target_player=1))
+        self.assertIsNone(game.players[0].weapon)
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        options = game.pending_choice["options"]
+        self.assertTrue(all(card.definition.card_class == "DRUID" for card in options))
+        self.assertTrue(all(
+            card.cost == max(0, card.definition.cost - 4) for card in options
+        ))
+
 
 if __name__ == "__main__":
     unittest.main()
