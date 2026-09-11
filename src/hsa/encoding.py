@@ -6,7 +6,8 @@ import hashlib
 import json
 from dataclasses import dataclass
 
-from .dragon_mirror import Action, DragonMirrorGame, SUPPORTED_IDS
+from .dragon_mirror import Action, DragonMirrorGame
+from .legacy_vocab import LEGACY_CARD_VOCAB
 
 
 STATE_SCHEMA_VERSION = 4
@@ -19,7 +20,7 @@ ACTION_KINDS = (
     "DISCOVER_PICK", "REWIND_KEEP", "REWIND_RETRY", "AMMUNITION_PICK",
     "CORPSE_SPEND",
 )
-CARD_VOCAB = tuple(sorted(set(SUPPORTED_IDS) | {"GAME_005", "JAIL_732"}))
+CARD_VOCAB = LEGACY_CARD_VOCAB
 CARD_INDEX = {card_id: index for index, card_id in enumerate(CARD_VOCAB)}
 ZONE_NAMES = ("none", "hand", "board", "location", "choice", "literal")
 TARGET_KINDS = ("none", "hero", "card", "literal")

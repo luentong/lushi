@@ -23,6 +23,21 @@ class Hook(StrEnum):
     END_TURN = "end_turn"
 
 
+class TargetKind(StrEnum):
+    ANY_MINION = "any_minion"
+    FRIENDLY_MINION = "friendly_minion"
+    ENEMY_MINION = "enemy_minion"
+    ANY_CHARACTER = "any_character"
+    FRIENDLY_CHARACTER = "friendly_character"
+    ENEMY_CHARACTER = "enemy_character"
+
+
+@dataclass(frozen=True)
+class TargetSpec:
+    kind: TargetKind
+    optional: bool = False
+
+
 # Base metadata for these generated entities comes from the pinned
 # HearthstoneJSON snapshot. Declaring the dependency here lets ordinary rules
 # refer only to card IDs instead of rebuilding CardDef objects in the engine.
@@ -42,6 +57,16 @@ DECLARATIVE_METADATA_IDS = {
 # runtime ID, but keep the alias explicit and auditable.
 DECLARATIVE_METADATA_ALIASES = {
     "CORE_EX1_277": "EX1_277",  # Arcane Missiles
+}
+
+# New full-Standard rules are kept separate from the historical Dragon slice
+# so adding cards does not mutate the vocabulary of existing neural models.
+STANDARD_DECLARATIVE_IDS = {
+    "CORE_CS2_004",
+    "CORE_CS2_062",
+    "CORE_EX1_197",
+    "CORE_ICC_055",
+    "CORE_SW_072",
 }
 
 
@@ -152,6 +177,38 @@ class DamageActionTarget:
             self.amount,
             source=context.card,
         )
+
+
+@dataclass(frozen=True)
+class DamageAllCharacters:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for player in game.players:
+            game._damage_hero(player, self.amount, context.card)
+            for minion in list(player.board):
+                game._damage_minion(
+                    player.index, minion, self.amount, context.card
+                )
+
+
+@dataclass(frozen=True)
+class DestroyMinionsByAttack:
+    minimum: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for player in game.players:
+            for minion in list(player.board):
+                if minion.attack >= self.minimum:
+                    minion.damage = minion.max_health
+
+
+@dataclass(frozen=True)
+class DestroyEnemyWeapon:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        if enemy.weapon is not None:
+            game._destroy_weapon(enemy)
 
 
 @dataclass(frozen=True)
@@ -349,6 +406,7 @@ class CardRule:
     card_id: str
     hooks: dict[Hook, tuple[Effect, ...]]
     source: RuleSource
+    targeting: TargetSpec | None = None
 
 
 class RuleRegistry:
@@ -372,6 +430,10 @@ class RuleRegistry:
             effect.execute(game, context)
         return True
 
+    def targeting(self, card_id: str) -> TargetSpec | None:
+        rule = self._rules.get(card_id)
+        return None if rule is None else rule.targeting
+
     def manifest(self) -> list[dict[str, Any]]:
         rows = []
         for card_id in sorted(self._rules):
@@ -380,6 +442,9 @@ class RuleRegistry:
                 "card_id": card_id,
                 "hooks": sorted(hook.value for hook in rule.hooks),
                 "source": asdict(rule.source),
+                "targeting": (
+                    None if rule.targeting is None else asdict(rule.targeting)
+                ),
                 "effects": {
                     hook.value: [type(effect).__name__ for effect in effects]
                     for hook, effects in rule.hooks.items()
@@ -397,6 +462,48 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "upstream_adapted", rosetta, "GAME_005", "AGPL-3.0",
                 ("test_windpeak_wyrm_battlecry_and_coin_spell_rules",),
+            ),
+        ),
+        CardRule(
+            "CORE_CS2_004",
+            {Hook.SPELL: (BuffActionTarget(health=2), Draw())},
+            RuleSource(
+                "upstream_adapted", rosetta, "CS2_004", "AGPL-3.0",
+                ("test_power_word_shield",),
+            ),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "CORE_CS2_062",
+            {Hook.SPELL: (DamageAllCharacters(3), ResolveDeaths())},
+            RuleSource(
+                "upstream_adapted", rosetta, "CS2_062", "AGPL-3.0",
+                ("test_hellfire_damages_all_characters",),
+            ),
+        ),
+        CardRule(
+            "CORE_EX1_197",
+            {Hook.SPELL: (DestroyMinionsByAttack(5), ResolveDeaths())},
+            RuleSource(
+                "upstream_adapted", rosetta, "EX1_197", "AGPL-3.0",
+                ("test_shadow_word_ruin_uses_current_attack",),
+            ),
+        ),
+        CardRule(
+            "CORE_ICC_055",
+            {Hook.SPELL: (DamageActionTarget(3), ResolveDeaths())},
+            RuleSource(
+                "upstream_adapted", rosetta, "ICC_055", "AGPL-3.0",
+                ("test_drain_soul_has_lifesteal_and_requires_a_minion",),
+            ),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "CORE_SW_072",
+            {Hook.BATTLECRY: (DestroyEnemyWeapon(),)},
+            RuleSource(
+                "upstream_adapted", rosetta, "SW_072", "AGPL-3.0",
+                ("test_rustrot_viper_destroys_opposing_weapon",),
             ),
         ),
         CardRule(

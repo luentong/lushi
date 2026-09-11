@@ -11,12 +11,14 @@ sys.path.insert(0, str(ROOT / "src"))
 from hsa.dragon_mirror import (
     ADDITIONAL_GENERATED_MINION_IDS,
     Action,
+    BASIC_AUXILIARY_IDS,
     BONUS_EFFECTS,
     CardDef,
     DIRECT_IDS,
     DISCOVER_BANNED_IDS,
     DRAGON_IDS,
     DragonMirrorGame,
+    EXECUTABLE_CARD_IDS,
     GENERATED_MINION_IDS,
     GENERATED_DRAGON_IDS,
     GENERATED_PIRATE_IDS,
@@ -62,7 +64,7 @@ class DragonMirrorRulesTests(unittest.TestCase):
 
     def test_direct_and_generated_metadata_entities_are_loaded(self):
         game = self.game()
-        self.assertEqual(SUPPORTED_IDS, set(game.card_defs))
+        self.assertEqual(EXECUTABLE_CARD_IDS | BASIC_AUXILIARY_IDS, set(game.card_defs))
         self.assertEqual(17, len(DIRECT_IDS))
         self.assertEqual(72, len(GENERATED_MINION_IDS))
         self.assertEqual(40, len(GENERATED_DRAGON_IDS))

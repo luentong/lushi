@@ -15,7 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from hsa.dragon_mirror import SUPPORTED_IDS
+from hsa.dragon_mirror import EXECUTABLE_CARD_IDS
 from hsa.rules import build_rule_registry
 
 
@@ -130,9 +130,9 @@ def main() -> int:
             "declarative rules reference missing tests: "
             + ", ".join(missing_tests)
         )
-    upstream = scan_upstreams(set(SUPPORTED_IDS))
+    upstream = scan_upstreams(set(EXECUTABLE_CARD_IDS))
     rows = []
-    for card_id in sorted(SUPPORTED_IDS):
+    for card_id in sorted(EXECUTABLE_CARD_IDS):
         rule = declarative.get(card_id)
         implementation = (
             "declarative" if rule and rule["hooks"]

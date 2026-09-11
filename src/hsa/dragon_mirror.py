@@ -20,6 +20,8 @@ from .rules import (
     DECLARATIVE_METADATA_IDS,
     Hook,
     RuleContext,
+    STANDARD_DECLARATIVE_IDS,
+    TargetKind,
     build_rule_registry,
 )
 
@@ -261,6 +263,21 @@ SPECIAL_TOKEN_IDS = {
     "JAIL_732",  # Void Soul
 }
 
+# These legacy/basic entities are runtime dependencies of current hero powers,
+# not cards that can start in a Standard deck. Keeping them separate preserves
+# the frozen rules-v3/v4 policy model vocabulary.
+BASIC_AUXILIARY_IDS = {
+    "CS2_101t",  # Silver Hand Recruit
+    "CS2_082",  # Wicked Knife
+    "CS2_050",  # Searing Totem
+    "CS2_051",  # Stoneclaw Totem
+    "CS2_052",  # Wrath of Air Totem
+    "NEW1_009",  # Healing Totem
+    "HERO_11bpt",  # Frail Ghoul
+}
+
+BASIC_TOTEM_IDS = ("CS2_050", "CS2_051", "CS2_052", "NEW1_009")
+
 # Their outer rule is implemented, but they remain unreachable from random
 # runtime pools until every transitive generation dependency is closed.
 BLOCKED_GENERATOR_IDS = {
@@ -382,6 +399,7 @@ SUPPORTED_IDS = (
     | SPECIAL_TOKEN_IDS | BLOCKED_GENERATOR_IDS | DECLARATIVE_METADATA_IDS
     | DECLARATIVE_METADATA_ALIASES.keys()
 )
+EXECUTABLE_CARD_IDS = SUPPORTED_IDS | STANDARD_DECLARATIVE_IDS
 
 # The fixed Dragon Warrior deck starts with no Herald-related or Fabled card.
 # Constructed generation therefore excludes these cards even though they are
@@ -517,6 +535,7 @@ class CardDef:
     card_set: str = ""
     text: str = ""
     spell_school: str = ""
+    spell_damage: int = 0
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "CardDef":
         # Definitions are immutable and shared by every search branch.
@@ -578,6 +597,7 @@ class CardInstance:
     dynamic_spell_damage: int = 0
     illusion_fake: bool = False
     cant_attack_heroes_turn: int = -1
+    dies_at_end_of_turn: bool = False
 
     @property
     def card_id(self) -> str:
@@ -655,6 +675,7 @@ class Location:
 @dataclass
 class Player:
     index: int
+    card_class: str = "WARRIOR"
     deck: list[CardInstance] = field(default_factory=list)
     hand: list[CardInstance] = field(default_factory=list)
     board: list[CardInstance] = field(default_factory=list)
@@ -738,6 +759,8 @@ class DragonMirrorGame:
         seed: int = 1,
         *,
         manual_mulligan: bool = False,
+        deck_counts: tuple[dict[str, int], dict[str, int]] | None = None,
+        player_classes: tuple[str, str] = ("WARRIOR", "WARRIOR"),
     ):
         self.rng = random.Random(seed)
         self.seed = seed
@@ -750,14 +773,27 @@ class DragonMirrorGame:
         self.winner: int | None = None
         self.pending_choice: dict[str, Any] | None = None
         self.minions_died_this_turn = 0
+        self.deck_counts = deck_counts or (DRAGON_DECK_COUNTS, DRAGON_DECK_COUNTS)
+        requested_ids = set(self.deck_counts[0]) | set(self.deck_counts[1])
+        unsupported = requested_ids - EXECUTABLE_CARD_IDS
+        if unsupported:
+            raise UnsupportedGeneratedCard(
+                "deck contains cards without executable rules: "
+                + ", ".join(sorted(unsupported))
+            )
         self.card_defs = self._load_defs(Path(cards_path))
         self.rule_registry = build_rule_registry()
-        missing = SUPPORTED_IDS - self.card_defs.keys()
+        missing = (
+            EXECUTABLE_CARD_IDS | BASIC_AUXILIARY_IDS
+        ) - self.card_defs.keys()
         if missing:
             raise ValueError(f"missing card metadata: {sorted(missing)}")
-        self.players = [Player(0), Player(1)]
+        self.players = [
+            Player(0, card_class=player_classes[0]),
+            Player(1, card_class=player_classes[1]),
+        ]
         for player in self.players:
-            player.deck = self._new_deck()
+            player.deck = self._new_deck(player.index)
             self.rng.shuffle(player.deck)
         self._initial_draw()
         if manual_mulligan:
@@ -780,7 +816,7 @@ class DragonMirrorGame:
         for card in cards:
             card_id = card.get("id")
             target_ids = list(aliases_by_source.get(card_id, ()))
-            if card_id in SUPPORTED_IDS:
+            if card_id in EXECUTABLE_CARD_IDS | BASIC_AUXILIARY_IDS:
                 target_ids.append(card_id)
             if not target_ids:
                 continue
@@ -799,6 +835,7 @@ class DragonMirrorGame:
                     card_set=card.get("set", "") or "",
                     text=card.get("text", "") or "",
                     spell_school=card.get("spellSchool", "") or "",
+                    spell_damage=int(card.get("spellDamage", 0)),
                 )
         return result
 
@@ -843,6 +880,7 @@ class DragonMirrorGame:
         result.windfury = "WINDFURY" in result.definition.mechanics
         result.reborn = "REBORN" in result.definition.mechanics
         result.poisonous = "POISONOUS" in result.definition.mechanics
+        result.spell_damage_bonus = result.definition.spell_damage
         result.mirrex_tracker = result.card_id == "DINO_407"
         if result.card_id in {"EDR_469", "MEND_040"}:
             # These use condition-based Dormant rather than a fixed countdown.
@@ -853,6 +891,8 @@ class DragonMirrorGame:
             result.dormant_turns = 3
         if result.card_id == "JAIL_942":
             result.cant_attack = True
+        if result.card_id == "HERO_11bpt":
+            result.dies_at_end_of_turn = True
         return result
 
     def _update_mirrex_trackers(
@@ -882,11 +922,10 @@ class DragonMirrorGame:
                 entity=tracker.entity_id, copied=tracker.card_id,
             )
 
-    def _new_deck(self) -> list[CardInstance]:
-        # Pinned expansion of the supplied deckstring.
+    def _new_deck(self, player_index: int = 0) -> list[CardInstance]:
         return [
             self._entity(card_id, started_in_deck=True)
-            for card_id, count in DRAGON_DECK_COUNTS.items()
+            for card_id, count in self.deck_counts[player_index].items()
             for _ in range(count)
         ]
 
@@ -1319,8 +1358,26 @@ class DragonMirrorGame:
                 or minion.dormant_turns > 0
             ):
                 continue
-            if minion.card_id == "CAP_107t" and not minion.silenced:
+            if minion.dies_at_end_of_turn and not minion.silenced:
+                minion.damage = minion.max_health
+                self._event(
+                    "end_turn_destroy", player=player.index,
+                    card=minion.card_id, entity=minion.entity_id,
+                )
+                self._resolve_deaths()
+            elif minion.card_id == "CAP_107t" and not minion.silenced:
                 self._fire_cannoneer(player, minion, reason="end_turn")
+            elif minion.card_id == "NEW1_009" and not minion.silenced:
+                healed = []
+                for target in player.board:
+                    if target.health > 0 and target.damage > 0:
+                        amount = min(1, target.damage)
+                        target.damage -= amount
+                        healed.append((target.entity_id, amount))
+                self._event(
+                    "healing_totem", player=player.index,
+                    entity=minion.entity_id, healed=healed,
+                )
             elif minion.card_id == "JAIL_450t" and not minion.silenced:
                 minion.damage = minion.max_health
             elif minion.card_id == "CATA_999" and not minion.silenced:
@@ -1868,26 +1925,19 @@ class DragonMirrorGame:
         )
 
     def _spell_damage(self, player: Player) -> int:
-        seer_damage = sum(
+        dynamic_seer_damage = sum(
             2 for minion in player.board
             if minion.card_id == "END_022"
             and minion.damage > 0
             and not minion.silenced
             and minion.dormant_turns == 0
         )
-        zapper_damage = sum(
-            minion.card_id == "CS3_007"
-            and not minion.silenced
-            and minion.dormant_turns == 0
+        generic_damage = sum(
+            minion.spell_damage_bonus
             for minion in player.board
+            if not minion.silenced and minion.dormant_turns == 0
         )
-        thalnos_damage = sum(
-            minion.card_id == "CORE_EX1_012"
-            and not minion.silenced
-            and minion.dormant_turns == 0
-            for minion in player.board
-        )
-        return seer_damage + zapper_damage + thalnos_damage
+        return dynamic_seer_damage + generic_damage
 
     def _hero_power_cost(self, player: Player) -> int:
         free = any(
@@ -1900,7 +1950,108 @@ class DragonMirrorGame:
             return 0
         if player.hero_power_cost_override is not None:
             return player.hero_power_cost_override
-        return 2
+        return 1 if player.card_class == "DEMONHUNTER" else 2
+
+    def _hero_power_actions(self, player: Player) -> list[Action]:
+        card_class = player.card_class
+        if card_class in {"MAGE", "PRIEST"}:
+            targets = self._friendly_characters(player.index)
+            targets.extend(self._enemy_characters(player.index))
+            return [Action("HERO_POWER", target_player=p, target_entity=e)
+                    for p, e in targets]
+        if card_class == "PALADIN":
+            return ([Action("HERO_POWER")]
+                    if len(player.board) + len(player.locations) < 7 else [])
+        if card_class == "SHAMAN":
+            controlled = {m.card_id for m in player.board}
+            available = set(BASIC_TOTEM_IDS) - controlled
+            return ([Action("HERO_POWER")]
+                    if available and len(player.board) + len(player.locations) < 7
+                    else [])
+        if card_class == "DEATHKNIGHT":
+            return ([Action("HERO_POWER")]
+                    if len(player.board) + len(player.locations) < 7 else [])
+        return [Action("HERO_POWER")]
+
+    def _use_hero_power(self, action: Action) -> None:
+        player = self.players[self.current]
+        self._spend_mana(player, self._hero_power_cost(player))
+        player.hero_power_used = True
+        card_class = player.card_class
+        if card_class == "WARRIOR":
+            self._gain_armor(player, player.hero_power_armor)
+        elif card_class == "MAGE":
+            self._deal_to_target(
+                player.index,
+                (action.target_player, action.target_entity),
+                1,
+            )
+        elif card_class == "PRIEST":
+            if action.target_entity is None:
+                target = self.players[action.target_player]
+                target.health = min(target.max_health, target.health + 2)
+            else:
+                target = self._find_minion(
+                    action.target_player, action.target_entity
+                )
+                target.damage = max(0, target.damage - 2)
+        elif card_class == "HUNTER":
+            self._damage_hero(self.players[1 - player.index], 2)
+        elif card_class == "PALADIN":
+            recruit = self._entity("CS2_101t", created_by="HERO_04bp")
+            recruit.summoned_turn = self.turn
+            self._summon(player, recruit)
+        elif card_class == "ROGUE":
+            self._equip_weapon(player, Weapon("CS2_082", "Wicked Knife", 1, 2))
+        elif card_class == "DRUID":
+            player.hero_attack_bonus += 1
+            self._gain_armor(player, 1)
+        elif card_class == "SHAMAN":
+            controlled = {m.card_id for m in player.board}
+            choices = [card_id for card_id in BASIC_TOTEM_IDS
+                       if card_id not in controlled]
+            totem = self._entity(self.rng.choice(choices), created_by="HERO_02bp")
+            totem.summoned_turn = self.turn
+            self._summon(player, totem)
+        elif card_class == "WARLOCK":
+            self._draw(player)
+            self._damage_hero(player, 2)
+        elif card_class == "DEMONHUNTER":
+            player.hero_attack_bonus += 1
+        elif card_class == "DEATHKNIGHT":
+            ghoul = self._entity("HERO_11bpt", created_by="HERO_11bp")
+            ghoul.summoned_turn = self.turn
+            self._summon(player, ghoul)
+        else:
+            raise ValueError(f"unsupported hero class: {card_class}")
+        self._event(
+            "hero_power", player=player.index, card_class=card_class,
+            target_player=action.target_player,
+            target_entity=action.target_entity,
+        )
+        for minion in player.board:
+            if minion.card_id == "EDR_469" and minion.dormant_turns > 0:
+                minion.dormant_turns = 0
+                self._event(
+                    "awaken", player=player.index, card=minion.card_id,
+                    entity=minion.entity_id,
+                )
+        for dragonbane in list(player.board):
+            if (
+                dragonbane.card_id == "CORE_DRG_256"
+                and not dragonbane.silenced
+                and dragonbane.dormant_turns == 0
+            ):
+                targets = self._random_enemy_characters(player.index)
+                if targets:
+                    self._deal_to_target(
+                        player.index, self.rng.choice(targets), 5,
+                        source=dragonbane,
+                    )
+                    self._event(
+                        "dragonbane", player=player.index,
+                        entity=dragonbane.entity_id,
+                    )
 
     def _refresh_genn(self, player: Player) -> None:
         for held in player.hand:
@@ -1940,6 +2091,40 @@ class DragonMirrorGame:
             if minion.entity_id == entity_id:
                 return minion
         raise ValueError("minion not found")
+
+    def _rule_targets(
+        self, player: Player, card: CardInstance, target_kind: TargetKind
+    ) -> list[tuple[int, int | None]]:
+        friendly_minions = [
+            (player.index, minion.entity_id)
+            for minion in player.board if minion.dormant_turns == 0
+        ]
+        enemy = self.players[1 - player.index]
+        enemy_minions = [
+            (enemy.index, minion.entity_id)
+            for minion in enemy.board
+            if minion.dormant_turns == 0
+            and not minion.stealth
+            and not (
+                card.definition.card_type == "SPELL" and minion.elusive
+            )
+        ]
+        if target_kind == TargetKind.FRIENDLY_MINION:
+            return friendly_minions
+        if target_kind == TargetKind.ENEMY_MINION:
+            return enemy_minions
+        if target_kind == TargetKind.ANY_MINION:
+            return friendly_minions + enemy_minions
+        if target_kind == TargetKind.FRIENDLY_CHARACTER:
+            return [(player.index, None)] + friendly_minions
+        if target_kind == TargetKind.ENEMY_CHARACTER:
+            return [(enemy.index, None)] + enemy_minions
+        if target_kind == TargetKind.ANY_CHARACTER:
+            return (
+                [(player.index, None)] + friendly_minions
+                + [(enemy.index, None)] + enemy_minions
+            )
+        raise ValueError(f"unsupported target kind: {target_kind}")
 
     def legal_actions(self) -> list[Action]:
         if self.finished:
@@ -1992,7 +2177,12 @@ class DragonMirrorGame:
             ):
                 continue
             targets: list[tuple[int, int | None]] | None = None
-            if card.card_id == "CORE_SW_066":
+            target_spec = self.rule_registry.targeting(card.card_id)
+            if target_spec is not None:
+                targets = self._rule_targets(player, card, target_spec.kind)
+                if target_spec.optional:
+                    targets = [(None, None), *targets]
+            elif card.card_id == "CORE_SW_066":
                 targets = [
                     target for target in self._all_minions()
                     if target[0] == self.current
@@ -2159,7 +2349,7 @@ class DragonMirrorGame:
                     actions.append(Action("HERO_ATTACK", None, enemy.index, None))
                 actions.extend(Action("HERO_ATTACK", None, enemy.index, m.entity_id) for m in awake_enemy)
         if player.mana >= self._hero_power_cost(player) and not player.hero_power_used:
-            actions.append(Action("HERO_POWER"))
+            actions.extend(self._hero_power_actions(player))
         for location in player.locations:
             if location.cooldown == 0 and location.durability > 0:
                 if location.card_id == "CORE_REV_990":
@@ -2201,34 +2391,7 @@ class DragonMirrorGame:
         elif action.kind == "LOCATION":
             self._use_location(action)
         elif action.kind == "HERO_POWER":
-            player = self.players[self.current]
-            self._spend_mana(player, self._hero_power_cost(player))
-            self._gain_armor(player, player.hero_power_armor)
-            player.hero_power_used = True
-            for minion in player.board:
-                if minion.card_id == "EDR_469" and minion.dormant_turns > 0:
-                    minion.dormant_turns = 0
-                    self._event(
-                        "awaken", player=player.index, card=minion.card_id,
-                        entity=minion.entity_id,
-                    )
-            self._event("hero_power", player=player.index)
-            for dragonbane in list(player.board):
-                if (
-                    dragonbane.card_id == "CORE_DRG_256"
-                    and not dragonbane.silenced
-                    and dragonbane.dormant_turns == 0
-                ):
-                    targets = self._random_enemy_characters(player.index)
-                    if targets:
-                        self._deal_to_target(
-                            player.index, self.rng.choice(targets), 5,
-                            source=dragonbane,
-                        )
-                        self._event(
-                            "dragonbane", player=player.index,
-                            entity=dragonbane.entity_id,
-                        )
+            self._use_hero_power(action)
         elif action.kind == "DISCOVER_PICK":
             self._resolve_discover(action.source)
         elif action.kind == "REWIND_KEEP":

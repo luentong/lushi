@@ -5,6 +5,7 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .mypy_cache/
+.local/
 
 # Local dependency/reference checkouts
 .deps/
@@ -17,6 +18,7 @@ reports/*.jsonl.gz
 # Large reproducible traces
 reports/dragon_mirror_trace.json
 reports/search-trace-*.json
+reports/powerlog-*.sanitized.json
 
 # Editor and operating-system files
 .idea/

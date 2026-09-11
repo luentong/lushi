@@ -49,7 +49,12 @@ class StandardCard:
 
     @property
     def effective_classes(self) -> tuple[str, ...]:
-        return tuple(dict.fromkeys((self.card_class, *self.classes)))
+        return tuple(
+            card_class for card_class in dict.fromkeys(
+                (self.card_class, *self.classes)
+            )
+            if card_class
+        )
 
     @property
     def has_rules_text(self) -> bool:
