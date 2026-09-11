@@ -256,6 +256,10 @@ SPECIAL_TOKEN_IDS = {
     "CATA_155t1",  # Onyxia's Wing
     "CATA_615t",  # Genn, Worgen King
     "CATA_151t",  # Azshara's Tentacle
+    "CATA_139t",  # Wickerfang's Leg
+    "CATA_139t2",  # Wickerfang's Leg
+    "CATA_139t3",  # Wickerfang's Leg
+    "CATA_139t4",  # Wickerfang's Leg
     "DINO_410t",  # Khelos
     "DINO_410t2",  # Slightly cracked Egg
     "DINO_410t3",  # More cracked Egg
@@ -620,6 +624,13 @@ class CardInstance:
     temporary_immune_expiry_turn: int = -1
     destroy_at_turn_start: int = -1
     costs_health_expiry_turn: int = -1
+    # Colossal appendages retain their parent entity rather than merely their
+    # source card id: several copies of the same Colossal can coexist.  These
+    # fields are used by Wickerfang, whose text copies permanent stat gains
+    # from each of its Legs onto the body.
+    colossal_parent_entity: int | None = None
+    wickerfang_inherited_attack: int = 0
+    wickerfang_inherited_health: int = 0
 
     @property
     def card_id(self) -> str:
@@ -1204,6 +1215,8 @@ class DragonMirrorGame:
             self._summon_azshara_tentacles(player, minion)
         elif minion.card_id == "CATA_155":
             self._summon_onyxia_wings(player, minion)
+        elif minion.card_id == "CATA_139":
+            self._summon_wickerfang_legs(player, minion)
         elif minion.card_id in {"CATA_155t", "CATA_155t1"}:
             self._get_onyxia_wing_minion(player, minion)
 
@@ -1238,6 +1251,34 @@ class DragonMirrorGame:
             self._event(
                 "colossal_appendage", player=player.index,
                 source=onyxia.entity_id, entity=wing.entity_id, side=side,
+            )
+
+    def _summon_wickerfang_legs(
+        self, player: Player, wickerfang: CardInstance
+    ) -> None:
+        """Resolve Wickerfang's Colossal +4 as four adjacent named Legs.
+
+        The four token IDs are distinct in HearthstoneJSON even though their
+        display name is identical. Keeping that identity makes replay traces
+        auditable and avoids accidentally manufacturing a fifth leg.
+        """
+        for side, card_id in (
+            ("left_1", "CATA_139t"),
+            ("left_2", "CATA_139t2"),
+            ("right_1", "CATA_139t3"),
+            ("right_2", "CATA_139t4"),
+        ):
+            if len(player.board) + len(player.locations) >= 7:
+                break
+            main_index = player.board.index(wickerfang)
+            position = main_index if side.startswith("left") else main_index + 1
+            leg = self._entity(card_id, created_by=wickerfang.card_id)
+            leg.colossal_parent_entity = wickerfang.entity_id
+            leg.summoned_turn = self.turn
+            self._summon(player, leg, position=position)
+            self._event(
+                "colossal_appendage", player=player.index,
+                source=wickerfang.entity_id, entity=leg.entity_id, side=side,
             )
 
     def _get_onyxia_wing_minion(
@@ -1562,6 +1603,13 @@ class DragonMirrorGame:
                 self._resolve_deaths()
             elif minion.card_id == "CAP_107t" and not minion.silenced:
                 self._fire_cannoneer(player, minion, reason="end_turn")
+            elif not minion.silenced and self.rule_registry.dispatch(
+                Hook.END_TURN, minion.card_id, self,
+                RuleContext(player=player, card=minion),
+            ):
+                # Declarative end-turn triggers resolve in board order, just
+                # like the engine-owned triggers in this loop.
+                pass
             elif minion.card_id == "NEW1_009" and not minion.silenced:
                 healed = []
                 for target in player.board:
@@ -1925,8 +1973,61 @@ class DragonMirrorGame:
             if minion.card_id == "JAIL_311":
                 minion.deck_threshold_attack = bonus
 
+    def _refresh_wickerfang(
+        self, player: Player, *, parent_entity: int | None = None
+    ) -> None:
+        """Synchronize Wickerfang with permanent stat gains on its own Legs.
+
+        ``attack_delta``/``health_delta`` describe persistent enchantments in
+        this engine. Auras deliberately do not enter this calculation: their
+        source may disappear without a new stat-gain event. Subtracting the
+        previously inherited amount preserves buffs applied directly to the
+        Wickerfang body.
+        """
+        parents = [
+            minion for minion in player.board
+            if minion.card_id == "CATA_139"
+            and (parent_entity is None or minion.entity_id == parent_entity)
+        ]
+        for parent in parents:
+            # A Silence removes the accumulated copied enchantments and the
+            # body has no text left to observe later leg buffs.  Silenced is
+            # irreversible for a minion instance in Hearthstone, so clearing
+            # the bookkeeping here cannot accidentally restore those stats.
+            if parent.silenced:
+                parent.wickerfang_inherited_attack = 0
+                parent.wickerfang_inherited_health = 0
+                continue
+            legs = [
+                minion for minion in player.board
+                if minion.colossal_parent_entity == parent.entity_id
+                and minion.card_id in {"CATA_139t", "CATA_139t2", "CATA_139t3", "CATA_139t4"}
+            ]
+            inherited_attack = sum(leg.attack_delta for leg in legs)
+            inherited_health = sum(leg.health_delta for leg in legs)
+            parent.attack_delta += inherited_attack - parent.wickerfang_inherited_attack
+            parent.health_delta += inherited_health - parent.wickerfang_inherited_health
+            parent.wickerfang_inherited_attack = inherited_attack
+            parent.wickerfang_inherited_health = inherited_health
+
+    def _grow_wickerfang_leg(
+        self, player: Player, leg: CardInstance
+    ) -> None:
+        """Engine primitive used by the declarative Wickerfang Leg rule."""
+        leg.attack_delta += 1
+        leg.health_delta += 1
+        self._refresh_wickerfang(
+            player, parent_entity=leg.colossal_parent_entity,
+        )
+        self._event(
+            "wickerfang_leg_grow", player=player.index,
+            entity=leg.entity_id, parent=leg.colossal_parent_entity,
+            attack=leg.attack, health=leg.max_health,
+        )
+
     def _refresh_continuous(self, player: Player) -> None:
         self._refresh_scrappy(player)
+        self._refresh_wickerfang(player)
         player.hero_board_attack_bonus = sum(
             minion.card_id == "JAIL_202"
             and not minion.silenced
@@ -6106,6 +6207,7 @@ class DragonMirrorGame:
                 "gifts": list(card.gifts),
                 "started_in_deck": card.started_in_deck,
                 "created_by": card.created_by,
+                "colossal_parent_entity": card.colossal_parent_entity,
                 "dormant_turns": card.dormant_turns,
                 "played_turn": card.played_turn,
                 "summoned_when_drawn": card.summoned_when_drawn,

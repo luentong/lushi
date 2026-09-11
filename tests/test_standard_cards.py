@@ -51,6 +51,52 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(3, target.max_health)
         self.assertEqual(before_hand, len(game.players[0].hand))
 
+    def test_wickerfang_colossal_legs_grow_and_sync_their_stats(self):
+        game = self.game()
+        wickerfang = self.add_hand(game, "CATA_139")
+        game.step(Action("PLAY", wickerfang.entity_id))
+        self.assertEqual(5, len(game.players[0].board))
+        self.assertEqual("CATA_139", game.players[0].board[2].card_id)
+        legs = [
+            card for card in game.players[0].board
+            if card.colossal_parent_entity == wickerfang.entity_id
+        ]
+        self.assertEqual(4, len(legs))
+        self.assertTrue(all((leg.attack, leg.max_health) == (0, 2) for leg in legs))
+
+        game._end_turn()
+        self.assertTrue(all((leg.attack, leg.max_health) == (1, 3) for leg in legs))
+        self.assertEqual((4, 9), (wickerfang.attack, wickerfang.max_health))
+
+    def test_wickerfang_preserves_direct_body_buff_when_a_leg_changes(self):
+        game = self.game()
+        wickerfang = self.add_hand(game, "CATA_139")
+        game.step(Action("PLAY", wickerfang.entity_id))
+        wickerfang.attack_delta += 3
+        leg = next(card for card in game.players[0].board if card.colossal_parent_entity)
+        leg.attack_delta += 2
+        leg.health_delta += 4
+        game._refresh_continuous(game.players[0])
+        self.assertEqual((5, 9), (wickerfang.attack, wickerfang.max_health))
+
+    def test_silenced_wickerfang_does_not_copy_later_leg_growth(self):
+        game = self.game()
+        wickerfang = self.add_hand(game, "CATA_139")
+        game.step(Action("PLAY", wickerfang.entity_id))
+        game._silence_minion(wickerfang)
+        game._end_turn()
+        self.assertEqual((0, 5), (wickerfang.attack, wickerfang.max_health))
+
+    def test_silenced_wickerfang_leg_does_not_grow(self):
+        game = self.game()
+        wickerfang = self.add_hand(game, "CATA_139")
+        game.step(Action("PLAY", wickerfang.entity_id))
+        leg = next(card for card in game.players[0].board if card.colossal_parent_entity)
+        game._silence_minion(leg)
+        game._end_turn()
+        self.assertEqual((0, 2), (leg.attack, leg.max_health))
+        self.assertEqual((3, 8), (wickerfang.attack, wickerfang.max_health))
+
     def test_hellfire_damages_all_characters(self):
         game = self.game()
         friendly = self.add_board(game, "CORE_CS2_065", 0)

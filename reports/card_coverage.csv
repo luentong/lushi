@@ -29,7 +29,7 @@ aggro_druid,快攻德,120748,TIME_702,潮起潮落,2,True,TIME_TRAVEL,SPELL,Fals
 aggro_druid,快攻德,121064,END_007,发挥优势,1,True,TIME_TRAVEL,SPELL,False,True,True
 aggro_druid,快攻德,121150,END_011,加速光环,2,True,TIME_TRAVEL,SPELL,False,True,True
 aggro_druid,快攻德,122967,CATA_131,费伍德树人,2,True,CATACLYSM,MINION,False,True,True
-aggro_druid,快攻德,122976,CATA_139,柳牙,1,True,CATACLYSM,MINION,False,False,False
+aggro_druid,快攻德,122976,CATA_139,柳牙,1,True,CATACLYSM,MINION,False,True,True
 aggro_druid,快攻德,122978,CATA_140,梦境之龙麦琳瑟拉,1,True,CATACLYSM,MINION,False,True,True
 aggro_druid,快攻德,123493,MEND_046,巴珊娜·符文图腾,1,True,CATACLYSM,MINION,False,False,False
 aggro_druid,快攻德,126225,JAIL_872,蜘蛛骑手,2,True,ESCAPEFROM_VIOLET_HOLD,MINION,False,True,True

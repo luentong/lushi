@@ -80,6 +80,7 @@ DECLARATIVE_METADATA_ALIASES = {
 STANDARD_DECLARATIVE_IDS = {
     "CATA_131",
     "CATA_138",
+    "CATA_139",
     "CATA_140",
     "CATA_190p",
     # Deathwing, Worldbreaker and its four non-collectible Cataclysms.  The
@@ -521,6 +522,14 @@ class GainHeroAttack:
 
     def execute(self, game: Any, context: RuleContext) -> None:
         context.player.hero_attack_bonus += self.amount
+
+
+@dataclass(frozen=True)
+class GrowWickerfangLeg:
+    """The leg's own end-turn buff; the game syncs its Colossal parent."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._grow_wickerfang_leg(context.player, context.card)
 
 
 @dataclass(frozen=True)
@@ -1165,6 +1174,20 @@ def build_rule_registry() -> RuleRegistry:
                 "powerlog_verified", "Power.log 61e3baf3 + HearthstoneJSON 251332",
                 verification=("test_felwood_treant_tracks_mana_spent_while_held",),
             ),
+        ),
+        *(
+            CardRule(
+                card_id, {Hook.END_TURN: (GrowWickerfangLeg(),)},
+                RuleSource(
+                    "official_text_and_engine_verified",
+                    "HearthstoneJSON 251332; engine Colossal parent linkage",
+                    "CATA_139t",
+                    verification=(
+                        "test_wickerfang_colossal_legs_grow_and_sync_their_stats",
+                    ),
+                ),
+            )
+            for card_id in ("CATA_139t", "CATA_139t2", "CATA_139t3", "CATA_139t4")
         ),
         CardRule(
             "CATA_492", {Hook.LOCATION: (HeraldRagnaros(), Draw())},

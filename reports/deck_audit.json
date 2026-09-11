@@ -37,10 +37,10 @@
     "unique_entities": 71,
     "rosetta_implemented_unique": 4,
     "rosetta_coverage_unique_pct": 5.63,
-    "project_runtime_supported_unique": 50,
-    "project_runtime_coverage_unique_pct": 70.42,
-    "project_deck_validated_unique": 50,
-    "project_deck_validated_unique_pct": 70.42
+    "project_runtime_supported_unique": 51,
+    "project_runtime_coverage_unique_pct": 71.83,
+    "project_deck_validated_unique": 51,
+    "project_deck_validated_unique_pct": 71.83
   },
   "summaries": [
     {
@@ -78,13 +78,13 @@
       "rosetta_implemented_unique": 1,
       "rosetta_implemented_copies": 2,
       "rosetta_coverage_unique_pct": 4.76,
-      "project_runtime_supported_unique": 17,
-      "project_runtime_supported_copies": 26,
-      "project_runtime_coverage_unique_pct": 80.95,
-      "project_deck_validated_unique": 17,
-      "project_deck_validated_copies": 26,
-      "project_deck_validated_unique_pct": 80.95,
-      "project_deck_validated_copies_pct": 86.67,
+      "project_runtime_supported_unique": 18,
+      "project_runtime_supported_copies": 27,
+      "project_runtime_coverage_unique_pct": 85.71,
+      "project_deck_validated_unique": 18,
+      "project_deck_validated_copies": 27,
+      "project_deck_validated_unique_pct": 85.71,
+      "project_deck_validated_copies_pct": 90.0,
       "deck_ready": false
     },
     {
@@ -564,8 +564,8 @@
       "set": "CATACLYSM",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "aggro_druid",
