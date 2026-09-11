@@ -4,7 +4,7 @@ It never sends input to Hearthstone and never uploads a raw Power.log.
 #>
 [CmdletBinding()]
 param(
-    [string]$PowerLog = "C:\Program Files (x86)\Hearthstone\Logs\Power.log",
+    [string]$PowerLog = "",
     [string]$Python = "python",
     [int]$IntervalSeconds = 5,
     [string]$OutputDirectory = (Join-Path $env:LOCALAPPDATA "LushiAgent\shadow")
@@ -12,6 +12,19 @@ param(
 
 $ErrorActionPreference = "Stop"
 $repo = Split-Path -Parent $PSScriptRoot
+if (-not $PowerLog) {
+    $logRoot = "C:\Program Files (x86)\Hearthstone\Logs"
+    $legacyLog = Join-Path $logRoot "Power.log"
+    if (Test-Path -LiteralPath $legacyLog -PathType Leaf) {
+        $PowerLog = $legacyLog
+    }
+    else {
+        $PowerLog = Get-ChildItem -LiteralPath $logRoot -Filter "Power.log" `
+            -File -Recurse -ErrorAction SilentlyContinue |
+            Sort-Object LastWriteTimeUtc -Descending |
+            Select-Object -First 1 -ExpandProperty FullName
+    }
+}
 if (-not (Test-Path -LiteralPath $PowerLog -PathType Leaf)) {
     throw "Power.log was not found: $PowerLog"
 }
