@@ -79,6 +79,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_OG_047",
     "CORE_SW_072",
     "DINO_432",
+    "DINO_431",
     "EDR_449",
     "EDR_449p",
     "EDR_970",
@@ -621,11 +622,15 @@ class Summon:
 
 @dataclass(frozen=True)
 class SummonRandomExecutableMinion:
-    cost: int
+    cost: int | None = None
+    min_cost: int | None = None
+    require_taunt: bool = False
 
     def execute(self, game: Any, context: RuleContext) -> None:
         game._summon_random_executable_minion(
-            context.player, cost=self.cost, source_card_id=context.card.card_id
+            context.player, source_card_id=context.card.card_id,
+            cost=self.cost, min_cost=self.min_cost,
+            require_taunt=self.require_taunt,
         )
 
 
@@ -878,6 +883,18 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "powerlog_verified", "Power.log 23282dea + HearthstoneJSON 251332",
                 verification=("test_shadowsworn_disciple_heralds_and_heals_on_death",),
+            ),
+        ),
+        CardRule(
+            "DINO_431", {
+                Hook.DEATHRATTLE: (
+                    SummonRandomExecutableMinion(min_cost=5, require_taunt=True),
+                ),
+            },
+            RuleSource(
+                "powerlog_verified",
+                "Power.log 23282dea + HearthstoneJSON 251332",
+                verification=("test_atlasaurus_deathrattle_summons_large_taunt",),
             ),
         ),
         CardRule(

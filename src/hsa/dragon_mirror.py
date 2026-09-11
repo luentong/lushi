@@ -3876,7 +3876,9 @@ class DragonMirrorGame:
         )
 
     def _summon_random_executable_minion(
-        self, player: Player, *, cost: int, source_card_id: str
+        self, player: Player, *, source_card_id: str,
+        cost: int | None = None, min_cost: int | None = None,
+        require_taunt: bool = False,
     ) -> None:
         """Summon from the verified runtime pool without inventing a stub card."""
         if len(player.board) + len(player.locations) >= 7:
@@ -3885,12 +3887,15 @@ class DragonMirrorGame:
             card_id for card_id, definition in self.card_defs.items()
             if card_id in EXECUTABLE_CARD_IDS
             and definition.card_type == "MINION"
-            and definition.cost == cost
+            and (cost is None or definition.cost == cost)
+            and (min_cost is None or definition.cost >= min_cost)
+            and (not require_taunt or "TAUNT" in definition.mechanics)
         )
         if not candidates:
             self._event(
                 "random_summon_unavailable", player=player.index,
-                source=source_card_id, cost=cost,
+                source=source_card_id, cost=cost, min_cost=min_cost,
+                require_taunt=require_taunt,
             )
             return
         minion = self._entity(
@@ -3901,6 +3906,7 @@ class DragonMirrorGame:
         self._event(
             "random_summon", player=player.index, source=source_card_id,
             card=minion.card_id, entity=minion.entity_id, cost=cost,
+            min_cost=min_cost, require_taunt=require_taunt,
             profile="executable_standard_pool_v1",
         )
 

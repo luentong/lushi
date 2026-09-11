@@ -451,6 +451,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual("MINION", summoned[0].definition.card_type)
         self.assertEqual(6, summoned[0].definition.cost)
 
+    def test_atlasaurus_deathrattle_summons_large_taunt(self):
+        game = self.game()
+        atlasaurus = self.add_board(game, "DINO_431", 0)
+        game._damage_minion(0, atlasaurus, atlasaurus.health)
+        game._resolve_deaths()
+        self.assertEqual(1, len(game.players[0].board))
+        summoned = game.players[0].board[0]
+        self.assertGreaterEqual(summoned.definition.cost, 5)
+        self.assertTrue(summoned.taunt)
+
 
 if __name__ == "__main__":
     unittest.main()
