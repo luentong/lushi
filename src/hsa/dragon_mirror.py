@@ -274,6 +274,8 @@ ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "CATA_581",  # Decimation
     "END_025",  # Eternal Firebolt
     "JAIL_801",  # Molten Gold
+    "CORE_EX1_610",  # Explosive Trap
+    "END_024",  # Flames of Infinity
 }
 
 SPECIAL_TOKEN_IDS = {
@@ -743,6 +745,7 @@ class Player:
     board: list[CardInstance] = field(default_factory=list)
     dead_minions: list[CardInstance] = field(default_factory=list)
     locations: list[Location] = field(default_factory=list)
+    secrets: list[CardInstance] = field(default_factory=list)
     health: int = 30
     max_health: int = 30
     armor: int = 0
@@ -1484,6 +1487,69 @@ class DragonMirrorGame:
             card=card.card_id, entity=card.entity_id,
         )
 
+    def _arm_secret(self, player: Player, card: CardInstance) -> None:
+        """Arm a Secret, enforcing the live seven-secret capacity."""
+        if len(player.secrets) >= 7:
+            self._event(
+                "secret_burned", player=player.index,
+                card=card.card_id, entity=card.entity_id, reason="secret_cap",
+            )
+            return
+        if any(secret.card_id == card.card_id for secret in player.secrets):
+            self._event(
+                "secret_burned", player=player.index,
+                card=card.card_id, entity=card.entity_id, reason="duplicate",
+            )
+            return
+        player.secrets.append(card)
+        self._event(
+            "secret_armed", player=player.index,
+            card=card.card_id, entity=card.entity_id,
+        )
+
+    def _consume_secret(self, player: Player, secret: CardInstance) -> None:
+        player.secrets.remove(secret)
+        self._event(
+            "secret_trigger", player=player.index,
+            card=secret.card_id, entity=secret.entity_id,
+        )
+
+    def _trigger_secrets_after_hero_attacked(self, defender: Player) -> None:
+        """Resolve implemented secrets after combat damage reaches a hero."""
+        for secret in list(defender.secrets):
+            if secret.card_id != "CORE_EX1_610":
+                continue
+            self._consume_secret(defender, secret)
+            attacker = self.players[1 - defender.index]
+            self._damage_hero(attacker, 2, secret)
+            for minion in list(attacker.board):
+                self._damage_minion(attacker.index, minion, 2, secret)
+            self._resolve_deaths()
+
+    def _trigger_end_turn_secrets(self, ending_player: Player) -> None:
+        """Resolve enemy Secrets whose condition is the active player's end step."""
+        owner = self.players[1 - ending_player.index]
+        for secret in list(owner.secrets):
+            if secret.card_id != "END_024":
+                continue
+            candidates = [
+                minion for minion in ending_player.board
+                if minion.dormant_turns == 0 and minion.health > 0
+            ]
+            if not candidates:
+                continue
+            highest = max(minion.health for minion in candidates)
+            target = self.rng.choice([
+                minion for minion in candidates if minion.health == highest
+            ])
+            self._consume_secret(owner, secret)
+            target.damage = target.max_health
+            self._event(
+                "flames_of_infinity", player=owner.index,
+                target_player=ending_player.index, target=target.entity_id,
+            )
+            self._resolve_deaths()
+
     def _start_turn(self, index: int) -> None:
         self.current = index
         self.turn += 1
@@ -1812,6 +1878,7 @@ class DragonMirrorGame:
                     "krog_set_stats", player=player.index, affected=affected
                 )
         self._resolve_deaths()
+        self._trigger_end_turn_secrets(player)
         # Time Skipper observes every player's end step, regardless of which
         # side controls it. Each surviving copy gives the active player a Coin.
         skippers = [
@@ -5339,6 +5406,9 @@ class DragonMirrorGame:
         attacker.stealth = False
         if action.target_entity is None:
             self._damage_hero(self.players[action.target_player], attacker.attack, attacker)
+            self._trigger_secrets_after_hero_attacked(
+                self.players[action.target_player]
+            )
         else:
             defender = self._find_minion(action.target_player, action.target_entity)
             self._damage_minion(action.target_player, defender, attacker.attack, attacker)
@@ -5370,6 +5440,9 @@ class DragonMirrorGame:
             enemy = self.players[action.target_player]
             before = enemy.health + enemy.armor
             self._damage_hero(self.players[action.target_player], player.attack)
+            self._trigger_secrets_after_hero_attacked(
+                self.players[action.target_player]
+            )
             dealt = before - (enemy.health + enemy.armor)
             self._weapon_lifesteal(player, attacked_weapon, dealt)
         else:
@@ -6337,6 +6410,7 @@ class DragonMirrorGame:
                 "hero_power_cost": self._hero_power_cost(player),
                 "hero_power_id": player.hero_power_id,
                 "hero_power_armor": player.hero_power_armor,
+                "secrets": [card.card_id for card in player.secrets],
                 "pending_end_turn_returns": [
                     card.card_id for card in player.pending_end_turn_returns
                 ],

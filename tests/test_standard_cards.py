@@ -118,6 +118,36 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", gold.entity_id, 1, None))
         self.assertEqual(26, game.players[1].health)
 
+    def test_explosive_trap_triggers_after_hero_is_attacked(self):
+        game = self.game()
+        trap = game._entity("CORE_EX1_610")
+        game.players[1].hand.append(trap)
+        game.current = 1
+        game.players[1].mana = 10
+        game.step(Action("PLAY", trap.entity_id))
+        self.assertEqual(["CORE_EX1_610"], [card.card_id for card in game.players[1].secrets])
+        game._end_turn()
+        attacker = self.add_board(game, "CAP_107t", 0)
+        game.step(Action("ATTACK", attacker.entity_id, 1, None))
+        self.assertEqual(28, game.players[0].health)
+        self.assertNotIn(attacker, game.players[0].board)
+        self.assertFalse(game.players[1].secrets)
+
+    def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
+        game = self.game()
+        secret = game._entity("END_024")
+        game.players[1].hand.append(secret)
+        game.current = 1
+        game.players[1].mana = 10
+        game.step(Action("PLAY", secret.entity_id))
+        game._end_turn()
+        high = self.add_board(game, "CORE_LOOT_137", 0)
+        low = self.add_board(game, "CORE_CS2_065", 0)
+        game.step(Action("END_TURN"))
+        self.assertNotIn(high, game.players[0].board)
+        self.assertIn(low, game.players[0].board)
+        self.assertFalse(game.players[1].secrets)
+
     def test_searing_reflection_draws_and_summons_divine_shield_copy(self):
         game = self.game()
         dragon = game._entity("CORE_LOOT_137", started_in_deck=True)

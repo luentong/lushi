@@ -103,6 +103,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_725",
     "CORE_CS2_029",
     "CORE_CS2_032",
+    "CORE_EX1_610",
     "CAP_404",
     "CORE_CS2_004",
     "CORE_CS2_062",
@@ -139,6 +140,7 @@ STANDARD_DECLARATIVE_IDS = {
     "END_007",
     "END_011",
     "END_025",
+    "END_024",
     "JAIL_201",
     "JAIL_200",
     "JAIL_307",
@@ -217,6 +219,14 @@ class Draw:
         player = _recipient(game, context, self.side)
         for _ in range(self.count):
             game._draw(player)
+
+
+@dataclass(frozen=True)
+class ArmSecret:
+    """Move a Secret spell from resolution into the controller's secret zone."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._arm_secret(context.player, context.card)
 
 
 @dataclass(frozen=True)
@@ -2094,6 +2104,20 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "upstream_adapted", rosetta, "CS2_032", "AGPL-3.0",
                 ("test_fireball_and_flamestrike",),
+            ),
+        ),
+        CardRule(
+            "CORE_EX1_610", {Hook.SPELL: (ArmSecret(),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_explosive_trap_triggers_after_hero_is_attacked",),
+            ),
+        ),
+        CardRule(
+            "END_024", {Hook.SPELL: (ArmSecret(),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_flames_of_infinity_kills_highest_health_minion_at_enemy_end",),
             ),
         ),
         CardRule(
