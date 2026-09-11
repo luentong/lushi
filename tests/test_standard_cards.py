@@ -395,6 +395,46 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(5, game.players[0].hero_attack_bonus)
         self.assertTrue(game.players[0].hero_power_used)
 
+    def test_lunarwing_messenger_imbues_hero_power(self):
+        game = self.game()
+        messenger = self.add_hand(game, "EDR_449")
+        game.step(Action("PLAY", messenger.entity_id))
+        self.assertEqual("EDR_449p", game.players[0].hero_power_id)
+        self.assertTrue(any(x.kind == "HERO_POWER" for x in game.legal_actions()))
+
+    def test_blessing_of_the_moon_offers_discounted_temporary_cards(self):
+        game = self.game()
+        game.players[0].hero_power_id = "EDR_449p"
+        game.players[0].mana = 10
+        game.step(Action("HERO_POWER"))
+        self.assertEqual("IMBUE_PICK", game.pending_choice["kind"])
+        options = list(game.pending_choice["options"])
+        self.assertEqual({"MINION", "SPELL"}, {
+            card.definition.card_type for card in options
+        })
+        self.assertTrue(all(
+            card.definition.card_class == "PRIEST"
+            and card.cost == max(0, card.definition.cost - 1)
+            and card.temporary
+            for card in options
+        ))
+        chosen = options[0]
+        game.step(Action("DISCOVER_PICK", chosen.entity_id))
+        self.assertIn(chosen, game.players[0].hand)
+        game._end_turn()
+        self.assertNotIn(chosen, game.players[0].hand)
+
+    def test_kaldorei_priestess_reduces_then_restores_enemy_attack(self):
+        game = self.game()
+        enemy = self.add_board(game, "CORE_LOOT_137", 1)
+        before = enemy.attack
+        priestess = self.add_hand(game, "EDR_970")
+        game.step(Action("PLAY", priestess.entity_id))
+        self.assertEqual(before - 2, enemy.attack)
+        self.assertEqual("EDR_449p", game.players[0].hero_power_id)
+        game._start_turn(0)
+        self.assertEqual(before, enemy.attack)
+
 
 if __name__ == "__main__":
     unittest.main()

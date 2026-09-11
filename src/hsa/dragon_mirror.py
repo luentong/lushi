@@ -604,6 +604,7 @@ class CardInstance:
     return_control_to: int | None = None
     return_control_at_end_of_turn: int | None = None
     cant_attack_turn: int = -1
+    temporary_attack_modifiers: list[tuple[int, int]] = field(default_factory=list)
 
     @property
     def card_id(self) -> str:
@@ -1277,6 +1278,19 @@ class DragonMirrorGame:
         self.turn += 1
         self.minions_died_this_turn = 0
         player = self.players[index]
+        for owner in self.players:
+            for minion in owner.board:
+                expired = [
+                    modifier for modifier in minion.temporary_attack_modifiers
+                    if modifier[1] == index
+                ]
+                for amount, expiry in expired:
+                    minion.attack_delta -= amount
+                    minion.temporary_attack_modifiers.remove((amount, expiry))
+                    self._event(
+                        "temporary_attack_expire", player=owner.index,
+                        entity=minion.entity_id, amount=amount,
+                    )
         player.turns_taken += 1
         for owner in self.players:
             for minion in owner.board:
@@ -2212,7 +2226,8 @@ class DragonMirrorGame:
                     for entity_id in self.pending_choice["options"]
                 ] + [Action("MULLIGAN_CONFIRM")]
             if self.pending_choice["kind"] in {
-                "DISCOVER", "GEDDON_DRAW", "DECK_DISCOVER", "DECK_CARD_DISCOVER"
+                "DISCOVER", "GEDDON_DRAW", "DECK_DISCOVER", "DECK_CARD_DISCOVER",
+                "IMBUE_PICK",
             }:
                 return [
                     Action("DISCOVER_PICK", option.entity_id)
@@ -3812,6 +3827,54 @@ class DragonMirrorGame:
             options=[{"entity": card.entity_id, "card": card.card_id} for card in options],
         )
 
+    def _offer_imbue_options(self, player: Player, *, source_card_id: str) -> None:
+        """Offer one playable Priest minion and spell for Blessing of the Moon.
+
+        The production game can create from its complete card database.  This
+        simulator deliberately limits the offer to its *executable* closed
+        pool: creating an unsupported card as a vanilla placeholder would
+        silently produce an invalid game.  The pool expands as rules are
+        implemented, while the choice shape and temporary/cost semantics stay
+        faithful to the card text.
+        """
+        candidates: dict[str, list[str]] = {"MINION": [], "SPELL": []}
+        for card_id, definition in self.card_defs.items():
+            if (
+                card_id not in EXECUTABLE_CARD_IDS
+                or definition.card_class != "PRIEST"
+                or definition.card_type not in candidates
+                or max(0, definition.cost - 1) > player.mana
+            ):
+                continue
+            candidates[definition.card_type].append(card_id)
+        if not candidates["MINION"] or not candidates["SPELL"]:
+            self._event(
+                "imbue_offer_unavailable", player=player.index,
+                source=source_card_id,
+            )
+            return
+        options: list[CardInstance] = []
+        for card_type in ("MINION", "SPELL"):
+            option = self._entity(
+                self.rng.choice(sorted(candidates[card_type])),
+                created_by=source_card_id,
+            )
+            option.cost_delta -= 1
+            option.temporary = True
+            options.append(option)
+        self.pending_choice = {
+            "kind": "IMBUE_PICK",
+            "player": player.index,
+            "source_card_id": source_card_id,
+            "options": options,
+        }
+        self._event(
+            "imbue_offer", player=player.index, source=source_card_id,
+            profile="executable_standard_pool_v1",
+            options=[{"entity": card.entity_id, "card": card.card_id}
+                     for card in options],
+        )
+
     def _resolve_discover(self, entity_id: int) -> None:
         pending = self.pending_choice
         option = next(card for card in pending["options"] if card.entity_id == entity_id)
@@ -3875,6 +3938,15 @@ class DragonMirrorGame:
                 self._offer_deck_minion_discover(
                     player, repeats=pending["repeats_left"]
                 )
+            return
+        if pending["kind"] == "IMBUE_PICK":
+            destination = self._add_generated(player, option)
+            self._event(
+                "imbue_pick", player=player.index,
+                source=pending["source_card_id"], card=option.card_id,
+                entity=option.entity_id, cost=option.cost,
+                temporary=option.temporary, destination=destination,
+            )
             return
         destination = self._add_generated(player, option)
         self._event(
@@ -5461,7 +5533,7 @@ class DragonMirrorGame:
                     if card.entity_id in self.pending_choice["options"]
                 ]
             elif self.pending_choice["kind"] in {
-                "DISCOVER", "GEDDON_DRAW", "DECK_CARD_DISCOVER"
+                "DISCOVER", "GEDDON_DRAW", "DECK_CARD_DISCOVER", "IMBUE_PICK"
             }:
                 pending["options"] = [
                     card_state(card, self.players[self.current])

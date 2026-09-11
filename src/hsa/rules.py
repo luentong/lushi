@@ -79,6 +79,9 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_OG_047",
     "CORE_SW_072",
     "DINO_432",
+    "EDR_449",
+    "EDR_449p",
+    "EDR_970",
     "EDR_846t2",
     "EDR_846t4",
     "EDR_476",
@@ -357,6 +360,46 @@ class GainHeroAttack:
 
     def execute(self, game: Any, context: RuleContext) -> None:
         context.player.hero_attack_bonus += self.amount
+
+
+@dataclass(frozen=True)
+class SetHeroPower:
+    card_id: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.hero_power_id = self.card_id
+        game._event(
+            "hero_power_imbued", player=context.player.index,
+            source=context.card.card_id, hero_power=self.card_id,
+        )
+
+
+@dataclass(frozen=True)
+class ReduceEnemyMinionAttackUntilNextControllerTurn:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        for minion in enemy.board:
+            minion.attack_delta -= self.amount
+            # Store the signed delta and the controller's next turn as the
+            # expiry point.  The engine restores it before start-turn effects.
+            minion.temporary_attack_modifiers.append(
+                (-self.amount, context.player.index)
+            )
+        game._event(
+            "temporary_enemy_attack_reduction", player=context.player.index,
+            source=context.card.card_id, amount=self.amount,
+            targets=[minion.entity_id for minion in enemy.board],
+        )
+
+
+@dataclass(frozen=True)
+class OfferImbueHeroPowerOptions:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._offer_imbue_options(
+            context.player, source_card_id=context.card.card_id
+        )
 
 
 @dataclass(frozen=True)
@@ -834,6 +877,35 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_panther_mask_sets_stats_stealth_and_draws",),
             ),
             TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "EDR_449", {Hook.BATTLECRY: (SetHeroPower("EDR_449p"),)},
+            RuleSource(
+                "powerlog_verified",
+                "Power.log 23282dea + HearthstoneJSON 251332",
+                verification=("test_lunarwing_messenger_imbues_hero_power",),
+            ),
+        ),
+        CardRule(
+            "EDR_449p", {Hook.HERO_POWER: (OfferImbueHeroPowerOptions(),)},
+            RuleSource(
+                "official_text_and_powerlog_verified",
+                "Blizzard card library 114069 + Power.log 23282dea",
+                verification=("test_blessing_of_the_moon_offers_discounted_temporary_cards",),
+            ),
+        ),
+        CardRule(
+            "EDR_970", {
+                Hook.BATTLECRY: (
+                    ReduceEnemyMinionAttackUntilNextControllerTurn(2),
+                    SetHeroPower("EDR_449p"),
+                ),
+            },
+            RuleSource(
+                "powerlog_verified",
+                "Power.log 23282dea + HearthstoneJSON 251332",
+                verification=("test_kaldorei_priestess_reduces_then_restores_enemy_attack",),
+            ),
         ),
         CardRule(
             "EDR_846t2",
