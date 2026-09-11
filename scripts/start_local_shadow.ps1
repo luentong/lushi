@@ -12,18 +12,21 @@ param(
 
 $ErrorActionPreference = "Stop"
 $repo = Split-Path -Parent $PSScriptRoot
-if (-not $PowerLog) {
+function Find-LatestPowerLog {
     $logRoot = "C:\Program Files (x86)\Hearthstone\Logs"
     $legacyLog = Join-Path $logRoot "Power.log"
     if (Test-Path -LiteralPath $legacyLog -PathType Leaf) {
-        $PowerLog = $legacyLog
+        return $legacyLog
     }
-    else {
-        $PowerLog = Get-ChildItem -LiteralPath $logRoot -Filter "Power.log" `
-            -File -Recurse -ErrorAction SilentlyContinue |
-            Sort-Object LastWriteTimeUtc -Descending |
-            Select-Object -First 1 -ExpandProperty FullName
-    }
+    return Get-ChildItem -LiteralPath $logRoot -Filter "Power.log" `
+        -File -Recurse -ErrorAction SilentlyContinue |
+        Sort-Object LastWriteTimeUtc -Descending |
+        Select-Object -First 1 -ExpandProperty FullName
+}
+
+$autoDiscoverPowerLog = -not $PowerLog
+if ($autoDiscoverPowerLog) {
+    $PowerLog = Find-LatestPowerLog
 }
 if (-not (Test-Path -LiteralPath $PowerLog -PathType Leaf)) {
     throw "Power.log was not found: $PowerLog"
@@ -44,6 +47,14 @@ Write-Host "Reports: $OutputDirectory"
 
 while ($true) {
     try {
+        if ($autoDiscoverPowerLog) {
+            $latestPowerLog = Find-LatestPowerLog
+            if ($latestPowerLog -and $latestPowerLog -ne $PowerLog) {
+                $PowerLog = $latestPowerLog
+                $lastSignature = ""
+                Write-Host "Switched to the latest Power.log: $PowerLog"
+            }
+        }
         $item = Get-Item -LiteralPath $PowerLog
         $signature = "$($item.Length):$($item.LastWriteTimeUtc.Ticks)"
         if ($signature -ne $lastSignature) {
