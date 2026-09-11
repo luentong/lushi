@@ -435,6 +435,22 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._start_turn(0)
         self.assertEqual(before, enemy.attack)
 
+    def test_soothsayer_deathrattle_heals_and_summons_six_cost(self):
+        game = self.game()
+        game.players[0].health = 20
+        soothsayer = self.add_hand(game, "JAIL_912")
+        game.step(Action("PREPARE", soothsayer.entity_id))
+        game._end_turn()
+        game._end_turn()
+        game.step(Action("PLAY", soothsayer.entity_id))
+        game._damage_minion(0, soothsayer, soothsayer.health)
+        game._resolve_deaths()
+        self.assertEqual(26, game.players[0].health)
+        summoned = [card for card in game.players[0].board if card != soothsayer]
+        self.assertEqual(1, len(summoned))
+        self.assertEqual("MINION", summoned[0].definition.card_type)
+        self.assertEqual(6, summoned[0].definition.cost)
+
 
 if __name__ == "__main__":
     unittest.main()

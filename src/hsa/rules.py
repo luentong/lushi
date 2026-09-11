@@ -91,6 +91,7 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_510",
     "JAIL_513",
     "JAIL_514",
+    "JAIL_912",
     "JAIL_941",
     "JAIL_941t",
     "TIME_702",
@@ -619,6 +620,16 @@ class Summon:
 
 
 @dataclass(frozen=True)
+class SummonRandomExecutableMinion:
+    cost: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._summon_random_executable_minion(
+            context.player, cost=self.cost, source_card_id=context.card.card_id
+        )
+
+
+@dataclass(frozen=True)
 class AddToHand:
     card_id: str
     count: int = 1
@@ -980,6 +991,18 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "powerlog_verified", "Power.log 23282dea + HearthstoneJSON 251332",
                 verification=("test_caged_cranium_counts_hand_after_play",),
+            ),
+        ),
+        CardRule(
+            "JAIL_912", {
+                Hook.DEATHRATTLE: (
+                    HealHero(6), SummonRandomExecutableMinion(6),
+                ),
+            },
+            RuleSource(
+                "powerlog_verified",
+                "Power.log 23282dea + HearthstoneJSON 251332",
+                verification=("test_soothsayer_deathrattle_heals_and_summons_six_cost",),
             ),
         ),
         CardRule(

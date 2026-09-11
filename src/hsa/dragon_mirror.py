@@ -3875,6 +3875,35 @@ class DragonMirrorGame:
                      for card in options],
         )
 
+    def _summon_random_executable_minion(
+        self, player: Player, *, cost: int, source_card_id: str
+    ) -> None:
+        """Summon from the verified runtime pool without inventing a stub card."""
+        if len(player.board) + len(player.locations) >= 7:
+            return
+        candidates = sorted(
+            card_id for card_id, definition in self.card_defs.items()
+            if card_id in EXECUTABLE_CARD_IDS
+            and definition.card_type == "MINION"
+            and definition.cost == cost
+        )
+        if not candidates:
+            self._event(
+                "random_summon_unavailable", player=player.index,
+                source=source_card_id, cost=cost,
+            )
+            return
+        minion = self._entity(
+            self.rng.choice(candidates), created_by=source_card_id
+        )
+        minion.summoned_turn = self.turn
+        self._summon(player, minion)
+        self._event(
+            "random_summon", player=player.index, source=source_card_id,
+            card=minion.card_id, entity=minion.entity_id, cost=cost,
+            profile="executable_standard_pool_v1",
+        )
+
     def _resolve_discover(self, entity_id: int) -> None:
         pending = self.pending_choice
         option = next(card for card in pending["options"] if card.entity_id == entity_id)
