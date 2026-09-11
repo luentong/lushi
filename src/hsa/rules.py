@@ -84,6 +84,7 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_872",
     "JAIL_510",
     "JAIL_513",
+    "JAIL_514",
     "JAIL_941",
     "JAIL_941t",
     "TIME_702",
@@ -112,6 +113,10 @@ class RuleContext:
 
 class Effect(Protocol):
     def execute(self, game: Any, context: RuleContext) -> None: ...
+
+
+class CostModifier(Protocol):
+    def adjustment(self, game: Any, player: Any, card: Any) -> int: ...
 
 
 def _recipient(game: Any, context: RuleContext, side: str) -> Any:
@@ -167,6 +172,12 @@ class OfferDeckCardDiscover:
             bottom_unchosen=self.bottom_unchosen,
             source_card_id=context.card.card_id,
         )
+
+
+@dataclass(frozen=True)
+class CostMinusPerHandCard:
+    def adjustment(self, game: Any, player: Any, card: Any) -> int:
+        return -len(player.hand)
 
 
 @dataclass(frozen=True)
@@ -647,6 +658,7 @@ class CardRule:
     hooks: dict[Hook, tuple[Effect, ...]]
     source: RuleSource
     targeting: TargetSpec | None = None
+    cost_modifier: CostModifier | None = None
 
 
 class RuleRegistry:
@@ -678,6 +690,12 @@ class RuleRegistry:
         rule = self._rules.get(card_id)
         return rule is not None and hook in rule.hooks
 
+    def cost_adjustment(self, game: Any, player: Any, card: Any) -> int:
+        rule = self._rules.get(card.card_id)
+        if rule is None or rule.cost_modifier is None:
+            return 0
+        return rule.cost_modifier.adjustment(game, player, card)
+
     def manifest(self) -> list[dict[str, Any]]:
         rows = []
         for card_id in sorted(self._rules):
@@ -693,6 +711,10 @@ class RuleRegistry:
                     hook.value: [type(effect).__name__ for effect in effects]
                     for hook, effects in rule.hooks.items()
                 },
+                "cost_modifier": (
+                    None if rule.cost_modifier is None
+                    else type(rule.cost_modifier).__name__
+                ),
             })
         return rows
 
@@ -884,6 +906,14 @@ def build_rule_registry() -> RuleRegistry:
                 "powerlog_verified", "Power.log 61e3baf3 + HearthstoneJSON 251332",
                 verification=("test_waveshaping_discovers_from_deck_and_bottoms_others",),
             ),
+        ),
+        CardRule(
+            "JAIL_514", {Hook.SPELL: (Draw(3),)},
+            RuleSource(
+                "powerlog_verified", "Power.log 23282dea + HearthstoneJSON 251332",
+                verification=("test_unseen_atlas_costs_less_per_hand_card_and_draws",),
+            ),
+            cost_modifier=CostMinusPerHandCard(),
         ),
         CardRule(
             "TLC_451", {Hook.SPELL: (OfferDeckCardDiscover(temporary=True),)},

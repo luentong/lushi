@@ -229,6 +229,7 @@ JAIL_501,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_502,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_510,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 JAIL_513,declarative,battlecry,powerlog_verified,,0,focused_test_and_regression
+JAIL_514,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 JAIL_703,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_732,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_850,legacy_compatibility,,local_legacy,,0,regression_suite_only

@@ -10,7 +10,7 @@ The importer strips those identifiers before analysis.
 - Revealed card/enchantment entities: 80
 - Entities belonging to the pinned Standard sets: 71
 - Standard cards observed in PLAY blocks: 35
-- Played Standard cards still lacking executable rules: 17
+- Played Standard cards still lacking executable rules: 16
 
 ## Real-play implementation priority
 
@@ -28,7 +28,6 @@ The importer strips those identifiers before analysis.
 | `JAIL_432` | Mind Sweeper | PRIEST | MINION | 1 | 13 |
 | `JAIL_509` | Godfrey the Betrayer | WARLOCK | MINION | 1 | 1 |
 | `JAIL_511` | Spire of Solitude | WARLOCK | LOCATION | 9 | 0 |
-| `JAIL_514` | The Unseen Atlas | WARLOCK | SPELL | 3 | 0 |
 | `JAIL_912` | Soothsayer | PRIEST | MINION | 1 | 1 |
 | `TIME_432` | Intertwined Fate | PRIEST | SPELL | 2 | 0 |
 | `TIME_890` | Medivh the Hallowed | PRIEST | MINION | 1 | 0 |

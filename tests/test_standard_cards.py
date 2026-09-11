@@ -361,6 +361,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._end_turn()
         self.assertNotIn(card, game.players[0].hand)
 
+    def test_unseen_atlas_costs_less_per_hand_card_and_draws(self):
+        game = self.game()
+        atlas = self.add_hand(game, "JAIL_514")
+        self.add_hand(game, "GAME_005")
+        self.add_hand(game, "GAME_005")
+        self.add_hand(game, "GAME_005")
+        self.assertEqual(6, game._effective_cost(game.players[0], atlas))
+        game.step(Action("PLAY", atlas.entity_id))
+        self.assertEqual(14, game.players[0].mana)
+        self.assertEqual(6, len(game.players[0].hand))
+
 
 if __name__ == "__main__":
     unittest.main()

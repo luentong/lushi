@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 67,
+      "declarative": 68,
       "legacy_compatibility": 236,
-      "not_implemented": 1858
+      "not_implemented": 1857
     },
     "collectible_implementation": {
-      "declarative": 61,
+      "declarative": 62,
       "legacy_compatibility": 222,
-      "not_implemented": 883
+      "not_implemented": 882
     },
     "fully_implemented": false
   },
@@ -19755,9 +19755,9 @@
       "mechanics": "",
       "text": "Draw 3 cards. Costs (1) less for each card in your hand.",
       "text_sha256": "4800df56d76e29c86c87e0e41d18bf06e72eee06b82ebe149c5a2022fc8183ac",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_515",

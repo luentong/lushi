@@ -6,7 +6,7 @@
     "revealed_entities": 80,
     "standard_entities": 71,
     "standard_played_cards": 35,
-    "unimplemented_standard_played_cards": 17
+    "unimplemented_standard_played_cards": 16
   },
   "priority_from_real_play": [
     {
@@ -176,20 +176,6 @@
       "play_blocks": 9,
       "trigger_blocks": 0,
       "text": "[x]Summon a Demon\nwith stats equal to your\nhand size. It attacks a\nrandom enemy minion."
-    },
-    {
-      "card_id": "JAIL_514",
-      "name": "The Unseen Atlas",
-      "set": "ESCAPEFROM_VIOLET_HOLD",
-      "class": "WARLOCK",
-      "type": "SPELL",
-      "collectible": true,
-      "standard_entity": true,
-      "implementation": "not_implemented",
-      "source_blocks": 6,
-      "play_blocks": 3,
-      "trigger_blocks": 0,
-      "text": "Draw 3 cards.\nCosts (1) less for each card in your hand."
     },
     {
       "card_id": "JAIL_912",
@@ -1167,7 +1153,7 @@
       "type": "SPELL",
       "collectible": true,
       "standard_entity": true,
-      "implementation": "not_implemented",
+      "implementation": "declarative",
       "source_blocks": 6,
       "play_blocks": 3,
       "trigger_blocks": 0,

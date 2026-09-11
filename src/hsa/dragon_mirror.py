@@ -1622,6 +1622,7 @@ class DragonMirrorGame:
 
     def _effective_cost(self, player: Player, card: CardInstance) -> int:
         cost = card.cost
+        cost += self.rule_registry.cost_adjustment(self, player, card)
         if card.definition.card_type == "MINION":
             cost += 2 * sum(
                 minion.card_id == "JAIL_890"
@@ -2482,8 +2483,12 @@ class DragonMirrorGame:
     def _play(self, action: Action) -> None:
         player = self.players[self.current]
         self._refresh_genn(player)
+        # Dynamic costs are evaluated while the card is still in hand.  This
+        # matters for effects such as "costs (1) less for each card in your
+        # hand", where the card itself is counted by the live client.
+        held = next(card for card in player.hand if card.entity_id == action.source)
+        effective_cost = self._effective_cost(player, held)
         card = self._pop_hand(player, action.source)
-        effective_cost = self._effective_cost(player, card)
         if card.card_id == "TLC_436":
             player.corpses -= effective_cost
             self._event(

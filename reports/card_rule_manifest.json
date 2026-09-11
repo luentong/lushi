@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 307,
-    "declarative_rules": 67,
+    "supported_cards": 308,
+    "declarative_rules": 68,
     "legacy_special_case_rules": 1,
     "legacy_compatibility_rules": 239,
     "cards_with_upstream_match": 85
@@ -8546,6 +8546,30 @@
         "license": null,
         "verification": [
           "test_caged_cranium_counts_hand_after_play"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
+      "card_id": "JAIL_514",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "Draw"
+        ]
+      },
+      "rule_source": {
+        "kind": "powerlog_verified",
+        "reference": "Power.log 23282dea + HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_unseen_atlas_costs_less_per_hand_card_and_draws"
         ]
       },
       "metadata_source": "HearthstoneJSON build 251332",
