@@ -236,6 +236,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "CS3_024",  # Taelan Fordring
     "CS3_025",  # Overlord Runthak
     "FIR_958",  # Tindral Sageswift
+    "JAIL_509",  # Godfrey the Betrayer
     "TLC_480",  # Krog, Crater King
 }
 
@@ -740,6 +741,8 @@ class Player:
     start_turn_temporary_mana_charges: int = 0
     minion_cost_increase_turn: int = -1
     minion_cost_increase_amount: int = 0
+    recover_overdrawn_cards: bool = False
+    overdrawn_cards: list[CardInstance] = field(default_factory=list)
 
     @property
     def attack(self) -> int:
@@ -1038,6 +1041,9 @@ class DragonMirrorGame:
                 player.deck.append(self._entity("JAIL_421"))
                 self.rng.shuffle(player.deck)
                 self._event("start_of_game", player=player.index, card="JAIL_384", duplicated="JAIL_421")
+            if any(c.card_id == "JAIL_509" for c in player.hand + player.deck):
+                player.recover_overdrawn_cards = True
+                self._event("start_of_game", player=player.index, card="JAIL_509", effect="recover_overdrawn")
 
     def _event(self, kind: str, **payload: Any) -> None:
         self.events.append({"turn": self.turn, "kind": kind, **payload})
@@ -1262,10 +1268,27 @@ class DragonMirrorGame:
                 entity=card.entity_id, started_in_deck=card.started_in_deck,
                 created_by=card.created_by,
             )
+            if player.recover_overdrawn_cards:
+                card.cost_delta -= 1
+                player.overdrawn_cards.append(card)
+                self._event(
+                    "overdraw_queued", player=player.index, card=card.card_id,
+                    entity=card.entity_id, discounted_cost=card.cost,
+                )
         else:
             player.hand.append(card)
             self._event("draw", player=player.index, card=card.card_id)
         self._after_card_draw(player, card)
+
+    def _restore_overdrawn_cards(self, player: Player) -> None:
+        """Return Godfrey-tracked burns in original burn order when space opens."""
+        while player.overdrawn_cards and len(player.hand) < 10:
+            card = player.overdrawn_cards.pop(0)
+            player.hand.append(card)
+            self._event(
+                "overdraw_return", player=player.index, card=card.card_id,
+                entity=card.entity_id, cost=card.cost,
+            )
 
     def _after_card_draw(self, player: Player, card: CardInstance) -> None:
         opponent = self.players[1 - player.index]
@@ -2673,7 +2696,9 @@ class DragonMirrorGame:
     def _pop_hand(self, player: Player, entity_id: int) -> CardInstance:
         for i, card in enumerate(player.hand):
             if card.entity_id == entity_id:
-                return player.hand.pop(i)
+                popped = player.hand.pop(i)
+                self._restore_overdrawn_cards(player)
+                return popped
         raise ValueError("card not in hand")
 
     def _trade(self, entity_id: int) -> None:

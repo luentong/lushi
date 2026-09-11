@@ -290,6 +290,24 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._start_turn(1)
         self.assertTrue(all(card.costs_health_expiry_turn == -1 for card in generated if card in game.players[0].hand))
 
+    def test_godfrey_returns_overdrawn_cards_discounted_when_space_opens(self):
+        game = self.game()
+        player = game.players[0]
+        player.deck = [game._entity("JAIL_509")]
+        game._start_of_game()
+        self.assertTrue(player.recover_overdrawn_cards)
+        player.hand = [game._entity("GAME_005") for _ in range(10)]
+        burned = game._entity("CORE_CS2_065", started_in_deck=True)
+        player.deck = [burned]
+        game._draw(player)
+        self.assertEqual([], player.overdrawn_cards[:-1])
+        self.assertIs(player.overdrawn_cards[-1], burned)
+        self.assertEqual(burned.definition.cost - 1, burned.cost)
+        removed = player.hand[0]
+        game._pop_hand(player, removed.entity_id)
+        self.assertIn(burned, player.hand)
+        self.assertFalse(player.overdrawn_cards)
+
     def test_press_the_advantage_all_effects(self):
         game = self.game()
         spell = self.add_hand(game, "END_007")
