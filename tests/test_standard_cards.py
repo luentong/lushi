@@ -493,6 +493,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", sweeper.entity_id))
         self.assertEqual(2, target.damage)
 
+    def test_unshackle_soul_discounts_after_opponent_copy_and_destroys(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        spell = self.add_hand(game, "JAIL_433")
+        copied_card = self.add_hand(game, "GAME_005")
+        copied_card.copied_from_opponent = True
+        self.assertEqual(5, game._effective_cost(game.players[0], spell))
+        game.step(Action("PLAY", copied_card.entity_id))
+        self.assertEqual(1, game._effective_cost(game.players[0], spell))
+        game.step(Action("PLAY", spell.entity_id, 1, target.entity_id))
+        self.assertNotIn(target, game.players[1].board)
+
 
 if __name__ == "__main__":
     unittest.main()

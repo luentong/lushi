@@ -95,6 +95,7 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_513",
     "JAIL_514",
     "JAIL_432",
+    "JAIL_433",
     "JAIL_912",
     "JAIL_941",
     "JAIL_941t",
@@ -189,6 +190,15 @@ class OfferDeckCardDiscover:
 class CostMinusPerHandCard:
     def adjustment(self, game: Any, player: Any, card: Any) -> int:
         return -len(player.hand)
+
+
+@dataclass(frozen=True)
+class CostWhenSourceAttribute:
+    attribute: str
+    cost: int
+
+    def adjustment(self, game: Any, player: Any, card: Any) -> int:
+        return self.cost - card.cost if getattr(card, self.attribute) else 0
 
 
 @dataclass(frozen=True)
@@ -1054,6 +1064,20 @@ def build_rule_registry() -> RuleRegistry:
                 "powerlog_verified",
                 "Power.log 23282dea + HearthstoneJSON 251332",
                 verification=("test_mind_sweeper_tracks_opponent_card_copy_while_held",),
+            ),
+        ),
+        CardRule(
+            "JAIL_433", {
+                Hook.SPELL: (DestroyActionTarget(), ResolveDeaths()),
+            },
+            RuleSource(
+                "powerlog_verified",
+                "Power.log 61e3baf3 + HearthstoneJSON 251332",
+                verification=("test_unshackle_soul_discounts_after_opponent_copy_and_destroys",),
+            ),
+            TargetSpec(TargetKind.ANY_MINION),
+            cost_modifier=CostWhenSourceAttribute(
+                "opponent_card_copy_played_while_held", 1
             ),
         ),
         CardRule(
