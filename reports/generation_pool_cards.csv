@@ -197,9 +197,42 @@ one_cost_minion,TLC_461,Scrappy Scavenger,MAGE,THE_LOST_CITY,MINION,1,1,1,,"BATT
 one_cost_minion,TLC_514,Merchant of Legend,ROGUE,THE_LOST_CITY,MINION,1,1,2,,"BATTLECRY,DISCOVER",<b>Battlecry:</b> <b>Discover</b> a <b>Legendary</b> minion. Shuffle the other two into your deck.,generated_supported
 one_cost_minion,TLC_603,Platysaur,NEUTRAL,THE_LOST_CITY,MINION,1,1,2,BEAST,"BATTLECRY,DEATHRATTLE",<b>Battlecry:</b> Draw a card. <b>Deathrattle:</b> Discard it.,generated_supported
 one_cost_minion,TLC_820,Glade Ecologist,PRIEST,THE_LOST_CITY,MINION,1,2,1,,DEATHRATTLE,[x]<b>Deathrattle:</b> Get a 1-Cost Holy spell that gives a minion +2 or -2 Health.,generated_supported
+fire_spell,CATA_303,Purifying Breath,PRIEST,CATACLYSM,SPELL,2,0,0,,,"[x]Deal $5 damage to a minion. If it dies, restore #5 Health to the enemy hero.",needs_rule
+fire_spell,CATA_581,Decimation,WARRIOR,CATACLYSM,SPELL,6,0,0,,,[x]Deal $1 damage to all minions. <i>(Improved for each minion on the battlefield.)</i>,needs_rule
+fire_spell,CATA_582,Searing Fissure,WARRIOR,CATACLYSM,SPELL,2,0,0,,,Deal $1 damage to all minions. Give your hero +3 Attack this turn.,direct_supported
+fire_spell,CATA_585,Torch,WARRIOR,CATACLYSM,SPELL,1,0,0,,ImmuneToSpellpower,[x]Deal $8 damage to a damaged minion. Return this to hand with any excess damage.,direct_supported
+fire_spell,CORE_CS2_029,Fireball,MAGE,CORE,SPELL,4,0,0,,,Deal $6 damage.,generated_supported
+fire_spell,CORE_CS2_032,Flamestrike,MAGE,CORE,SPELL,7,0,0,,,Deal $5 damage to all enemy minions.,generated_supported
+fire_spell,CORE_CS2_062,Hellfire,WARLOCK,CORE,SPELL,3,0,0,,,Deal $3 damage to ALL characters.,needs_rule
+fire_spell,CORE_EX1_610,Explosive Trap,HUNTER,CORE,SPELL,2,0,0,,SECRET,"<b>Secret:</b> When your hero is attacked, deal $2 damage to all enemies.",needs_rule
+fire_spell,CORE_GIL_836,Blazing Invocation,SHAMAN,CORE,SPELL,1,0,0,,DISCOVER,[x]<b>Discover</b> a <b>Battlecry</b> minion. It costs (1) less.,needs_rule
+fire_spell,CORE_LOOT_101,Explosive Runes,MAGE,CORE,SPELL,3,0,0,,"SECRET,ImmuneToSpellpower","<b>Secret:</b> After your opponent plays a minion, deal $6 damage to it and any excess to their hero.",needs_rule
+fire_spell,CORE_SW_108,First Flame,MAGE,CORE,SPELL,1,0,0,,,Deal $2 damage to a minion. Add a Second Flame to your hand.,generated_supported
+fire_spell,CORE_WON_337,Ironforge Portal,WARRIOR,CORE,SPELL,4,0,0,,,Gain 4 Armor. Summon a random 4-Cost minion.,needs_rule
+fire_spell,DINO_406,Fire Breath,SHAMAN,THE_LOST_CITY,SPELL,3,0,0,,,Deal $4 damage. Give your Elementals +1/+1.,needs_rule
+fire_spell,END_024,Flames of Infinity,MAGE,TIME_TRAVEL,SPELL,3,0,0,,"SECRET,ImmuneToSpellpower","<b>Secret:</b> When your enemy's turn ends, deal INFINITE damage to their highest Health minion.",needs_rule
+fire_spell,END_025,Eternal Firebolt,"MAGE,PRIEST",TIME_TRAVEL,SPELL,3,0,0,,LIFESTEAL,"<b>Lifesteal</b> Deal $3 damage to a minion. If it dies, return this to your hand at the end of your turn.",needs_rule
+fire_spell,FIR_900,Cremate,DEATHKNIGHT,EMERALD_DREAM,SPELL,3,0,0,,DISCOVER,<b>Discover</b> a minion with a <b>Dark Gift</b>. It costs (2) less.,needs_rule
+fire_spell,FIR_906,Overheat,DRUID,EMERALD_DREAM,SPELL,3,0,0,,,Give your minions +1/+1. Discard a random Nature spell to give them +1/+1 more.,needs_rule
+fire_spell,FIR_909,Bursting Shot,HUNTER,EMERALD_DREAM,SPELL,2,0,0,,,Deal $2 damage to three random enemies.,needs_rule
+fire_spell,FIR_910,Scorching Winds,MAGE,EMERALD_DREAM,SPELL,3,0,0,,,Deal $3 damage. Discard a random Fire spell to deal $3 more.,needs_rule
+fire_spell,FIR_911,Smoldering Grove,MAGE,EMERALD_DREAM,SPELL,2,0,0,,,"Draw {0} card. <i>(Upgrades each turn, but discards after {1}!)</i>1Draw {0} cards. <i>(Discards this turn!)</i>",needs_rule
+fire_spell,FIR_914,Smoldering Strength,PALADIN,EMERALD_DREAM,SPELL,1,0,0,,,"Give a friendly minion +{0}/+{0}. <i>(Upgrades each turn, but discards after {1}!)</i>1Give a friendly minion +{0}/+{0}. <i>(Discards this turn!)</i>",needs_rule
+fire_spell,FIR_916,Smoldering Ascent,PRIEST,EMERALD_DREAM,SPELL,2,0,0,,,"Deal ${0} damage to all enemy minions. <i>(Upgrades each turn, but discards after {1}!)</i>1Deal ${0} damage to all enemy minions. <i>(Discards this turn!)</i>",needs_rule
+fire_spell,FIR_920,Smoke Bomb,ROGUE,EMERALD_DREAM,SPELL,2,0,0,,DISCOVER,"<b>Discover</b> a <b>Combo</b>, <b>Battlecry</b>, or <b>Stealth</b> minion with a <b>Dark Gift</b>.",needs_rule
+fire_spell,FIR_923,Flames of the Firelord,SHAMAN,EMERALD_DREAM,SPELL,2,0,0,,,"[x]Deal $4 damage to a random enemy minion. If you're holding a card that costs (8) or more, deal $8 instead.",needs_rule
+fire_spell,FIR_939,Shadowflame Suffusion,WARRIOR,EMERALD_DREAM,SPELL,2,0,0,,DISCOVER,[x]Deal $2 damage. <b>Discover</b> a Warrior minion with a <b>Dark Gift</b>.,direct_supported
+fire_spell,FIR_941,Searing Reflection,PALADIN,EMERALD_DREAM,SPELL,7,0,0,,,Draw a minion. Summon an 8/8 copy of it with <b>Divine Shield</b>.,needs_rule
+fire_spell,FIR_954,Conflagrate,WARLOCK,EMERALD_DREAM,SPELL,1,0,0,,,Deal $5 damage to a minion. Its owner draws a card.,needs_rule
+fire_spell,JAIL_307,Crowd Control,WARRIOR,ESCAPEFROM_VIOLET_HOLD,SPELL,5,0,0,,,"Deal $2 damage to all minions twice. If your deck has 25 or more cards, this costs (2) less.",needs_rule
+fire_spell,JAIL_801,Molten Gold,SHAMAN,ESCAPEFROM_VIOLET_HOLD,SPELL,3,0,0,,,Deal $4 damage. <i>(Cast 3 spells to turn into a minion!)</i>,needs_rule
+fire_spell,TLC_221,Sizzling Swarm,SHAMAN,THE_LOST_CITY,SPELL,6,0,0,,,Deal $3 damage. Summon that many 2/1 Sizzling Cinders.,needs_rule
+fire_spell,TLC_222,Flight of the Firehawk,SHAMAN,THE_LOST_CITY,SPELL,3,0,0,,,Draw two minions of different minion types. Give them +1/+1.,needs_rule
+fire_spell,TLC_227,Lava Flow,SHAMAN,THE_LOST_CITY,SPELL,3,0,0,,OVERLOAD,"Deal $2 damage to the lowest Health enemy, three times. <b>Overload:</b> (1)",needs_rule
+fire_spell,TLC_632,Story of Sulfuras,WARRIOR,THE_LOST_CITY,SPELL,5,0,0,,,"[x]Swap your Hero Power to ""Deal 8 damage to a random enemy."" After 2 uses, swap back.",needs_rule
 tortotem_multi_type_minion,CAP_107,Cannonmaster,WARRIOR,ESCAPEFROM_VIOLET_HOLD,MINION,1,3,1,"DRAENEI,PIRATE",BATTLECRY,[x]<b>Battlecry:</b> Get a 1/1 Cannoneer that deals 1 damage to a random enemy at end of turn.,direct_supported
 tortotem_multi_type_minion,CAP_800,Sinful Steed,PRIEST,ESCAPEFROM_VIOLET_HOLD,MINION,3,2,3,"BEAST,UNDEAD",REBORN,<b>Reborn</b>. This is <b>Reborn</b> with full Health and enchantments.,generated_supported
-tortotem_multi_type_minion,CATA_155,Arisen Onyxia,DEATHKNIGHT,CATACLYSM,MINION,9,3,6,"DRAGON,UNDEAD","COLOSSAL,TRIGGER_VISUAL","[x]<b>Colossal +2</b>. When your hero would lose Health on your turn, gain that much max Health instead.",needs_rule
+tortotem_multi_type_minion,CATA_155,Arisen Onyxia,DEATHKNIGHT,CATACLYSM,MINION,9,3,6,"DRAGON,UNDEAD","COLOSSAL,TRIGGER_VISUAL","[x]<b>Colossal +2</b>. When your hero would lose Health on your turn, gain that much max Health instead.",generated_supported
 tortotem_multi_type_minion,CATA_464,Blackwing Experiment,DEATHKNIGHT,CATACLYSM,MINION,2,3,1,"DRAGON,UNDEAD",DEATHRATTLE,[x]<b>Deathrattle:</b> Get a 2-Cost spell that deals this minion's Attack damage.,generated_supported
 tortotem_multi_type_minion,CATA_469,Chromatic Broodmother,DEATHKNIGHT,CATACLYSM,MINION,4,2,5,"DRAGON,UNDEAD","RUSH,TRIGGER_VISUAL","[x]<b>Rush</b>   Whenever this attacks, refresh Mana Crystals equal    to this minion's Attack.",generated_supported
 tortotem_multi_type_minion,CATA_550,Magmaw,HUNTER,CATACLYSM,MINION,7,2,12,"BEAST,MECHANICAL","COLOSSAL,TRIGGER_VISUAL",<b>Colossal +99</b> Summon any leftover appendages when there is room.,generated_supported
@@ -603,7 +636,7 @@ four_cost_minion_play,JAIL_440,Tower of Ghouls,DEATHKNIGHT,ESCAPEFROM_VIOLET_HOL
 four_cost_minion_play,JAIL_446,Blood Doctor Thal'ena,DEATHKNIGHT,ESCAPEFROM_VIOLET_HOLD,MINION,4,4,5,UNDEAD,BATTLECRY,<b>Battlecry:</b> Get a second Hero Power that costs <b>Corpses</b>.,needs_rule
 four_cost_minion_play,JAIL_447,Reckless Detective,NEUTRAL,ESCAPEFROM_VIOLET_HOLD,MINION,4,4,4,,"DEATHRATTLE,RUSH",[x]<b>Rush</b>. <b>Deathrattle:</b> Get Detective's Clothes that give +4/+4 and <b>Rush</b>.,needs_rule
 four_cost_minion_play,JAIL_457,Hijacked Securitybot,SHAMAN,ESCAPEFROM_VIOLET_HOLD,MINION,4,3,3,"ELEMENTAL,MECHANICAL",BATTLECRY,<b>Prepare</b> <b>Battlecry:</b> Give your other minions +1/+1.,generated_supported
-four_cost_minion_play,JAIL_509,Godfrey the Betrayer,WARLOCK,ESCAPEFROM_VIOLET_HOLD,MINION,4,5,4,UNDEAD,START_OF_GAME_KEYWORD,[x]<b>Start of Game:</b> Overdrawn cards return to your hand when you have space. They cost (1) less.,needs_rule
+four_cost_minion_play,JAIL_509,Godfrey the Betrayer,WARLOCK,ESCAPEFROM_VIOLET_HOLD,MINION,4,5,4,UNDEAD,START_OF_GAME_KEYWORD,[x]<b>Start of Game:</b> Overdrawn cards return to your hand when you have space. They cost (1) less.,generated_supported
 four_cost_minion_play,JAIL_719,Irida Sinseeker,DEMONHUNTER,ESCAPEFROM_VIOLET_HOLD,MINION,4,7,7,,"BATTLECRY,LIFESTEAL","[x]<b>Lifesteal</b>. <b>Battlecry:</b> Send your deck to the Void, except 1 card. At the start of your turns, get two cards from the Void.",needs_rule
 four_cost_minion_play,JAIL_851,Inspector Murloc Holmes,NEUTRAL,ESCAPEFROM_VIOLET_HOLD,MINION,4,4,5,MURLOC,BATTLECRY,"[x]<b>Battlecry:</b> Investigate a card in the enemy hand. If they play a card with that name  next turn, get 3 Coins.",needs_rule
 four_cost_minion_play,JAIL_883,Activated Golem,NEUTRAL,ESCAPEFROM_VIOLET_HOLD,MINION,4,4,5,,TRIGGER_VISUAL,"At the end of each turn, gain <b>Reborn</b>.",needs_rule

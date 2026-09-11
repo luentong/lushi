@@ -11,6 +11,7 @@ from typing import Any
 from .dragon_mirror import (
     ADDITIONAL_GENERATED_MINION_IDS,
     ADDITIONAL_PLAYABLE_CARD_IDS,
+    ADDITIONAL_PLAYABLE_SPELL_IDS,
     ADDITIONAL_PLAYABLE_MINION_IDS,
     DISCOVER_BANNED_IDS,
     DIRECT_IDS,
@@ -159,6 +160,15 @@ def generation_pool(card: dict[str, Any], pool_name: str) -> bool:
             and "PIRATE" in _races(card)
             and _eligible_for_warrior(card)
         )
+    if pool_name == "fire_spell":
+        # Fyrakk is Neutral and does not restrict the text to a class. The
+        # candidate universe is therefore every collectible Standard Fire
+        # spell, irrespective of class; target feasibility is tracked through
+        # each spell's own rule rather than guessed from card text.
+        return (
+            card.get("type") == "SPELL"
+            and card.get("spellSchool") == "FIRE"
+        )
     if pool_name == "weapon":
         # Unlike default Discover, Stadium Announcer's random equip is not
         # restricted to the Warrior/Neutral class pool.
@@ -219,6 +229,7 @@ def support_status(card: dict[str, Any], pool_name: str) -> str:
         card["id"] in GENERATED_MINION_IDS
         or card["id"] in ADDITIONAL_GENERATED_MINION_IDS
         or card["id"] in ADDITIONAL_PLAYABLE_CARD_IDS
+        or card["id"] in ADDITIONAL_PLAYABLE_SPELL_IDS
         or card["id"] in ADDITIONAL_PLAYABLE_MINION_IDS
         or card["id"] in SUPPORTED_STADIUM_WEAPONS
     ):
@@ -234,6 +245,7 @@ def build_audit(cards_path: Path) -> tuple[dict[str, Any], list[dict[str, Any]]]
     summaries = {}
     for pool_name in (
         "dragon", "warrior_minion", "pirate", "weapon", "one_cost_minion",
+        "fire_spell",
         "tortotem_multi_type_minion",
         "demon_play", "mech_play", "five_cost_minion_play",
         "two_cost_minion_play", "four_cost_minion_play",

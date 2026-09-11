@@ -45,6 +45,10 @@ class TargetSpec:
 # HearthstoneJSON snapshot. Declaring the dependency here lets ordinary rules
 # refer only to card IDs instead of rebuilding CardDef objects in the engine.
 DECLARATIVE_METADATA_IDS = {
+    # Fyrakk stays outside executable generator pools until its full
+    # 15-Mana Fire-spell closure is complete, but its target-side Fire
+    # immunity is testable now.
+    "FIR_959",
     "CORE_CS2_065",  # Voidwalker
     "EDR_492t",  # Duckling
     "EDR_260t",  # Illusion
@@ -95,6 +99,8 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_492",
     "CATA_496",
     "CATA_725",
+    "CORE_CS2_029",
+    "CORE_CS2_032",
     "CAP_404",
     "CORE_CS2_004",
     "CORE_CS2_062",
@@ -103,6 +109,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_ICC_055",
     "CORE_OG_047",
     "CORE_SW_072",
+    "CORE_SW_108",
     "DINO_432",
     "DINO_431",
     "EDR_449",
@@ -144,6 +151,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_432",
     "TIME_701",
     "TLC_451",
+    "SW_108t",
     "TLC_COIN1",
 }
 
@@ -1623,6 +1631,41 @@ def build_rule_registry() -> RuleRegistry:
                 "upstream_adapted", rosetta, "CS2_062", "AGPL-3.0",
                 ("test_hellfire_damages_all_characters",),
             ),
+        ),
+        CardRule(
+            "CORE_CS2_029",
+            {Hook.SPELL: (DamageActionTarget(6), ResolveDeaths())},
+            RuleSource(
+                "upstream_adapted", rosetta, "CS2_029", "AGPL-3.0",
+                ("test_fireball_and_flamestrike",),
+            ),
+            TargetSpec(TargetKind.ENEMY_CHARACTER),
+        ),
+        CardRule(
+            "CORE_CS2_032",
+            {Hook.SPELL: (DamageBoard(5), ResolveDeaths())},
+            RuleSource(
+                "upstream_adapted", rosetta, "CS2_032", "AGPL-3.0",
+                ("test_fireball_and_flamestrike",),
+            ),
+        ),
+        CardRule(
+            "CORE_SW_108",
+            {Hook.SPELL: (DamageActionTarget(2), AddToHand("SW_108t"), ResolveDeaths())},
+            RuleSource(
+                "upstream_adapted", rosetta, "SW_108", "AGPL-3.0",
+                ("test_first_flame_generates_second_flame",),
+            ),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "SW_108t",
+            {Hook.SPELL: (DamageActionTarget(2), ResolveDeaths())},
+            RuleSource(
+                "upstream_adapted", rosetta, "SW_108t", "AGPL-3.0",
+                ("test_first_flame_generates_second_flame",),
+            ),
+            TargetSpec(TargetKind.ANY_MINION),
         ),
         CardRule(
             "CORE_EX1_197",

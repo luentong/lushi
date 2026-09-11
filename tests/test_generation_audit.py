@@ -45,6 +45,7 @@ class GenerationAuditTests(unittest.TestCase):
         for pool in (
             "dragon", "warrior_minion", "pirate", "weapon",
             "one_cost_minion",
+            "fire_spell",
             "tortotem_multi_type_minion",
             "demon_play", "mech_play", "five_cost_minion_play",
             "two_cost_minion_play", "four_cost_minion_play",
@@ -100,6 +101,20 @@ class GenerationAuditTests(unittest.TestCase):
             and row["status"] in {"direct_supported", "generated_supported"}
         }
         self.assertEqual(expected, PIRATE_IDS)
+
+    def test_fyrakk_fire_spell_pool_is_explicit_and_not_promoted_early(self):
+        rows = [row for row in self.details if row["pool"] == "fire_spell"]
+        by_id = {row["card_id"]: row for row in rows}
+        self.assertIn("CORE_CS2_029", by_id)
+        self.assertIn("CORE_CS2_032", by_id)
+        self.assertEqual("generated_supported", by_id["CORE_CS2_029"]["status"])
+        self.assertEqual("generated_supported", by_id["CORE_CS2_032"]["status"])
+        # A non-empty unimplemented tail is intentional. It prevents the
+        # outer 15-Mana random generator from being marked executable before
+        # all legal Fire-spell outcomes are closed.
+        self.assertGreater(
+            self.summary["summary"]["fire_spell"]["needs_rule"], 0
+        )
 
     def test_one_cost_summon_pool_is_contextual_and_audited(self):
         rows = [row for row in self.details if row["pool"] == "one_cost_minion"]

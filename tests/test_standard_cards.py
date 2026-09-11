@@ -51,6 +51,40 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(3, target.max_health)
         self.assertEqual(before_hand, len(game.players[0].hand))
 
+    def test_first_flame_generates_second_flame(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        flame = self.add_hand(game, "CORE_SW_108")
+        game.step(Action("PLAY", flame.entity_id, 1, target.entity_id))
+        self.assertEqual(2, target.damage)
+        second = game.players[0].hand[0]
+        self.assertEqual("SW_108t", second.card_id)
+        game.step(Action("PLAY", second.entity_id, 1, target.entity_id))
+        self.assertEqual(4, target.damage)
+
+    def test_fireball_and_flamestrike(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        fireball = self.add_hand(game, "CORE_CS2_029")
+        game.step(Action("PLAY", fireball.entity_id, 1, target.entity_id))
+        self.assertEqual(6, target.damage)
+
+        enemy_a = self.add_board(game, "CAP_107t", 1)
+        enemy_b = self.add_board(game, "CAP_107t", 1)
+        flamestrike = self.add_hand(game, "CORE_CS2_032")
+        game.step(Action("PLAY", flamestrike.entity_id))
+        self.assertNotIn(enemy_a, game.players[1].board)
+        self.assertNotIn(enemy_b, game.players[1].board)
+
+    def test_fyrakk_is_immune_to_fire_spell_damage_only(self):
+        game = self.game()
+        fyrakk = self.add_board(game, "FIR_959", 1)
+        fireball = self.add_hand(game, "CORE_CS2_029")
+        game.step(Action("PLAY", fireball.entity_id, 1, fyrakk.entity_id))
+        self.assertEqual(0, fyrakk.damage)
+        game._damage_minion(1, fyrakk, 1)
+        self.assertEqual(1, fyrakk.damage)
+
     def test_wickerfang_colossal_legs_grow_and_sync_their_stats(self):
         game = self.game()
         wickerfang = self.add_hand(game, "CATA_139")

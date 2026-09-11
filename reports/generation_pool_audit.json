@@ -51,13 +51,21 @@
       "needs_rule": 5,
       "unimplemented": 5
     },
+    "fire_spell": {
+      "candidate_count": 33,
+      "direct_supported": 3,
+      "generated_supported": 3,
+      "metadata_only": 0,
+      "needs_rule": 27,
+      "unimplemented": 27
+    },
     "tortotem_multi_type_minion": {
       "candidate_count": 55,
       "direct_supported": 1,
-      "generated_supported": 49,
+      "generated_supported": 50,
       "metadata_only": 0,
-      "needs_rule": 5,
-      "unimplemented": 5
+      "needs_rule": 4,
+      "unimplemented": 4
     },
     "demon_play": {
       "candidate_count": 38,
@@ -94,10 +102,10 @@
     "four_cost_minion_play": {
       "candidate_count": 127,
       "direct_supported": 4,
-      "generated_supported": 27,
+      "generated_supported": 28,
       "metadata_only": 0,
-      "needs_rule": 96,
-      "unimplemented": 96
+      "needs_rule": 95,
+      "unimplemented": 95
     },
     "legendary_minion_play": {
       "candidate_count": 54,

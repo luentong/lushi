@@ -250,6 +250,16 @@ ADDITIONAL_PLAYABLE_CARD_IDS = {
     "TIME_610",  # Shadows of Yesterday
 }
 
+# Individually closed spells used by generated-spell mechanics. Keep these
+# separate from the Rewind tranche: the generation audit relies on the latter
+# being exactly the Rewind cards, while this set will grow by school/pool.
+ADDITIONAL_PLAYABLE_SPELL_IDS = {
+    "CORE_CS2_029",  # Fireball
+    "CORE_CS2_032",  # Flamestrike
+    "CORE_SW_108",  # First Flame
+    "SW_108t",  # Second Flame
+}
+
 SPECIAL_TOKEN_IDS = {
     "CAP_107t",  # Cannoneer
     "CATA_155t",  # Onyxia's Wing
@@ -404,6 +414,7 @@ SUPPORTED_IDS = (
     DIRECT_IDS | GENERATED_MINION_IDS | SUPPORTED_ONE_COST_SUMMON_IDS
     | SUPPORTED_VOID_SOUL_DEMON_IDS | ADDITIONAL_GENERATED_MINION_IDS
     | ADDITIONAL_PLAYABLE_MINION_IDS | ADDITIONAL_PLAYABLE_CARD_IDS
+    | ADDITIONAL_PLAYABLE_SPELL_IDS
     | SPECIAL_TOKEN_IDS | BLOCKED_GENERATOR_IDS | DECLARATIVE_METADATA_IDS
     | DECLARATIVE_METADATA_ALIASES.keys()
 )
@@ -5537,6 +5548,21 @@ class DragonMirrorGame:
 
     def _damage_minion(self, player_index: int, minion: CardInstance, amount: int,
                        source: CardInstance | None = None) -> None:
+        # Fyrakk's printed immunity is specifically to damage originating from
+        # a Fire *spell*, not to combat or to Fire-named minions.  Do this
+        # before damage modifiers and shields so the trace records the real
+        # prevention rather than an apparent zero-damage hit.
+        if (
+            minion.card_id == "FIR_959"
+            and source is not None
+            and source.definition.card_type == "SPELL"
+            and source.definition.spell_school == "FIRE"
+        ):
+            self._event(
+                "fire_spell_immune", player=player_index,
+                entity=minion.entity_id, source=source.card_id, amount=amount,
+            )
+            return
         amount = self._modified_damage(amount, source)
         if minion.card_id == "TIME_060" and not minion.silenced:
             amount *= 2
