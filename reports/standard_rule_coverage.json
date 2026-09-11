@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 132,
+      "declarative": 134,
       "legacy_compatibility": 245,
-      "not_implemented": 1784
+      "not_implemented": 1782
     },
     "collectible_implementation": {
-      "declarative": 113,
+      "declarative": 115,
       "legacy_compatibility": 225,
-      "not_implemented": 828
+      "not_implemented": 826
     },
     "fully_implemented": false
   },
@@ -12285,9 +12285,9 @@
       "mechanics": "TRIGGER_VISUAL",
       "text": "After your hero attacks, summon a 3/3 Sheep that's Dormant for 2 turns.",
       "text_sha256": "02c8d13f91f1efcf9b2dec796eeba68eeb04489da7a4dde54fd85397b0886ff1",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_416t",
@@ -19965,9 +19965,9 @@
       "mechanics": "TRIGGER_VISUAL",
       "text": "After your hero attacks, get a Void Soul.",
       "text_sha256": "31e7d10dbc2fb6857adefc57424ea060490c6873ab59413653fdfffda251213b",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_732",

@@ -120,6 +120,22 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(13, enemy.damage)
         self.assertEqual(28, game.players[1].health)
 
+    def test_powerlog_cards_and_triggers(self):
+        game = self.game()
+        game._equip_weapon(game.players[0], Weapon("EDR_416", "Shepherd's Crook", 3, 2))
+        game._dispatch_after_hero_attack(
+            game.players[0], attack_amount=3, weapon=game.players[0].weapon
+        )
+        self.assertEqual(1, len(game.players[0].board))
+        self.assertEqual("EDR_416t", game.players[0].board[0].card_id)
+        self.assertEqual(2, game.players[0].board[0].dormant_turns)
+
+        game._equip_weapon(game.players[0], Weapon("JAIL_730", "Stardust Scythe", 4, 2))
+        game._dispatch_after_hero_attack(
+            game.players[0], attack_amount=4, weapon=game.players[0].weapon
+        )
+        self.assertIn("JAIL_732", [card.card_id for card in game.players[0].hand])
+
     def test_first_flame_generates_second_flame(self):
         game = self.game()
         target = self.add_board(game, "CORE_LOOT_137", 1)

@@ -94,6 +94,9 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_EX1_278",  # Shiv
     "CORE_TRL_307",  # Flash of Light
     "CORE_CS2_093",  # Consecration
+    "EDR_416",  # Shepherd's Crook
+    "EDR_416t",  # Sleepy Sheep token
+    "JAIL_730",  # Stardust Scythe
     "CATA_131",
     "CATA_303",
     "CATA_138",
@@ -1246,6 +1249,37 @@ class Summon:
             minion = game._entity(self.card_id, created_by=context.card.card_id)
             minion.summoned_turn = game.turn
             game._summon(player, minion)
+
+
+@dataclass(frozen=True)
+class SummonDormant:
+    """Summon a minion that cannot act until its fixed dormant countdown ends."""
+    card_id: str
+    dormant_turns: int
+    count: int = 1
+    side: str = "controller"
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = _recipient(game, context, self.side)
+        for _ in range(self.count):
+            if len(player.board) + len(player.locations) >= 7:
+                break
+            minion = game._entity(self.card_id, created_by=context.card.card_id)
+            minion.summoned_turn = game.turn
+            minion.dormant_turns = self.dormant_turns
+            game._summon(player, minion)
+
+
+@dataclass(frozen=True)
+class BuffDamagedFriendlyMinions:
+    attack: int
+    health: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for minion in context.player.board:
+            if minion.damage > 0:
+                minion.attack_delta += self.attack
+                minion.health_delta += self.health
 
 
 @dataclass(frozen=True)
@@ -2765,6 +2799,22 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "upstream_adapted", rosetta, "CS2_093", "AGPL-3.0",
                 ("test_second_core_spell_tranche",),
+            ),
+        ),
+        CardRule(
+            "EDR_416",
+            {Hook.AFTER_HERO_ATTACK: (SummonDormant("EDR_416t", 2),)},
+            RuleSource(
+                "powerlog_verified", local, "EDR_416", "internal",
+                ("test_powerlog_cards_and_triggers",),
+            ),
+        ),
+        CardRule(
+            "JAIL_730",
+            {Hook.AFTER_HERO_ATTACK: (AddToHand("JAIL_732"),)},
+            RuleSource(
+                "powerlog_verified", local, "JAIL_730", "internal",
+                ("test_powerlog_cards_and_triggers",),
             ),
         ),
     ))
