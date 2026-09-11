@@ -271,6 +271,7 @@ ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "FIR_941",  # Searing Reflection
     "TLC_222",  # Flight of the Firehawk
     "TLC_632",  # Story of Sulfuras
+    "CATA_581",  # Decimation
 }
 
 SPECIAL_TOKEN_IDS = {

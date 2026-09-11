@@ -198,7 +198,7 @@ one_cost_minion,TLC_514,Merchant of Legend,ROGUE,THE_LOST_CITY,MINION,1,1,2,,"BA
 one_cost_minion,TLC_603,Platysaur,NEUTRAL,THE_LOST_CITY,MINION,1,1,2,BEAST,"BATTLECRY,DEATHRATTLE",<b>Battlecry:</b> Draw a card. <b>Deathrattle:</b> Discard it.,generated_supported
 one_cost_minion,TLC_820,Glade Ecologist,PRIEST,THE_LOST_CITY,MINION,1,2,1,,DEATHRATTLE,[x]<b>Deathrattle:</b> Get a 1-Cost Holy spell that gives a minion +2 or -2 Health.,generated_supported
 fire_spell,CATA_303,Purifying Breath,PRIEST,CATACLYSM,SPELL,2,0,0,,,"[x]Deal $5 damage to a minion. If it dies, restore #5 Health to the enemy hero.",generated_supported
-fire_spell,CATA_581,Decimation,WARRIOR,CATACLYSM,SPELL,6,0,0,,,[x]Deal $1 damage to all minions. <i>(Improved for each minion on the battlefield.)</i>,needs_rule
+fire_spell,CATA_581,Decimation,WARRIOR,CATACLYSM,SPELL,6,0,0,,,[x]Deal $1 damage to all minions. <i>(Improved for each minion on the battlefield.)</i>,generated_supported
 fire_spell,CATA_582,Searing Fissure,WARRIOR,CATACLYSM,SPELL,2,0,0,,,Deal $1 damage to all minions. Give your hero +3 Attack this turn.,direct_supported
 fire_spell,CATA_585,Torch,WARRIOR,CATACLYSM,SPELL,1,0,0,,ImmuneToSpellpower,[x]Deal $8 damage to a damaged minion. Return this to hand with any excess damage.,direct_supported
 fire_spell,CORE_CS2_029,Fireball,MAGE,CORE,SPELL,4,0,0,,,Deal $6 damage.,generated_supported

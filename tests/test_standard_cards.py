@@ -84,6 +84,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(26, game.players[1].health)
         self.assertEqual((3, 2), (elemental.attack, elemental.max_health))
 
+    def test_decimation_scales_from_minions_present_at_resolution(self):
+        game = self.game()
+        friendly = self.add_board(game, "CORE_LOOT_137", 0)
+        enemy_a = self.add_board(game, "CORE_LOOT_137", 1)
+        enemy_b = self.add_board(game, "CORE_LOOT_137", 1)
+        spell = self.add_hand(game, "CATA_581")
+        game.step(Action("PLAY", spell.entity_id))
+        # Base one damage, improved by the three minions at resolution.
+        self.assertEqual(4, friendly.damage)
+        self.assertEqual(4, enemy_a.damage)
+        self.assertEqual(4, enemy_b.damage)
+
     def test_searing_reflection_draws_and_summons_divine_shield_copy(self):
         game = self.game()
         dragon = game._entity("CORE_LOOT_137", started_in_deck=True)

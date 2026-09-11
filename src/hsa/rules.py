@@ -99,6 +99,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_190t14",
     "CATA_492",
     "CATA_496",
+    "CATA_581",
     "CATA_725",
     "CORE_CS2_029",
     "CORE_CS2_032",
@@ -530,6 +531,28 @@ class DamageAllMinions:
                 for minion in list(player.board):
                     game._damage_minion(player.index, minion, amount, context.card)
             game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class DamageAllMinionsImprovedByBoardCount:
+    """The printed base damage plus every minion present at resolution."""
+
+    base_amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        minion_count = sum(len(player.board) for player in game.players)
+        amount = game._spell_effect_amount(
+            context.player, context.card, self.base_amount + minion_count
+        )
+        for player in game.players:
+            for minion in list(player.board):
+                game._damage_minion(player.index, minion, amount, context.card)
+        game._resolve_deaths()
+        game._event(
+            "damage_all_minions_improved_by_board_count",
+            player=context.player.index, source=context.card.card_id,
+            minion_count=minion_count, amount=amount,
+        )
 
 
 @dataclass(frozen=True)
@@ -1603,6 +1626,14 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_cursed_chains_temporarily_controls_and_returns_minion",),
             ),
             TargetSpec(TargetKind.ENEMY_MINION),
+        ),
+        CardRule(
+            "CATA_581",
+            {Hook.SPELL: (DamageAllMinionsImprovedByBoardCount(1),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_decimation_scales_from_minions_present_at_resolution",),
+            ),
         ),
         CardRule(
             "CATA_725",
