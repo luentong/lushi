@@ -186,6 +186,7 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 }
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
+    "CATA_155",  # Arisen Onyxia
     "CATA_151",  # Azshara, Ocean Lord
     "CATA_720",  # Warmaster Blackhorn
     "CATA_613",  # Survivalist
@@ -250,6 +251,8 @@ ADDITIONAL_PLAYABLE_CARD_IDS = {
 
 SPECIAL_TOKEN_IDS = {
     "CAP_107t",  # Cannoneer
+    "CATA_155t",  # Onyxia's Wing
+    "CATA_155t1",  # Onyxia's Wing
     "CATA_615t",  # Genn, Worgen King
     "CATA_151t",  # Azshara's Tentacle
     "DINO_410t",  # Khelos
@@ -612,6 +615,7 @@ class CardInstance:
     temporary_health_modifiers: list[tuple[int, int]] = field(default_factory=list)
     temporary_immune_expiry_turn: int = -1
     destroy_at_turn_start: int = -1
+    costs_health_expiry_turn: int = -1
 
     @property
     def card_id(self) -> str:
@@ -1147,6 +1151,10 @@ class DragonMirrorGame:
             )
         elif minion.card_id == "CATA_151":
             self._summon_azshara_tentacles(player, minion)
+        elif minion.card_id == "CATA_155":
+            self._summon_onyxia_wings(player, minion)
+        elif minion.card_id in {"CATA_155t", "CATA_155t1"}:
+            self._get_onyxia_wing_minion(player, minion)
 
     def _summon_azshara_tentacles(
         self, player: Player, azshara: CardInstance
@@ -1163,6 +1171,53 @@ class DragonMirrorGame:
                 "colossal_appendage", player=player.index,
                 source=azshara.entity_id, entity=tentacle.entity_id, side=side,
             )
+
+    def _summon_onyxia_wings(
+        self, player: Player, onyxia: CardInstance
+    ) -> None:
+        """Summon the two Colossal wings immediately beside Arisen Onyxia."""
+        for side, card_id in (("left", "CATA_155t"), ("right", "CATA_155t1")):
+            if len(player.board) + len(player.locations) >= 7:
+                break
+            main_index = player.board.index(onyxia)
+            position = main_index if side == "left" else main_index + 1
+            wing = self._entity(card_id, created_by=onyxia.card_id)
+            wing.summoned_turn = self.turn
+            self._summon(player, wing, position=position)
+            self._event(
+                "colossal_appendage", player=player.index,
+                source=onyxia.entity_id, entity=wing.entity_id, side=side,
+            )
+
+    def _get_onyxia_wing_minion(
+        self, player: Player, wing: CardInstance
+    ) -> None:
+        """Get a Herald-scaled minion that costs Health only this turn."""
+        cost = self._herald_power(player.herald_count)
+        candidates = [
+            definition for card_id, definition in self.card_defs.items()
+            if card_id in EXECUTABLE_CARD_IDS
+            and definition.card_type == "MINION"
+            and definition.cost == cost
+        ]
+        if not candidates:
+            return
+        generated = CardInstance(
+            self.next_entity_id, self.rng.choice(candidates),
+            created_by=wing.card_id,
+        )
+        self.next_entity_id += 1
+        generated.costs_health_expiry_turn = 1 - player.index
+        if len(player.hand) < 10:
+            player.hand.append(generated)
+            destination = "hand"
+        else:
+            destination = "burned"
+        self._event(
+            "onyxia_wing_generated", player=player.index, source=wing.entity_id,
+            card=generated.card_id, entity=generated.entity_id, cost=cost,
+            destination=destination,
+        )
 
     def _draw(self, player: Player) -> None:
         if not player.deck:
@@ -1325,6 +1380,13 @@ class DragonMirrorGame:
                     self._event(
                         "delayed_destroy", player=owner.index,
                         entity=minion.entity_id,
+                    )
+            for card in owner.hand:
+                if card.costs_health_expiry_turn == index:
+                    card.costs_health_expiry_turn = -1
+                    self._event(
+                        "health_cost_expire", player=owner.index,
+                        card=card.card_id, entity=card.entity_id,
                     )
         self._resolve_deaths()
         player.turns_taken += 1
@@ -2332,6 +2394,10 @@ class DragonMirrorGame:
             if card.card_id == "TLC_436":
                 if effective_cost > player.corpses:
                     continue
+            elif card.costs_health_expiry_turn == self.turn:
+                # Health costs cannot reduce the hero to zero.
+                if effective_cost >= player.health:
+                    continue
             elif effective_cost > player.mana:
                 continue
             if (
@@ -2636,6 +2702,12 @@ class DragonMirrorGame:
             player.corpses -= effective_cost
             self._event(
                 "spend_corpses", player=player.index,
+                card=card.card_id, amount=effective_cost,
+            )
+        elif card.costs_health_expiry_turn == self.turn:
+            self._damage_hero(player, effective_cost, card)
+            self._event(
+                "health_cost_paid", player=player.index,
                 card=card.card_id, amount=effective_cost,
             )
         else:
@@ -5072,7 +5144,25 @@ class DragonMirrorGame:
             return
         absorbed = min(player.armor, amount)
         player.armor -= absorbed
-        player.health -= amount - absorbed
+        health_loss = amount - absorbed
+        if (
+            health_loss > 0
+            and self.current == player.index
+            and any(
+                minion.card_id == "CATA_155"
+                and not minion.silenced
+                and minion.dormant_turns == 0
+                and minion.health > 0
+                for minion in player.board
+            )
+        ):
+            player.max_health += health_loss
+            self._event(
+                "arisen_onyxia_health_replaced", player=player.index,
+                amount=health_loss, source=None if source is None else source.card_id,
+            )
+            return
+        player.health -= health_loss
         self.players[player.index].damaged_characters_this_turn.add(f"hero:{player.index}")
         if source and source.lifesteal:
             owner = self.players[1 - player.index]

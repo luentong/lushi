@@ -264,6 +264,32 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         sanctum = game._entity("TIME_890t2")
         self.assertEqual(0, game._effective_cost(game.players[0], sanctum))
 
+    def test_arisen_onyxia_colossal_wings_health_costs_and_replacement(self):
+        game = self.game()
+        onyxia = self.add_hand(game, "CATA_155")
+        game.step(Action("PLAY", onyxia.entity_id))
+        self.assertEqual(
+            ["CATA_155t", "CATA_155", "CATA_155t1"],
+            [minion.card_id for minion in game.players[0].board],
+        )
+        generated = list(game.players[0].hand)
+        self.assertEqual(2, len(generated))
+        self.assertTrue(all(card.cost == 1 for card in generated))
+        self.assertTrue(all(card.costs_health_expiry_turn == 1 for card in generated))
+
+        game.players[0].mana = 0
+        health_card = game._entity("CORE_CS2_065")
+        health_card.costs_health_expiry_turn = game.turn
+        game.players[0].hand.append(health_card)
+        game.step(Action("PLAY", health_card.entity_id))
+        self.assertEqual(0, game.players[0].mana)
+        self.assertEqual((30, 31), (game.players[0].health, game.players[0].max_health))
+
+        game._damage_hero(game.players[1], 4)
+        self.assertEqual(26, game.players[1].health)
+        game._start_turn(1)
+        self.assertTrue(all(card.costs_health_expiry_turn == -1 for card in generated if card in game.players[0].hand))
+
     def test_press_the_advantage_all_effects(self):
         game = self.game()
         spell = self.add_hand(game, "END_007")
