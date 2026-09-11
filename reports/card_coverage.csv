@@ -61,7 +61,7 @@ stealth_rogue,潜行贼,129347,CORE_BT_701,间谍女郎,2,True,CORE,MINION,False
 dirty_priest,脏牧,69616,CORE_EX1_197,暗言术：毁,2,True,CORE,SPELL,True,True,True
 dirty_priest,脏牧,114080,EDR_449,月翼信使,2,True,EMERALD_DREAM,MINION,False,True,True
 dirty_priest,脏牧,114627,EDR_476,月亮井,2,True,EMERALD_DREAM,SPELL,False,True,True
-dirty_priest,脏牧,114935,EDR_852,苦花骑士,2,True,EMERALD_DREAM,MINION,False,False,False
+dirty_priest,脏牧,114935,EDR_852,苦花骑士,2,True,EMERALD_DREAM,MINION,False,True,True
 dirty_priest,脏牧,115461,EDR_970,卡多雷女祭司,2,True,EMERALD_DREAM,MINION,False,True,True
 dirty_priest,脏牧,120060,TIME_890,圣者麦迪文,1,True,TIME_TRAVEL,MINION,False,True,True
 dirty_priest,脏牧,120064,TIME_890t,圣杖埃提耶什,1,False,TIME_TRAVEL,WEAPON,False,True,True

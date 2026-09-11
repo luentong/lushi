@@ -115,6 +115,7 @@ STANDARD_DECLARATIVE_IDS = {
     "EDR_846t3",
     "EDR_846t4",
     "EDR_846t5",
+    "EDR_852",
     "EDR_476",
     "END_007",
     "END_011",
@@ -1258,6 +1259,14 @@ def build_rule_registry() -> RuleRegistry:
                 "powerlog_verified",
                 "Power.log 23282dea + HearthstoneJSON 251332",
                 verification=("test_lunarwing_messenger_imbues_hero_power",),
+            ),
+        ),
+        CardRule(
+            "EDR_852", {Hook.BATTLECRY: (SetHeroPower("EDR_449p"),)},
+            RuleSource(
+                "official_text_and_engine_pattern",
+                "HearthstoneJSON 251332; Priest Imbue maps to Blessing of the Moon",
+                verification=("test_bitterbloom_knight_imbues_priest_power",),
             ),
         ),
         CardRule(

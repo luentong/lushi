@@ -37,10 +37,10 @@
     "unique_entities": 71,
     "rosetta_implemented_unique": 4,
     "rosetta_coverage_unique_pct": 5.63,
-    "project_runtime_supported_unique": 45,
-    "project_runtime_coverage_unique_pct": 63.38,
-    "project_deck_validated_unique": 45,
-    "project_deck_validated_unique_pct": 63.38
+    "project_runtime_supported_unique": 46,
+    "project_runtime_coverage_unique_pct": 64.79,
+    "project_deck_validated_unique": 46,
+    "project_deck_validated_unique_pct": 64.79
   },
   "summaries": [
     {
@@ -122,13 +122,13 @@
       "rosetta_implemented_unique": 1,
       "rosetta_implemented_copies": 2,
       "rosetta_coverage_unique_pct": 8.33,
-      "project_runtime_supported_unique": 10,
-      "project_runtime_supported_copies": 17,
-      "project_runtime_coverage_unique_pct": 83.33,
-      "project_deck_validated_unique": 10,
-      "project_deck_validated_copies": 17,
-      "project_deck_validated_unique_pct": 83.33,
-      "project_deck_validated_copies_pct": 85.0,
+      "project_runtime_supported_unique": 11,
+      "project_runtime_supported_copies": 19,
+      "project_runtime_coverage_unique_pct": 91.67,
+      "project_deck_validated_unique": 11,
+      "project_deck_validated_copies": 19,
+      "project_deck_validated_unique_pct": 91.67,
+      "project_deck_validated_copies_pct": 95.0,
       "deck_ready": false
     }
   ],
@@ -1012,8 +1012,8 @@
       "set": "EMERALD_DREAM",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "dirty_priest",

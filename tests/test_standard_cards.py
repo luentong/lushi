@@ -583,6 +583,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual("EDR_449p", game.players[0].hero_power_id)
         self.assertTrue(any(x.kind == "HERO_POWER" for x in game.legal_actions()))
 
+    def test_bitterbloom_knight_imbues_priest_power(self):
+        game = self.game()
+        game.players[0].card_class = "PRIEST"
+        knight = self.add_hand(game, "EDR_852")
+        game.step(Action("PLAY", knight.entity_id))
+        self.assertEqual("EDR_449p", game.players[0].hero_power_id)
+
     def test_blessing_of_the_moon_offers_discounted_temporary_cards(self):
         game = self.game()
         game.players[0].hero_power_id = "EDR_449p"
