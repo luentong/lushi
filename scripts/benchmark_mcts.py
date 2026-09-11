@@ -22,6 +22,22 @@ from hsa import (
     MCTSPolicy,
     RULESET,
 )
+
+
+def matchup_deck_counts(config_path: Path, deck_a: str, deck_b: str):
+    try:
+        from hearthstone.deckstrings import Deck
+    except ImportError:
+        sys.path.insert(0, str(ROOT / ".deps"))
+        from hearthstone.deckstrings import Deck
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    by_id = {item["id"]: item for item in config["decks"]}
+    cards = json.loads((ROOT / "cards.zhCN.json").read_text(encoding="utf-8"))
+    by_dbf = {int(card["dbfId"]): card["id"] for card in cards if "dbfId" in card}
+    def decode(name):
+        deck = Deck.from_deckstring(by_id[name]["deckstring"])
+        return {by_dbf[dbf_id]: count for dbf_id, count in deck.cards}
+    return decode(deck_a), decode(deck_b)
 from hsa.evaluation import wilson_interval
 
 
@@ -39,7 +55,11 @@ def load_model(checkpoint: Path, device: str):
 
 
 def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> dict:
-    game = DragonMirrorGame(cards, seed)
+    deck_counts = (
+        matchup_deck_counts(args.deck_config, args.deck_a, args.deck_b)
+        if args.deck_a and args.deck_b else None
+    )
+    game = DragonMirrorGame(cards, seed, deck_counts=deck_counts)
     policies = [HeuristicPolicy(), HeuristicPolicy()]
     if args.baseline in {"ismcts", "puct"}:
         baseline_seat = 1 - mcts_seat
@@ -198,6 +218,9 @@ def main() -> int:
         "--baseline", choices=("heuristic", "ismcts", "puct"), default="heuristic"
     )
     parser.add_argument("--cards", type=Path, default=ROOT / "cards.251332.enUS.json")
+    parser.add_argument("--deck-config", type=Path, default=ROOT / "config" / "decks.json")
+    parser.add_argument("--deck-a")
+    parser.add_argument("--deck-b")
     parser.add_argument("--output", type=Path, default=ROOT / "reports" / "mcts-smoke.json")
     args = parser.parse_args()
     jobs = [
