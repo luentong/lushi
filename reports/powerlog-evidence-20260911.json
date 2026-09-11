@@ -6,7 +6,7 @@
     "revealed_entities": 80,
     "standard_entities": 71,
     "standard_played_cards": 35,
-    "unimplemented_standard_played_cards": 16
+    "unimplemented_standard_played_cards": 14
   },
   "priority_from_real_play": [
     {
@@ -50,34 +50,6 @@
       "play_blocks": 1,
       "trigger_blocks": 1,
       "text": "[x]<b>Battlecry:</b> Choose {0}\nCataclysm to unleash!\n<i><b>Herald</b> twice to upgrade.</i>@[x]<b>Battlecry:</b> Choose {0}\n|4(Cataclysm,Cataclysms) to unleash!\n<i><b>Herald</b> once to upgrade.</i>@[x]<b>Battlecry:</b> Choose {0}\n|4(Cataclysm,Cataclysms) to unleash!"
-    },
-    {
-      "card_id": "CATA_190p",
-      "name": "Ruthless",
-      "set": "CATACLYSM",
-      "class": "NEUTRAL",
-      "type": "HERO_POWER",
-      "collectible": false,
-      "standard_entity": true,
-      "implementation": "not_implemented",
-      "source_blocks": 10,
-      "play_blocks": 5,
-      "trigger_blocks": 0,
-      "text": "+$a5 Attack this turn."
-    },
-    {
-      "card_id": "CATA_496",
-      "name": "Cursed Chains",
-      "set": "CATACLYSM",
-      "class": "WARLOCK",
-      "type": "SPELL",
-      "collectible": true,
-      "standard_entity": true,
-      "implementation": "not_implemented",
-      "source_blocks": 6,
-      "play_blocks": 3,
-      "trigger_blocks": 0,
-      "text": "[x]Take control of an\nenemy minion until\nthe end of their turn.\n It can't attack this turn."
     },
     {
       "card_id": "DINO_431",
@@ -383,7 +355,7 @@
       "type": "HERO_POWER",
       "collectible": false,
       "standard_entity": true,
-      "implementation": "not_implemented",
+      "implementation": "declarative",
       "source_blocks": 10,
       "play_blocks": 5,
       "trigger_blocks": 0,
@@ -495,7 +467,7 @@
       "type": "SPELL",
       "collectible": true,
       "standard_entity": true,
-      "implementation": "not_implemented",
+      "implementation": "declarative",
       "source_blocks": 6,
       "play_blocks": 3,
       "trigger_blocks": 0,

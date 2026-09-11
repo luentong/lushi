@@ -10,7 +10,7 @@ The importer strips those identifiers before analysis.
 - Revealed card/enchantment entities: 80
 - Entities belonging to the pinned Standard sets: 71
 - Standard cards observed in PLAY blocks: 35
-- Played Standard cards still lacking executable rules: 16
+- Played Standard cards still lacking executable rules: 14
 
 ## Real-play implementation priority
 
@@ -19,8 +19,6 @@ The importer strips those identifiers before analysis.
 | `CAP_404` | Harsh Sentence | WARLOCK | SPELL | 2 | 0 |
 | `CATA_155` | Arisen Onyxia | DEATHKNIGHT | MINION | 1 | 3 |
 | `CATA_190h` | Deathwing, Worldbreaker |  | HERO | 1 | 1 |
-| `CATA_190p` | Ruthless | NEUTRAL | HERO_POWER | 5 | 0 |
-| `CATA_496` | Cursed Chains | WARLOCK | SPELL | 3 | 0 |
 | `DINO_431` | Atlasaurus | PRIEST | MINION | 1 | 1 |
 | `EDR_449` | Lunarwing Messenger | PRIEST | MINION | 1 | 3 |
 | `EDR_449p` | Blessing of the Moon | PRIEST | HERO_POWER | 3 | 0 |

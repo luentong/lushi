@@ -21,6 +21,7 @@ class Hook(StrEnum):
     AFTER_ATTACK = "after_attack"
     AFTER_HERO_ATTACK = "after_hero_attack"
     LOCATION = "location"
+    HERO_POWER = "hero_power"
     START_TURN = "start_turn"
     END_TURN = "end_turn"
 
@@ -66,7 +67,9 @@ DECLARATIVE_METADATA_ALIASES = {
 STANDARD_DECLARATIVE_IDS = {
     "CATA_131",
     "CATA_138",
+    "CATA_190p",
     "CATA_492",
+    "CATA_496",
     "CATA_725",
     "CORE_CS2_004",
     "CORE_CS2_062",
@@ -415,6 +418,27 @@ class ShuffleActionTargetIntoOwnerDeck:
         game._event(
             "shuffle_minion", player=owner.index, card=target.card_id,
             entity=target.entity_id, source=context.card.card_id,
+        )
+
+
+@dataclass(frozen=True)
+class TakeControlActionTargetUntilEndOfOwnerTurn:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        owner = game.players[context.action.target_player]
+        target = game._find_minion(owner.index, context.action.target_entity)
+        owner.board.remove(target)
+        context.player.board.append(target)
+        target.return_control_to = owner.index
+        target.return_control_at_end_of_turn = owner.index
+        target.cant_attack_turn = game.turn
+        game._refresh_continuous(owner)
+        game._refresh_continuous(context.player)
+        game._event(
+            "temporary_control", player=context.player.index,
+            target_player=owner.index, entity=target.entity_id,
+            card=target.card_id, source=context.card.card_id,
         )
 
 
@@ -777,6 +801,22 @@ def build_rule_registry() -> RuleRegistry:
                 "powerlog_verified", "Power.log 23282dea + HearthstoneJSON 251332",
                 verification=("test_shrine_of_twilight_location_heralds_and_draws",),
             ),
+        ),
+        CardRule(
+            "CATA_190p", {Hook.HERO_POWER: (GainHeroAttack(5),)},
+            RuleSource(
+                "powerlog_verified", "Power.log 23282dea + HearthstoneJSON 251332",
+                verification=("test_ruthless_custom_hero_power",),
+            ),
+        ),
+        CardRule(
+            "CATA_496",
+            {Hook.SPELL: (TakeControlActionTargetUntilEndOfOwnerTurn(),)},
+            RuleSource(
+                "powerlog_verified", "Power.log 23282dea + HearthstoneJSON 251332",
+                verification=("test_cursed_chains_temporarily_controls_and_returns_minion",),
+            ),
+            TargetSpec(TargetKind.ENEMY_MINION),
         ),
         CardRule(
             "CATA_725",

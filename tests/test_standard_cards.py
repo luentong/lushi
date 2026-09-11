@@ -372,6 +372,29 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(14, game.players[0].mana)
         self.assertEqual(6, len(game.players[0].hand))
 
+    def test_cursed_chains_temporarily_controls_and_returns_minion(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        spell = self.add_hand(game, "CATA_496")
+        game.step(Action("PLAY", spell.entity_id, 1, target.entity_id))
+        self.assertIn(target, game.players[0].board)
+        self.assertNotIn(target, game.players[1].board)
+        self.assertTrue(target.cant_attack_turn == game.turn)
+        game._end_turn()  # Player 1's turn starts; control is retained.
+        self.assertIn(target, game.players[0].board)
+        game._end_turn()  # End of the original owner's turn returns control.
+        self.assertIn(target, game.players[1].board)
+        self.assertNotIn(target, game.players[0].board)
+
+    def test_ruthless_custom_hero_power(self):
+        game = self.game()
+        game.players[0].hero_power_id = "CATA_190p"
+        game.players[0].mana = 2
+        self.assertEqual(2, game._hero_power_cost(game.players[0]))
+        game.step(Action("HERO_POWER"))
+        self.assertEqual(5, game.players[0].hero_attack_bonus)
+        self.assertTrue(game.players[0].hero_power_used)
+
 
 if __name__ == "__main__":
     unittest.main()

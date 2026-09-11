@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 68,
+      "declarative": 70,
       "legacy_compatibility": 236,
-      "not_implemented": 1857
+      "not_implemented": 1855
     },
     "collectible_implementation": {
-      "declarative": 62,
+      "declarative": 63,
       "legacy_compatibility": 222,
-      "not_implemented": 882
+      "not_implemented": 881
     },
     "fully_implemented": false
   },
@@ -2010,9 +2010,9 @@
       "mechanics": "",
       "text": "+$a5 Attack this turn.",
       "text_sha256": "ce0659e28acc12ce28aeacbca9bff949fac1f944339c8e8b0384b71e5727e3d2",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_190pe",
@@ -3495,9 +3495,9 @@
       "mechanics": "",
       "text": "Take control of an enemy minion until the end of their turn. It can't attack this turn.",
       "text_sha256": "e8a9f6c8dabb09203ddddff1f7ab135dde4c0a38dbdd61c620f98301f3a9abb7",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_496e",

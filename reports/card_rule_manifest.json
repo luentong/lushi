@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 308,
-    "declarative_rules": 68,
+    "supported_cards": 310,
+    "declarative_rules": 70,
     "legacy_special_case_rules": 1,
     "legacy_compatibility_rules": 239,
     "cards_with_upstream_match": 85
@@ -289,6 +289,30 @@
       "verification_status": "regression_suite_only"
     },
     {
+      "card_id": "CATA_190p",
+      "implementation": "declarative",
+      "hooks": [
+        "hero_power"
+      ],
+      "effects": {
+        "hero_power": [
+          "GainHeroAttack"
+        ]
+      },
+      "rule_source": {
+        "kind": "powerlog_verified",
+        "reference": "Power.log 23282dea + HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_ruthless_custom_hero_power"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
       "card_id": "CATA_200",
       "implementation": "legacy_compatibility",
       "hooks": [],
@@ -419,6 +443,30 @@
         "license": null,
         "verification": [
           "test_shrine_of_twilight_location_heralds_and_draws"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
+      "card_id": "CATA_496",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "TakeControlActionTargetUntilEndOfOwnerTurn"
+        ]
+      },
+      "rule_source": {
+        "kind": "powerlog_verified",
+        "reference": "Power.log 23282dea + HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_cursed_chains_temporarily_controls_and_returns_minion"
         ]
       },
       "metadata_source": "HearthstoneJSON build 251332",

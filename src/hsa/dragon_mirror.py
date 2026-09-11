@@ -601,6 +601,9 @@ class CardInstance:
     mana_spent_while_held: int = 0
     minion_played_while_held: bool = False
     temporary: bool = False
+    return_control_to: int | None = None
+    return_control_at_end_of_turn: int | None = None
+    cant_attack_turn: int = -1
 
     @property
     def card_id(self) -> str:
@@ -697,6 +700,7 @@ class Player:
     hero_power_used: bool = False
     hero_power_cost_override: int | None = None
     hero_power_armor: int = 2
+    hero_power_id: str | None = None
     fire_spell_played: bool = False
     played_races_this_turn: set[str] = field(default_factory=set)
     played_races_last_turn: set[str] = field(default_factory=set)
@@ -1589,6 +1593,30 @@ class DragonMirrorGame:
                     "temporary_expire", player=player.index,
                     card=card.card_id, entity=card.entity_id,
                 )
+        for controller in self.players:
+            for minion in list(controller.board):
+                if minion.return_control_at_end_of_turn != player.index:
+                    continue
+                owner = self.players[minion.return_control_to]
+                controller.board.remove(minion)
+                minion.return_control_to = None
+                minion.return_control_at_end_of_turn = None
+                if len(owner.board) + len(owner.locations) < 7:
+                    owner.board.append(minion)
+                    self._refresh_continuous(controller)
+                    self._refresh_continuous(owner)
+                    self._event(
+                        "control_return", player=owner.index,
+                        card=minion.card_id, entity=minion.entity_id,
+                    )
+                else:
+                    minion.damage = minion.max_health
+                    controller.board.append(minion)
+                    self._event(
+                        "control_return_failed", player=owner.index,
+                        card=minion.card_id, entity=minion.entity_id,
+                    )
+                    self._resolve_deaths()
         self._event("turn_end", player=self.current)
         self._start_turn(1 - self.current)
 
@@ -1962,6 +1990,8 @@ class DragonMirrorGame:
         return dynamic_seer_damage + generic_damage
 
     def _hero_power_cost(self, player: Player) -> int:
+        if player.hero_power_id is not None:
+            return self.card_defs[player.hero_power_id].cost
         free = any(
             minion.card_id == "TIME_606"
             and not minion.silenced
@@ -1975,6 +2005,15 @@ class DragonMirrorGame:
         return 1 if player.card_class == "DEMONHUNTER" else 2
 
     def _hero_power_actions(self, player: Player) -> list[Action]:
+        if player.hero_power_id is not None:
+            target_spec = self.rule_registry.targeting(player.hero_power_id)
+            if target_spec is None:
+                return [Action("HERO_POWER")]
+            card = CardInstance(-1, self.card_defs[player.hero_power_id])
+            return [
+                Action("HERO_POWER", target_player=owner, target_entity=entity)
+                for owner, entity in self._rule_targets(player, card, target_spec.kind)
+            ]
         card_class = player.card_class
         if card_class in {"MAGE", "PRIEST"}:
             targets = self._friendly_characters(player.index)
@@ -1999,6 +2038,21 @@ class DragonMirrorGame:
         player = self.players[self.current]
         self._spend_mana(player, self._hero_power_cost(player))
         player.hero_power_used = True
+        if player.hero_power_id is not None:
+            card = CardInstance(-1, self.card_defs[player.hero_power_id])
+            if not self.rule_registry.dispatch(
+                Hook.HERO_POWER, card.card_id, self,
+                RuleContext(player=player, card=card, action=action),
+            ):
+                raise UnsupportedGeneratedCard(
+                    f"hero power has no executable rule: {card.card_id}"
+                )
+            self._event(
+                "hero_power", player=player.index, card_id=card.card_id,
+                target_player=action.target_player,
+                target_entity=action.target_entity,
+            )
+            return
         card_class = player.card_class
         if card_class == "WARRIOR":
             self._gain_armor(player, player.hero_power_armor)
@@ -2339,6 +2393,7 @@ class DragonMirrorGame:
                 or minion.attack <= 0
                 or minion.frozen_turn >= 0
                 or minion.cant_attack
+                or minion.cant_attack_turn == self.turn
             ):
                 continue
             enemy = self.players[1 - self.current]
@@ -5284,7 +5339,7 @@ class DragonMirrorGame:
             location = next(x for x in player.locations if x.entity_id == action.source)
             return f"P{self.current + 1} LOCATION {location.card_id}#{location.entity_id} -> {self._target_label(action.target_player, action.target_entity)}"
         if action.kind == "HERO_POWER":
-            return f"P{self.current + 1} HERO_POWER Armor Up"
+            return f"P{self.current + 1} HERO_POWER {player.hero_power_id or player.card_class}"
         return f"P{self.current + 1} END_TURN"
 
     def snapshot(self) -> dict[str, Any]:
@@ -5350,6 +5405,7 @@ class DragonMirrorGame:
                 "max_mana": player.max_mana,
                 "hero_attack": player.attack,
                 "hero_power_cost": self._hero_power_cost(player),
+                "hero_power_id": player.hero_power_id,
                 "hero_power_armor": player.hero_power_armor,
                 "spell_damage": self._spell_damage(player),
                 "herald_count": player.herald_count,
