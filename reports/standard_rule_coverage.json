@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 70,
-      "legacy_compatibility": 236,
-      "not_implemented": 1855
+      "declarative": 121,
+      "legacy_compatibility": 245,
+      "not_implemented": 1795
     },
     "collectible_implementation": {
-      "declarative": 63,
-      "legacy_compatibility": 222,
-      "not_implemented": 881
+      "declarative": 102,
+      "legacy_compatibility": 225,
+      "not_implemented": 839
     },
     "fully_implemented": false
   },
@@ -420,9 +420,9 @@
       "mechanics": "LIFESTEAL",
       "text": "Lifesteal Summoned When Drawn (for your opponent)",
       "text_sha256": "3572e0c6a7e924cffc1a2b72539114967890e4b7d37676a03b3b5c7e947fc47a",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_401",
@@ -510,9 +510,9 @@
       "mechanics": "",
       "text": "Enemy minions cost (2) more next turn. Put two 3/3 Imp-formants into the enemy deck.",
       "text_sha256": "3c3d1973e510a089fb0c688d5f9454757c254e8dd2db020eefa04c9b433f7b46",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_404e",
@@ -1410,9 +1410,9 @@
       "mechanics": "TRIGGER_VISUAL",
       "text": "At the end of your turn, gain +1/+1.",
       "text_sha256": "8a9e8dd486ce6a660556463ded1fab9696734abd0de6f027d4db6d13e89d374d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_139t2",
@@ -1425,9 +1425,9 @@
       "mechanics": "TRIGGER_VISUAL",
       "text": "At the end of your turn, gain +1/+1.",
       "text_sha256": "8a9e8dd486ce6a660556463ded1fab9696734abd0de6f027d4db6d13e89d374d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_139t3",
@@ -1440,9 +1440,9 @@
       "mechanics": "TRIGGER_VISUAL",
       "text": "At the end of your turn, gain +1/+1.",
       "text_sha256": "8a9e8dd486ce6a660556463ded1fab9696734abd0de6f027d4db6d13e89d374d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_139t4",
@@ -1455,9 +1455,9 @@
       "mechanics": "TRIGGER_VISUAL",
       "text": "At the end of your turn, gain +1/+1.",
       "text_sha256": "8a9e8dd486ce6a660556463ded1fab9696734abd0de6f027d4db6d13e89d374d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_139te",
@@ -1740,9 +1740,9 @@
       "mechanics": "COLOSSAL,TRIGGER_VISUAL",
       "text": "Colossal +2. When your hero would lose Health on your turn, gain that much max Health instead.",
       "text_sha256": "30cc44c98fd9f697fe52ca20465822c4c2b091387c49ecfe0c2b69c32e7b4737",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_155e",
@@ -1785,9 +1785,9 @@
       "mechanics": "",
       "text": "When summoned, get a random {0}-Cost minion. It costs Health this turn. Herald twice to upgrade. @When summoned, get a random {0}-Cost minion. It costs Health this turn. Herald once to upgrade. @When summoned, get a random {0}-Cost minion. It costs Health this turn.",
       "text_sha256": "3d1d050fccd340a11208ccdc1c2479cdcb042975237452686082516b79628b61",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_155t1",
@@ -1800,9 +1800,9 @@
       "mechanics": "",
       "text": "When summoned, get a random {0}-Cost minion. It costs Health this turn. Herald twice to upgrade. @When summoned, get a random {0}-Cost minion. It costs Health this turn. Herald once to upgrade. @When summoned, get a random {0}-Cost minion. It costs Health this turn.",
       "text_sha256": "3d1d050fccd340a11208ccdc1c2479cdcb042975237452686082516b79628b61",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_156",
@@ -2475,9 +2475,9 @@
       "mechanics": "",
       "text": "Deal $5 damage to a minion. If it dies, restore #5 Health to the enemy hero.",
       "text_sha256": "88f6af54a79de030684eb18116e650e2424875c6e37e5147ddc315af8d68c379",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_304",
@@ -4350,9 +4350,9 @@
       "mechanics": "",
       "text": "Deal $1 damage to all minions. (Improved for each minion on the battlefield.)",
       "text_sha256": "0fcbfc2f7918c575d6a9a8c937dd56ff0db7c21a408894827985506fe237a6ea",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_582",
@@ -6255,9 +6255,9 @@
       "mechanics": "",
       "text": "Deal $6 damage.",
       "text_sha256": "c1a9b901409f63e6d95dc0ff0d1e1b1d6e5618496ee56570ca98b3d455867ed3",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_CS2_032",
@@ -6270,9 +6270,9 @@
       "mechanics": "",
       "text": "Deal $5 damage to all enemy minions.",
       "text_sha256": "e44278a5e248189168fc0bbd4f0b7230991d02aec886c31cffd3f864fabbd24f",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_CS2_039e",
@@ -7560,9 +7560,9 @@
       "mechanics": "SECRET",
       "text": "Secret: When your hero is attacked, deal $2 damage to all enemies.",
       "text_sha256": "4355e3441af781ad9d7d9cdb977920a309373fd2ce9cb68417952c4de04e5b46",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_EX1_611",
@@ -7995,9 +7995,9 @@
       "mechanics": "SECRET,ImmuneToSpellpower",
       "text": "Secret: After your opponent plays a minion, deal $6 damage to it and any excess to their hero.",
       "text_sha256": "7566fc3842d0ad5b80c26bf639e44fb4872ecf0815767a2e77e6457239ccd698",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_LOOT_137",
@@ -8790,9 +8790,9 @@
       "mechanics": "",
       "text": "Deal $2 damage to a minion. Add a Second Flame to your hand.",
       "text_sha256": "44616ac04961c83c743822dff1ef82bba58833d7c3a1b49e6a9c61a57e7e08dc",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_SW_429",
@@ -10050,9 +10050,9 @@
       "mechanics": "",
       "text": "Deal $4 damage. Give your Elementals +1/+1.",
       "text_sha256": "32b376f755984f0cdcf3a87196b4d088dbce42c317f744fb8c1cb63c502a9570",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "DINO_406e",
@@ -10620,9 +10620,9 @@
       "mechanics": "DEATHRATTLE,TAUNT",
       "text": "Taunt. Deathrattle: Summon a random Taunt minion that costs (5) or more.",
       "text_sha256": "fd15214e21cf5deb222e22c9f1241e5f8a104b796936fa3c05ddb8886d1c80c8",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "DINO_432",
@@ -12195,9 +12195,9 @@
       "mechanics": "DISCOVER",
       "text": "Discover a Nature spell. It costs (2) less.",
       "text_sha256": "f1487a3bdf5fcf9d099c8b786a232c25e14fe58c5bf53b42641711226162edfb",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_270e",
@@ -12225,9 +12225,9 @@
       "mechanics": "TRIGGER_VISUAL",
       "text": "After you cast a Nature spell, summon a 2/2 Treant with \"Deathrattle: Get a copy of that spell.\"",
       "text_sha256": "e882ba27bc13a63312ee01dca3fe5bcc387d74695dafa51120de3854988dd157",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_271t",
@@ -12240,9 +12240,9 @@
       "mechanics": "",
       "text": "Deathrattle: Get {0}.",
       "text_sha256": "dba64cbd72762a7eb99306371f2da1bc17554b9820f6d508fbcba001e6aa3f2d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_272",
@@ -12405,9 +12405,9 @@
       "mechanics": "BATTLECRY,LIFESTEAL",
       "text": "Lifesteal Battlecry: Imbue your Hero Power.",
       "text_sha256": "a4d76c0cc1b3c74f1c56e87e7af0144941c4f103caf47d1094ac75a7a79917cd",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_449e",
@@ -12435,9 +12435,9 @@
       "mechanics": "",
       "text": "Choose a playable Priest minion or spell to add to your hand. It costs (",
       "text_sha256": "7c98bbeca1173d417c9bc93a1c541c091ee6ce622c3548570ea8903329db1126",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_451",
@@ -14685,9 +14685,9 @@
       "mechanics": "",
       "text": "Get all 5 Dream cards. If you've played a higher Cost card while holding this, corrupt them!",
       "text_sha256": "73626d752d287cd5ec3ca565213245885a739a4629e73a20b2dd9310247eb59b",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_846t1",
@@ -14700,9 +14700,9 @@
       "mechanics": "",
       "text": "Give a minion Immune this turn and +5/+5.",
       "text_sha256": "b1d73d9f1746fcd7e5b27025155a2dbaae5fcbb397d3f95dd8f23f566ebf3df4",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_846t1e",
@@ -14745,9 +14745,9 @@
       "mechanics": "ELUSIVE",
       "text": "Elusive Your hero is Elusive.",
       "text_sha256": "53b1cba56f9ee3227864a790fddf86e03f1ecedceae8ead0794bedf5bcc1aec7",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_846t3e",
@@ -14790,9 +14790,9 @@
       "mechanics": "",
       "text": "",
       "text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_846te2",
@@ -15030,9 +15030,9 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Imbue your Hero Power.",
       "text_sha256": "ebfcda185b40b9d855adf1b9553d8edf9e3e58c69930105de1e6f53449705a8f",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_853",
@@ -15420,9 +15420,9 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Give all enemy minions -2 Attack until your next turn. Imbue your Hero Power.",
       "text_sha256": "939f5c7fa975ec2aa3dd3d7fb3c20c87200b706f85245f795653db1496b79dec",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_970e",
@@ -16275,9 +16275,9 @@
       "mechanics": "SECRET,ImmuneToSpellpower",
       "text": "Secret: When your enemy's turn ends, deal INFINITE damage to their highest Health minion.",
       "text_sha256": "83055f8f9a51a383d6a8f917399804d460fda106fe561cda5bb049f14deae436",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "END_025",
@@ -16290,9 +16290,9 @@
       "mechanics": "LIFESTEAL",
       "text": "Lifesteal Deal $3 damage to a minion. If it dies, return this to your hand at the end of your turn.",
       "text_sha256": "045800e6297774b4481f402262e455c2df9f13cfef42b837846e4ff552e4a2da",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "END_025e",
@@ -16710,9 +16710,9 @@
       "mechanics": "",
       "text": "Give your minions +1/+1. Discard a random Nature spell to give them +1/+1 more.",
       "text_sha256": "50666992297b34c679b8d416000125d389b576befc2771d60311a9fa51b34a15",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "FIR_906e",
@@ -16785,9 +16785,9 @@
       "mechanics": "",
       "text": "Deal $2 damage to three random enemies.",
       "text_sha256": "7767d7e0328ca3101831d4e8eabaf70cb6822aa783908257fe9982f56b7bb8b8",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "FIR_910",
@@ -16800,9 +16800,9 @@
       "mechanics": "",
       "text": "Deal $3 damage. Discard a random Fire spell to deal $3 more.",
       "text_sha256": "249fa1e30f2623c3cdfcaf703320b02104f404a963c6ca6f1bb9ca20876a10f1",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "FIR_911",
@@ -17040,9 +17040,9 @@
       "mechanics": "",
       "text": "Deal $4 damage to a random enemy minion. If you're holding a card that costs (8) or more, deal $8 instead.",
       "text_sha256": "b43ad1359f0f193f78552c816ebd9187a1a08a198be1b7f601edeb9b724397f2",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "FIR_924",
@@ -17190,9 +17190,9 @@
       "mechanics": "",
       "text": "Draw a minion. Summon an 8/8 copy of it with Divine Shield.",
       "text_sha256": "3c376ab922e52cabeb01859d9b3b52ea40c3d6e26d37b99ec56693085ee16f75",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "FIR_941e1",
@@ -17325,9 +17325,9 @@
       "mechanics": "",
       "text": "Deal $5 damage to a minion. Its owner draws a card.",
       "text_sha256": "c0e12a9730085f790f7824a4ee4ebbb48de2512b8ab876475a815785c88c3e5e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "FIR_955",
@@ -17400,9 +17400,9 @@
       "mechanics": "BATTLECRY",
       "text": "Immune to Fire spells. Battlecry: Cast 15 Mana worth of Fire spells at random enemies.",
       "text_sha256": "1d6013ea56eb247f3ab4b1dc35bb7b3263277d75db59ce7ae29fc2af4fc7dbf4",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "FIR_960",
@@ -17670,9 +17670,9 @@
       "mechanics": "CHOOSE_ONE",
       "text": "Choose One - Give your hero +2 Attack this turn; or get a random Druid card.",
       "text_sha256": "6cff0841f9e86d3ea594b5fe07a003ad2367e4e93e36b4b4b391e05e5af2ee48",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_201a",
@@ -17850,9 +17850,9 @@
       "mechanics": "",
       "text": "Deal $2 damage to all minions twice. If your deck has 25 or more cards, this costs (2) less.",
       "text_sha256": "648280257b546ac9255a06367a1988bcf3d24bf3781724a792443041255945eb",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_311",
@@ -18495,9 +18495,9 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: If you played a copy of an opponent's card while holding this, deal 2 damage to all enemy minions.",
       "text_sha256": "3b207b1b71766d862ad1aa60e546955bcdfd99d92d93323aef9cf78d1ec41a1f",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_433",
@@ -18510,9 +18510,9 @@
       "mechanics": "",
       "text": "Destroy a minion. If you played a copy of an opponent's card while holding this, this costs (1).",
       "text_sha256": "44817f269751bde55e2cfd7df59aaaf33b4edc541f9ec9cd0234b080cba2244d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_434",
@@ -19635,9 +19635,9 @@
       "mechanics": "START_OF_GAME_KEYWORD",
       "text": "Start of Game: Overdrawn cards return to your hand when you have space. They cost (1) less.",
       "text_sha256": "3ac76192e46c178b815f3ec29cc8fc7ed31543daeee1ffec6cb3f0b473b7382c",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_509e",
@@ -19680,9 +19680,9 @@
       "mechanics": "",
       "text": "Summon a Demon with stats equal to your hand size. It attacks a random enemy minion.",
       "text_sha256": "43df785f7139128ecd7c043921ad5693e5500b37a9effdbd1232d10cf3b3d167",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_511e",
@@ -19710,9 +19710,9 @@
       "mechanics": "",
       "text": "",
       "text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_513",
@@ -20145,9 +20145,9 @@
       "mechanics": "",
       "text": "Deal $4 damage. (Cast 3 spells to turn into a minion!)",
       "text_sha256": "503723e60b8b11bfd466af3a05f656dd9d1b08462289385d9068cc9364b007b7",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_801t",
@@ -20160,9 +20160,9 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Deal 4 damage.",
       "text_sha256": "c4b9d8dc41b8c8eb77b2978ffe28fa18e470776cf3c4236833cc910f3312bd6e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_802",
@@ -20520,9 +20520,9 @@
       "mechanics": "DISCOVER,TRIGGER_VISUAL",
       "text": "After your hero attacks, Discover a Druid card. Reduce its Cost by your hero's Attack.",
       "text_sha256": "993cdddaabb1aceed26a6d9610113931272b553fecb640027eca274dadeb83fd",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_875e",
@@ -20970,9 +20970,9 @@
       "mechanics": "DEATHRATTLE,TAUNT",
       "text": "Prepare, Taunt Deathrattle: Restore #6 Health to your hero. Summon a random 6-Cost minion.",
       "text_sha256": "ee043b62c3fc7fbf664defb14bce29a9a534d9d850a4469225df9aeeb2615de2",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_913",
@@ -21390,9 +21390,9 @@
       "mechanics": "",
       "text": "Restore #8 Health to all friendly characters. Summon two random 8-Cost minions.",
       "text_sha256": "7b8e08282c7de1501248af0540af6ed8091fab151d99eaf0de4bb48fab0964d3",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "MEND_043",
@@ -25590,9 +25590,9 @@
       "mechanics": "DISCOVER",
       "text": "Discover a copy of a card from your deck and one from your opponent's.",
       "text_sha256": "a84253bcb836b787f5c85075d97ae44ae395af9526e78415effc883a1e2335ba",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_433",
@@ -27435,9 +27435,9 @@
       "mechanics": "BATTLECRY",
       "text": "Fabled. Costs (0) if you control Karazhan. Battlecry: Silence and destroy all other minions.",
       "text_sha256": "f6a17a55b2c7f07e8bc9df44ea6a882fcd6add0d870bf3b9c9a6205389fa3ede",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_890t",
@@ -27450,9 +27450,9 @@
       "mechanics": "",
       "text": "Costs (0) if you control Medivh. Double the damage and healing of your spells.",
       "text_sha256": "8be81cfc67bba8c18c94f14acf425c3badaa1e94688e9e90122eefa84873f703",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_890t2",
@@ -27465,9 +27465,9 @@
       "mechanics": "",
       "text": "Costs (0) if you're wielding Atiesh. Summon two random 8-Cost minions.",
       "text_sha256": "47944b666bab48ba2e4916afbb6e5e25468112d4a11215413afc8d076bef33ac",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_COIN1",
@@ -28305,9 +28305,9 @@
       "mechanics": "",
       "text": "Deal $3 damage. Summon that many 2/1 Sizzling Cinders.",
       "text_sha256": "e41dad70b433e7d7188edaef21717cbc128941daa34e203cb1268aff02b9bea7",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_222",
@@ -28320,9 +28320,9 @@
       "mechanics": "",
       "text": "Draw two minions of different minion types. Give them +1/+1.",
       "text_sha256": "87fdb0721a960906f23413df09a23a4a33dc1957ea2a74b386c0da08d2942332",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_222e",
@@ -28440,9 +28440,9 @@
       "mechanics": "OVERLOAD",
       "text": "Deal $2 damage to the lowest Health enemy, three times. Overload: (1)",
       "text_sha256": "ae86e8a23aef927f03de346c87923771bda82941d3b4bbde18d8780e3d1743d1",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_228",
@@ -31425,9 +31425,9 @@
       "mechanics": "",
       "text": "Swap your Hero Power to \"Deal 8 damage to a random enemy.\" After 2 uses, swap back.",
       "text_sha256": "ef7fd520b6c9ca1940f55046265962459e59dcbae4cc3ba8d9ce0056462bf0e0",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_632t",
@@ -31440,9 +31440,9 @@
       "mechanics": "",
       "text": "Deal $8 damage to a random enemy. (Two uses left!)",
       "text_sha256": "958062025917ff2ab2fbccaa53e3b8da52d0ef793eb059853538dbb467a32139",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_632t2",
@@ -31455,9 +31455,9 @@
       "mechanics": "",
       "text": "Deal $8 damage to a random enemy. (Last use!)",
       "text_sha256": "38d2eff44ca3824d210f39207a6f28f190397ff53d70782f58955bf48cb3396d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_633",
