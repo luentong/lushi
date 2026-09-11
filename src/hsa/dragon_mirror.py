@@ -600,6 +600,7 @@ class CardInstance:
     dies_at_end_of_turn: bool = False
     mana_spent_while_held: int = 0
     minion_played_while_held: bool = False
+    higher_cost_card_played_while_held: bool = False
     opponent_card_copy_played_while_held: bool = False
     copied_from_opponent: bool = False
     deathrattle_copy_card_id: str | None = None
@@ -608,6 +609,9 @@ class CardInstance:
     return_control_at_end_of_turn: int | None = None
     cant_attack_turn: int = -1
     temporary_attack_modifiers: list[tuple[int, int]] = field(default_factory=list)
+    temporary_health_modifiers: list[tuple[int, int]] = field(default_factory=list)
+    temporary_immune_expiry_turn: int = -1
+    destroy_at_turn_start: int = -1
 
     @property
     def card_id(self) -> str:
@@ -1297,6 +1301,32 @@ class DragonMirrorGame:
                         "temporary_attack_expire", player=owner.index,
                         entity=minion.entity_id, amount=amount,
                     )
+                expired_health = [
+                    modifier for modifier in minion.temporary_health_modifiers
+                    if modifier[1] == index
+                ]
+                for amount, expiry in expired_health:
+                    minion.health_delta -= amount
+                    minion.temporary_health_modifiers.remove((amount, expiry))
+                    self._event(
+                        "temporary_health_expire", player=owner.index,
+                        entity=minion.entity_id, amount=amount,
+                    )
+                if minion.temporary_immune_expiry_turn == index:
+                    minion.immune = False
+                    minion.temporary_immune_expiry_turn = -1
+                    self._event(
+                        "temporary_immune_expire", player=owner.index,
+                        entity=minion.entity_id,
+                    )
+                if minion.destroy_at_turn_start == index:
+                    minion.damage = minion.max_health
+                    minion.destroy_at_turn_start = -1
+                    self._event(
+                        "delayed_destroy", player=owner.index,
+                        entity=minion.entity_id,
+                    )
+        self._resolve_deaths()
         player.turns_taken += 1
         for owner in self.players:
             for minion in owner.board:
@@ -2193,6 +2223,16 @@ class DragonMirrorGame:
                 return minion
         raise ValueError("minion not found")
 
+    def _hero_elusive(self, player_index: int) -> bool:
+        """Return whether a live, unsilenced aura protects this hero."""
+        return any(
+            minion.card_id == "EDR_846t3"
+            and not minion.silenced
+            and minion.dormant_turns == 0
+            and minion.health > 0
+            for minion in self.players[player_index].board
+        )
+
     def _rule_targets(
         self, player: Player, card: CardInstance, target_kind: TargetKind
     ) -> list[tuple[int, int | None]]:
@@ -2210,6 +2250,9 @@ class DragonMirrorGame:
                 card.definition.card_type == "SPELL" and minion.elusive
             )
         ]
+        enemy_hero = [] if (
+            card.definition.card_type == "SPELL" and self._hero_elusive(enemy.index)
+        ) else [(enemy.index, None)]
         if target_kind == TargetKind.FRIENDLY_MINION:
             return friendly_minions
         if target_kind == TargetKind.ENEMY_MINION:
@@ -2219,11 +2262,11 @@ class DragonMirrorGame:
         if target_kind == TargetKind.FRIENDLY_CHARACTER:
             return [(player.index, None)] + friendly_minions
         if target_kind == TargetKind.ENEMY_CHARACTER:
-            return [(enemy.index, None)] + enemy_minions
+            return enemy_hero + enemy_minions
         if target_kind == TargetKind.ANY_CHARACTER:
             return (
                 [(player.index, None)] + friendly_minions
-                + [(enemy.index, None)] + enemy_minions
+                + enemy_hero + enemy_minions
             )
         raise ValueError(f"unsupported target kind: {target_kind}")
 
@@ -2570,6 +2613,11 @@ class DragonMirrorGame:
         held = next(card for card in player.hand if card.entity_id == action.source)
         effective_cost = self._effective_cost(player, held)
         card = self._pop_hand(player, action.source)
+        # "While holding this" uses the card's displayed Cost.  Capture it
+        # before resolving play effects that could mutate the remaining hand.
+        for other in player.hand:
+            if card.cost > other.cost:
+                other.higher_cost_card_played_while_held = True
         if card.card_id == "TLC_436":
             player.corpses -= effective_cost
             self._event(

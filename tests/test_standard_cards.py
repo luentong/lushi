@@ -164,6 +164,71 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(friendly_health, friendly.health)
         self.assertEqual(enemy_health - 5, enemy.health)
 
+    def test_shaladrassil_generates_regular_or_corrupted_dream_set(self):
+        regular = self.game()
+        spell = self.add_hand(regular, "EDR_846")
+        regular.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(
+            {"DREAM_01", "DREAM_02", "DREAM_03", "DREAM_04", "DREAM_05"},
+            {card.card_id for card in regular.players[0].hand},
+        )
+
+        corrupted = self.game()
+        spell = self.add_hand(corrupted, "EDR_846")
+        higher_cost = self.add_hand(corrupted, "JAIL_514")
+        corrupted.step(Action("PLAY", higher_cost.entity_id))
+        corrupted.step(Action("PLAY", spell.entity_id))
+        self.assertTrue(
+            {"EDR_846t1", "EDR_846t2", "EDR_846t3", "EDR_846t4", "EDR_846t5"}
+            .issubset({card.card_id for card in corrupted.players[0].hand})
+        )
+
+    def test_shaladrassil_generated_dream_spells_follow_their_rules(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_CS2_065", 1)
+        nightmare = self.add_hand(game, "DREAM_05")
+        game.step(Action("PLAY", nightmare.entity_id, 1, target.entity_id))
+        self.assertEqual((target.definition.attack + 5, target.definition.health + 5), (target.attack, target.max_health))
+        game._start_turn(1)
+        game._start_turn(0)
+        self.assertNotIn(target, game.players[1].board)
+
+        game = self.game()
+        target = self.add_board(game, "CORE_CS2_065", 1)
+        dream = self.add_hand(game, "DREAM_04")
+        game.step(Action("PLAY", dream.entity_id, 1, target.entity_id))
+        self.assertNotIn(target, game.players[1].board)
+        self.assertIn(target, game.players[1].hand)
+
+        game = self.game()
+        ysera = self.add_board(game, "EX1_572", 0)
+        other = self.add_board(game, "CORE_LOOT_137", 1)
+        awakening = self.add_hand(game, "DREAM_02")
+        game.step(Action("PLAY", awakening.entity_id))
+        self.assertEqual(ysera.definition.health, ysera.health)
+        self.assertEqual(other.definition.health - 5, other.health)
+
+        game = self.game()
+        target = self.add_board(game, "CORE_CS2_065", 1)
+        nightmare = self.add_hand(game, "EDR_846t1")
+        game.step(Action("PLAY", nightmare.entity_id, 1, target.entity_id))
+        self.assertTrue(target.immune)
+        self.assertEqual((target.definition.attack + 5, target.definition.health + 5), (target.attack, target.max_health))
+        game._start_turn(1)
+        self.assertFalse(target.immune)
+        self.assertEqual((target.definition.attack, target.definition.health), (target.attack, target.max_health))
+
+    def test_corrupted_laughing_sister_makes_hero_elusive_to_spells(self):
+        game = self.game()
+        self.add_board(game, "EDR_846t3", 1)
+        spell = self.add_hand(game, "JAIL_941t")
+        targets = {
+            (action.target_player, action.target_entity)
+            for action in game.legal_actions()
+            if action.kind == "PLAY" and action.source == spell.entity_id
+        }
+        self.assertNotIn((1, None), targets)
+
     def test_press_the_advantage_all_effects(self):
         game = self.game()
         spell = self.add_hand(game, "END_007")

@@ -56,6 +56,14 @@ DECLARATIVE_METADATA_IDS = {
     "CAP_400t2t",  # Imp-formant
     "JAIL_511t",  # Shivarra Infiltrator
     "EDR_271t",  # Treant of Life
+    "EX1_572",  # Ysera (for Ysera Awakens exclusion)
+    "DREAM_01",  # Laughing Sister
+    "DREAM_02",  # Ysera Awakens
+    "DREAM_03",  # Emerald Drake
+    "DREAM_04",  # Dream
+    "DREAM_05",  # Nightmare
+    "EDR_846t3",  # Corrupted Laughing Sister
+    "EDR_846t5",  # Corrupted Drake
 }
 
 # Some Core printings retain the historical behavior ID while the pinned JSON
@@ -90,8 +98,12 @@ STANDARD_DECLARATIVE_IDS = {
     "EDR_271t",
     "EDR_449p",
     "EDR_970",
+    "EDR_846",
+    "EDR_846t1",
     "EDR_846t2",
+    "EDR_846t3",
     "EDR_846t4",
+    "EDR_846t5",
     "EDR_476",
     "END_007",
     "END_011",
@@ -795,6 +807,108 @@ class AddToHand:
 
 
 @dataclass(frozen=True)
+class AddShaladrassilDreamCards:
+    """Get the fixed Dream set, using Corrupted versions only if earned."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        regular = ("DREAM_05", "DREAM_04", "DREAM_01", "DREAM_02", "DREAM_03")
+        corrupted = (
+            "EDR_846t1", "EDR_846t2", "EDR_846t3", "EDR_846t4", "EDR_846t5",
+        )
+        card_ids = corrupted if context.card.higher_cost_card_played_while_held else regular
+        for card_id in card_ids:
+            card = game._entity(card_id, created_by=context.card.card_id)
+            if len(context.player.hand) < 10:
+                context.player.hand.append(card)
+                game._event(
+                    "generated_to_hand", player=context.player.index,
+                    card=card.card_id, entity=card.entity_id,
+                    source=context.card.card_id,
+                )
+            else:
+                game._event(
+                    "generated_burned", player=context.player.index,
+                    card=card.card_id, source=context.card.card_id,
+                )
+
+
+@dataclass(frozen=True)
+class ReturnActionTargetToOwnerHand:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None or context.action.target_entity is None:
+            raise ValueError("minion target is required")
+        owner = game.players[context.action.target_player]
+        target = game._find_minion(owner.index, context.action.target_entity)
+        owner.board.remove(target)
+        target.damage = 0
+        target.attack_delta = target.health_delta = 0
+        target.temporary_attack_modifiers.clear()
+        target.temporary_health_modifiers.clear()
+        target.temporary_immune_expiry_turn = -1
+        target.destroy_at_turn_start = -1
+        if len(owner.hand) < 10:
+            owner.hand.append(target)
+            destination = "hand"
+        else:
+            destination = "burned"
+        game._event(
+            "return_to_hand", player=owner.index, entity=target.entity_id,
+            card=target.card_id, source=context.card.card_id, destination=destination,
+        )
+
+
+@dataclass(frozen=True)
+class NightmareBuffThenDestroy:
+    """Classic Dream Nightmare: +5/+5, then destroy at caster's next turn."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None or context.action.target_entity is None:
+            raise ValueError("minion target is required")
+        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        target.attack_delta += 5
+        target.health_delta += 5
+        target.destroy_at_turn_start = context.player.index
+        game._event(
+            "nightmare_buff", player=context.player.index, target=target.entity_id,
+            source=context.card.card_id, destroy_at_turn_start=context.player.index,
+        )
+
+
+@dataclass(frozen=True)
+class CorruptedNightmareBuff:
+    """Corrupted Nightmare: +5/+5 and immune for only the current turn."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None or context.action.target_entity is None:
+            raise ValueError("minion target is required")
+        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        expiry = 1 - context.player.index
+        target.attack_delta += 5
+        target.health_delta += 5
+        target.temporary_attack_modifiers.append((5, expiry))
+        target.temporary_health_modifiers.append((5, expiry))
+        target.immune = True
+        target.temporary_immune_expiry_turn = expiry
+        game._event(
+            "corrupted_nightmare_buff", player=context.player.index,
+            target=target.entity_id, source=context.card.card_id,
+        )
+
+
+@dataclass(frozen=True)
+class DamageAllCharactersExceptYsera:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        amount = self.amount + game._spell_damage(context.player)
+        for player in game.players:
+            game._damage_hero(player, amount, context.card)
+            for minion in list(player.board):
+                if minion.definition.name != "Ysera":
+                    game._damage_minion(player.index, minion, amount, context.card)
+
+
+@dataclass(frozen=True)
 class AddToDeck:
     card_id: str
     count: int = 1
@@ -1126,6 +1240,45 @@ def build_rule_registry() -> RuleRegistry:
                 "Power.log 23282dea + HearthstoneJSON 251332",
                 verification=("test_kaldorei_priestess_reduces_then_restores_enemy_attack",),
             ),
+        ),
+        CardRule(
+            "EDR_846", {Hook.SPELL: (AddShaladrassilDreamCards(),)},
+            RuleSource(
+                "official_text_and_powerlog_verified",
+                "HearthstoneJSON 251332 + Power.log 61e3baf3",
+                verification=("test_shaladrassil_generates_regular_or_corrupted_dream_set",),
+            ),
+        ),
+        CardRule(
+            "DREAM_05", {Hook.SPELL: (NightmareBuffThenDestroy(),)},
+            RuleSource(
+                "official_text", "HearthstoneJSON 251332",
+                verification=("test_shaladrassil_generated_dream_spells_follow_their_rules",),
+            ),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "DREAM_04", {Hook.SPELL: (ReturnActionTargetToOwnerHand(),)},
+            RuleSource(
+                "official_text", "HearthstoneJSON 251332",
+                verification=("test_shaladrassil_generated_dream_spells_follow_their_rules",),
+            ),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "DREAM_02", {Hook.SPELL: (DamageAllCharactersExceptYsera(5), ResolveDeaths())},
+            RuleSource(
+                "official_text", "HearthstoneJSON 251332",
+                verification=("test_shaladrassil_generated_dream_spells_follow_their_rules",),
+            ),
+        ),
+        CardRule(
+            "EDR_846t1", {Hook.SPELL: (CorruptedNightmareBuff(),)},
+            RuleSource(
+                "official_text", "HearthstoneJSON 251332",
+                verification=("test_shaladrassil_generated_dream_spells_follow_their_rules",),
+            ),
+            TargetSpec(TargetKind.ANY_MINION),
         ),
         CardRule(
             "EDR_846t2",
