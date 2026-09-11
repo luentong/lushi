@@ -20,20 +20,11 @@ from .dragon_mirror import (
     SUPPORTED_STADIUM_WEAPONS,
     SUPPORTED_VOID_SOUL_DEMON_IDS,
 )
+from .standard_catalog import STANDARD_SETS_BUILD_251332
 
 
 # Standard on the supplied 2026-09-08 CN snapshot: Core plus the 2025 and
 # released 2026 sets. Keeping this explicit makes rotation assumptions auditable.
-STANDARD_SETS_BUILD_251332 = {
-    "CORE",
-    "EMERALD_DREAM",
-    "THE_LOST_CITY",
-    "TIME_TRAVEL",
-    "CATACLYSM",
-    "ESCAPEFROM_VIOLET_HOLD",
-}
-
-
 # These are deliberately not counted as supported weapons.  Each outer weapon
 # is easy to equip, but its rule opens another card pool that must also be
 # implemented before Stadium Announcer can sample it without silently treating
