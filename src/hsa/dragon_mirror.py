@@ -2972,7 +2972,9 @@ class DragonMirrorGame:
         player = self.players[pending["player"]]
         card = pending["card"]
         self.pending_choice = None
-        context = RuleContext(player=player, card=card)
+        context = RuleContext(
+            player=player, card=card, action=pending.get("action")
+        )
         for effect in effects:
             effect.execute(self, context)
         self._event(

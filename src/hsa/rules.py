@@ -100,6 +100,9 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_302",  # Mend
     "CATA_308",  # Medivh's Triumph
     "JAIL_COIN1",  # The Coin
+    "EDR_463",  # Twilight Influence
+    "EDR_463a",  # Constricting Thorns choice
+    "EDR_463b",  # Controlling Vines choice
     "CATA_131",
     "CATA_303",
     "CATA_138",
@@ -1084,6 +1087,21 @@ class DestroyActionTarget:
 
 
 @dataclass(frozen=True)
+class DestroyActionTargetIfAttackAtMost:
+    maximum_attack: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        if target.attack <= self.maximum_attack:
+            target.damage = target.max_health
+            game._resolve_deaths()
+
+
+@dataclass(frozen=True)
 class ShuffleActionTargetIntoOwnerDeck:
     def execute(self, game: Any, context: RuleContext) -> None:
         if context.action is None or context.action.target_player is None:
@@ -1132,6 +1150,7 @@ class OfferEffectChoice:
             "kind": "RULE_CHOICE",
             "player": context.player.index,
             "card": context.card,
+            "action": context.action,
             "options": self.options,
         }
         game._event(
@@ -2856,5 +2875,17 @@ def build_rule_registry() -> RuleRegistry:
                 "powerlog_verified", local, "JAIL_COIN1", "internal",
                 ("test_latest_powerlog_simple_rules",),
             ),
+        ),
+        CardRule(
+            "EDR_463",
+            {Hook.SPELL: (OfferEffectChoice((
+                ("destroy_low_attack", (DestroyActionTargetIfAttackAtMost(3),)),
+                ("summon_random_two_cost", (SummonRandomExecutableMinion(cost=2),)),
+            )),)},
+            RuleSource(
+                "powerlog_verified", local, "EDR_463", "internal",
+                ("test_latest_powerlog_choice_rules",),
+            ),
+            TargetSpec(TargetKind.ANY_MINION, optional=True),
         ),
     ))

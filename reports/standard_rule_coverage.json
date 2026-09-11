@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 137,
+      "declarative": 138,
       "legacy_compatibility": 245,
-      "not_implemented": 1779
+      "not_implemented": 1778
     },
     "collectible_implementation": {
-      "declarative": 117,
+      "declarative": 118,
       "legacy_compatibility": 225,
-      "not_implemented": 824
+      "not_implemented": 823
     },
     "fully_implemented": false
   },
@@ -12660,9 +12660,9 @@
       "mechanics": "CHOOSE_ONE",
       "text": "Choose One - Destroy a minion with 3 or less Attack; or Summon a random 2-Cost minion.",
       "text_sha256": "e1efad1be6f741ae1ec23d2bd975d3731ad7e0da3ed974f044f21d8b54a00da8",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_463a",

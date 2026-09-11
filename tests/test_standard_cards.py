@@ -156,6 +156,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", coin.entity_id))
         self.assertEqual(1, game.players[0].mana)
 
+    def test_latest_powerlog_choice_rules(self):
+        game = self.game()
+        enemy = self.add_board(game, "CAP_107t", 1)
+        spell = self.add_hand(game, "EDR_463")
+        game.step(Action("PLAY", spell.entity_id, 1, enemy.entity_id))
+        self.assertIsNotNone(game.pending_choice)
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        self.assertNotIn(enemy, game.players[1].board)
+
     def test_first_flame_generates_second_flame(self):
         game = self.game()
         target = self.add_board(game, "CORE_LOOT_137", 1)
