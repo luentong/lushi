@@ -505,6 +505,26 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", spell.entity_id, 1, target.entity_id))
         self.assertNotIn(target, game.players[1].board)
 
+    def test_intertwined_fate_copies_one_card_from_each_deck(self):
+        game = self.game()
+        own = game._entity("GAME_005", started_in_deck=True)
+        opponent = game._entity("CORE_LOOT_137", started_in_deck=True)
+        game.players[0].deck = [own]
+        game.players[1].deck = [opponent]
+        spell = self.add_hand(game, "TIME_432")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual("INTERTWINED_FATE", game.pending_choice["kind"])
+        first = game.pending_choice["options"][0]
+        game.step(Action("DISCOVER_PICK", first.entity_id))
+        self.assertEqual("INTERTWINED_FATE_OPPONENT", game.pending_choice["kind"])
+        second = game.pending_choice["options"][0]
+        game.step(Action("DISCOVER_PICK", second.entity_id))
+        self.assertEqual(2, len(game.players[0].hand))
+        self.assertFalse(first.copied_from_opponent)
+        self.assertTrue(second.copied_from_opponent)
+        self.assertEqual(1, len(game.players[0].deck))
+        self.assertEqual(1, len(game.players[1].deck))
+
 
 if __name__ == "__main__":
     unittest.main()

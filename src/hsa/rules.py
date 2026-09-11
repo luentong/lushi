@@ -100,6 +100,7 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_941",
     "JAIL_941t",
     "TIME_702",
+    "TIME_432",
     "TIME_701",
     "TLC_451",
     "TLC_COIN1",
@@ -183,6 +184,14 @@ class OfferDeckCardDiscover:
             context.player, temporary=self.temporary,
             bottom_unchosen=self.bottom_unchosen,
             source_card_id=context.card.card_id,
+        )
+
+
+@dataclass(frozen=True)
+class OfferIntertwinedFate:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._offer_intertwined_fate(
+            context.player, source_card_id=context.card.card_id
         )
 
 
@@ -1108,6 +1117,14 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_dark_embrace_deals_damage",),
             ),
             TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "TIME_432", {Hook.SPELL: (OfferIntertwinedFate(),)},
+            RuleSource(
+                "powerlog_verified",
+                "Power.log 23282dea + HearthstoneJSON 251332",
+                verification=("test_intertwined_fate_copies_one_card_from_each_deck",),
+            ),
         ),
         CardRule(
             "TIME_702",

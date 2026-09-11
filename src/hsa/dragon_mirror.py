@@ -2237,7 +2237,7 @@ class DragonMirrorGame:
                 ] + [Action("MULLIGAN_CONFIRM")]
             if self.pending_choice["kind"] in {
                 "DISCOVER", "GEDDON_DRAW", "DECK_DISCOVER", "DECK_CARD_DISCOVER",
-                "IMBUE_PICK",
+                "IMBUE_PICK", "INTERTWINED_FATE", "INTERTWINED_FATE_OPPONENT",
             }:
                 return [
                     Action("DISCOVER_PICK", option.entity_id)
@@ -3892,6 +3892,54 @@ class DragonMirrorGame:
                      for card in options],
         )
 
+    def _offer_intertwined_fate(
+        self, player: Player, *, source_card_id: str
+    ) -> None:
+        """Discover one copied card from each deck, in two explicit picks.
+
+        Hearthstone's UI presents the two source pools as one compound choice.
+        The simulator represents the same required outcome as two pending
+        selections, which keeps action encoding fixed while retaining card
+        provenance for downstream copy-synergy cards.
+        """
+        opponent = self.players[1 - player.index]
+
+        def copied_options(owner: Player, *, from_opponent: bool) -> list[CardInstance]:
+            originals = self.rng.sample(owner.deck, min(3, len(owner.deck)))
+            options: list[CardInstance] = []
+            for original in originals:
+                option = original.clone(self.next_entity_id)
+                self.next_entity_id += 1
+                option.started_in_deck = False
+                option.created_by = source_card_id
+                option.copied_from_opponent = from_opponent
+                options.append(option)
+            return options
+
+        own_options = copied_options(player, from_opponent=False)
+        opponent_options = copied_options(opponent, from_opponent=True)
+        if not own_options or not opponent_options:
+            self._event(
+                "intertwined_fate_unavailable", player=player.index,
+                source=source_card_id, own_options=len(own_options),
+                opponent_options=len(opponent_options),
+            )
+            return
+        self.pending_choice = {
+            "kind": "INTERTWINED_FATE",
+            "player": player.index,
+            "source_card_id": source_card_id,
+            "options": own_options,
+            "opponent_options": opponent_options,
+        }
+        self._event(
+            "intertwined_fate_offer", player=player.index, source=source_card_id,
+            own_options=[{"entity": card.entity_id, "card": card.card_id}
+                         for card in own_options],
+            opponent_options=[{"entity": card.entity_id, "card": card.card_id}
+                              for card in opponent_options],
+        )
+
     def _summon_random_executable_minion(
         self, player: Player, *, source_card_id: str,
         cost: int | None = None, min_cost: int | None = None,
@@ -3998,6 +4046,30 @@ class DragonMirrorGame:
                 source=pending["source_card_id"], card=option.card_id,
                 entity=option.entity_id, cost=option.cost,
                 temporary=option.temporary, destination=destination,
+            )
+            return
+        if pending["kind"] == "INTERTWINED_FATE":
+            destination = self._add_generated(player, option)
+            self.pending_choice = {
+                "kind": "INTERTWINED_FATE_OPPONENT",
+                "player": player.index,
+                "source_card_id": pending["source_card_id"],
+                "options": pending["opponent_options"],
+            }
+            self._event(
+                "intertwined_fate_pick", player=player.index,
+                source=pending["source_card_id"], pool="own",
+                card=option.card_id, entity=option.entity_id,
+                destination=destination,
+            )
+            return
+        if pending["kind"] == "INTERTWINED_FATE_OPPONENT":
+            destination = self._add_generated(player, option)
+            self._event(
+                "intertwined_fate_pick", player=player.index,
+                source=pending["source_card_id"], pool="opponent",
+                card=option.card_id, entity=option.entity_id,
+                destination=destination,
             )
             return
         destination = self._add_generated(player, option)
@@ -5585,7 +5657,8 @@ class DragonMirrorGame:
                     if card.entity_id in self.pending_choice["options"]
                 ]
             elif self.pending_choice["kind"] in {
-                "DISCOVER", "GEDDON_DRAW", "DECK_CARD_DISCOVER", "IMBUE_PICK"
+                "DISCOVER", "GEDDON_DRAW", "DECK_CARD_DISCOVER", "IMBUE_PICK",
+                "INTERTWINED_FATE", "INTERTWINED_FATE_OPPONENT",
             }:
                 pending["options"] = [
                     card_state(card, self.players[self.current])
