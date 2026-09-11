@@ -10,7 +10,7 @@ The importer strips those identifiers before analysis.
 - Revealed card/enchantment entities: 103
 - Entities belonging to the pinned Standard sets: 88
 - Standard cards observed in PLAY blocks: 39
-- Played Standard cards still lacking executable rules: 25
+- Played Standard cards still lacking executable rules: 22
 
 ## Real-play implementation priority
 
@@ -21,17 +21,14 @@ The importer strips those identifiers before analysis.
 | `EDR_271` | Grove Shaper | DRUID | MINION | 2 | 0 |
 | `EDR_449` | Lunarwing Messenger | PRIEST | MINION | 1 | 0 |
 | `EDR_449p` | Blessing of the Moon | PRIEST | HERO_POWER | 1 | 0 |
-| `EDR_476` | Moonwell | PRIEST | SPELL | 1 | 0 |
 | `EDR_846` | Shaladrassil | NEUTRAL | SPELL | 1 | 1 |
 | `EDR_846t3` | Corrupted Laughing Sister | DREAM | MINION | 1 | 0 |
 | `EDR_970` | Kaldorei Priestess | PRIEST | MINION | 1 | 0 |
-| `END_011` | Acceleration Aura |  | SPELL | 3 | 5 |
 | `FIR_907` | Amirdrassil | DRUID | LOCATION | 4 | 0 |
 | `JAIL_200` | Infest the Scullery | DRUID | SPELL | 3 | 0 |
 | `JAIL_201` | Secret Ingredient | DRUID | SPELL | 3 | 0 |
 | `JAIL_432` | Mind Sweeper | PRIEST | MINION | 2 | 7 |
 | `JAIL_433` | Unshackle Soul | PRIEST | SPELL | 1 | 2 |
-| `JAIL_872` | Spider Rider | DRUID | MINION | 4 | 7 |
 | `JAIL_875` | Staff of Trickery | DRUID | WEAPON | 2 | 7 |
 | `JAIL_912` | Soothsayer | PRIEST | MINION | 1 | 1 |
 | `MEND_042` | Lifebloom | DRUID | SPELL | 1 | 0 |

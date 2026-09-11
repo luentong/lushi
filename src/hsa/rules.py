@@ -19,6 +19,7 @@ class Hook(StrEnum):
     AFTER_DRAW = "after_draw"
     AFTER_PLAY = "after_play"
     AFTER_ATTACK = "after_attack"
+    AFTER_HERO_ATTACK = "after_hero_attack"
     START_TURN = "start_turn"
     END_TURN = "end_turn"
 
@@ -64,6 +65,7 @@ DECLARATIVE_METADATA_ALIASES = {
 STANDARD_DECLARATIVE_IDS = {
     "CATA_131",
     "CATA_138",
+    "CATA_725",
     "CORE_CS2_004",
     "CORE_CS2_062",
     "CORE_EX1_169",
@@ -74,7 +76,14 @@ STANDARD_DECLARATIVE_IDS = {
     "DINO_432",
     "EDR_846t2",
     "EDR_846t4",
+    "EDR_476",
     "END_007",
+    "END_011",
+    "JAIL_872",
+    "JAIL_510",
+    "JAIL_513",
+    "JAIL_941",
+    "JAIL_941t",
     "TIME_702",
     "TLC_COIN1",
 }
@@ -234,6 +243,50 @@ class DestroyEnemyWeapon:
 
 
 @dataclass(frozen=True)
+class DestroyAllMinions:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for player in game.players:
+            for minion in player.board:
+                minion.damage = minion.max_health
+
+
+@dataclass(frozen=True)
+class SummonMatchingFromBottomDeck:
+    count: int
+    race: str | None = None
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        # The simulator stores the bottom at index 0 and draws from the end.
+        candidates = list(player.deck[:self.count])
+        for card in candidates:
+            if self.race is not None and not card.has_race(self.race):
+                continue
+            if len(player.board) + len(player.locations) >= 7:
+                break
+            player.deck.remove(card)
+            card.summoned_turn = game.turn
+            game._summon(player, card)
+            game._event(
+                "summon_from_bottom_deck", player=player.index,
+                card=card.card_id, entity=card.entity_id,
+                source=context.card.card_id,
+            )
+
+
+@dataclass(frozen=True)
+class HeraldRagnaros:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._herald_ragnaros(context.player, source=context.card.card_id)
+
+
+@dataclass(frozen=True)
+class BuffSourceHealthPerHandCard:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.card.health_delta += len(context.player.hand)
+
+
+@dataclass(frozen=True)
 class GainArmor:
     amount: int
 
@@ -257,6 +310,14 @@ class GainMana:
 
     def execute(self, game: Any, context: RuleContext) -> None:
         context.player.mana += self.amount
+
+
+@dataclass(frozen=True)
+class GrantStartTurnTemporaryMana:
+    turns: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.start_turn_temporary_mana_charges += self.turns
 
 
 @dataclass(frozen=True)
@@ -520,6 +581,34 @@ class HealHero:
 
 
 @dataclass(frozen=True)
+class HealActionTarget:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        if context.action.target_entity is None:
+            target = game.players[context.action.target_player]
+            target.health = min(target.max_health, target.health + self.amount)
+        else:
+            target = game._find_minion(
+                context.action.target_player, context.action.target_entity
+            )
+            target.damage = max(0, target.damage - self.amount)
+
+
+@dataclass(frozen=True)
+class HealFriendlyCharacters:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        player.health = min(player.max_health, player.health + self.amount)
+        for minion in player.board:
+            minion.damage = max(0, minion.damage - self.amount)
+
+
+@dataclass(frozen=True)
 class SetPlayerAttributes:
     values: tuple[tuple[str, Any], ...]
     event: str | None = None
@@ -640,6 +729,14 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule(
+            "CATA_725",
+            {Hook.BATTLECRY: (HeraldRagnaros(),), Hook.DEATHRATTLE: (HealHero(3),)},
+            RuleSource(
+                "powerlog_verified", "Power.log 23282dea + HearthstoneJSON 251332",
+                verification=("test_shadowsworn_disciple_heralds_and_heals_on_death",),
+            ),
+        ),
+        CardRule(
             "DINO_432",
             {Hook.SPELL: (SetActionTargetStats(5, 4, stealth=True), Draw(2))},
             RuleSource(
@@ -669,6 +766,17 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule(
+            "EDR_476",
+            {Hook.SPELL: (
+                DamageHero(4, "opponent"), DamageBoard(4, "opponent"),
+                HealFriendlyCharacters(4), ResolveDeaths(),
+            )},
+            RuleSource(
+                "powerlog_verified", "Power.log 23282dea/61e3baf3 + HearthstoneJSON 251332",
+                verification=("test_moonwell_damages_enemies_and_heals_friends",),
+            ),
+        ),
+        CardRule(
             "END_007",
             {Hook.SPELL: (
                 DamageActionTarget(1), GainHeroAttack(1), Draw(), GainArmor(1),
@@ -677,6 +785,55 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "powerlog_verified", "Power.log 61e3baf3 + HearthstoneJSON 251332",
                 verification=("test_press_the_advantage_all_effects",),
+            ),
+            TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "END_011", {Hook.SPELL: (GrantStartTurnTemporaryMana(3),)},
+            RuleSource(
+                "powerlog_verified", "Power.log 61e3baf3 + HearthstoneJSON 251332",
+                verification=("test_acceleration_aura_grants_three_future_temporary_crystals",),
+            ),
+        ),
+        CardRule(
+            "JAIL_872", {Hook.AFTER_HERO_ATTACK: (Draw(),)},
+            RuleSource(
+                "powerlog_verified", "Power.log 61e3baf3 + HearthstoneJSON 251332",
+                verification=("test_spider_rider_draws_after_hero_attack",),
+            ),
+        ),
+        CardRule(
+            "JAIL_510",
+            {Hook.SPELL: (
+                DestroyAllMinions(), ResolveDeaths(),
+                SummonMatchingFromBottomDeck(3, race="DEMON"),
+            )},
+            RuleSource(
+                "powerlog_verified", "Power.log 23282dea + HearthstoneJSON 251332",
+                verification=("test_annihilation_destroys_all_and_summons_bottom_demons",),
+            ),
+        ),
+        CardRule(
+            "JAIL_513", {Hook.BATTLECRY: (BuffSourceHealthPerHandCard(),)},
+            RuleSource(
+                "powerlog_verified", "Power.log 23282dea + HearthstoneJSON 251332",
+                verification=("test_caged_cranium_counts_hand_after_play",),
+            ),
+        ),
+        CardRule(
+            "JAIL_941",
+            {Hook.SPELL: (HealActionTarget(4), AddToHand("JAIL_941t"))},
+            RuleSource(
+                "powerlog_verified", "Power.log 23282dea + HearthstoneJSON 251332",
+                verification=("test_holy_embrace_heals_and_generates_dark_embrace",),
+            ),
+            TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "JAIL_941t", {Hook.SPELL: (DamageActionTarget(4), ResolveDeaths())},
+            RuleSource(
+                "powerlog_verified", "Power.log 23282dea + HearthstoneJSON 251332",
+                verification=("test_dark_embrace_deals_damage",),
             ),
             TargetSpec(TargetKind.ANY_CHARACTER),
         ),

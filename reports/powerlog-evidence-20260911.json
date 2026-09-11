@@ -6,7 +6,7 @@
     "revealed_entities": 80,
     "standard_entities": 71,
     "standard_played_cards": 35,
-    "unimplemented_standard_played_cards": 25
+    "unimplemented_standard_played_cards": 19
   },
   "priority_from_real_play": [
     {
@@ -94,20 +94,6 @@
       "text": "[x]Take control of an\nenemy minion until\nthe end of their turn.\n It can't attack this turn."
     },
     {
-      "card_id": "CATA_725",
-      "name": "Shadowsworn Disciple",
-      "set": "CATACLYSM",
-      "class": "WARLOCK",
-      "type": "MINION",
-      "collectible": true,
-      "standard_entity": true,
-      "implementation": "not_implemented",
-      "source_blocks": 7,
-      "play_blocks": 2,
-      "trigger_blocks": 2,
-      "text": "<b><b>Battlecry:</b> Herald</b> {0}.\n<b>Deathrattle:</b> Restore #3 Health to your hero."
-    },
-    {
       "card_id": "DINO_431",
       "name": "Atlasaurus",
       "set": "THE_LOST_CITY",
@@ -148,20 +134,6 @@
       "play_blocks": 3,
       "trigger_blocks": 0,
       "text": "[x]Choose a playable Priest\nminion or spell to add to\nyour hand. It costs (<b>"
-    },
-    {
-      "card_id": "EDR_476",
-      "name": "Moonwell",
-      "set": "EMERALD_DREAM",
-      "class": "PRIEST",
-      "type": "SPELL",
-      "collectible": true,
-      "standard_entity": true,
-      "implementation": "not_implemented",
-      "source_blocks": 2,
-      "play_blocks": 1,
-      "trigger_blocks": 0,
-      "text": "Deal $4 damage to all enemy characters. Restore #4 Health to all friendly characters."
     },
     {
       "card_id": "EDR_970",
@@ -206,20 +178,6 @@
       "text": "[x]<b>Start of Game:</b> Overdrawn\ncards return to your hand\nwhen you have space.\nThey cost (1) less."
     },
     {
-      "card_id": "JAIL_510",
-      "name": "Annihilation",
-      "set": "ESCAPEFROM_VIOLET_HOLD",
-      "class": "WARLOCK",
-      "type": "SPELL",
-      "collectible": true,
-      "standard_entity": true,
-      "implementation": "not_implemented",
-      "source_blocks": 12,
-      "play_blocks": 4,
-      "trigger_blocks": 0,
-      "text": "[x]Destroy all minions.\nSummon any Demons\nin the bottom 3 cards\nof your deck."
-    },
-    {
       "card_id": "JAIL_511",
       "name": "Spire of Solitude",
       "set": "ESCAPEFROM_VIOLET_HOLD",
@@ -232,20 +190,6 @@
       "play_blocks": 9,
       "trigger_blocks": 0,
       "text": "[x]Summon a Demon\nwith stats equal to your\nhand size. It attacks a\nrandom enemy minion."
-    },
-    {
-      "card_id": "JAIL_513",
-      "name": "Caged Cranium",
-      "set": "ESCAPEFROM_VIOLET_HOLD",
-      "class": "WARLOCK",
-      "type": "MINION",
-      "collectible": true,
-      "standard_entity": true,
-      "implementation": "not_implemented",
-      "source_blocks": 12,
-      "play_blocks": 4,
-      "trigger_blocks": 0,
-      "text": "[x]<b>Taunt</b>\n<b>Battlecry:</b> Gain +1 Health\n  for each card in your hand. "
     },
     {
       "card_id": "JAIL_514",
@@ -274,34 +218,6 @@
       "play_blocks": 1,
       "trigger_blocks": 1,
       "text": "[x]<b>Prepare</b>, <b>Taunt</b>\n<b>Deathrattle:</b> Restore #6 Health\nto your hero. Summon a\n random 6-Cost minion."
-    },
-    {
-      "card_id": "JAIL_941",
-      "name": "Holy Embrace",
-      "set": "ESCAPEFROM_VIOLET_HOLD",
-      "class": "PRIEST",
-      "type": "SPELL",
-      "collectible": true,
-      "standard_entity": true,
-      "implementation": "not_implemented",
-      "source_blocks": 2,
-      "play_blocks": 1,
-      "trigger_blocks": 0,
-      "text": "Restore #4 Health.\n Get a 'Dark Embrace'\n that deals 4 damage."
-    },
-    {
-      "card_id": "JAIL_941t",
-      "name": "Dark Embrace",
-      "set": "ESCAPEFROM_VIOLET_HOLD",
-      "class": "PRIEST",
-      "type": "SPELL",
-      "collectible": false,
-      "standard_entity": true,
-      "implementation": "not_implemented",
-      "source_blocks": 2,
-      "play_blocks": 1,
-      "trigger_blocks": 0,
-      "text": "Deal $4 damage."
     },
     {
       "card_id": "TIME_432",
@@ -677,7 +593,7 @@
       "type": "MINION",
       "collectible": true,
       "standard_entity": true,
-      "implementation": "not_implemented",
+      "implementation": "declarative",
       "source_blocks": 7,
       "play_blocks": 2,
       "trigger_blocks": 2,
@@ -957,7 +873,7 @@
       "type": "SPELL",
       "collectible": true,
       "standard_entity": true,
-      "implementation": "not_implemented",
+      "implementation": "declarative",
       "source_blocks": 2,
       "play_blocks": 1,
       "trigger_blocks": 0,
@@ -1209,7 +1125,7 @@
       "type": "SPELL",
       "collectible": true,
       "standard_entity": true,
-      "implementation": "not_implemented",
+      "implementation": "declarative",
       "source_blocks": 12,
       "play_blocks": 4,
       "trigger_blocks": 0,
@@ -1251,7 +1167,7 @@
       "type": "MINION",
       "collectible": true,
       "standard_entity": true,
-      "implementation": "not_implemented",
+      "implementation": "declarative",
       "source_blocks": 12,
       "play_blocks": 4,
       "trigger_blocks": 0,
@@ -1335,7 +1251,7 @@
       "type": "SPELL",
       "collectible": true,
       "standard_entity": true,
-      "implementation": "not_implemented",
+      "implementation": "declarative",
       "source_blocks": 2,
       "play_blocks": 1,
       "trigger_blocks": 0,
@@ -1349,7 +1265,7 @@
       "type": "SPELL",
       "collectible": false,
       "standard_entity": true,
-      "implementation": "not_implemented",
+      "implementation": "declarative",
       "source_blocks": 2,
       "play_blocks": 1,
       "trigger_blocks": 0,

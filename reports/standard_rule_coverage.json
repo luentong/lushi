@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 56,
+      "declarative": 64,
       "legacy_compatibility": 236,
-      "not_implemented": 1869
+      "not_implemented": 1861
     },
     "collectible_implementation": {
-      "declarative": 51,
+      "declarative": 58,
       "legacy_compatibility": 222,
-      "not_implemented": 893
+      "not_implemented": 886
     },
     "fully_implemented": false
   },
@@ -4770,9 +4770,9 @@
       "mechanics": "BATTLECRY,DEATHRATTLE",
       "text": "Battlecry: Herald {0}. Deathrattle: Restore #3 Health to your hero.",
       "text_sha256": "c4750f97b477cb1881f75e8a20328f18d319757dfa9ded7031c0513f3bb66286",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_725t",
@@ -12885,9 +12885,9 @@
       "mechanics": "",
       "text": "Deal $4 damage to all enemy characters. Restore #4 Health to all friendly characters.",
       "text_sha256": "68a72c63f98620d5ff14808c867bd826955e0c20ce0758aa4bde7687160231f2",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_477",
@@ -15960,9 +15960,9 @@
       "mechanics": "",
       "text": "At the start of your turn, gain a temporary Mana Crystal. Lasts 3 turns.",
       "text_sha256": "4e612ab361b70cea7071dc18ba4d8079ac13fb09bf1471c49a38982eba32c5a3",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "END_012",
@@ -19665,9 +19665,9 @@
       "mechanics": "",
       "text": "Destroy all minions. Summon any Demons in the bottom 3 cards of your deck.",
       "text_sha256": "905f1535fd3200997552c081915576010b3a20e8ed67119422d48d4ebee25d8e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_511",
@@ -19725,9 +19725,9 @@
       "mechanics": "BATTLECRY,TAUNT",
       "text": "Taunt Battlecry: Gain +1 Health for each card in your hand.",
       "text_sha256": "cf530f385721438900290ad06d8b9290005ee7f60fa4716a72ac75bcabff9d9f",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_513e",
@@ -20505,9 +20505,9 @@
       "mechanics": "TRIGGER_VISUAL",
       "text": "After your hero attacks, draw a card.",
       "text_sha256": "f06799e7e94f17ca198c2bc3374c4755d9dfd82a4031bccf43d7fdd0dd8ff907",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_875",
@@ -21030,9 +21030,9 @@
       "mechanics": "",
       "text": "Restore #4 Health. Get a 'Dark Embrace' that deals 4 damage.",
       "text_sha256": "7a91fa8a844eedd9ad05a105d13a9d697d795745b9400f8063712b9031104f81",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_941t",
@@ -21045,9 +21045,9 @@
       "mechanics": "",
       "text": "Deal $4 damage.",
       "text_sha256": "99d6c78b986ca0c560ec20952f81d352e1b6823be771ebdb1f2f5030d230c6ec",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_942",

@@ -720,6 +720,7 @@ class Player:
     hero_divine_shield_toreth: bool = False
     turns_taken: int = 0
     dragons_played_this_turn: int = 0
+    start_turn_temporary_mana_charges: int = 0
 
     @property
     def attack(self) -> int:
@@ -1311,6 +1312,13 @@ class DragonMirrorGame:
         player.locked_mana = min(player.max_mana, player.overload_next_turn)
         player.overload_next_turn = 0
         player.mana = player.max_mana - player.locked_mana
+        if player.start_turn_temporary_mana_charges:
+            player.mana += 1
+            player.start_turn_temporary_mana_charges -= 1
+            self._event(
+                "start_turn_temporary_mana", player=player.index,
+                remaining=player.start_turn_temporary_mana_charges,
+            )
         player.hero_attack_bonus = 0
         player.hero_attacks_this_turn = 0
         player.hero_power_used = False
@@ -3919,6 +3927,7 @@ class DragonMirrorGame:
         attack_amount: int,
     ) -> None:
         if weapon is None:
+            self._dispatch_after_hero_attack(player)
             return
         if weapon.card_id == "CAP_103":
             cannoneers = [
@@ -4016,6 +4025,26 @@ class DragonMirrorGame:
                 )
         elif weapon.card_id == "JAIL_458" and weapon.ammunition is not None:
             self._fire_tiny_pal_ammunition(player, weapon, attacked)
+        self._dispatch_after_hero_attack(player)
+
+    def _dispatch_after_hero_attack(self, player: Player) -> None:
+        """Run friendly-minion triggers after every hero attack.
+
+        The hook is independent of weapons: Spider Rider must draw after an
+        unarmed hero attack as well as after an armed one.
+        """
+        for minion in list(player.board):
+            if (
+                minion not in player.board
+                or minion.silenced
+                or minion.dormant_turns > 0
+                or minion.health <= 0
+            ):
+                continue
+            self.rule_registry.dispatch(
+                Hook.AFTER_HERO_ATTACK, minion.card_id, self,
+                RuleContext(player=player, card=minion),
+            )
 
     def _offer_ammunition(
         self, player: Player, *, exclude: int | None = None

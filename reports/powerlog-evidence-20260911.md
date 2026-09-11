@@ -10,7 +10,7 @@ The importer strips those identifiers before analysis.
 - Revealed card/enchantment entities: 80
 - Entities belonging to the pinned Standard sets: 71
 - Standard cards observed in PLAY blocks: 35
-- Played Standard cards still lacking executable rules: 25
+- Played Standard cards still lacking executable rules: 19
 
 ## Real-play implementation priority
 
@@ -22,21 +22,15 @@ The importer strips those identifiers before analysis.
 | `CATA_190p` | Ruthless | NEUTRAL | HERO_POWER | 5 | 0 |
 | `CATA_492` | Shrine of Twilight | WARLOCK | LOCATION | 11 | 4 |
 | `CATA_496` | Cursed Chains | WARLOCK | SPELL | 3 | 0 |
-| `CATA_725` | Shadowsworn Disciple | WARLOCK | MINION | 2 | 2 |
 | `DINO_431` | Atlasaurus | PRIEST | MINION | 1 | 1 |
 | `EDR_449` | Lunarwing Messenger | PRIEST | MINION | 1 | 3 |
 | `EDR_449p` | Blessing of the Moon | PRIEST | HERO_POWER | 3 | 0 |
-| `EDR_476` | Moonwell | PRIEST | SPELL | 1 | 0 |
 | `EDR_970` | Kaldorei Priestess | PRIEST | MINION | 1 | 0 |
 | `JAIL_432` | Mind Sweeper | PRIEST | MINION | 1 | 13 |
 | `JAIL_509` | Godfrey the Betrayer | WARLOCK | MINION | 1 | 1 |
-| `JAIL_510` | Annihilation | WARLOCK | SPELL | 4 | 0 |
 | `JAIL_511` | Spire of Solitude | WARLOCK | LOCATION | 9 | 0 |
-| `JAIL_513` | Caged Cranium | WARLOCK | MINION | 4 | 0 |
 | `JAIL_514` | The Unseen Atlas | WARLOCK | SPELL | 3 | 0 |
 | `JAIL_912` | Soothsayer | PRIEST | MINION | 1 | 1 |
-| `JAIL_941` | Holy Embrace | PRIEST | SPELL | 1 | 0 |
-| `JAIL_941t` | Dark Embrace | PRIEST | SPELL | 1 | 0 |
 | `TIME_432` | Intertwined Fate | PRIEST | SPELL | 2 | 0 |
 | `TIME_890` | Medivh the Hallowed | PRIEST | MINION | 1 | 0 |
 | `TIME_890t` | Atiesh the Greatstaff | PRIEST | WEAPON | 1 | 0 |

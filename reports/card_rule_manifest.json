@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 296,
-    "declarative_rules": 56,
+    "supported_cards": 304,
+    "declarative_rules": 64,
     "legacy_special_case_rules": 1,
     "legacy_compatibility_rules": 239,
     "cards_with_upstream_match": 85
@@ -657,6 +657,34 @@
       "metadata_source": "HearthstoneJSON build 251332",
       "upstream_matches": [],
       "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "CATA_725",
+      "implementation": "declarative",
+      "hooks": [
+        "battlecry",
+        "deathrattle"
+      ],
+      "effects": {
+        "battlecry": [
+          "HeraldRagnaros"
+        ],
+        "deathrattle": [
+          "HealHero"
+        ]
+      },
+      "rule_source": {
+        "kind": "powerlog_verified",
+        "reference": "Power.log 23282dea + HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_shadowsworn_disciple_heralds_and_heals_on_death"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
     },
     {
       "card_id": "CATA_898",
@@ -6894,6 +6922,33 @@
       "verification_status": "regression_suite_only"
     },
     {
+      "card_id": "EDR_476",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "DamageHero",
+          "DamageBoard",
+          "HealFriendlyCharacters",
+          "ResolveDeaths"
+        ]
+      },
+      "rule_source": {
+        "kind": "powerlog_verified",
+        "reference": "Power.log 23282dea/61e3baf3 + HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_moonwell_damages_enemies_and_heals_friends"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
       "card_id": "EDR_480",
       "implementation": "legacy_compatibility",
       "hooks": [],
@@ -7413,6 +7468,30 @@
         "license": null,
         "verification": [
           "test_press_the_advantage_all_effects"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
+      "card_id": "END_011",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "GrantStartTurnTemporaryMana"
+        ]
+      },
+      "rule_source": {
+        "kind": "powerlog_verified",
+        "reference": "Power.log 61e3baf3 + HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_acceleration_aura_grants_three_future_temporary_crystals"
         ]
       },
       "metadata_source": "HearthstoneJSON build 251332",
@@ -8399,6 +8478,56 @@
       "verification_status": "regression_suite_only"
     },
     {
+      "card_id": "JAIL_510",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "DestroyAllMinions",
+          "ResolveDeaths",
+          "SummonMatchingFromBottomDeck"
+        ]
+      },
+      "rule_source": {
+        "kind": "powerlog_verified",
+        "reference": "Power.log 23282dea + HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_annihilation_destroys_all_and_summons_bottom_demons"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
+      "card_id": "JAIL_513",
+      "implementation": "declarative",
+      "hooks": [
+        "battlecry"
+      ],
+      "effects": {
+        "battlecry": [
+          "BuffSourceHealthPerHandCard"
+        ]
+      },
+      "rule_source": {
+        "kind": "powerlog_verified",
+        "reference": "Power.log 23282dea + HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_caged_cranium_counts_hand_after_play"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
       "card_id": "JAIL_703",
       "implementation": "legacy_compatibility",
       "hooks": [],
@@ -8461,6 +8590,30 @@
       "metadata_source": "HearthstoneJSON build 251332",
       "upstream_matches": [],
       "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "JAIL_872",
+      "implementation": "declarative",
+      "hooks": [
+        "after_hero_attack"
+      ],
+      "effects": {
+        "after_hero_attack": [
+          "Draw"
+        ]
+      },
+      "rule_source": {
+        "kind": "powerlog_verified",
+        "reference": "Power.log 61e3baf3 + HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_spider_rider_draws_after_hero_attack"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
     },
     {
       "card_id": "JAIL_880",
@@ -8533,6 +8686,56 @@
       "metadata_source": "HearthstoneJSON build 251332",
       "upstream_matches": [],
       "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "JAIL_941",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "HealActionTarget",
+          "AddToHand"
+        ]
+      },
+      "rule_source": {
+        "kind": "powerlog_verified",
+        "reference": "Power.log 23282dea + HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_holy_embrace_heals_and_generates_dark_embrace"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
+      "card_id": "JAIL_941t",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "DamageActionTarget",
+          "ResolveDeaths"
+        ]
+      },
+      "rule_source": {
+        "kind": "powerlog_verified",
+        "reference": "Power.log 23282dea + HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_dark_embrace_deals_damage"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
     },
     {
       "card_id": "JAIL_942",

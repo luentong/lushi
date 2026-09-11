@@ -6,7 +6,7 @@
     "revealed_entities": 103,
     "standard_entities": 88,
     "standard_played_cards": 39,
-    "unimplemented_standard_played_cards": 25
+    "unimplemented_standard_played_cards": 22
   },
   "priority_from_real_play": [
     {
@@ -80,20 +80,6 @@
       "text": "[x]Choose a playable Priest\nminion or spell to add to\nyour hand. It costs (<b>"
     },
     {
-      "card_id": "EDR_476",
-      "name": "Moonwell",
-      "set": "EMERALD_DREAM",
-      "class": "PRIEST",
-      "type": "SPELL",
-      "collectible": true,
-      "standard_entity": true,
-      "implementation": "not_implemented",
-      "source_blocks": 2,
-      "play_blocks": 1,
-      "trigger_blocks": 0,
-      "text": "Deal $4 damage to all enemy characters. Restore #4 Health to all friendly characters."
-    },
-    {
       "card_id": "EDR_846",
       "name": "Shaladrassil",
       "set": "EMERALD_DREAM",
@@ -134,20 +120,6 @@
       "play_blocks": 1,
       "trigger_blocks": 0,
       "text": "[x]<b>Battlecry:</b> Give all enemy\nminions -2 Attack until\nyour next turn. <b>Imbue</b>\nyour Hero Power."
-    },
-    {
-      "card_id": "END_011",
-      "name": "Acceleration Aura",
-      "set": "TIME_TRAVEL",
-      "class": "",
-      "type": "SPELL",
-      "collectible": true,
-      "standard_entity": true,
-      "implementation": "not_implemented",
-      "source_blocks": 8,
-      "play_blocks": 3,
-      "trigger_blocks": 5,
-      "text": "At the start of your turn, gain a temporary Mana Crystal. Lasts 3 turns."
     },
     {
       "card_id": "FIR_907",
@@ -218,20 +190,6 @@
       "play_blocks": 1,
       "trigger_blocks": 2,
       "text": "[x]Destroy a minion.\nIf you played a copy of an\nopponent's card while\nholding this, this costs (1)."
-    },
-    {
-      "card_id": "JAIL_872",
-      "name": "Spider Rider",
-      "set": "ESCAPEFROM_VIOLET_HOLD",
-      "class": "DRUID",
-      "type": "MINION",
-      "collectible": true,
-      "standard_entity": true,
-      "implementation": "not_implemented",
-      "source_blocks": 18,
-      "play_blocks": 4,
-      "trigger_blocks": 7,
-      "text": "After your hero attacks, draw a card."
     },
     {
       "card_id": "JAIL_875",
@@ -817,7 +775,7 @@
       "type": "SPELL",
       "collectible": true,
       "standard_entity": true,
-      "implementation": "not_implemented",
+      "implementation": "declarative",
       "source_blocks": 2,
       "play_blocks": 1,
       "trigger_blocks": 0,
@@ -999,7 +957,7 @@
       "type": "SPELL",
       "collectible": true,
       "standard_entity": true,
-      "implementation": "not_implemented",
+      "implementation": "declarative",
       "source_blocks": 8,
       "play_blocks": 3,
       "trigger_blocks": 5,
@@ -1363,7 +1321,7 @@
       "type": "MINION",
       "collectible": true,
       "standard_entity": true,
-      "implementation": "not_implemented",
+      "implementation": "declarative",
       "source_blocks": 18,
       "play_blocks": 4,
       "trigger_blocks": 7,

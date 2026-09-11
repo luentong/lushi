@@ -225,6 +225,98 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", spell.entity_id, 1, None))
         self.assertEqual(28, game.players[1].health)
 
+    def test_moonwell_damages_enemies_and_heals_friends(self):
+        game = self.game()
+        game.players[0].health = 25
+        friendly = self.add_board(game, "CORE_LOOT_137", 0)
+        friendly.damage = 3
+        enemy = self.add_board(game, "CORE_LOOT_137", 1)
+        enemy_health = enemy.health
+        spell = self.add_hand(game, "EDR_476")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual((29, 26), (
+            game.players[0].health, game.players[1].health,
+        ))
+        self.assertEqual(friendly.max_health, friendly.health)
+        self.assertEqual(enemy_health - 4, enemy.health)
+
+    def test_spider_rider_draws_after_hero_attack(self):
+        game = self.game()
+        self.add_board(game, "JAIL_872", 0)
+        game.players[0].hero_attack_bonus = 1
+        game.step(Action("HERO_ATTACK", None, 1, None))
+        self.assertEqual(1, len(game.players[0].hand))
+
+    def test_holy_embrace_heals_and_generates_dark_embrace(self):
+        game = self.game()
+        game.players[0].health = 20
+        spell = self.add_hand(game, "JAIL_941")
+        game.step(Action("PLAY", spell.entity_id, 0, None))
+        self.assertEqual(24, game.players[0].health)
+        self.assertEqual(["JAIL_941t"], [
+            card.card_id for card in game.players[0].hand
+        ])
+
+    def test_dark_embrace_deals_damage(self):
+        game = self.game()
+        spell = self.add_hand(game, "JAIL_941t")
+        game.step(Action("PLAY", spell.entity_id, 1, None))
+        self.assertEqual(26, game.players[1].health)
+
+    def test_shadowsworn_disciple_heralds_and_heals_on_death(self):
+        game = self.game()
+        game.players[0].health = 20
+        disciple = self.add_hand(game, "CATA_725")
+        game.step(Action("PLAY", disciple.entity_id))
+        self.assertEqual(1, game.players[0].herald_count)
+        self.assertTrue(any(
+            card.card_id == "CATA_580t" for card in game.players[0].board
+        ))
+        disciple.damage = disciple.max_health
+        game._resolve_deaths()
+        self.assertEqual(23, game.players[0].health)
+
+    def test_annihilation_destroys_all_and_summons_bottom_demons(self):
+        game = self.game()
+        game.players[0].deck = [
+            game._entity("CORE_SW_068"),
+            game._entity("CORE_LOOT_137"),
+            game._entity("JAIL_007"),
+        ]
+        self.add_board(game, "CORE_LOOT_137", 0)
+        self.add_board(game, "CORE_LOOT_137", 1)
+        spell = self.add_hand(game, "JAIL_510")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertFalse(game.players[1].board)
+        self.assertEqual(
+            {"CORE_SW_068", "JAIL_007"},
+            {card.card_id for card in game.players[0].board},
+        )
+
+    def test_caged_cranium_counts_hand_after_play(self):
+        game = self.game()
+        cranium = self.add_hand(game, "JAIL_513")
+        self.add_hand(game, "GAME_005")
+        self.add_hand(game, "GAME_005")
+        game.step(Action("PLAY", cranium.entity_id))
+        self.assertEqual(cranium.definition.health + 2, cranium.max_health)
+
+    def test_acceleration_aura_grants_three_future_temporary_crystals(self):
+        game = self.game()
+        game.players[0].max_mana = 5
+        spell = self.add_hand(game, "END_011")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(3, game.players[0].start_turn_temporary_mana_charges)
+        for maximum, remaining in ((6, 2), (7, 1), (8, 0)):
+            game._start_turn(0)
+            self.assertEqual(maximum, game.players[0].max_mana)
+            self.assertEqual(maximum + 1, game.players[0].mana)
+            self.assertEqual(
+                remaining, game.players[0].start_turn_temporary_mana_charges
+            )
+        game._start_turn(0)
+        self.assertEqual(9, game.players[0].mana)
+
 
 if __name__ == "__main__":
     unittest.main()
