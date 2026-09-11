@@ -116,6 +116,7 @@ STANDARD_DECLARATIVE_IDS = {
     "EDR_846t4",
     "EDR_846t5",
     "EDR_852",
+    "FIR_907",
     "EDR_476",
     "END_007",
     "END_011",

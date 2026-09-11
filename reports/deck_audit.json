@@ -37,10 +37,10 @@
     "unique_entities": 71,
     "rosetta_implemented_unique": 4,
     "rosetta_coverage_unique_pct": 5.63,
-    "project_runtime_supported_unique": 47,
-    "project_runtime_coverage_unique_pct": 66.2,
-    "project_deck_validated_unique": 47,
-    "project_deck_validated_unique_pct": 66.2
+    "project_runtime_supported_unique": 48,
+    "project_runtime_coverage_unique_pct": 67.61,
+    "project_deck_validated_unique": 48,
+    "project_deck_validated_unique_pct": 67.61
   },
   "summaries": [
     {
@@ -78,13 +78,13 @@
       "rosetta_implemented_unique": 1,
       "rosetta_implemented_copies": 2,
       "rosetta_coverage_unique_pct": 4.76,
-      "project_runtime_supported_unique": 14,
-      "project_runtime_supported_copies": 22,
-      "project_runtime_coverage_unique_pct": 66.67,
-      "project_deck_validated_unique": 14,
-      "project_deck_validated_copies": 22,
-      "project_deck_validated_unique_pct": 66.67,
-      "project_deck_validated_copies_pct": 73.33,
+      "project_runtime_supported_unique": 15,
+      "project_runtime_supported_copies": 23,
+      "project_runtime_coverage_unique_pct": 71.43,
+      "project_deck_validated_unique": 15,
+      "project_deck_validated_copies": 23,
+      "project_deck_validated_unique_pct": 71.43,
+      "project_deck_validated_copies_pct": 76.67,
       "deck_ready": false
     },
     {
@@ -452,8 +452,8 @@
       "set": "EMERALD_DREAM",
       "type": "LOCATION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "aggro_druid",

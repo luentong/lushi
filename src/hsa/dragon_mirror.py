@@ -692,6 +692,7 @@ class Location:
     card_id: str
     durability: int
     cooldown: int = 1
+    next_refresh: int = 1
 
 
 @dataclass
@@ -2664,7 +2665,7 @@ class DragonMirrorGame:
                         Action("LOCATION", location.entity_id, p, e)
                         for p, e in targets
                     )
-                elif location.card_id == "CATA_584":
+                elif location.card_id in {"CATA_584", "FIR_907"}:
                     actions.append(Action("LOCATION", location.entity_id))
                 elif self.rule_registry.has_hook(Hook.LOCATION, location.card_id):
                     actions.append(Action("LOCATION", location.entity_id))
@@ -5110,6 +5111,24 @@ class DragonMirrorGame:
                     break
                 self._deal_to_target(player.index, self.rng.choice(targets), 1)
                 self._resolve_deaths()
+        elif location.card_id == "FIR_907":
+            # Verified from sanitized Power.log: the first activation's
+            # script counter advances 1 -> 2.  The number of refreshed Mana
+            # Crystals therefore increases by one after each activation.
+            self._summon_random_executable_minion(
+                player, source_card_id=location.card_id, cost=1,
+            )
+            self._gain_armor(player, 1)
+            self._draw(player)
+            refreshed = min(location.next_refresh, player.max_mana - player.mana)
+            player.mana += refreshed
+            self._event(
+                "amirdrassil_activate", player=player.index,
+                source=location.entity_id, summoned_cost=1,
+                armor=1, drew=1, refreshed=refreshed,
+                next_refresh=location.next_refresh + 1,
+            )
+            location.next_refresh += 1
         location.durability -= 1
         location.cooldown = 1
         if location.durability <= 0:
@@ -6127,7 +6146,8 @@ class DragonMirrorGame:
                 "board": [card_state(card, player) for card in player.board],
                 "locations": [
                     {"entity": x.entity_id, "id": x.card_id,
-                     "durability": x.durability, "cooldown": x.cooldown}
+                     "durability": x.durability, "cooldown": x.cooldown,
+                     "next_refresh": x.next_refresh}
                     for x in player.locations
                 ],
                 "fatigue": player.fatigue,

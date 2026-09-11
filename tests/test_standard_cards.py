@@ -618,6 +618,31 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             for event in game.events
         ))
 
+    def test_amirdrassil_increments_its_mana_refresh_each_use(self):
+        game = self.game()
+        location_card = self.add_hand(game, "FIR_907")
+        game.step(Action("PLAY", location_card.entity_id))
+        location = game.players[0].locations[0]
+        # Locations enter play exhausted; make the next-turn ready state
+        # explicit so this test exercises the activation rather than bypassing
+        # the generic cooldown rule.
+        location.cooldown = 0
+        game.players[0].mana = 3
+        game.step(Action("LOCATION", location.entity_id))
+        self.assertEqual(4, game.players[0].mana)
+        self.assertEqual(1, game.players[0].armor)
+        self.assertEqual(2, location.next_refresh)
+        self.assertTrue(any(
+            minion.definition.cost == 1 for minion in game.players[0].board
+        ))
+
+        location.cooldown = 0
+        game.players[0].mana = 3
+        game.step(Action("LOCATION", location.entity_id))
+        self.assertEqual(5, game.players[0].mana)
+        self.assertEqual(2, game.players[0].armor)
+        self.assertEqual(3, location.next_refresh)
+
     def test_blessing_of_the_moon_offers_discounted_temporary_cards(self):
         game = self.game()
         game.players[0].hero_power_id = "EDR_449p"
