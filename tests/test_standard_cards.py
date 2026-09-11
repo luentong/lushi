@@ -461,6 +461,27 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertGreaterEqual(summoned.definition.cost, 5)
         self.assertTrue(summoned.taunt)
 
+    def test_harsh_sentence_applies_next_turn_tax_and_imp_formants(self):
+        game = self.game()
+        enemy_minion = game._entity("CORE_LOOT_137")
+        game.players[1].hand.append(enemy_minion)
+        sentence = self.add_hand(game, "CAP_404")
+        game.step(Action("PLAY", sentence.entity_id))
+        self.assertEqual(2, sum(
+            card.card_id == "CAP_400t2t" for card in game.players[1].deck
+        ))
+        self.assertEqual(enemy_minion.definition.cost, game._effective_cost(
+            game.players[1], enemy_minion
+        ))
+        game._end_turn()
+        self.assertEqual(enemy_minion.definition.cost + 2, game._effective_cost(
+            game.players[1], enemy_minion
+        ))
+        game._end_turn()
+        self.assertEqual(enemy_minion.definition.cost, game._effective_cost(
+            game.players[1], enemy_minion
+        ))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -53,6 +53,7 @@ DECLARATIVE_METADATA_IDS = {
     "JAIL_399t1",  # Grandmother Imp
     "TIME_713t",  # Timeless Chest
     "TLC_813",  # Purifying Vines
+    "CAP_400t2t",  # Imp-formant
 }
 
 # Some Core printings retain the historical behavior ID while the pinned JSON
@@ -71,6 +72,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_492",
     "CATA_496",
     "CATA_725",
+    "CAP_404",
     "CORE_CS2_004",
     "CORE_CS2_062",
     "CORE_EX1_169",
@@ -664,21 +666,38 @@ class AddToDeck:
     count: int = 1
     position: str = "top"
     shuffle: bool = False
+    side: str = "controller"
     attributes: tuple[tuple[str, Any], ...] = ()
 
     def execute(self, game: Any, context: RuleContext) -> None:
+        player = _recipient(game, context, self.side)
         for _ in range(self.count):
             card = game._entity(self.card_id, created_by=context.card.card_id)
             for name, value in self.attributes:
                 setattr(card, name, value)
             if self.position == "top":
-                context.player.deck.append(card)
+                player.deck.append(card)
             elif self.position == "bottom":
-                context.player.deck.insert(0, card)
+                player.deck.insert(0, card)
             else:
                 raise ValueError(f"unknown deck position: {self.position}")
         if self.shuffle:
-            game.rng.shuffle(context.player.deck)
+            game.rng.shuffle(player.deck)
+
+
+@dataclass(frozen=True)
+class IncreaseOpponentMinionCostNextTurn:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        opponent = game.players[1 - context.player.index]
+        opponent.minion_cost_increase_turn = game.turn + 1
+        opponent.minion_cost_increase_amount += self.amount
+        game._event(
+            "next_turn_minion_cost_increase", player=opponent.index,
+            source=context.card.card_id, amount=self.amount,
+            active_turn=opponent.minion_cost_increase_turn,
+        )
 
 
 @dataclass(frozen=True)
@@ -883,6 +902,17 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "powerlog_verified", "Power.log 23282dea + HearthstoneJSON 251332",
                 verification=("test_shadowsworn_disciple_heralds_and_heals_on_death",),
+            ),
+        ),
+        CardRule(
+            "CAP_404", {Hook.SPELL: (
+                IncreaseOpponentMinionCostNextTurn(2),
+                AddToDeck("CAP_400t2t", count=2, shuffle=True, side="opponent"),
+            )},
+            RuleSource(
+                "powerlog_verified",
+                "Power.log 23282dea + HearthstoneJSON 251332",
+                verification=("test_harsh_sentence_applies_next_turn_tax_and_imp_formants",),
             ),
         ),
         CardRule(

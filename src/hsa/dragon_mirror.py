@@ -727,6 +727,8 @@ class Player:
     turns_taken: int = 0
     dragons_played_this_turn: int = 0
     start_turn_temporary_mana_charges: int = 0
+    minion_cost_increase_turn: int = -1
+    minion_cost_increase_amount: int = 0
 
     @property
     def attack(self) -> int:
@@ -1665,6 +1667,11 @@ class DragonMirrorGame:
     def _effective_cost(self, player: Player, card: CardInstance) -> int:
         cost = card.cost
         cost += self.rule_registry.cost_adjustment(self, player, card)
+        if (
+            card.definition.card_type == "MINION"
+            and player.minion_cost_increase_turn == self.turn
+        ):
+            cost += player.minion_cost_increase_amount
         if card.definition.card_type == "MINION":
             cost += 2 * sum(
                 minion.card_id == "JAIL_890"
