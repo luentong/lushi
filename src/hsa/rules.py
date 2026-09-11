@@ -83,6 +83,7 @@ DECLARATIVE_METADATA_ALIASES = {
 # so adding cards does not mutate the vocabulary of existing neural models.
 STANDARD_DECLARATIVE_IDS = {
     "CATA_131",
+    "CATA_303",
     "CATA_138",
     "CATA_139",
     "CATA_140",
@@ -126,11 +127,15 @@ STANDARD_DECLARATIVE_IDS = {
     "EDR_846t5",
     "EDR_852",
     "FIR_907",
+    "FIR_909",
+    "FIR_923",
+    "FIR_954",
     "EDR_476",
     "END_007",
     "END_011",
     "JAIL_201",
     "JAIL_200",
+    "JAIL_307",
     "JAIL_430",
     "JAIL_872",
     "JAIL_510",
@@ -151,6 +156,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_432",
     "TIME_701",
     "TLC_451",
+    "TLC_227",
     "SW_108t",
     "TLC_COIN1",
 }
@@ -334,6 +340,15 @@ class CostWhenSourceAttribute:
 
 
 @dataclass(frozen=True)
+class CostDiscountIfDeckAtLeast:
+    minimum: int
+    discount: int
+
+    def adjustment(self, game: Any, player: Any, card: Any) -> int:
+        return -self.discount if len(player.deck) >= self.minimum else 0
+
+
+@dataclass(frozen=True)
 class CostZeroIfControlling:
     card_id: str
 
@@ -392,6 +407,150 @@ class DamageActionTarget:
             (context.action.target_player, context.action.target_entity),
             amount,
             source=context.card,
+        )
+
+
+@dataclass(frozen=True)
+class DamageActionTargetHealTargetOwnerIfKilled:
+    amount: int
+    heal: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        game._damage_minion(
+            context.action.target_player, target,
+            game._spell_effect_amount(context.player, context.card, self.amount),
+            context.card,
+        )
+        killed = target.health <= 0
+        game._resolve_deaths()
+        if killed:
+            owner = game.players[context.action.target_player]
+            owner.health = min(owner.max_health, owner.health + self.heal)
+        game._event(
+            "damage_heal_if_killed", player=context.player.index,
+            source=context.card.card_id, target=target.entity_id,
+            killed=killed, heal=self.heal if killed else 0,
+        )
+
+
+@dataclass(frozen=True)
+class DamageActionTargetThenDrawOwner:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        owner = game.players[context.action.target_player]
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        game._damage_minion(
+            owner.index, target,
+            game._spell_effect_amount(context.player, context.card, self.amount),
+            context.card,
+        )
+        game._draw(owner)
+        game._resolve_deaths()
+        game._event(
+            "damage_target_owner_draw", player=context.player.index,
+            source=context.card.card_id, target=target.entity_id,
+            target_owner=owner.index,
+        )
+
+
+@dataclass(frozen=True)
+class DamageRandomEnemyCharacters:
+    amount: int
+    count: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        targets = game._random_enemy_characters(context.player.index)
+        chosen = game.rng.sample(targets, min(self.count, len(targets)))
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
+        for target in chosen:
+            game._deal_to_target(context.player.index, target, amount, context.card)
+        game._resolve_deaths()
+        game._event(
+            "random_enemy_damage", player=context.player.index,
+            source=context.card.card_id, amount=amount, targets=chosen,
+        )
+
+
+@dataclass(frozen=True)
+class DamageRandomEnemyMinionWithHeldCost:
+    amount: int
+    upgraded_amount: int
+    threshold: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        targets = [
+            minion for minion in game.players[1 - context.player.index].board
+            if minion.dormant_turns == 0 and not minion.stealth
+        ]
+        if not targets:
+            return
+        amount = (
+            self.upgraded_amount
+            if any(card.cost >= self.threshold for card in context.player.hand)
+            else self.amount
+        )
+        target = game.rng.choice(targets)
+        amount = game._spell_effect_amount(context.player, context.card, amount)
+        game._damage_minion(1 - context.player.index, target, amount, context.card)
+        game._resolve_deaths()
+        game._event(
+            "random_enemy_minion_damage", player=context.player.index,
+            source=context.card.card_id, target=target.entity_id, amount=amount,
+        )
+
+
+@dataclass(frozen=True)
+class DamageAllMinions:
+    amount: int
+    repeats: int = 1
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
+        for _ in range(self.repeats):
+            for player in game.players:
+                for minion in list(player.board):
+                    game._damage_minion(player.index, minion, amount, context.card)
+            game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class DamageLowestHealthEnemyRepeated:
+    amount: int
+    repeats: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
+        targets: list[tuple[int, int | None]] = []
+        for _ in range(self.repeats):
+            candidates = game._random_enemy_characters(context.player.index)
+            if not candidates:
+                break
+            def health(target: tuple[int, int | None]) -> int:
+                return (
+                    game.players[target[0]].health
+                    if target[1] is None
+                    else game._find_minion(*target).health
+                )
+            lowest = min(health(target) for target in candidates)
+            target = game.rng.choice([
+                candidate for candidate in candidates if health(candidate) == lowest
+            ])
+            game._deal_to_target(context.player.index, target, amount, context.card)
+            game._resolve_deaths()
+            targets.append(target)
+        game._event(
+            "lowest_health_enemy_damage", player=context.player.index,
+            source=context.card.card_id, amount=amount, targets=targets,
         )
 
 
@@ -1183,6 +1342,16 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_felwood_treant_tracks_mana_spent_while_held",),
             ),
         ),
+        CardRule(
+            "CATA_303",
+            {Hook.SPELL: (DamageActionTargetHealTargetOwnerIfKilled(5, 5),)},
+            RuleSource(
+                "official_text_and_engine_verified",
+                "HearthstoneJSON 251332",
+                verification=("test_purifying_breath_heals_target_owner_on_kill",),
+            ),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
         *(
             CardRule(
                 card_id, {Hook.END_TURN: (GrowWickerfangLeg(),)},
@@ -1657,6 +1826,48 @@ def build_rule_registry() -> RuleRegistry:
                 ("test_first_flame_generates_second_flame",),
             ),
             TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "FIR_909",
+            {Hook.SPELL: (DamageRandomEnemyCharacters(2, 3),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_bursting_shot_hits_distinct_random_enemies",),
+            ),
+        ),
+        CardRule(
+            "FIR_923",
+            {Hook.SPELL: (DamageRandomEnemyMinionWithHeldCost(4, 8, 8),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_flames_of_the_firelord_uses_held_cost_threshold",),
+            ),
+        ),
+        CardRule(
+            "FIR_954",
+            {Hook.SPELL: (DamageActionTargetThenDrawOwner(5),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_conflagrate_damages_and_target_owner_draws",),
+            ),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "JAIL_307",
+            {Hook.SPELL: (DamageAllMinions(2, repeats=2),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_crowd_control_damages_all_minions_twice",),
+            ),
+            cost_modifier=CostDiscountIfDeckAtLeast(25, 2),
+        ),
+        CardRule(
+            "TLC_227",
+            {Hook.SPELL: (DamageLowestHealthEnemyRepeated(2, 3),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_lava_flow_retargets_lowest_health_enemy",),
+            ),
         ),
         CardRule(
             "SW_108t",

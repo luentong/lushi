@@ -22,6 +22,7 @@ from .dragon_mirror import (
     SUPPORTED_VOID_SOUL_DEMON_IDS,
 )
 from .standard_catalog import STANDARD_SETS_BUILD_251332
+from .rules import STANDARD_DECLARATIVE_IDS
 
 
 # Standard on the supplied 2026-09-08 CN snapshot: Core plus the 2025 and
@@ -215,6 +216,8 @@ def support_status(card: dict[str, Any], pool_name: str) -> str:
         )
     if card["id"] in DIRECT_IDS:
         return "direct_supported"
+    if pool_name == "fire_spell" and card["id"] in STANDARD_DECLARATIVE_IDS:
+        return "generated_supported"
     if (
         pool_name == "one_cost_minion"
         and card["id"] in SUPPORTED_ONE_COST_SUMMON_IDS

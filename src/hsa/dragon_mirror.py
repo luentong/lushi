@@ -254,10 +254,16 @@ ADDITIONAL_PLAYABLE_CARD_IDS = {
 # separate from the Rewind tranche: the generation audit relies on the latter
 # being exactly the Rewind cards, while this set will grow by school/pool.
 ADDITIONAL_PLAYABLE_SPELL_IDS = {
+    "CATA_303",  # Purifying Breath
     "CORE_CS2_029",  # Fireball
     "CORE_CS2_032",  # Flamestrike
     "CORE_SW_108",  # First Flame
+    "FIR_909",  # Bursting Shot
+    "FIR_923",  # Flames of the Firelord
+    "FIR_954",  # Conflagrate
+    "JAIL_307",  # Crowd Control
     "SW_108t",  # Second Flame
+    "TLC_227",  # Lava Flow
 }
 
 SPECIAL_TOKEN_IDS = {

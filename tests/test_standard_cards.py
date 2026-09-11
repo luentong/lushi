@@ -85,6 +85,59 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._damage_minion(1, fyrakk, 1)
         self.assertEqual(1, fyrakk.damage)
 
+    def test_purifying_breath_heals_target_owner_on_kill(self):
+        game = self.game()
+        game.players[1].health = 20
+        target = self.add_board(game, "CAP_107t", 1)
+        breath = self.add_hand(game, "CATA_303")
+        game.step(Action("PLAY", breath.entity_id, 1, target.entity_id))
+        self.assertNotIn(target, game.players[1].board)
+        self.assertEqual(25, game.players[1].health)
+
+    def test_bursting_shot_hits_distinct_random_enemies(self):
+        game = self.game()
+        for _ in range(3):
+            self.add_board(game, "CORE_LOOT_137", 1)
+        shot = self.add_hand(game, "FIR_909")
+        game.step(Action("PLAY", shot.entity_id))
+        event = next(event for event in reversed(game.events)
+                     if event["kind"] == "random_enemy_damage")
+        self.assertEqual(3, len(event["targets"]))
+        self.assertEqual(3, len(set(event["targets"])))
+
+    def test_flames_of_the_firelord_uses_held_cost_threshold(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        self.add_hand(game, "CORE_LOOT_137")  # Costs 9.
+        spell = self.add_hand(game, "FIR_923")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(8, target.damage)
+
+    def test_conflagrate_damages_and_target_owner_draws(self):
+        game = self.game()
+        target = self.add_board(game, "CAP_107t", 1)
+        game.players[1].deck = [game._entity("GAME_005", started_in_deck=True)]
+        spell = self.add_hand(game, "FIR_954")
+        game.step(Action("PLAY", spell.entity_id, 1, target.entity_id))
+        self.assertNotIn(target, game.players[1].board)
+        self.assertEqual("GAME_005", game.players[1].hand[0].card_id)
+
+    def test_crowd_control_damages_all_minions_twice(self):
+        game = self.game()
+        friendly = self.add_board(game, "CORE_LOOT_137", 0)
+        enemy = self.add_board(game, "CORE_LOOT_137", 1)
+        spell = self.add_hand(game, "JAIL_307")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual((4, 4), (friendly.damage, enemy.damage))
+
+    def test_lava_flow_retargets_lowest_health_enemy(self):
+        game = self.game()
+        target = self.add_board(game, "CAP_107t", 1)
+        spell = self.add_hand(game, "TLC_227")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertNotIn(target, game.players[1].board)
+        self.assertEqual(26, game.players[1].health)
+
     def test_wickerfang_colossal_legs_grow_and_sync_their_stats(self):
         game = self.game()
         wickerfang = self.add_hand(game, "CATA_139")
