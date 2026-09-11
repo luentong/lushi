@@ -92,6 +92,7 @@ STANDARD_DECLARATIVE_IDS = {
     "EDR_476",
     "END_007",
     "END_011",
+    "JAIL_201",
     "JAIL_872",
     "JAIL_510",
     "JAIL_511",
@@ -222,6 +223,17 @@ class OfferSpellSchoolDiscover:
         game._offer_spell_school_discover(
             context.player, spell_school=self.spell_school,
             source_card_id=context.card.card_id, cost_delta=self.cost_delta,
+        )
+
+
+@dataclass(frozen=True)
+class AddRandomExecutableClassCard:
+    card_class: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._add_random_executable_class_card(
+            context.player, card_class=self.card_class,
+            source_card_id=context.card.card_id,
         )
 
 
@@ -1109,6 +1121,17 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "powerlog_verified", "Power.log 61e3baf3 + HearthstoneJSON 251332",
                 verification=("test_spider_rider_draws_after_hero_attack",),
+            ),
+        ),
+        CardRule(
+            "JAIL_201", {Hook.SPELL: (OfferEffectChoice((
+                ("hero_attack_2", (GainHeroAttack(2),)),
+                ("random_druid_card", (AddRandomExecutableClassCard("DRUID"),)),
+            )),)},
+            RuleSource(
+                "powerlog_verified",
+                "Power.log 61e3baf3 + HearthstoneJSON 251332",
+                verification=("test_secret_ingredient_choose_one_attack_or_druid_card",),
             ),
         ),
         CardRule(

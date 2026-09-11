@@ -4001,6 +4001,30 @@ class DragonMirrorGame:
                      for card in options],
         )
 
+    def _add_random_executable_class_card(
+        self, player: Player, *, card_class: str, source_card_id: str
+    ) -> None:
+        candidates = sorted(
+            card_id for card_id, definition in self.card_defs.items()
+            if card_id in EXECUTABLE_CARD_IDS
+            and definition.card_class == card_class
+        )
+        if not candidates:
+            self._event(
+                "random_class_card_unavailable", player=player.index,
+                source=source_card_id, card_class=card_class,
+            )
+            return
+        card = self._entity(
+            self.rng.choice(candidates), created_by=source_card_id
+        )
+        destination = self._add_generated(player, card)
+        self._event(
+            "random_class_card", player=player.index, source=source_card_id,
+            card_class=card_class, card=card.card_id, entity=card.entity_id,
+            destination=destination, profile="executable_standard_pool_v1",
+        )
+
     def _summon_random_executable_minion(
         self, player: Player, *, source_card_id: str,
         cost: int | None = None, min_cost: int | None = None,

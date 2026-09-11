@@ -566,6 +566,21 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             for card in options
         ))
 
+    def test_secret_ingredient_choose_one_attack_or_druid_card(self):
+        attack_game = self.game()
+        ingredient = self.add_hand(attack_game, "JAIL_201")
+        attack_game.step(Action("PLAY", ingredient.entity_id))
+        self.assertEqual("RULE_CHOICE", attack_game.pending_choice["kind"])
+        attack_game.step(Action("RULE_CHOICE_PICK", 0))
+        self.assertEqual(2, attack_game.players[0].hero_attack_bonus)
+
+        card_game = self.game()
+        ingredient = self.add_hand(card_game, "JAIL_201")
+        card_game.step(Action("PLAY", ingredient.entity_id))
+        card_game.step(Action("RULE_CHOICE_PICK", 1))
+        self.assertEqual(1, len(card_game.players[0].hand))
+        self.assertEqual("DRUID", card_game.players[0].hand[0].definition.card_class)
+
 
 if __name__ == "__main__":
     unittest.main()
