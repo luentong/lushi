@@ -6,7 +6,7 @@
     "revealed_entities": 103,
     "standard_entities": 88,
     "standard_played_cards": 39,
-    "unimplemented_standard_played_cards": 22
+    "unimplemented_standard_played_cards": 21
   },
   "priority_from_real_play": [
     {
@@ -260,20 +260,6 @@
       "play_blocks": 1,
       "trigger_blocks": 0,
       "text": "<b>Discover</b> a copy of a card from your deck and one from your opponent's."
-    },
-    {
-      "card_id": "TIME_701",
-      "name": "Waveshaping",
-      "set": "TIME_TRAVEL",
-      "class": "DRUID",
-      "type": "SPELL",
-      "collectible": true,
-      "standard_entity": true,
-      "implementation": "not_implemented",
-      "source_blocks": 8,
-      "play_blocks": 4,
-      "trigger_blocks": 0,
-      "text": "<b>Discover</b> a card from your deck. The others get put on the bottom."
     },
     {
       "card_id": "TIME_890t",
@@ -1573,7 +1559,7 @@
       "type": "SPELL",
       "collectible": true,
       "standard_entity": true,
-      "implementation": "not_implemented",
+      "implementation": "declarative",
       "source_blocks": 8,
       "play_blocks": 4,
       "trigger_blocks": 0,

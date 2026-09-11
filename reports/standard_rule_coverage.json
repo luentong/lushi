@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 64,
+      "declarative": 67,
       "legacy_compatibility": 236,
-      "not_implemented": 1861
+      "not_implemented": 1858
     },
     "collectible_implementation": {
-      "declarative": 58,
+      "declarative": 61,
       "legacy_compatibility": 222,
-      "not_implemented": 886
+      "not_implemented": 883
     },
     "fully_implemented": false
   },
@@ -3435,9 +3435,9 @@
       "mechanics": "",
       "text": "Herald {0}. Draw a card.",
       "text_sha256": "8c90a56b3c502a610dbaa677c84c74238499f90d4d5a7556175e5c2e50017c26",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_493",
@@ -26535,9 +26535,9 @@
       "mechanics": "DISCOVER",
       "text": "Discover a card from your deck. The others get put on the bottom.",
       "text_sha256": "36287c4c1c64cce4f6909c88ce970484bb766ab1591f19fe933f34280b29300a",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_702",
@@ -29940,9 +29940,9 @@
       "mechanics": "DISCOVER",
       "text": "Discover another card from your deck. Make it Temporary.",
       "text_sha256": "9c9b45b40fc7481daaa393d0930859746c4ec589ed1930875517c0af248774f1",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452",

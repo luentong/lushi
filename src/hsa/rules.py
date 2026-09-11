@@ -20,6 +20,7 @@ class Hook(StrEnum):
     AFTER_PLAY = "after_play"
     AFTER_ATTACK = "after_attack"
     AFTER_HERO_ATTACK = "after_hero_attack"
+    LOCATION = "location"
     START_TURN = "start_turn"
     END_TURN = "end_turn"
 
@@ -65,6 +66,7 @@ DECLARATIVE_METADATA_ALIASES = {
 STANDARD_DECLARATIVE_IDS = {
     "CATA_131",
     "CATA_138",
+    "CATA_492",
     "CATA_725",
     "CORE_CS2_004",
     "CORE_CS2_062",
@@ -85,6 +87,8 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_941",
     "JAIL_941t",
     "TIME_702",
+    "TIME_701",
+    "TLC_451",
     "TLC_COIN1",
 }
 
@@ -150,6 +154,19 @@ class DrawMatching:
                 context.player, matches, cost_delta=self.cost_delta
             ) is None:
                 break
+
+
+@dataclass(frozen=True)
+class OfferDeckCardDiscover:
+    temporary: bool = False
+    bottom_unchosen: bool = False
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._offer_deck_card_discover(
+            context.player, temporary=self.temporary,
+            bottom_unchosen=self.bottom_unchosen,
+            source_card_id=context.card.card_id,
+        )
 
 
 @dataclass(frozen=True)
@@ -657,6 +674,10 @@ class RuleRegistry:
         rule = self._rules.get(card_id)
         return None if rule is None else rule.targeting
 
+    def has_hook(self, hook: Hook, card_id: str) -> bool:
+        rule = self._rules.get(card_id)
+        return rule is not None and hook in rule.hooks
+
     def manifest(self) -> list[dict[str, Any]]:
         rows = []
         for card_id in sorted(self._rules):
@@ -726,6 +747,13 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "powerlog_verified", "Power.log 61e3baf3 + HearthstoneJSON 251332",
                 verification=("test_felwood_treant_tracks_mana_spent_while_held",),
+            ),
+        ),
+        CardRule(
+            "CATA_492", {Hook.LOCATION: (HeraldRagnaros(), Draw())},
+            RuleSource(
+                "powerlog_verified", "Power.log 23282dea + HearthstoneJSON 251332",
+                verification=("test_shrine_of_twilight_location_heralds_and_draws",),
             ),
         ),
         CardRule(
@@ -849,6 +877,20 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_ebb_and_flow_tracks_minion_played_while_held",),
             ),
             TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "TIME_701", {Hook.SPELL: (OfferDeckCardDiscover(bottom_unchosen=True),)},
+            RuleSource(
+                "powerlog_verified", "Power.log 61e3baf3 + HearthstoneJSON 251332",
+                verification=("test_waveshaping_discovers_from_deck_and_bottoms_others",),
+            ),
+        ),
+        CardRule(
+            "TLC_451", {Hook.SPELL: (OfferDeckCardDiscover(temporary=True),)},
+            RuleSource(
+                "powerlog_verified", "Power.log 23282dea + HearthstoneJSON 251332",
+                verification=("test_cursed_catacombs_discovers_temporary_deck_card",),
+            ),
         ),
         CardRule(
             "CORE_CS2_004",

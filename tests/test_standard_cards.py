@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from hsa.dragon_mirror import Action, DragonMirrorGame, Weapon
+from hsa.dragon_mirror import Action, DragonMirrorGame, Location, Weapon
 
 
 CARDS = ROOT / "cards.251332.enUS.json"
@@ -316,6 +316,50 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             )
         game._start_turn(0)
         self.assertEqual(9, game.players[0].mana)
+
+    def test_shrine_of_twilight_location_heralds_and_draws(self):
+        game = self.game()
+        location = Location(90_001, "CATA_492", durability=2, cooldown=0)
+        game.players[0].locations.append(location)
+        game.step(Action("LOCATION", location.entity_id))
+        self.assertEqual(1, game.players[0].herald_count)
+        self.assertEqual((1, 1), (location.durability, location.cooldown))
+        self.assertEqual(1, len(game.players[0].hand))
+        self.assertTrue(any(
+            card.card_id == "CATA_580t" for card in game.players[0].board
+        ))
+
+    def test_waveshaping_discovers_from_deck_and_bottoms_others(self):
+        game = self.game()
+        game.players[0].deck = [
+            game._entity("GAME_005"),
+            game._entity("CORE_CS2_065"),
+            game._entity("CORE_LOOT_137"),
+        ]
+        spell = self.add_hand(game, "TIME_701")
+        game.step(Action("PLAY", spell.entity_id))
+        options = list(game.pending_choice["options"])
+        chosen = options[0]
+        game.step(Action("DISCOVER_PICK", chosen.entity_id))
+        self.assertIn(chosen, game.players[0].hand)
+        self.assertEqual(2, len(game.players[0].deck))
+        self.assertFalse(chosen.temporary)
+        self.assertEqual(
+            [card.entity_id for card in options[1:]],
+            [card.entity_id for card in game.players[0].deck],
+        )
+
+    def test_cursed_catacombs_discovers_temporary_deck_card(self):
+        game = self.game()
+        card = game._entity("GAME_005")
+        game.players[0].deck = [card]
+        spell = self.add_hand(game, "TLC_451")
+        game.step(Action("PLAY", spell.entity_id))
+        game.step(Action("DISCOVER_PICK", card.entity_id))
+        self.assertIn(card, game.players[0].hand)
+        self.assertTrue(card.temporary)
+        game._end_turn()
+        self.assertNotIn(card, game.players[0].hand)
 
 
 if __name__ == "__main__":

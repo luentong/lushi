@@ -600,6 +600,7 @@ class CardInstance:
     dies_at_end_of_turn: bool = False
     mana_spent_while_held: int = 0
     minion_played_while_held: bool = False
+    temporary: bool = False
 
     @property
     def card_id(self) -> str:
@@ -1581,6 +1582,13 @@ class DragonMirrorGame:
             player.frozen_turn = -1
         player.played_races_last_turn = set(player.played_races_this_turn)
         player.played_races_this_turn.clear()
+        for card in list(player.hand):
+            if card.temporary:
+                player.hand.remove(card)
+                self._event(
+                    "temporary_expire", player=player.index,
+                    card=card.card_id, entity=card.entity_id,
+                )
         self._event("turn_end", player=self.current)
         self._start_turn(1 - self.current)
 
@@ -2149,7 +2157,7 @@ class DragonMirrorGame:
                     for entity_id in self.pending_choice["options"]
                 ] + [Action("MULLIGAN_CONFIRM")]
             if self.pending_choice["kind"] in {
-                "DISCOVER", "GEDDON_DRAW", "DECK_DISCOVER"
+                "DISCOVER", "GEDDON_DRAW", "DECK_DISCOVER", "DECK_CARD_DISCOVER"
             }:
                 return [
                     Action("DISCOVER_PICK", option.entity_id)
@@ -2381,6 +2389,8 @@ class DragonMirrorGame:
                         for p, e in targets
                     )
                 elif location.card_id == "CATA_584":
+                    actions.append(Action("LOCATION", location.entity_id))
+                elif self.rule_registry.has_hook(Hook.LOCATION, location.card_id):
                     actions.append(Action("LOCATION", location.entity_id))
         return sorted(actions, key=Action.key)
 
@@ -3720,6 +3730,28 @@ class DragonMirrorGame:
             ],
         )
 
+    def _offer_deck_card_discover(
+        self, player: Player, *, temporary: bool = False,
+        bottom_unchosen: bool = False, source_card_id: str | None = None,
+    ) -> None:
+        if not player.deck:
+            return
+        options = self.rng.sample(player.deck, min(3, len(player.deck)))
+        self.pending_choice = {
+            "kind": "DECK_CARD_DISCOVER",
+            "player": player.index,
+            "options": options,
+            "temporary": temporary,
+            "bottom_unchosen": bottom_unchosen,
+            "source_card_id": source_card_id,
+        }
+        self._event(
+            "deck_card_discover_offer", player=player.index,
+            source=source_card_id, temporary=temporary,
+            bottom_unchosen=bottom_unchosen,
+            options=[{"entity": card.entity_id, "card": card.card_id} for card in options],
+        )
+
     def _resolve_discover(self, entity_id: int) -> None:
         pending = self.pending_choice
         option = next(card for card in pending["options"] if card.entity_id == entity_id)
@@ -3740,6 +3772,29 @@ class DragonMirrorGame:
                 "geddon_pick", player=player.index, card=option.card_id,
                 entity=option.entity_id, outcome=outcome,
                 destroyed=[card.card_id for card in destroyed],
+            )
+            return
+        if pending["kind"] == "DECK_CARD_DISCOVER":
+            player.deck.remove(option)
+            if pending["bottom_unchosen"]:
+                unchosen = [
+                    card for card in pending["options"]
+                    if card.entity_id != entity_id and card in player.deck
+                ]
+                for card in unchosen:
+                    player.deck.remove(card)
+                player.deck[0:0] = unchosen
+            option.temporary = pending["temporary"]
+            if len(player.hand) < 10:
+                player.hand.append(option)
+                destination = "hand"
+            else:
+                destination = "burned"
+            self._event(
+                "deck_card_discover_pick", player=player.index,
+                card=option.card_id, entity=option.entity_id,
+                source=pending["source_card_id"], temporary=option.temporary,
+                destination=destination,
             )
             return
         if pending["kind"] == "DECK_DISCOVER":
@@ -4313,7 +4368,13 @@ class DragonMirrorGame:
     def _use_location(self, action: Action) -> None:
         player = self.players[self.current]
         location = next(x for x in player.locations if x.entity_id == action.source)
-        if location.card_id == "CORE_REV_990":
+        context_card = CardInstance(location.entity_id, self.card_defs[location.card_id])
+        if self.rule_registry.dispatch(
+            Hook.LOCATION, location.card_id, self,
+            RuleContext(player=player, card=context_card, action=action),
+        ):
+            pass
+        elif location.card_id == "CORE_REV_990":
             target = self._find_minion(action.target_player, action.target_entity)
             self._damage_minion(action.target_player, target, 1)
             if target.health > 0:
@@ -5338,7 +5399,9 @@ class DragonMirrorGame:
                     for card in owner.hand
                     if card.entity_id in self.pending_choice["options"]
                 ]
-            elif self.pending_choice["kind"] in {"DISCOVER", "GEDDON_DRAW"}:
+            elif self.pending_choice["kind"] in {
+                "DISCOVER", "GEDDON_DRAW", "DECK_CARD_DISCOVER"
+            }:
                 pending["options"] = [
                     card_state(card, self.players[self.current])
                     for card in self.pending_choice["options"]

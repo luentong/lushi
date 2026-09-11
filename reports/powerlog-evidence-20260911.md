@@ -10,7 +10,7 @@ The importer strips those identifiers before analysis.
 - Revealed card/enchantment entities: 80
 - Entities belonging to the pinned Standard sets: 71
 - Standard cards observed in PLAY blocks: 35
-- Played Standard cards still lacking executable rules: 19
+- Played Standard cards still lacking executable rules: 17
 
 ## Real-play implementation priority
 
@@ -20,7 +20,6 @@ The importer strips those identifiers before analysis.
 | `CATA_155` | Arisen Onyxia | DEATHKNIGHT | MINION | 1 | 3 |
 | `CATA_190h` | Deathwing, Worldbreaker |  | HERO | 1 | 1 |
 | `CATA_190p` | Ruthless | NEUTRAL | HERO_POWER | 5 | 0 |
-| `CATA_492` | Shrine of Twilight | WARLOCK | LOCATION | 11 | 4 |
 | `CATA_496` | Cursed Chains | WARLOCK | SPELL | 3 | 0 |
 | `DINO_431` | Atlasaurus | PRIEST | MINION | 1 | 1 |
 | `EDR_449` | Lunarwing Messenger | PRIEST | MINION | 1 | 3 |
@@ -34,6 +33,5 @@ The importer strips those identifiers before analysis.
 | `TIME_432` | Intertwined Fate | PRIEST | SPELL | 2 | 0 |
 | `TIME_890` | Medivh the Hallowed | PRIEST | MINION | 1 | 0 |
 | `TIME_890t` | Atiesh the Greatstaff | PRIEST | WEAPON | 1 | 0 |
-| `TLC_451` | Cursed Catacombs | WARLOCK | SPELL | 3 | 0 |
 
 This report proves observed packet ordering and state/tag changes only. It does not by itself prove hidden candidate pools or server-side random logic.

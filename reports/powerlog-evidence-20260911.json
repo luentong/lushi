@@ -6,7 +6,7 @@
     "revealed_entities": 80,
     "standard_entities": 71,
     "standard_played_cards": 35,
-    "unimplemented_standard_played_cards": 19
+    "unimplemented_standard_played_cards": 17
   },
   "priority_from_real_play": [
     {
@@ -64,20 +64,6 @@
       "play_blocks": 5,
       "trigger_blocks": 0,
       "text": "+$a5 Attack this turn."
-    },
-    {
-      "card_id": "CATA_492",
-      "name": "Shrine of Twilight",
-      "set": "CATACLYSM",
-      "class": "WARLOCK",
-      "type": "LOCATION",
-      "collectible": true,
-      "standard_entity": true,
-      "implementation": "not_implemented",
-      "source_blocks": 26,
-      "play_blocks": 11,
-      "trigger_blocks": 4,
-      "text": "<b>Herald</b> {0}.\nDraw a card."
     },
     {
       "card_id": "CATA_496",
@@ -260,20 +246,6 @@
       "play_blocks": 1,
       "trigger_blocks": 0,
       "text": "[x]Costs (0) if you control\nMedivh. Double the\ndamage and healing\nof your spells."
-    },
-    {
-      "card_id": "TLC_451",
-      "name": "Cursed Catacombs",
-      "set": "THE_LOST_CITY",
-      "class": "WARLOCK",
-      "type": "SPELL",
-      "collectible": true,
-      "standard_entity": true,
-      "implementation": "not_implemented",
-      "source_blocks": 6,
-      "play_blocks": 3,
-      "trigger_blocks": 0,
-      "text": "<b>Discover</b> another\ncard from your deck. Make it <b>Temporary</b>."
     }
   ],
   "cards": [
@@ -523,7 +495,7 @@
       "type": "LOCATION",
       "collectible": true,
       "standard_entity": true,
-      "implementation": "not_implemented",
+      "implementation": "declarative",
       "source_blocks": 26,
       "play_blocks": 11,
       "trigger_blocks": 4,
@@ -1363,7 +1335,7 @@
       "type": "SPELL",
       "collectible": true,
       "standard_entity": true,
-      "implementation": "not_implemented",
+      "implementation": "declarative",
       "source_blocks": 6,
       "play_blocks": 3,
       "trigger_blocks": 0,

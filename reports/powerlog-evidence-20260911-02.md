@@ -10,7 +10,7 @@ The importer strips those identifiers before analysis.
 - Revealed card/enchantment entities: 103
 - Entities belonging to the pinned Standard sets: 88
 - Standard cards observed in PLAY blocks: 39
-- Played Standard cards still lacking executable rules: 22
+- Played Standard cards still lacking executable rules: 21
 
 ## Real-play implementation priority
 
@@ -34,7 +34,6 @@ The importer strips those identifiers before analysis.
 | `MEND_042` | Lifebloom | DRUID | SPELL | 1 | 0 |
 | `MEND_046` | Bashana Runetotem | DRUID | MINION | 1 | 0 |
 | `TIME_432` | Intertwined Fate | PRIEST | SPELL | 1 | 0 |
-| `TIME_701` | Waveshaping | DRUID | SPELL | 4 | 0 |
 | `TIME_890t` | Atiesh the Greatstaff | PRIEST | WEAPON | 1 | 0 |
 | `TLC_100` | Elise the Navigator | NEUTRAL | MINION | 2 | 0 |
 | `TLC_100t1` | Un'Goro Jungle | NEUTRAL | LOCATION | 3 | 0 |
