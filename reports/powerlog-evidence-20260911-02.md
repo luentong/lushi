@@ -10,29 +10,21 @@ The importer strips those identifiers before analysis.
 - Revealed card/enchantment entities: 103
 - Entities belonging to the pinned Standard sets: 88
 - Standard cards observed in PLAY blocks: 39
-- Played Standard cards still lacking executable rules: 35
+- Played Standard cards still lacking executable rules: 25
 
 ## Real-play implementation priority
 
 | Card ID | Name | Class | Type | Plays | Triggers |
 |---|---|---|---|---:|---:|
-| `CATA_131` | Felwood Treant | DRUID | MINION | 3 | 1 |
-| `CATA_138` | Forest's Gift | DRUID | SPELL | 2 | 0 |
 | `CORE_CFM_670` | Mayor Noggenfogger | NEUTRAL | MINION | 1 | 9 |
-| `CORE_EX1_169` | Innervate | DRUID | SPELL | 3 | 0 |
-| `CORE_OG_047` | Feral Rage | DRUID | SPELL | 1 | 0 |
-| `DINO_432` | Panther Mask | DRUID | SPELL | 1 | 0 |
 | `EDR_270` | Horn of Plenty | DRUID | SPELL | 3 | 0 |
 | `EDR_271` | Grove Shaper | DRUID | MINION | 2 | 0 |
 | `EDR_449` | Lunarwing Messenger | PRIEST | MINION | 1 | 0 |
 | `EDR_449p` | Blessing of the Moon | PRIEST | HERO_POWER | 1 | 0 |
 | `EDR_476` | Moonwell | PRIEST | SPELL | 1 | 0 |
 | `EDR_846` | Shaladrassil | NEUTRAL | SPELL | 1 | 1 |
-| `EDR_846t2` | Corrupted Dream | DREAM | SPELL | 1 | 0 |
 | `EDR_846t3` | Corrupted Laughing Sister | DREAM | MINION | 1 | 0 |
-| `EDR_846t4` | Corrupted Awakening | DREAM | SPELL | 1 | 0 |
 | `EDR_970` | Kaldorei Priestess | PRIEST | MINION | 1 | 0 |
-| `END_007` | Press the Advantage |  | SPELL | 2 | 0 |
 | `END_011` | Acceleration Aura |  | SPELL | 3 | 5 |
 | `FIR_907` | Amirdrassil | DRUID | LOCATION | 4 | 0 |
 | `JAIL_200` | Infest the Scullery | DRUID | SPELL | 3 | 0 |
@@ -46,10 +38,8 @@ The importer strips those identifiers before analysis.
 | `MEND_046` | Bashana Runetotem | DRUID | MINION | 1 | 0 |
 | `TIME_432` | Intertwined Fate | PRIEST | SPELL | 1 | 0 |
 | `TIME_701` | Waveshaping | DRUID | SPELL | 4 | 0 |
-| `TIME_702` | Ebb and Flow | DRUID | SPELL | 3 | 6 |
 | `TIME_890t` | Atiesh the Greatstaff | PRIEST | WEAPON | 1 | 0 |
 | `TLC_100` | Elise the Navigator | NEUTRAL | MINION | 2 | 0 |
 | `TLC_100t1` | Un'Goro Jungle | NEUTRAL | LOCATION | 3 | 0 |
-| `TLC_COIN1` | The Coin | NEUTRAL | SPELL | 1 | 0 |
 
 This report proves observed packet ordering and state/tag changes only. It does not by itself prove hidden candidate pools or server-side random logic.

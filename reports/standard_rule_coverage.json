@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 46,
+      "declarative": 56,
       "legacy_compatibility": 236,
-      "not_implemented": 1879
+      "not_implemented": 1869
     },
     "collectible_implementation": {
-      "declarative": 44,
+      "declarative": 51,
       "legacy_compatibility": 222,
-      "not_implemented": 900
+      "not_implemented": 893
     },
     "fully_implemented": false
   },
@@ -1125,9 +1125,9 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Gain a temporary Mana Crystal. If you spent 4 Mana while holding this, it's permanent. ({0} left!)@Battlecry: Gain a temporary Mana Crystal. If you spent 4 Mana while holding this, it's permanent. (Ready!)@Battlecry: Gain a temporary Mana Crystal. If you spent 4 Mana while holding this, it's permanent.",
       "text_sha256": "32217176ef8019326689e0a17ef1e7edd2110ce6f854f2e35330afff1001b0d7",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_132",
@@ -1350,9 +1350,9 @@
       "mechanics": "",
       "text": "Give a friendly minion +1/+1 for each minion you control.",
       "text_sha256": "016e7832126ef55099c94df9e37e2563feeb3be998a6c85d76d71720f86d2645",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_138e",
@@ -7125,9 +7125,9 @@
       "mechanics": "",
       "text": "Gain 1 Mana Crystal this turn only.",
       "text_sha256": "7e0b9838c71ab2fca09f4defa0790398e06cf2d4f4f0c10ea1634a74b712d126",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_EX1_189",
@@ -8235,9 +8235,9 @@
       "mechanics": "CHOOSE_ONE",
       "text": "Choose One - Give your hero +4 Attack this turn; or Gain 8 Armor.",
       "text_sha256": "3f68fc3e43aec2205b8c9b4b87b80c7c9c75c6726ebbfcfe992c269380f2ddaf",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_OG_149",
@@ -10635,9 +10635,9 @@
       "mechanics": "",
       "text": "Set a minion's stats to 5/4 and give it Stealth. Draw 2 cards.",
       "text_sha256": "08eb2e95c794351cf5acd9e29f7c8dd175c25c119096d058ede93dcc6e26aff9",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "DINO_432e",
@@ -14730,9 +14730,9 @@
       "mechanics": "",
       "text": "Shuffle a minion into its owner's deck.",
       "text_sha256": "8273cab98ff712e4dbbe5dd4e9b8995f4e3ab327dd3af82b99d5fccbb74b5fff",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_846t3",
@@ -14775,9 +14775,9 @@
       "mechanics": "",
       "text": "Deal $5 damage to all enemies. (ESPECIALLY Ysera!)",
       "text_sha256": "b30e02e812d62ae27d625b1ea6700663628579750675a31e292e972e39c0f1d6",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_846t5",
@@ -15780,9 +15780,9 @@
       "mechanics": "",
       "text": "Deal $1 damage. Give your hero +1 Attack this turn. Draw 1 card. Gain 1 Armor.",
       "text_sha256": "a57ac01f4f3dba5d36ce90339b82bdd428ad2642c84019f444fc3d0646317fef",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "END_007e1",
@@ -26550,9 +26550,9 @@
       "mechanics": "",
       "text": "Deal $3 damage. If you played a minion while holding this, gain 5 Armor.",
       "text_sha256": "cd09f43372e8381bec80462ad169d3394929a3f2c2184892688871c43dd679c4",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_703",
@@ -32370,9 +32370,9 @@
       "mechanics": "",
       "text": "Gain 1 Mana Crystal this turn only.",
       "text_sha256": "7e0b9838c71ab2fca09f4defa0790398e06cf2d4f4f0c10ea1634a74b712d126",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_COIN2",

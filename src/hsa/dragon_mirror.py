@@ -598,6 +598,8 @@ class CardInstance:
     illusion_fake: bool = False
     cant_attack_heroes_turn: int = -1
     dies_at_end_of_turn: bool = False
+    mana_spent_while_held: int = 0
+    minion_played_while_held: bool = False
 
     @property
     def card_id(self) -> str:
@@ -1834,6 +1836,9 @@ class DragonMirrorGame:
     def _spend_mana(self, player: Player, amount: int) -> None:
         before = player.mana
         player.mana -= amount
+        if amount > 0:
+            for held in player.hand:
+                held.mana_spent_while_held += amount
         if amount <= 0 or before <= 0 or player.mana != 0:
             return
         for cub in player.board:
@@ -2154,6 +2159,11 @@ class DragonMirrorGame:
                     Action("CORPSE_SPEND", option)
                     for option in self.pending_choice["options"]
                 ]
+            if self.pending_choice["kind"] == "RULE_CHOICE":
+                return [
+                    Action("RULE_CHOICE_PICK", index)
+                    for index in range(len(self.pending_choice["options"]))
+                ]
         player = self.players[self.current]
         self._refresh_genn(player)
         for candidate in self.players:
@@ -2402,8 +2412,28 @@ class DragonMirrorGame:
             self._resolve_ammunition(action.source)
         elif action.kind == "CORPSE_SPEND":
             self._resolve_corpse_spend(action.source)
+        elif action.kind == "RULE_CHOICE_PICK":
+            self._resolve_rule_choice(action.source)
         self._resolve_deaths()
         self._check_winner()
+
+    def _resolve_rule_choice(self, option_index: int | None) -> None:
+        pending = self.pending_choice
+        if pending is None or pending["kind"] != "RULE_CHOICE":
+            raise ValueError("no rule choice is pending")
+        if option_index is None or not 0 <= option_index < len(pending["options"]):
+            raise ValueError("invalid rule choice")
+        label, effects = pending["options"][option_index]
+        player = self.players[pending["player"]]
+        card = pending["card"]
+        self.pending_choice = None
+        context = RuleContext(player=player, card=card)
+        for effect in effects:
+            effect.execute(self, context)
+        self._event(
+            "rule_choice_pick", player=player.index, card=card.card_id,
+            option=label,
+        )
 
     def _prepare(self, entity_id: int | None) -> None:
         player = self.players[self.current]
@@ -2465,6 +2495,8 @@ class DragonMirrorGame:
         if not card.started_in_deck:
             player.generated_cards_played += 1
         if card.definition.card_type == "MINION":
+            for held in player.hand:
+                held.minion_played_while_held = True
             maievs = [
                 minion for minion in player.board
                 if minion.card_id == "JAIL_850"
@@ -5138,6 +5170,9 @@ class DragonMirrorGame:
             return f"P{self.current + 1} AMMUNITION_PICK mode={action.source}"
         if action.kind == "CORPSE_SPEND":
             return f"P{self.current + 1} CORPSE_SPEND amount={action.source}"
+        if action.kind == "RULE_CHOICE_PICK":
+            label = self.pending_choice["options"][action.source][0]
+            return f"P{self.current + 1} CHOOSE_ONE {label}"
         source_card = next(
             (c for c in player.hand + player.board if c.entity_id == action.source),
             None,
@@ -5281,6 +5316,10 @@ class DragonMirrorGame:
                 ]
             elif self.pending_choice["kind"] == "REWIND":
                 pending["options"] = ["REWIND_KEEP", "REWIND_RETRY"]
+            elif self.pending_choice["kind"] == "RULE_CHOICE":
+                pending["options"] = [
+                    label for label, _ in self.pending_choice["options"]
+                ]
             else:
                 pending["options"] = list(self.pending_choice["options"])
         return {

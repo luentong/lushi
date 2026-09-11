@@ -62,11 +62,21 @@ DECLARATIVE_METADATA_ALIASES = {
 # New full-Standard rules are kept separate from the historical Dragon slice
 # so adding cards does not mutate the vocabulary of existing neural models.
 STANDARD_DECLARATIVE_IDS = {
+    "CATA_131",
+    "CATA_138",
     "CORE_CS2_004",
     "CORE_CS2_062",
+    "CORE_EX1_169",
     "CORE_EX1_197",
     "CORE_ICC_055",
+    "CORE_OG_047",
     "CORE_SW_072",
+    "DINO_432",
+    "EDR_846t2",
+    "EDR_846t4",
+    "END_007",
+    "TIME_702",
+    "TLC_COIN1",
 }
 
 
@@ -139,8 +149,11 @@ class DamageHero:
     side: str = "controller"
 
     def execute(self, game: Any, context: RuleContext) -> None:
+        amount = self.amount
+        if context.card.definition.card_type == "SPELL":
+            amount += game._spell_damage(context.player)
         game._damage_hero(
-            _recipient(game, context, self.side), self.amount, context.card
+            _recipient(game, context, self.side), amount, context.card
         )
 
 
@@ -152,10 +165,13 @@ class DamageBoard:
 
     def execute(self, game: Any, context: RuleContext) -> None:
         player = _recipient(game, context, self.side)
+        amount = self.amount
+        if context.card.definition.card_type == "SPELL":
+            amount += game._spell_damage(context.player)
         for target in list(player.board):
             if self.exclude_source and target.entity_id == context.card.entity_id:
                 continue
-            game._damage_minion(player.index, target, self.amount, context.card)
+            game._damage_minion(player.index, target, amount, context.card)
 
 
 @dataclass(frozen=True)
@@ -171,10 +187,13 @@ class DamageActionTarget:
     def execute(self, game: Any, context: RuleContext) -> None:
         if context.action is None or context.action.target_player is None:
             raise ValueError("action target is required")
+        amount = self.amount
+        if context.card.definition.card_type == "SPELL":
+            amount += game._spell_damage(context.player)
         game._deal_to_target(
             context.player.index,
             (context.action.target_player, context.action.target_entity),
-            self.amount,
+            amount,
             source=context.card,
         )
 
@@ -184,11 +203,14 @@ class DamageAllCharacters:
     amount: int
 
     def execute(self, game: Any, context: RuleContext) -> None:
+        amount = self.amount
+        if context.card.definition.card_type == "SPELL":
+            amount += game._spell_damage(context.player)
         for player in game.players:
-            game._damage_hero(player, self.amount, context.card)
+            game._damage_hero(player, amount, context.card)
             for minion in list(player.board):
                 game._damage_minion(
-                    player.index, minion, self.amount, context.card
+                    player.index, minion, amount, context.card
                 )
 
 
@@ -235,6 +257,118 @@ class GainMana:
 
     def execute(self, game: Any, context: RuleContext) -> None:
         context.player.mana += self.amount
+
+
+@dataclass(frozen=True)
+class GainHeroAttack:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.hero_attack_bonus += self.amount
+
+
+@dataclass(frozen=True)
+class BuffActionTargetPerFriendlyMinion:
+    attack: int = 0
+    health: int = 0
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        count = len(context.player.board)
+        target.attack_delta += self.attack * count
+        target.health_delta += self.health * count
+
+
+@dataclass(frozen=True)
+class SetActionTargetStats:
+    attack: int
+    health: int
+    stealth: bool = False
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        target.attack_delta += self.attack - target.attack
+        target.health_delta += self.health - target.max_health
+        if self.stealth:
+            target.stealth = True
+
+
+@dataclass(frozen=True)
+class DestroyActionTarget:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        target.damage = target.max_health
+
+
+@dataclass(frozen=True)
+class ShuffleActionTargetIntoOwnerDeck:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        owner = game.players[context.action.target_player]
+        target = game._find_minion(owner.index, context.action.target_entity)
+        owner.board.remove(target)
+        returned = game._entity(target.card_id, created_by=context.card.card_id)
+        owner.deck.insert(game.rng.randrange(len(owner.deck) + 1), returned)
+        game._refresh_continuous(owner)
+        game._event(
+            "shuffle_minion", player=owner.index, card=target.card_id,
+            entity=target.entity_id, source=context.card.card_id,
+        )
+
+
+@dataclass(frozen=True)
+class OfferEffectChoice:
+    """Pause resolution until the controller selects one effect bundle."""
+
+    options: tuple[tuple[str, tuple[Effect, ...]], ...]
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game.pending_choice = {
+            "kind": "RULE_CHOICE",
+            "player": context.player.index,
+            "card": context.card,
+            "options": self.options,
+        }
+        game._event(
+            "rule_choice", player=context.player.index,
+            card=context.card.card_id,
+            options=[label for label, _ in self.options],
+        )
+
+
+@dataclass(frozen=True)
+class IfSourceAttribute:
+    attribute: str
+    effects: tuple[Effect, ...]
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if getattr(context.card, self.attribute):
+            for effect in self.effects:
+                effect.execute(game, context)
+
+
+@dataclass(frozen=True)
+class ManaCrystalByHeldSpend:
+    threshold: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.card.mana_spent_while_held >= self.threshold:
+            GainManaCrystals(1).execute(game, context)
+        else:
+            GainMana(1).execute(game, context)
 
 
 @dataclass(frozen=True)
@@ -463,6 +597,101 @@ def build_rule_registry() -> RuleRegistry:
                 "upstream_adapted", rosetta, "GAME_005", "AGPL-3.0",
                 ("test_windpeak_wyrm_battlecry_and_coin_spell_rules",),
             ),
+        ),
+        CardRule(
+            "CORE_EX1_169", {Hook.SPELL: (GainMana(1),)},
+            RuleSource(
+                "upstream_adapted", rosetta, "EX1_169", "AGPL-3.0",
+                ("test_temporary_mana_spells",),
+            ),
+        ),
+        CardRule(
+            "CORE_OG_047",
+            {Hook.SPELL: (OfferEffectChoice((
+                ("hero_attack_4", (GainHeroAttack(4),)),
+                ("armor_8", (GainArmor(8),)),
+            )),)},
+            RuleSource(
+                "upstream_adapted", rosetta, "OG_047", "AGPL-3.0",
+                ("test_feral_rage_choose_one",),
+            ),
+        ),
+        CardRule(
+            "TLC_COIN1", {Hook.SPELL: (GainMana(1),)},
+            RuleSource(
+                "powerlog_verified", "Power.log 61e3baf3 + HearthstoneJSON 251332",
+                verification=("test_temporary_mana_spells",),
+            ),
+        ),
+        CardRule(
+            "CATA_138",
+            {Hook.SPELL: (BuffActionTargetPerFriendlyMinion(1, 1),)},
+            RuleSource(
+                "powerlog_verified", "Power.log 61e3baf3 + HearthstoneJSON 251332",
+                verification=("test_forest_gift_scales_with_friendly_board",),
+            ),
+            TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "CATA_131", {Hook.BATTLECRY: (ManaCrystalByHeldSpend(4),)},
+            RuleSource(
+                "powerlog_verified", "Power.log 61e3baf3 + HearthstoneJSON 251332",
+                verification=("test_felwood_treant_tracks_mana_spent_while_held",),
+            ),
+        ),
+        CardRule(
+            "DINO_432",
+            {Hook.SPELL: (SetActionTargetStats(5, 4, stealth=True), Draw(2))},
+            RuleSource(
+                "powerlog_verified", "Power.log 61e3baf3 + HearthstoneJSON 251332",
+                verification=("test_panther_mask_sets_stats_stealth_and_draws",),
+            ),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "EDR_846t2",
+            {Hook.SPELL: (ShuffleActionTargetIntoOwnerDeck(),)},
+            RuleSource(
+                "powerlog_verified", "Power.log 61e3baf3 + HearthstoneJSON 251332",
+                verification=("test_corrupted_dream_shuffles_without_death",),
+            ),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "EDR_846t4",
+            {Hook.SPELL: (
+                DamageHero(5, "opponent"), DamageBoard(5, "opponent"),
+                ResolveDeaths(),
+            )},
+            RuleSource(
+                "powerlog_verified", "Power.log 61e3baf3 + HearthstoneJSON 251332",
+                verification=("test_corrupted_awakening_damages_only_enemies",),
+            ),
+        ),
+        CardRule(
+            "END_007",
+            {Hook.SPELL: (
+                DamageActionTarget(1), GainHeroAttack(1), Draw(), GainArmor(1),
+                ResolveDeaths(),
+            )},
+            RuleSource(
+                "powerlog_verified", "Power.log 61e3baf3 + HearthstoneJSON 251332",
+                verification=("test_press_the_advantage_all_effects",),
+            ),
+            TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "TIME_702",
+            {Hook.SPELL: (
+                DamageActionTarget(3),
+                IfSourceAttribute("minion_played_while_held", (GainArmor(5),)),
+                ResolveDeaths(),
+            )},
+            RuleSource(
+                "powerlog_verified", "Power.log 61e3baf3 + HearthstoneJSON 251332",
+                verification=("test_ebb_and_flow_tracks_minion_played_while_held",),
+            ),
+            TargetSpec(TargetKind.ANY_CHARACTER),
         ),
         CardRule(
             "CORE_CS2_004",

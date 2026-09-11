@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 286,
-    "declarative_rules": 46,
+    "supported_cards": 296,
+    "declarative_rules": 56,
     "legacy_special_case_rules": 1,
     "legacy_compatibility_rules": 239,
-    "cards_with_upstream_match": 83
+    "cards_with_upstream_match": 85
   },
   "cards": [
     {
@@ -175,6 +175,54 @@
       "metadata_source": "HearthstoneJSON build 251332",
       "upstream_matches": [],
       "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "CATA_131",
+      "implementation": "declarative",
+      "hooks": [
+        "battlecry"
+      ],
+      "effects": {
+        "battlecry": [
+          "ManaCrystalByHeldSpend"
+        ]
+      },
+      "rule_source": {
+        "kind": "powerlog_verified",
+        "reference": "Power.log 61e3baf3 + HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_felwood_treant_tracks_mana_spent_while_held"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
+      "card_id": "CATA_138",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "BuffActionTargetPerFriendlyMinion"
+        ]
+      },
+      "rule_source": {
+        "kind": "powerlog_verified",
+        "reference": "Power.log 61e3baf3 + HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_forest_gift_scales_with_friendly_board"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
     },
     {
       "card_id": "CATA_150",
@@ -2872,6 +2920,76 @@
       "verification_status": "regression_suite_only"
     },
     {
+      "card_id": "CORE_EX1_169",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "GainMana"
+        ]
+      },
+      "rule_source": {
+        "kind": "upstream_adapted",
+        "reference": "vendor/RosettaStone@e10749b5f0c08d3a6135bce317cb11d1738846ad",
+        "upstream_card_id": "EX1_169",
+        "license": "AGPL-3.0",
+        "verification": [
+          "test_temporary_mana_spells"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "CORE_EX1_169",
+          "match_kind": "exact",
+          "path": "Sources/Rosetta/PlayMode/CardSets/CoreCardsGen.cpp",
+          "line": 184
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "CORE_EX1_169",
+          "match_kind": "exact",
+          "path": "Sources/Rosetta/PlayMode/CardSets/CoreCardsGen.cpp",
+          "line": 192
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "EX1_169",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/LegacyCardsGen.cpp",
+          "line": 587
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "EX1_169",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/LegacyCardsGen.cpp",
+          "line": 595
+        },
+        {
+          "repository": "fireplace",
+          "commit": "47a2572a000db66645bb74a425a090d51f1004fa",
+          "license": "AGPL-3.0",
+          "matched_id": "EX1_169",
+          "match_kind": "historical_alias",
+          "path": "fireplace/cards/classic/druid.py",
+          "line": 272
+        }
+      ],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
       "card_id": "CORE_EX1_193",
       "implementation": "legacy_compatibility",
       "hooks": [],
@@ -4581,6 +4699,220 @@
       "verification_status": "regression_suite_only"
     },
     {
+      "card_id": "CORE_OG_047",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "OfferEffectChoice"
+        ]
+      },
+      "rule_source": {
+        "kind": "upstream_adapted",
+        "reference": "vendor/RosettaStone@e10749b5f0c08d3a6135bce317cb11d1738846ad",
+        "upstream_card_id": "OG_047",
+        "license": "AGPL-3.0",
+        "verification": [
+          "test_feral_rage_choose_one"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "CORE_OG_047",
+          "match_kind": "exact",
+          "path": "Sources/Rosetta/PlayMode/CardSets/CoreCardsGen.cpp",
+          "line": 282
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "OG_047",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/CoreCardsGen.cpp",
+          "line": 293
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "CORE_OG_047",
+          "match_kind": "exact",
+          "path": "Sources/Rosetta/PlayMode/CardSets/CoreCardsGen.cpp",
+          "line": 294
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "OG_047",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/OgCardsGen.cpp",
+          "line": 52
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "OG_047",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/OgCardsGen.cpp",
+          "line": 63
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "OG_047",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/OgCardsGen.cpp",
+          "line": 64
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "OG_047",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/OgCardsGen.cpp",
+          "line": 157
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "OG_047",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/OgCardsGen.cpp",
+          "line": 164
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "OG_047",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/OgCardsGen.cpp",
+          "line": 165
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "OG_047",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/OgCardsGen.cpp",
+          "line": 168
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "OG_047",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/OgCardsGen.cpp",
+          "line": 175
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "OG_047",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/OgCardsGen.cpp",
+          "line": 178
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "OG_047",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/OgCardsGen.cpp",
+          "line": 187
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "OG_047",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/OgCardsGen.cpp",
+          "line": 188
+        },
+        {
+          "repository": "fireplace",
+          "commit": "47a2572a000db66645bb74a425a090d51f1004fa",
+          "license": "AGPL-3.0",
+          "matched_id": "OG_047",
+          "match_kind": "historical_alias",
+          "path": "fireplace/cards/wog/druid.py",
+          "line": 79
+        },
+        {
+          "repository": "fireplace",
+          "commit": "47a2572a000db66645bb74a425a090d51f1004fa",
+          "license": "AGPL-3.0",
+          "matched_id": "OG_047",
+          "match_kind": "historical_alias",
+          "path": "fireplace/cards/wog/druid.py",
+          "line": 82
+        },
+        {
+          "repository": "fireplace",
+          "commit": "47a2572a000db66645bb74a425a090d51f1004fa",
+          "license": "AGPL-3.0",
+          "matched_id": "OG_047",
+          "match_kind": "historical_alias",
+          "path": "fireplace/cards/wog/druid.py",
+          "line": 84
+        },
+        {
+          "repository": "fireplace",
+          "commit": "47a2572a000db66645bb74a425a090d51f1004fa",
+          "license": "AGPL-3.0",
+          "matched_id": "OG_047",
+          "match_kind": "historical_alias",
+          "path": "fireplace/cards/wog/druid.py",
+          "line": 89
+        },
+        {
+          "repository": "fireplace",
+          "commit": "47a2572a000db66645bb74a425a090d51f1004fa",
+          "license": "AGPL-3.0",
+          "matched_id": "OG_047",
+          "match_kind": "historical_alias",
+          "path": "fireplace/cards/wog/druid.py",
+          "line": 90
+        },
+        {
+          "repository": "fireplace",
+          "commit": "47a2572a000db66645bb74a425a090d51f1004fa",
+          "license": "AGPL-3.0",
+          "matched_id": "OG_047",
+          "match_kind": "historical_alias",
+          "path": "fireplace/cards/wog/druid.py",
+          "line": 93
+        },
+        {
+          "repository": "fireplace",
+          "commit": "47a2572a000db66645bb74a425a090d51f1004fa",
+          "license": "AGPL-3.0",
+          "matched_id": "OG_047",
+          "match_kind": "historical_alias",
+          "path": "fireplace/cards/wog/druid.py",
+          "line": 96
+        }
+      ],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
       "card_id": "CORE_OG_149",
       "implementation": "legacy_compatibility",
       "hooks": [],
@@ -6284,6 +6616,31 @@
       "verification_status": "regression_suite_only"
     },
     {
+      "card_id": "DINO_432",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "SetActionTargetStats",
+          "Draw"
+        ]
+      },
+      "rule_source": {
+        "kind": "powerlog_verified",
+        "reference": "Power.log 61e3baf3 + HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_panther_mask_sets_stats_stealth_and_draws"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
       "card_id": "EDR_000",
       "implementation": "declarative",
       "hooks": [
@@ -6849,6 +7206,56 @@
       "verification_status": "regression_suite_only"
     },
     {
+      "card_id": "EDR_846t2",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "ShuffleActionTargetIntoOwnerDeck"
+        ]
+      },
+      "rule_source": {
+        "kind": "powerlog_verified",
+        "reference": "Power.log 61e3baf3 + HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_corrupted_dream_shuffles_without_death"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
+      "card_id": "EDR_846t4",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "DamageHero",
+          "DamageBoard",
+          "ResolveDeaths"
+        ]
+      },
+      "rule_source": {
+        "kind": "powerlog_verified",
+        "reference": "Power.log 61e3baf3 + HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_corrupted_awakening_damages_only_enemies"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
       "card_id": "EDR_849",
       "implementation": "legacy_compatibility",
       "hooks": [],
@@ -6978,6 +7385,34 @@
         "license": null,
         "verification": [
           "test_remnant_costs_less_per_death_this_turn_and_draws_two"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
+      "card_id": "END_007",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "DamageActionTarget",
+          "GainHeroAttack",
+          "Draw",
+          "GainArmor",
+          "ResolveDeaths"
+        ]
+      },
+      "rule_source": {
+        "kind": "powerlog_verified",
+        "reference": "Power.log 61e3baf3 + HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_press_the_advantage_all_effects"
         ]
       },
       "metadata_source": "HearthstoneJSON build 251332",
@@ -8585,6 +9020,32 @@
       "verification_status": "regression_suite_only"
     },
     {
+      "card_id": "TIME_702",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "DamageActionTarget",
+          "IfSourceAttribute",
+          "ResolveDeaths"
+        ]
+      },
+      "rule_source": {
+        "kind": "powerlog_verified",
+        "reference": "Power.log 61e3baf3 + HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_ebb_and_flow_tracks_minion_played_while_held"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
       "card_id": "TIME_713",
       "implementation": "declarative",
       "hooks": [
@@ -9168,6 +9629,30 @@
       "metadata_source": "HearthstoneJSON build 251332",
       "upstream_matches": [],
       "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "TLC_COIN1",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "GainMana"
+        ]
+      },
+      "rule_source": {
+        "kind": "powerlog_verified",
+        "reference": "Power.log 61e3baf3 + HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_temporary_mana_spells"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
     }
   ]
 }
