@@ -119,6 +119,11 @@ def event_text(event: dict, names: dict[str, str]) -> str:
             f"玩家{player}获得衍生牌{card}并置入手牌"
             f"（来源：{localized_name(event.get('source'), names)}）"
         )
+    if kind == "generated_from_pool":
+        return (
+            f"玩家{player}从随机牌池获得{card}并置入手牌"
+            f"（来源：{localized_name(event.get('source'), names)}）"
+        )
     if kind == "returned_to_hand":
         return f"玩家{player}的{card}返回手牌"
     if kind == "awaken":

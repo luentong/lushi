@@ -44,9 +44,12 @@ run trustworthy games with these decklists. Building MCTS, policy/value models,
 or an LLM decision layer before closing this card/mechanic gap would produce an
 invalid benchmark.
 
-The first implementation milestone is a vertical slice of two decks, followed by
-cross-match expansion. Every added card needs a focused rules test and at least
-one deterministic replay fixture.
+The Dragon Warrior mirror vertical slice is now implemented and suitable for
+search and learning experiments under ruleset `dragon-warrior-closed-v3`.
+This result does not yet generalize to the other supplied decks or to full
+Standard. Cross-match expansion remains gated on implementing and validating
+their cards and reachable generated-card closure. Every added card needs a
+focused rules test and at least one deterministic replay fixture.
 
 ## Dragon Warrior vertical slice
 
@@ -82,11 +85,20 @@ same search seeds and parameters, run:
 
 ```bash
 python scripts/trace_search_match.py \
-  --seed 202609100039 --candidate-seat 0 \
-  --checkpoint reports/policy-v4-relative-targetzone-highteacher128.pt \
+  --seed 202610050003 --candidate-seat 0 \
+  --checkpoint reports/policy-value-rules-v3-structured-v5-2048.pt \
   --device npu:0 \
-  --min-simulations-per-root-action 2 --max-total-iterations 16
+  --samples 4 --iterations 4 --tree-depth 8 --rollout-depth 3 \
+  --min-simulations-per-root-action 1 --max-total-iterations 32
 ```
+
+The promoted strategy is the structured residual v5 checkpoint used as a
+**policy prior only**. In 104 seat-swapped games it defeated ordinary ISMCTS
+75-29 (72.12%, Wilson 95% CI 62.83%-79.83%). Enabling the same checkpoint's
+value head won only 32/104 against policy-only PUCT, so model leaf values are
+disabled in the current best configuration. See
+`reports/current-best-policy.md` for the exact artifact hash, experiment design,
+and reproducible report paths.
 
 Its Markdown trace shows every chosen action, the five leading alternatives by
 root visits, each branch's mean value and neural prior, the final selection,

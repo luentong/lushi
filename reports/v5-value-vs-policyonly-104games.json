@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "comparison": {
+    "candidate": "policy-value-puct-v1",
+    "baseline": "policy-prior-puct-v1",
+    "checkpoint": "reports/policy-value-rules-v3-structured-v5-2048.pt",
+    "baseline_checkpoint": "reports/policy-value-rules-v3-structured-v5-2048.pt",
+    "samples": 4,
+    "iterations": 4,
+    "tree_depth": 8,
+    "rollout_depth": 0,
+    "baseline_samples": 4,
+    "baseline_iterations": 4,
+    "baseline_tree_depth": 8,
+    "baseline_rollout_depth": 3,
+    "leaf_value_source": "model",
+    "candidate_expansion_mode": "force_unvisited",
+    "baseline_expansion_mode": "force_unvisited",
+    "min_simulations_per_root_action": 1,
+    "max_total_iterations": 32,
+    "baseline_min_simulations_per_root_action": 1,
+    "baseline_max_total_iterations": 32
+  },
+  "runs": [
+    {
+      "report": "reports/v5-value-vs-policyonly-run0.json",
+      "checkpoint": "reports/policy-value-rules-v3-structured-v5-2048.pt",
+      "games": 26,
+      "wins": 11,
+      "win_rate": 0.4230769230769231,
+      "wilson95": [
+        0.255441899027294,
+        0.6105170307888017
+      ],
+      "pairs": 13,
+      "swept_pairs": 0,
+      "split_pairs": 11,
+      "lost_pairs": 2,
+      "decisive_pairs": 2,
+      "exact_two_sided_sign_p": 0.5
+    },
+    {
+      "report": "reports/v5-value-vs-policyonly-run1.json",
+      "checkpoint": "reports/policy-value-rules-v3-structured-v5-2048.pt",
+      "games": 26,
+      "wins": 8,
+      "win_rate": 0.3076923076923077,
+      "wilson95": [
+        0.16501120939792674,
+        0.49988611514231246
+      ],
+      "pairs": 13,
+      "swept_pairs": 1,
+      "split_pairs": 6,
+      "lost_pairs": 6,
+      "decisive_pairs": 7,
+      "exact_two_sided_sign_p": 0.125
+    },
+    {
+      "report": "reports/v5-value-vs-policyonly-run2.json",
+      "checkpoint": "reports/policy-value-rules-v3-structured-v5-2048.pt",
+      "games": 26,
+      "wins": 6,
+      "win_rate": 0.23076923076923078,
+      "wilson95": [
+        0.11033699683676687,
+        0.42051925751956787
+      ],
+      "pairs": 13,
+      "swept_pairs": 0,
+      "split_pairs": 6,
+      "lost_pairs": 7,
+      "decisive_pairs": 7,
+      "exact_two_sided_sign_p": 0.015625
+    },
+    {
+      "report": "reports/v5-value-vs-policyonly-run3.json",
+      "checkpoint": "reports/policy-value-rules-v3-structured-v5-2048.pt",
+      "games": 26,
+      "wins": 7,
+      "win_rate": 0.2692307692307692,
+      "wilson95": [
+        0.13704275525067386,
+        0.46083403419761304
+      ],
+      "pairs": 13,
+      "swept_pairs": 1,
+      "split_pairs": 5,
+      "lost_pairs": 7,
+      "decisive_pairs": 8,
+      "exact_two_sided_sign_p": 0.0703125
+    }
+  ],
+  "pooled": {
+    "independent_runs": 4,
+    "games": 104,
+    "wins": 32,
+    "win_rate": 0.3076923076923077,
+    "wilson95": [
+      0.2271632987893137,
+      0.4019223230857327
+    ],
+    "pairs": 52,
+    "swept_pairs": 2,
+    "split_pairs": 28,
+    "lost_pairs": 22,
+    "decisive_pairs": 24,
+    "exact_two_sided_sign_p": 3.5881996154785156e-05
+  },
+  "interpretation": "Pooled statistics are descriptive; checkpoint-level replication remains the unit of generalization."
+}
