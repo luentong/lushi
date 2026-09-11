@@ -54,10 +54,10 @@
     "fire_spell": {
       "candidate_count": 33,
       "direct_supported": 3,
-      "generated_supported": 13,
+      "generated_supported": 17,
       "metadata_only": 0,
-      "needs_rule": 17,
-      "unimplemented": 17
+      "needs_rule": 13,
+      "unimplemented": 13
     },
     "tortotem_multi_type_minion": {
       "candidate_count": 55,

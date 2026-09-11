@@ -113,6 +113,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_SW_108",
     "DINO_432",
     "DINO_431",
+    "DINO_406",
     "EDR_449",
     "EDR_270",
     "EDR_271",
@@ -132,6 +133,7 @@ STANDARD_DECLARATIVE_IDS = {
     "FIR_910",
     "FIR_923",
     "FIR_954",
+    "FIR_941",
     "EDR_476",
     "END_007",
     "END_011",
@@ -160,6 +162,10 @@ STANDARD_DECLARATIVE_IDS = {
     "TLC_451",
     "TLC_227",
     "TLC_221",
+    "TLC_222",
+    "TLC_632",
+    "TLC_632t",
+    "TLC_632t2",
     "SW_108t",
     "TLC_COIN1",
 }
@@ -660,6 +666,110 @@ class DamageActionTargetThenSummonByDamage:
 
 
 @dataclass(frozen=True)
+class DamageActionTargetThenBuffFriendlyRace:
+    """Resolve direct spell damage, then apply a permanent tribal buff."""
+
+    amount: int
+    race: str
+    attack: int
+    health: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
+        target = (context.action.target_player, context.action.target_entity)
+        game._deal_to_target(context.player.index, target, amount, context.card)
+        game._resolve_deaths()
+        buffed = []
+        for minion in context.player.board:
+            if minion.has_race(self.race):
+                minion.attack_delta += self.attack
+                minion.health_delta += self.health
+                buffed.append(minion.entity_id)
+        game._event(
+            "damage_then_buff_friendly_race", player=context.player.index,
+            source=context.card.card_id, target=target, amount=amount,
+            race=self.race, buffed=buffed,
+        )
+
+
+@dataclass(frozen=True)
+class DrawMinionThenSummonStatCopy:
+    """Draw a minion and summon a fresh fixed-stat copy if board space exists."""
+
+    attack: int
+    health: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        drawn = game._draw_matching(
+            context.player,
+            lambda card: card.definition.card_type == "MINION",
+        )
+        summoned = None
+        if drawn is not None and len(context.player.board) + len(context.player.locations) < 7:
+            copy = drawn.clone(game.next_entity_id)
+            game.next_entity_id += 1
+            copy.started_in_deck = False
+            copy.created_by = context.card.card_id
+            copy.attack_delta += self.attack - copy.attack
+            copy.health_delta += self.health - copy.max_health
+            copy.damage = 0
+            copy.divine_shield = True
+            copy.divine_shield_hits = 1
+            copy.summoned_turn = game.turn
+            game._summon(context.player, copy)
+            summoned = copy.entity_id
+        game._event(
+            "draw_minion_summon_stat_copy", player=context.player.index,
+            source=context.card.card_id,
+            drawn=None if drawn is None else drawn.card_id,
+            summoned=summoned, attack=self.attack, health=self.health,
+        )
+
+
+@dataclass(frozen=True)
+class DrawDifferentTribeMinionsAndBuff:
+    """Draw up to two minions whose printed tribe sets do not overlap."""
+
+    attack: int
+    health: int
+
+    @staticmethod
+    def _tribes(card: Any) -> set[str]:
+        tribes = {card.definition.race, *card.definition.races} - {""}
+        return tribes or {"NONE"}
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        drawn = []
+        first = game._draw_matching(
+            player, lambda card: card.definition.card_type == "MINION"
+        )
+        if first is not None:
+            first.attack_delta += self.attack
+            first.health_delta += self.health
+            drawn.append(first)
+            excluded = self._tribes(first)
+            second = game._draw_matching(
+                player,
+                lambda card: (
+                    card.definition.card_type == "MINION"
+                    and self._tribes(card).isdisjoint(excluded)
+                ),
+            )
+            if second is not None:
+                second.attack_delta += self.attack
+                second.health_delta += self.health
+                drawn.append(second)
+        game._event(
+            "draw_different_tribe_minions", player=player.index,
+            source=context.card.card_id, cards=[card.card_id for card in drawn],
+            attack=self.attack, health=self.health,
+        )
+
+
+@dataclass(frozen=True)
 class DamageAllCharacters:
     amount: int
 
@@ -806,7 +916,7 @@ class GrowWickerfangLeg:
 
 @dataclass(frozen=True)
 class SetHeroPower:
-    card_id: str
+    card_id: str | None
 
     def execute(self, game: Any, context: RuleContext) -> None:
         context.player.hero_power_id = self.card_id
@@ -1975,6 +2085,23 @@ def build_rule_registry() -> RuleRegistry:
             TargetSpec(TargetKind.ANY_MINION),
         ),
         CardRule(
+            "FIR_941",
+            {Hook.SPELL: (DrawMinionThenSummonStatCopy(8, 8),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_searing_reflection_draws_and_summons_divine_shield_copy",),
+            ),
+        ),
+        CardRule(
+            "DINO_406",
+            {Hook.SPELL: (DamageActionTargetThenBuffFriendlyRace(4, "ELEMENTAL", 1, 1),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_fire_breath_damages_and_buffs_friendly_elementals",),
+            ),
+            TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
             "JAIL_307",
             {Hook.SPELL: (DamageAllMinions(2, repeats=2),)},
             RuleSource(
@@ -1999,6 +2126,38 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_sizzling_swarm_summons_one_cinder_per_damage",),
             ),
             TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "TLC_222",
+            {Hook.SPELL: (DrawDifferentTribeMinionsAndBuff(1, 1),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_flight_of_the_firehawk_draws_different_tribes_and_buffs",),
+            ),
+        ),
+        CardRule(
+            "TLC_632",
+            {Hook.SPELL: (SetHeroPower("TLC_632t"),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_story_of_sulfuras_last_two_uses_then_restores_hero_power",),
+            ),
+        ),
+        CardRule(
+            "TLC_632t",
+            {Hook.HERO_POWER: (DamageRandomEnemyCharacters(8, 1), SetHeroPower("TLC_632t2"))},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_story_of_sulfuras_last_two_uses_then_restores_hero_power",),
+            ),
+        ),
+        CardRule(
+            "TLC_632t2",
+            {Hook.HERO_POWER: (DamageRandomEnemyCharacters(8, 1), SetHeroPower(None))},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_story_of_sulfuras_last_two_uses_then_restores_hero_power",),
+            ),
         ),
         CardRule(
             "SW_108t",

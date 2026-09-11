@@ -76,6 +76,58 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertNotIn(enemy_a, game.players[1].board)
         self.assertNotIn(enemy_b, game.players[1].board)
 
+    def test_fire_breath_damages_and_buffs_friendly_elementals(self):
+        game = self.game()
+        elemental = self.add_board(game, "TLC_249", 0)
+        spell = self.add_hand(game, "DINO_406")
+        game.step(Action("PLAY", spell.entity_id, 1, None))
+        self.assertEqual(26, game.players[1].health)
+        self.assertEqual((3, 2), (elemental.attack, elemental.max_health))
+
+    def test_searing_reflection_draws_and_summons_divine_shield_copy(self):
+        game = self.game()
+        dragon = game._entity("CORE_LOOT_137", started_in_deck=True)
+        game.players[0].deck = [dragon]
+        spell = self.add_hand(game, "FIR_941")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertIn(dragon, game.players[0].hand)
+        self.assertEqual(1, len(game.players[0].board))
+        copy = game.players[0].board[0]
+        self.assertEqual("CORE_LOOT_137", copy.card_id)
+        self.assertEqual((8, 8), (copy.attack, copy.max_health))
+        self.assertTrue(copy.divine_shield)
+        self.assertFalse(copy.started_in_deck)
+
+    def test_flight_of_the_firehawk_draws_different_tribes_and_buffs(self):
+        game = self.game()
+        dragon = game._entity("CORE_LOOT_137", started_in_deck=True)
+        demon = game._entity("CORE_CS2_065", started_in_deck=True)
+        game.players[0].deck = [dragon, demon]
+        spell = self.add_hand(game, "TLC_222")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual({"CORE_LOOT_137", "CORE_CS2_065"}, {
+            card.card_id for card in game.players[0].hand
+        })
+        by_id = {card.card_id: card for card in game.players[0].hand}
+        self.assertEqual((7, 13), (by_id["CORE_LOOT_137"].attack, by_id["CORE_LOOT_137"].max_health))
+        self.assertEqual((2, 4), (by_id["CORE_CS2_065"].attack, by_id["CORE_CS2_065"].max_health))
+
+    def test_story_of_sulfuras_last_two_uses_then_restores_hero_power(self):
+        game = self.game()
+        story = self.add_hand(game, "TLC_632")
+        game.step(Action("PLAY", story.entity_id))
+        self.assertEqual("TLC_632t", game.players[0].hero_power_id)
+        game.players[0].mana = 10
+        game.step(Action("HERO_POWER"))
+        self.assertEqual(22, game.players[1].health)
+        self.assertEqual("TLC_632t2", game.players[0].hero_power_id)
+        game._end_turn()
+        game._end_turn()
+        game.players[0].mana = 10
+        game.step(Action("HERO_POWER"))
+        self.assertEqual(14, game.players[1].health)
+        self.assertIsNone(game.players[0].hero_power_id)
+
     def test_fyrakk_is_immune_to_fire_spell_damage_only(self):
         game = self.game()
         fyrakk = self.add_board(game, "FIR_959", 1)

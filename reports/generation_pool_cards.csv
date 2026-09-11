@@ -209,7 +209,7 @@ fire_spell,CORE_GIL_836,Blazing Invocation,SHAMAN,CORE,SPELL,1,0,0,,DISCOVER,[x]
 fire_spell,CORE_LOOT_101,Explosive Runes,MAGE,CORE,SPELL,3,0,0,,"SECRET,ImmuneToSpellpower","<b>Secret:</b> After your opponent plays a minion, deal $6 damage to it and any excess to their hero.",needs_rule
 fire_spell,CORE_SW_108,First Flame,MAGE,CORE,SPELL,1,0,0,,,Deal $2 damage to a minion. Add a Second Flame to your hand.,generated_supported
 fire_spell,CORE_WON_337,Ironforge Portal,WARRIOR,CORE,SPELL,4,0,0,,,Gain 4 Armor. Summon a random 4-Cost minion.,needs_rule
-fire_spell,DINO_406,Fire Breath,SHAMAN,THE_LOST_CITY,SPELL,3,0,0,,,Deal $4 damage. Give your Elementals +1/+1.,needs_rule
+fire_spell,DINO_406,Fire Breath,SHAMAN,THE_LOST_CITY,SPELL,3,0,0,,,Deal $4 damage. Give your Elementals +1/+1.,generated_supported
 fire_spell,END_024,Flames of Infinity,MAGE,TIME_TRAVEL,SPELL,3,0,0,,"SECRET,ImmuneToSpellpower","<b>Secret:</b> When your enemy's turn ends, deal INFINITE damage to their highest Health minion.",needs_rule
 fire_spell,END_025,Eternal Firebolt,"MAGE,PRIEST",TIME_TRAVEL,SPELL,3,0,0,,LIFESTEAL,"<b>Lifesteal</b> Deal $3 damage to a minion. If it dies, return this to your hand at the end of your turn.",needs_rule
 fire_spell,FIR_900,Cremate,DEATHKNIGHT,EMERALD_DREAM,SPELL,3,0,0,,DISCOVER,<b>Discover</b> a minion with a <b>Dark Gift</b>. It costs (2) less.,needs_rule
@@ -222,14 +222,14 @@ fire_spell,FIR_916,Smoldering Ascent,PRIEST,EMERALD_DREAM,SPELL,2,0,0,,,"Deal ${
 fire_spell,FIR_920,Smoke Bomb,ROGUE,EMERALD_DREAM,SPELL,2,0,0,,DISCOVER,"<b>Discover</b> a <b>Combo</b>, <b>Battlecry</b>, or <b>Stealth</b> minion with a <b>Dark Gift</b>.",needs_rule
 fire_spell,FIR_923,Flames of the Firelord,SHAMAN,EMERALD_DREAM,SPELL,2,0,0,,,"[x]Deal $4 damage to a random enemy minion. If you're holding a card that costs (8) or more, deal $8 instead.",generated_supported
 fire_spell,FIR_939,Shadowflame Suffusion,WARRIOR,EMERALD_DREAM,SPELL,2,0,0,,DISCOVER,[x]Deal $2 damage. <b>Discover</b> a Warrior minion with a <b>Dark Gift</b>.,direct_supported
-fire_spell,FIR_941,Searing Reflection,PALADIN,EMERALD_DREAM,SPELL,7,0,0,,,Draw a minion. Summon an 8/8 copy of it with <b>Divine Shield</b>.,needs_rule
+fire_spell,FIR_941,Searing Reflection,PALADIN,EMERALD_DREAM,SPELL,7,0,0,,,Draw a minion. Summon an 8/8 copy of it with <b>Divine Shield</b>.,generated_supported
 fire_spell,FIR_954,Conflagrate,WARLOCK,EMERALD_DREAM,SPELL,1,0,0,,,Deal $5 damage to a minion. Its owner draws a card.,generated_supported
 fire_spell,JAIL_307,Crowd Control,WARRIOR,ESCAPEFROM_VIOLET_HOLD,SPELL,5,0,0,,,"Deal $2 damage to all minions twice. If your deck has 25 or more cards, this costs (2) less.",generated_supported
 fire_spell,JAIL_801,Molten Gold,SHAMAN,ESCAPEFROM_VIOLET_HOLD,SPELL,3,0,0,,,Deal $4 damage. <i>(Cast 3 spells to turn into a minion!)</i>,needs_rule
 fire_spell,TLC_221,Sizzling Swarm,SHAMAN,THE_LOST_CITY,SPELL,6,0,0,,,Deal $3 damage. Summon that many 2/1 Sizzling Cinders.,generated_supported
-fire_spell,TLC_222,Flight of the Firehawk,SHAMAN,THE_LOST_CITY,SPELL,3,0,0,,,Draw two minions of different minion types. Give them +1/+1.,needs_rule
+fire_spell,TLC_222,Flight of the Firehawk,SHAMAN,THE_LOST_CITY,SPELL,3,0,0,,,Draw two minions of different minion types. Give them +1/+1.,generated_supported
 fire_spell,TLC_227,Lava Flow,SHAMAN,THE_LOST_CITY,SPELL,3,0,0,,OVERLOAD,"Deal $2 damage to the lowest Health enemy, three times. <b>Overload:</b> (1)",generated_supported
-fire_spell,TLC_632,Story of Sulfuras,WARRIOR,THE_LOST_CITY,SPELL,5,0,0,,,"[x]Swap your Hero Power to ""Deal 8 damage to a random enemy."" After 2 uses, swap back.",needs_rule
+fire_spell,TLC_632,Story of Sulfuras,WARRIOR,THE_LOST_CITY,SPELL,5,0,0,,,"[x]Swap your Hero Power to ""Deal 8 damage to a random enemy."" After 2 uses, swap back.",generated_supported
 tortotem_multi_type_minion,CAP_107,Cannonmaster,WARRIOR,ESCAPEFROM_VIOLET_HOLD,MINION,1,3,1,"DRAENEI,PIRATE",BATTLECRY,[x]<b>Battlecry:</b> Get a 1/1 Cannoneer that deals 1 damage to a random enemy at end of turn.,direct_supported
 tortotem_multi_type_minion,CAP_800,Sinful Steed,PRIEST,ESCAPEFROM_VIOLET_HOLD,MINION,3,2,3,"BEAST,UNDEAD",REBORN,<b>Reborn</b>. This is <b>Reborn</b> with full Health and enchantments.,generated_supported
 tortotem_multi_type_minion,CATA_155,Arisen Onyxia,DEATHKNIGHT,CATACLYSM,MINION,9,3,6,"DRAGON,UNDEAD","COLOSSAL,TRIGGER_VISUAL","[x]<b>Colossal +2</b>. When your hero would lose Health on your turn, gain that much max Health instead.",generated_supported

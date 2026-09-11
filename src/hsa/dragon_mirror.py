@@ -267,6 +267,10 @@ ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "SW_108t",  # Second Flame
     "TLC_227",  # Lava Flow
     "TLC_221",  # Sizzling Swarm
+    "DINO_406",  # Fire Breath
+    "FIR_941",  # Searing Reflection
+    "TLC_222",  # Flight of the Firehawk
+    "TLC_632",  # Story of Sulfuras
 }
 
 SPECIAL_TOKEN_IDS = {
