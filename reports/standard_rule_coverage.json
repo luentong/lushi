@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 125,
+      "declarative": 132,
       "legacy_compatibility": 245,
-      "not_implemented": 1791
+      "not_implemented": 1784
     },
     "collectible_implementation": {
-      "declarative": 106,
+      "declarative": 113,
       "legacy_compatibility": 225,
-      "not_implemented": 835
+      "not_implemented": 828
     },
     "fully_implemented": false
   },
@@ -5265,9 +5265,9 @@
       "mechanics": "",
       "text": "Deal $3 damage. Gain 3 Armor.",
       "text_sha256": "928fd318ba579f2b5e05c1f8bac672a385b663af517a469a8d3f15f6c0c2acd8",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_AT_123",
@@ -6165,9 +6165,9 @@
       "mechanics": "",
       "text": "Deal $3 damage to a minion.",
       "text_sha256": "44499b054fe6189fafafb21af7c3caa6d643b930340e3b31c760ec0f4bb99424",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_CS2_004",
@@ -6390,9 +6390,9 @@
       "mechanics": "",
       "text": "Deal $2 damage to all enemies.",
       "text_sha256": "a856d816bd952d82386f48eb1d36293be42f6aaf47ef5a11f30cf96773764506",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_CS2_094",
@@ -6405,9 +6405,9 @@
       "mechanics": "",
       "text": "Deal $3 damage. Draw a card.",
       "text_sha256": "572d1eb2f460f659685ff148dec15aa2df6b63c2a51870b89155b9c905674023",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_CS2_108",
@@ -7020,9 +7020,9 @@
       "mechanics": "",
       "text": "Deal $1 damage to all enemy minions. Draw a card.",
       "text_sha256": "5ffe59fdf02471305fb680f5bd4e8bda66d990b30978d8ea98477344b7e0832d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_EX1_131",
@@ -7260,9 +7260,9 @@
       "mechanics": "",
       "text": "Deal $1 damage. Draw a card.",
       "text_sha256": "01cb10b38d4d8aa32845b4c32046c945fd3367db228936d3bcbef7ad3fd73157",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_EX1_287",
@@ -8895,9 +8895,9 @@
       "mechanics": "",
       "text": "Restore #4 Health. Draw a card.",
       "text_sha256": "8730ffe0662b9f7b145c7aada31c60739320464f0e2ca3bf0e13ce544f263efe",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_TRL_345",

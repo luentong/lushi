@@ -348,7 +348,7 @@ CORE_AT_037,76289,Living Roots,CORE,DRUID,SPELL,True,CHOOSE_ONE,Choose One - Dea
 CORE_AT_052,129849,Totem Golem,CORE,SHAMAN,MINION,True,OVERLOAD,Overload: (1),aaed179d533ad14cdc3a2e24517455e22d574c244eeabaf943426d219efb74e9,not_implemented,False,missing
 CORE_AT_055,69707,Flash Heal,CORE,PRIEST,SPELL,True,,Restore #5 Health.,caebafaf154d01d22e7685b6b599baa74bc1c50753cc29b97c77e153fa7b04a8,declarative,True,focused_or_regression_tests
 CORE_AT_062,111364,Ball of Spiders,CORE,HUNTER,SPELL,True,,"Summon three 1/1 Webspinners with ""Deathrattle: Get a random Beast.""",4783fdc91246e16104eeb6e85c158037823207aaac73de7a442774d76131fbb8,not_implemented,False,missing
-CORE_AT_064,76304,Bash,CORE,WARRIOR,SPELL,True,,Deal $3 damage. Gain 3 Armor.,928fd318ba579f2b5e05c1f8bac672a385b663af517a469a8d3f15f6c0c2acd8,not_implemented,False,missing
+CORE_AT_064,76304,Bash,CORE,WARRIOR,SPELL,True,,Deal $3 damage. Gain 3 Armor.,928fd318ba579f2b5e05c1f8bac672a385b663af517a469a8d3f15f6c0c2acd8,declarative,True,focused_or_regression_tests
 CORE_AT_123,120524,Chillmaw,CORE,NEUTRAL,MINION,True,"DEATHRATTLE,TAUNT","Taunt Deathrattle: If you're holding a Dragon, deal 3 damage to all minions.",21f10ccb294afbffb9b0bf21c2a95a1fb2ceef70827ee31eae859bfcac7e6f0e,legacy_compatibility,True,focused_or_regression_tests
 CORE_AV_107,127473,Glaciate,CORE,SHAMAN,SPELL,True,DISCOVER,Discover an 8-Cost minion. Summon and Freeze it.,afdedec8473aa95f4c52c88b5c58ae22ccb8ffc5a88f2cb77038f1b727d13e1c,not_implemented,False,missing
 CORE_AV_337,117038,Mountain Bear,CORE,HUNTER,MINION,True,"DEATHRATTLE,TAUNT",Taunt Deathrattle: Summon two 2/4 Cubs with Taunt.,bce359c069d0bf28b71ac434b5a7efa0d1d84560c6f89b8e40ef8bb159d71394,not_implemented,False,missing
@@ -408,7 +408,7 @@ CORE_CFM_753,102196,Grimestreet Outfitter,CORE,PALADIN,MINION,True,BATTLECRY,Bat
 CORE_CFM_781,120463,"Shaku, the Collector",CORE,ROGUE,MINION,True,"STEALTH,TRIGGER_VISUAL","Stealth Whenever this attacks, add a card from another class to your hand.",f6e5678666e205049cc2bf7a76b385a9e57b89b11ec1bcd6a4c17eb3cbf79d14,not_implemented,False,missing
 CORE_CFM_790,102225,Dirty Rat,CORE,NEUTRAL,MINION,True,"BATTLECRY,TAUNT",Taunt Battlecry: Your opponent summons a random minion from their hand.,24feb6e98aa4de5dbc189ce385b8d93281ab66c6714c7177a42c8d83e214f597,not_implemented,False,missing
 CORE_CS1_112,69508,Holy Nova,CORE,PRIEST,SPELL,True,,Deal $2 damage to all enemy minions. Restore #2 Health to all friendly characters.,9cfe1eb92996c2f94ccc07022b00c8dd05a03371e5e1618526beb09beae7d696,not_implemented,False,missing
-CORE_CS1_130,69509,Holy Smite,CORE,PRIEST,SPELL,True,,Deal $3 damage to a minion.,44499b054fe6189fafafb21af7c3caa6d643b930340e3b31c760ec0f4bb99424,not_implemented,False,missing
+CORE_CS1_130,69509,Holy Smite,CORE,PRIEST,SPELL,True,,Deal $3 damage to a minion.,44499b054fe6189fafafb21af7c3caa6d643b930340e3b31c760ec0f4bb99424,declarative,True,focused_or_regression_tests
 CORE_CS2_004,120786,Power Word: Shield,CORE,PRIEST,SPELL,True,,Give a minion +2 Health. Draw a card.,8a285589fbf9ae9fba2a614406ac46fc4a89745286226dbe6ad15ceb0bc6b337,declarative,True,focused_or_regression_tests
 CORE_CS2_009,69511,Mark of the Wild,CORE,DRUID,SPELL,True,,Give a minion Taunt and +2/+3. (+2 Attack/+3 Health),1465b8a2c13afe5e27f9232591d786909c16f6c67f28ce5cbb180fb6f9dc6c00,not_implemented,False,missing
 CORE_CS2_023,69500,Arcane Intellect,CORE,MAGE,SPELL,True,,Draw 2 cards.,d431f7496ea56cf6c2970ab414d18e15ae296393776c135f4ec582d724ae5ae1,declarative,True,focused_or_regression_tests
@@ -423,8 +423,8 @@ CORE_CS2_062,69519,Hellfire,CORE,WARLOCK,SPELL,True,,Deal $3 damage to ALL chara
 CORE_CS2_072,69521,Backstab,CORE,ROGUE,SPELL,True,,Deal $2 damage to an undamaged minion.,01eb3c1228aa95e51cb84c7a307be72d65d72bff423a5de2483927582587e911,not_implemented,False,missing
 CORE_CS2_074,69522,Deadly Poison,CORE,ROGUE,SPELL,True,,Give your weapon +2 Attack.,62ebadccf21b504d9da1aa52e1d7eae476c330dd5643cb0d951a274bd063ab78,not_implemented,False,missing
 CORE_CS2_076,69525,Assassinate,CORE,ROGUE,SPELL,True,,Destroy an enemy minion.,72562e1de706442e27e115722d5e083e43f949be4b3c6d3c9503cafff3522041,declarative,True,focused_or_regression_tests
-CORE_CS2_093,69532,Consecration,CORE,PALADIN,SPELL,True,,Deal $2 damage to all enemies.,a856d816bd952d82386f48eb1d36293be42f6aaf47ef5a11f30cf96773764506,not_implemented,False,missing
-CORE_CS2_094,102790,Hammer of Wrath,CORE,PALADIN,SPELL,True,,Deal $3 damage. Draw a card.,572d1eb2f460f659685ff148dec15aa2df6b63c2a51870b89155b9c905674023,not_implemented,False,missing
+CORE_CS2_093,69532,Consecration,CORE,PALADIN,SPELL,True,,Deal $2 damage to all enemies.,a856d816bd952d82386f48eb1d36293be42f6aaf47ef5a11f30cf96773764506,declarative,True,focused_or_regression_tests
+CORE_CS2_094,102790,Hammer of Wrath,CORE,PALADIN,SPELL,True,,Deal $3 damage. Draw a card.,572d1eb2f460f659685ff148dec15aa2df6b63c2a51870b89155b9c905674023,declarative,True,focused_or_regression_tests
 CORE_CS2_108,69535,Execute,CORE,WARRIOR,SPELL,True,,Destroy a damaged enemy minion.,a67629a656c26eb76d901524a98751999532a5474d56cd41b5097d70ee81f6eb,not_implemented,False,missing
 CORE_CS2_122,69537,Raid Leader,CORE,NEUTRAL,MINION,True,AURA,Your other minions have +1 Attack.,a98b248beb2c1ee594d37a0e3d713a16168195e62e98e4a46a51c62cff826dca,legacy_compatibility,True,focused_or_regression_tests
 CORE_CS2_179,69542,Sen'jin Shieldmasta,CORE,NEUTRAL,MINION,True,TAUNT,Taunt,aa1c342daeb99a7dd8a63d75bed9ad127b763c6cd74891b0ce1a090898c7534e,not_implemented,False,missing
@@ -465,7 +465,7 @@ CORE_EX1_096,69665,Loot Hoarder,CORE,NEUTRAL,MINION,True,DEATHRATTLE,Deathrattle
 CORE_EX1_100,120883,Lorewalker Cho,CORE,NEUTRAL,MINION,True,TRIGGER_VISUAL,"Whenever a player casts a spell, put a copy into the other player’s hand.",c6212cf3178a427c93f0910e1a106a24497a489288ffcd71b3edaafa01b32026,legacy_compatibility,True,focused_or_regression_tests
 CORE_EX1_103,69666,Coldlight Seer,CORE,NEUTRAL,MINION,True,BATTLECRY,Battlecry: Give your other Murlocs +2 Health.,8b6b4bb5a262c9b37dfac50cd193b86b4b997275d87e42950ed58c32e96ce15f,not_implemented,False,missing
 CORE_EX1_110,69667,Cairne Bloodhoof,CORE,NEUTRAL,MINION,True,"DEATHRATTLE,TAUNT",Taunt Deathrattle: Summon a 5/5 Baine Bloodhoof.,00d003516e5d899c7e7ee4036067beabf4c5d21e004726b0f849f2c63a4dcdd1,declarative,True,focused_or_regression_tests
-CORE_EX1_129,102745,Fan of Knives,CORE,ROGUE,SPELL,True,,Deal $1 damage to all enemy minions. Draw a card.,5ffe59fdf02471305fb680f5bd4e8bda66d990b30978d8ea98477344b7e0832d,not_implemented,False,missing
+CORE_EX1_129,102745,Fan of Knives,CORE,ROGUE,SPELL,True,,Deal $1 damage to all enemy minions. Draw a card.,5ffe59fdf02471305fb680f5bd4e8bda66d990b30978d8ea98477344b7e0832d,declarative,True,focused_or_regression_tests
 CORE_EX1_131,120571,Defias Ringleader,CORE,ROGUE,MINION,True,COMBO,Combo: Summon a 2/1 Defias Bandit.,77c5ecf0a3e5ddca7abcd7e86eacbbbceb50b981c82fafa292063d971adc0889,not_implemented,False,missing
 CORE_EX1_134,69621,SI:7 Agent,CORE,ROGUE,MINION,True,COMBO,Combo: Deal 3 damage.,20c5e4de916358327e72601093d729851b02d668ee38143ea89d7cd05b283b0a,not_implemented,False,missing
 CORE_EX1_145,69623,Preparation,CORE,ROGUE,SPELL,True,,The next spell you cast this turn costs (2) less.,e8e0ba7922a28f516b69b5ec40b0bd35b611b9ac6fdf8ac2fed177f41b0b0666,not_implemented,False,missing
@@ -481,7 +481,7 @@ CORE_EX1_238,69625,Lightning Bolt,CORE,SHAMAN,SPELL,True,OVERLOAD,Deal $3 damage
 CORE_EX1_246,69551,Hex,CORE,SHAMAN,SPELL,True,,Transform a minion into a 0/1 Frog with Taunt.,1d94147bc8c40be6e111c0b5206e4aa3c0ee732fcff40b28b0d5597563df6796,not_implemented,False,missing
 CORE_EX1_250,69627,Earth Elemental,CORE,SHAMAN,MINION,True,"OVERLOAD,TAUNT",Taunt Overload: (2),16b4ecf38fd35cae14313139f7705ad2079ebe84ecdace3623c76e81b1a9807f,not_implemented,False,missing
 CORE_EX1_259,69629,Lightning Storm,CORE,SHAMAN,SPELL,True,OVERLOAD,Deal $3 damage to all enemy minions. Overload: (1),070b0d74a53813cabe3a1088f4ba7baf01cf13d1264e68734feb8eae9857982d,not_implemented,False,missing
-CORE_EX1_278,126895,Shiv,CORE,ROGUE,SPELL,True,,Deal $1 damage. Draw a card.,01cb10b38d4d8aa32845b4c32046c945fd3367db228936d3bcbef7ad3fd73157,not_implemented,False,missing
+CORE_EX1_278,126895,Shiv,CORE,ROGUE,SPELL,True,,Deal $1 damage. Draw a card.,01cb10b38d4d8aa32845b4c32046c945fd3367db228936d3bcbef7ad3fd73157,declarative,True,focused_or_regression_tests
 CORE_EX1_287,69607,Counterspell,CORE,MAGE,SPELL,True,SECRET,"Secret: When your opponent casts a spell, Counter it.",fa4b6d3ac58be3da4f5a86b04d96bd82ea581f80a9401f7177b0434ca0e55a1b,not_implemented,False,missing
 CORE_EX1_289,69608,Ice Barrier,CORE,MAGE,SPELL,True,SECRET,"Secret: When your hero is attacked, gain 8 Armor.",a46d57a70faa4b30e72e0edc05bf697f7208d6bc772ca77e218f16484242d5da,not_implemented,False,missing
 CORE_EX1_302,69553,Mortal Coil,CORE,WARLOCK,SPELL,True,,"Deal $1 damage to a minion. If it dies, draw a card.",42fed741316b3708eb1078687d2de3fecb7dc8cc0dc2af12235b2a29cbf4b770,not_implemented,False,missing
@@ -590,7 +590,7 @@ CORE_SW_442,111373,Void Shard,CORE,PRIEST,SPELL,True,LIFESTEAL,Lifesteal Deal $4
 CORE_TID_931,127470,Jackpot!,CORE,ROGUE,SPELL,True,,Add two random spells from other classes that cost (5) or more to your hand.,77d9ccfd0530ea335dbda1686500cc15eba29f1c101007d32c34f3bf81a12701,not_implemented,False,missing
 CORE_TRL_111,69695,Headhunter's Hatchet,CORE,HUNTER,WEAPON,True,BATTLECRY,"Battlecry: If you control a Beast, gain +1 Durability.",7269bde76876d289de92bd1d22266769cef00b85409ba94be79ca5c005e128ec,not_implemented,False,missing
 CORE_TRL_240,126889,Savage Striker,CORE,DRUID,MINION,True,BATTLECRY,Battlecry: Deal damage to an enemy minion equal to your hero's Attack.,085c8f6d5be093930b196a0682fd7729c6d52a1d1bc746ad3035a1602214c534,not_implemented,False,missing
-CORE_TRL_307,76306,Flash of Light,CORE,PALADIN,SPELL,True,,Restore #4 Health. Draw a card.,8730ffe0662b9f7b145c7aada31c60739320464f0e2ca3bf0e13ce544f263efe,not_implemented,False,missing
+CORE_TRL_307,76306,Flash of Light,CORE,PALADIN,SPELL,True,,Restore #4 Health. Draw a card.,8730ffe0662b9f7b145c7aada31c60739320464f0e2ca3bf0e13ce544f263efe,declarative,True,focused_or_regression_tests
 CORE_TRL_345,87920,"Krag'wa, the Frog",CORE,SHAMAN,MINION,True,BATTLECRY,Battlecry: Return all spells you played last turn to your hand.,0faec8b6e6a53449834eb36348240748e0914468a50101c3611ea1b02fac2d62,not_implemented,False,missing
 CORE_TRL_900,126891,"Halazzi, the Lynx",CORE,HUNTER,MINION,True,"BATTLECRY,RUSH",Rush. Battlecry: Fill your hand with 1/1 Lynxes that have Rush.,8f8723df24ec4b29d26956b26a205eed64a617b4180161b6772297a448f371b4,not_implemented,False,missing
 CORE_TSC_076,116713,Immortalized in Stone,CORE,PALADIN,SPELL,True,,"Summon a 4/8, 2/4, and 1/2 Elemental with Taunt.",0cd783e51b0b350d1b524095024a226c80dcf65a53adb47b766d22000adca23a,not_implemented,False,missing

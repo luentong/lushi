@@ -87,6 +87,13 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_CS2_023",  # Arcane Intellect
     "CORE_CS2_076",  # Assassinate
     "CORE_DS1_185",  # Arcane Shot
+    "CORE_AT_064",  # Bash
+    "CORE_CS1_130",  # Holy Smite
+    "CORE_CS2_094",  # Hammer of Wrath
+    "CORE_EX1_129",  # Fan of Knives
+    "CORE_EX1_278",  # Shiv
+    "CORE_TRL_307",  # Flash of Light
+    "CORE_CS2_093",  # Consecration
     "CATA_131",
     "CATA_303",
     "CATA_138",
@@ -2704,5 +2711,60 @@ def build_rule_registry() -> RuleRegistry:
                 ("test_simple_core_spell_rules",),
             ),
             TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "CORE_AT_064", {Hook.SPELL: (DamageActionTarget(3), GainArmor(3))},
+            RuleSource(
+                "upstream_adapted", rosetta, "AT_064", "AGPL-3.0",
+                ("test_second_core_spell_tranche",),
+            ),
+            TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "CORE_CS1_130", {Hook.SPELL: (DamageActionTarget(3),)},
+            RuleSource(
+                "upstream_adapted", rosetta, "CS1_130", "AGPL-3.0",
+                ("test_second_core_spell_tranche",),
+            ),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "CORE_CS2_094", {Hook.SPELL: (DamageActionTarget(3), Draw())},
+            RuleSource(
+                "upstream_adapted", rosetta, "CS2_094", "AGPL-3.0",
+                ("test_second_core_spell_tranche",),
+            ),
+            TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "CORE_EX1_129", {Hook.SPELL: (DamageBoard(1), Draw())},
+            RuleSource(
+                "upstream_adapted", rosetta, "EX1_129", "AGPL-3.0",
+                ("test_second_core_spell_tranche",),
+            ),
+        ),
+        CardRule(
+            "CORE_EX1_278", {Hook.SPELL: (DamageActionTarget(1), Draw())},
+            RuleSource(
+                "upstream_adapted", rosetta, "EX1_278", "AGPL-3.0",
+                ("test_second_core_spell_tranche",),
+            ),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "CORE_TRL_307", {Hook.SPELL: (HealActionTarget(4), Draw())},
+            RuleSource(
+                "upstream_adapted", rosetta, "TRL_307", "AGPL-3.0",
+                ("test_second_core_spell_tranche",),
+            ),
+            TargetSpec(TargetKind.FRIENDLY_CHARACTER),
+        ),
+        CardRule(
+            "CORE_CS2_093",
+            {Hook.SPELL: (DamageHero(2, "opponent"), DamageBoard(2, "opponent"))},
+            RuleSource(
+                "upstream_adapted", rosetta, "CS2_093", "AGPL-3.0",
+                ("test_second_core_spell_tranche",),
+            ),
         ),
     ))

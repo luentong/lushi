@@ -74,6 +74,52 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", assassinate.entity_id, 1, enemy.entity_id))
         self.assertNotIn(enemy, game.players[1].board)
 
+    def test_second_core_spell_tranche(self):
+        game = self.game()
+        enemy = self.add_board(game, "CORE_LOOT_137", 1)
+        friendly = self.add_board(game, "CAP_107t", 0)
+        friendly.damage = 2
+        game.players[0].health = 20
+        game.players[0].deck = [
+            game._entity("GAME_005", started_in_deck=True),
+            game._entity("GAME_005", started_in_deck=True),
+            game._entity("GAME_005", started_in_deck=True),
+        ]
+
+        bash = self.add_hand(game, "CORE_AT_064")
+        game.step(Action("PLAY", bash.entity_id, 1, enemy.entity_id))
+        self.assertEqual(3, enemy.damage)
+        self.assertEqual(3, game.players[0].armor)
+
+        smite = self.add_hand(game, "CORE_CS1_130")
+        game.step(Action("PLAY", smite.entity_id, 1, enemy.entity_id))
+        self.assertEqual(6, enemy.damage)
+
+        hammer = self.add_hand(game, "CORE_CS2_094")
+        before = len(game.players[0].hand)
+        game.step(Action("PLAY", hammer.entity_id, 1, enemy.entity_id))
+        self.assertEqual(9, enemy.damage)
+        self.assertEqual(before, len(game.players[0].hand))
+
+        shiv = self.add_hand(game, "CORE_EX1_278")
+        before = len(game.players[0].hand)
+        game.step(Action("PLAY", shiv.entity_id, 1, enemy.entity_id))
+        self.assertEqual(10, enemy.damage)
+        self.assertEqual(before, len(game.players[0].hand))
+
+        flash = self.add_hand(game, "CORE_TRL_307")
+        game.step(Action("PLAY", flash.entity_id, 0, None))
+        self.assertEqual(24, game.players[0].health)
+
+        fan = self.add_hand(game, "CORE_EX1_129")
+        game.step(Action("PLAY", fan.entity_id))
+        self.assertEqual(11, enemy.damage)
+
+        consecration = self.add_hand(game, "CORE_CS2_093")
+        game.step(Action("PLAY", consecration.entity_id))
+        self.assertEqual(13, enemy.damage)
+        self.assertEqual(28, game.players[1].health)
+
     def test_first_flame_generates_second_flame(self):
         game = self.game()
         target = self.add_board(game, "CORE_LOOT_137", 1)
