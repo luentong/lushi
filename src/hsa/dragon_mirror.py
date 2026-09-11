@@ -602,6 +602,7 @@ class CardInstance:
     minion_played_while_held: bool = False
     opponent_card_copy_played_while_held: bool = False
     copied_from_opponent: bool = False
+    deathrattle_copy_card_id: str | None = None
     temporary: bool = False
     return_control_to: int | None = None
     return_control_at_end_of_turn: int | None = None
@@ -2702,6 +2703,7 @@ class DragonMirrorGame:
                     and minion.dormant_turns == 0
                 ]
             self._cast_spell(player, card, action)
+            self._dispatch_after_spell_cast(player, card)
             recipient = self.players[1 - player.index]
             for lorewalker in lorewalkers:
                 copied = card.clone(self.next_entity_id)
@@ -3457,6 +3459,23 @@ class DragonMirrorGame:
                         "mechanized_magma_buff", player=player.index,
                         entity=magma.entity_id, amount=spell_cost,
                     )
+
+    def _dispatch_after_spell_cast(
+        self, player: Player, spell: CardInstance
+    ) -> None:
+        """Dispatch controller-owned 'After you cast a spell' rules."""
+        for minion in list(player.board):
+            if (
+                minion not in player.board
+                or minion.silenced
+                or minion.dormant_turns > 0
+                or minion.health <= 0
+            ):
+                continue
+            self.rule_registry.dispatch(
+                Hook.AFTER_PLAY, minion.card_id, self,
+                RuleContext(player=player, card=minion, payload={"spell": spell}),
+            )
 
     def _holding_dragon(self, player: Player) -> bool:
         return any(card.has_race("DRAGON") for card in player.hand)

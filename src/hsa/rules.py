@@ -55,6 +55,7 @@ DECLARATIVE_METADATA_IDS = {
     "TLC_813",  # Purifying Vines
     "CAP_400t2t",  # Imp-formant
     "JAIL_511t",  # Shivarra Infiltrator
+    "EDR_271t",  # Treant of Life
 }
 
 # Some Core printings retain the historical behavior ID while the pinned JSON
@@ -85,6 +86,8 @@ STANDARD_DECLARATIVE_IDS = {
     "DINO_431",
     "EDR_449",
     "EDR_270",
+    "EDR_271",
+    "EDR_271t",
     "EDR_449p",
     "EDR_970",
     "EDR_846t2",
@@ -234,6 +237,43 @@ class AddRandomExecutableClassCard:
         game._add_random_executable_class_card(
             context.player, card_class=self.card_class,
             source_card_id=context.card.card_id,
+        )
+
+
+@dataclass(frozen=True)
+class SummonSpellCopyDeathrattleTreant:
+    card_id: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        spell = context.payload.get("spell")
+        if spell is None or spell.definition.spell_school != "NATURE":
+            return
+        player = context.player
+        if len(player.board) + len(player.locations) >= 7:
+            return
+        treant = game._entity(self.card_id, created_by=context.card.card_id)
+        treant.deathrattle_copy_card_id = spell.card_id
+        treant.summoned_turn = game.turn
+        game._summon(player, treant)
+        game._event(
+            "spell_copy_treant", player=player.index,
+            source=context.card.card_id, entity=treant.entity_id,
+            spell=spell.card_id,
+        )
+
+
+@dataclass(frozen=True)
+class AddDeathrattleCopyToHand:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        card_id = context.card.deathrattle_copy_card_id
+        if card_id is None:
+            return
+        copy = game._entity(card_id, created_by=context.card.card_id)
+        game._add_generated(context.player, copy)
+        game._event(
+            "deathrattle_spell_copy", player=context.player.index,
+            source=context.card.card_id, card=copy.card_id,
+            entity=copy.entity_id,
         )
 
 
@@ -1035,6 +1075,24 @@ def build_rule_registry() -> RuleRegistry:
                 "powerlog_verified",
                 "Power.log 61e3baf3 + HearthstoneJSON 251332",
                 verification=("test_horn_of_plenty_discovers_discounted_nature_spell",),
+            ),
+        ),
+        CardRule(
+            "EDR_271", {
+                Hook.AFTER_PLAY: (SummonSpellCopyDeathrattleTreant("EDR_271t"),),
+            },
+            RuleSource(
+                "powerlog_verified",
+                "Power.log 61e3baf3 + HearthstoneJSON 251332",
+                verification=("test_grove_shaper_summons_treant_that_copies_nature_spell",),
+            ),
+        ),
+        CardRule(
+            "EDR_271t", {Hook.DEATHRATTLE: (AddDeathrattleCopyToHand(),)},
+            RuleSource(
+                "official_text_and_powerlog_verified",
+                "HearthstoneJSON 251332 + Power.log 61e3baf3",
+                verification=("test_grove_shaper_summons_treant_that_copies_nature_spell",),
             ),
         ),
         CardRule(

@@ -581,6 +581,22 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(1, len(card_game.players[0].hand))
         self.assertEqual("DRUID", card_game.players[0].hand[0].definition.card_class)
 
+    def test_grove_shaper_summons_treant_that_copies_nature_spell(self):
+        game = self.game()
+        self.add_board(game, "EDR_271", 0)
+        horn = self.add_hand(game, "EDR_270")
+        game.step(Action("PLAY", horn.entity_id))
+        treant = next(
+            card for card in game.players[0].board if card.card_id == "EDR_271t"
+        )
+        self.assertEqual("EDR_270", treant.deathrattle_copy_card_id)
+        game._damage_minion(0, treant, treant.health)
+        game._resolve_deaths()
+        self.assertTrue(any(
+            card.card_id == "EDR_270" and card.created_by == "EDR_271t"
+            for card in game.players[0].hand
+        ))
+
 
 if __name__ == "__main__":
     unittest.main()
