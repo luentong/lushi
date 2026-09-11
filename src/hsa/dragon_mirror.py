@@ -1036,13 +1036,14 @@ class DragonMirrorGame:
                 )
                 for definition in copied_definitions
             ]
+            # The normal game shuffle below mixes retained and copied cards.
             player.deck = own + copies
             player.max_health = 40
             player.health = 40
             self._event(
                 "start_of_game_deck_rebuild", player=player.index,
                 card="JAIL_430", own_cards=len(own), copied_cards=len(copies),
-                starting_health=40,
+                total_cards=len(player.deck), starting_health=40,
             )
 
     def _initial_draw(self) -> None:
