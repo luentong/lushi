@@ -3970,6 +3970,37 @@ class DragonMirrorGame:
                      for card in options],
         )
 
+    def _offer_spell_school_discover(
+        self, player: Player, *, spell_school: str, source_card_id: str,
+        cost_delta: int = 0,
+    ) -> None:
+        candidates = sorted(
+            card_id for card_id, definition in self.card_defs.items()
+            if card_id in EXECUTABLE_CARD_IDS
+            and definition.card_type == "SPELL"
+            and definition.spell_school == spell_school
+        )
+        self.rng.shuffle(candidates)
+        options = [
+            self._entity(card_id, created_by=source_card_id)
+            for card_id in candidates[:3]
+        ]
+        for option in options:
+            option.cost_delta += cost_delta
+        self.pending_choice = {
+            "kind": "DISCOVER", "player": player.index,
+            "pool": tuple(candidates), "dark_gift": False,
+            "repeats_left": 0, "after_pick": None,
+            "source_card_id": source_card_id, "options": options,
+        }
+        self._event(
+            "spell_school_discover_offer", player=player.index,
+            source=source_card_id, spell_school=spell_school,
+            cost_delta=cost_delta, profile="executable_standard_pool_v1",
+            options=[{"entity": card.entity_id, "card": card.card_id}
+                     for card in options],
+        )
+
     def _summon_random_executable_minion(
         self, player: Player, *, source_card_id: str,
         cost: int | None = None, min_cost: int | None = None,

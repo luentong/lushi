@@ -84,6 +84,7 @@ STANDARD_DECLARATIVE_IDS = {
     "DINO_432",
     "DINO_431",
     "EDR_449",
+    "EDR_270",
     "EDR_449p",
     "EDR_970",
     "EDR_846t2",
@@ -209,6 +210,18 @@ class OfferClassDiscoverDiscountedByHeroAttack:
         game._offer_class_discover(
             context.player, card_class=self.card_class,
             source_card_id=context.card.card_id, cost_delta=-attack,
+        )
+
+
+@dataclass(frozen=True)
+class OfferSpellSchoolDiscover:
+    spell_school: str
+    cost_delta: int = 0
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._offer_spell_school_discover(
+            context.player, spell_school=self.spell_school,
+            source_card_id=context.card.card_id, cost_delta=self.cost_delta,
         )
 
 
@@ -1001,6 +1014,16 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_panther_mask_sets_stats_stealth_and_draws",),
             ),
             TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "EDR_270", {
+                Hook.SPELL: (OfferSpellSchoolDiscover("NATURE", cost_delta=-2),),
+            },
+            RuleSource(
+                "powerlog_verified",
+                "Power.log 61e3baf3 + HearthstoneJSON 251332",
+                verification=("test_horn_of_plenty_discovers_discounted_nature_spell",),
+            ),
         ),
         CardRule(
             "EDR_449", {Hook.BATTLECRY: (SetHeroPower("EDR_449p"),)},

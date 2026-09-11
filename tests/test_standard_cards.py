@@ -552,6 +552,20 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             card.cost == max(0, card.definition.cost - 4) for card in options
         ))
 
+    def test_horn_of_plenty_discovers_discounted_nature_spell(self):
+        game = self.game()
+        horn = self.add_hand(game, "EDR_270")
+        game.step(Action("PLAY", horn.entity_id))
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        options = game.pending_choice["options"]
+        self.assertTrue(options)
+        self.assertTrue(all(
+            card.definition.card_type == "SPELL"
+            and card.definition.spell_school == "NATURE"
+            and card.cost == max(0, card.definition.cost - 2)
+            for card in options
+        ))
+
 
 if __name__ == "__main__":
     unittest.main()
