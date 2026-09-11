@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import sys
 import unittest
 from pathlib import Path
@@ -12,8 +13,56 @@ from hsa.training import (
     value_weighted_policy_target,
 )
 
+GENERATOR_PATH = ROOT / "scripts" / "generate_policy_value_data.py"
+GENERATOR_SPEC = importlib.util.spec_from_file_location(
+    "generate_policy_value_data", GENERATOR_PATH
+)
+assert GENERATOR_SPEC is not None and GENERATOR_SPEC.loader is not None
+GENERATOR = importlib.util.module_from_spec(GENERATOR_SPEC)
+GENERATOR_SPEC.loader.exec_module(GENERATOR)
+
 
 class TrainingDataTests(unittest.TestCase):
+    def test_streaming_statistics_do_not_require_retaining_all_games(self):
+        games = [
+            [{
+                "winner": 0,
+                "legal_action_count": 2,
+                "chosen_action": 0,
+                "executed_action": 1,
+                "policy_target": [0.75, 0.25],
+                "teacher_simulations": 4,
+                "teacher_adaptive_simulations": 0,
+                "teacher_action_values": [0.5, -0.5],
+            }],
+            [{
+                "winner": 1,
+                "legal_action_count": 1,
+                "chosen_action": 0,
+                "executed_action": 0,
+                "policy_target": None,
+                "teacher_simulations": 0,
+                "teacher_adaptive_simulations": 0,
+                "teacher_action_values": [0.0],
+            }],
+        ]
+        statistics = GENERATOR.DatasetStatistics()
+        for game in games:
+            statistics.add_game(game)
+
+        result = statistics.result()
+        self.assertEqual(2, statistics.records)
+        self.assertEqual(
+            {"player_0": 1, "player_1": 1, "draw": 0},
+            result["winner_counts"],
+        )
+        self.assertEqual(1.0, result["mean_decisions_per_game"])
+        self.assertEqual(1.5, result["mean_legal_actions"])
+        self.assertEqual(0.5, result["forced_action_fraction"])
+        self.assertEqual(1.0, result["teacher_behavior_disagreement_fraction"])
+        self.assertEqual(4.0, result["teacher_policy"]["mean_simulations"])
+        self.assertEqual(1.0, result["teacher_policy"]["mean_visited_value_range"])
+
     def test_policy_target_temperature_sharpens_visit_distribution(self):
         targets = temperature_scale_probabilities([0.25, 0.75], 0.5)
         self.assertAlmostEqual(0.1, targets[0], places=6)

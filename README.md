@@ -139,6 +139,12 @@ on a Feeling's Pirate Discover plus two Cannoneer summons.  Checkpoints and
 datasets tagged v2 remain historical artifacts and must not be promoted as a v3
 strategy result.
 
+Dataset generation streams each completed game into a compressed temporary
+spool and keeps at most `2 * workers` parallel game results in memory. The final
+JSONL.GZ header and aggregate statistics remain compatible with existing
+training commands, while large runs no longer retain every encoded decision in
+RAM during generation.
+
 Search code can use `game.clone()` or `game.branch(action)`. Mutable game state
 and the RNG stream are copied independently, while immutable card definitions
 and the read-only rule registry are shared. Historical event logs are omitted by

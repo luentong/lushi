@@ -7,9 +7,11 @@ import argparse
 import gzip
 import json
 import math
+import os
 import sys
+import tempfile
 import time
-from collections import Counter
+from collections import Counter, deque
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
@@ -21,81 +23,131 @@ from hsa import DragonMirrorGame, HeuristicPolicy, InformationSetMCTSPolicy
 from hsa.encoding import encode_decision, feature_schema
 
 
-def dataset_statistics(games: list[list[dict]]) -> dict[str, object]:
-    records = [record for game in games for record in game]
-    winner_by_seed = {
-        game[0]["game_seed"]: game[0]["winner"] for game in games if game
-    }
-    winners = Counter(
-        "draw" if winner is None else f"player_{winner}"
-        for winner in winner_by_seed.values()
-    )
-    nontrivial_records = [
-        record for record in records if record["legal_action_count"] > 1
-    ]
-    targets = [record.get("policy_target") for record in nontrivial_records]
-    soft_targets = [target for target in targets if target is not None]
-    statistics: dict[str, object] = {
-        "winner_counts": {
-            key: winners.get(key, 0) for key in ("player_0", "player_1", "draw")
-        },
-        "mean_decisions_per_game": len(records) / max(1, len(games)),
-        "mean_legal_actions": sum(
-            record["legal_action_count"] for record in records
-        ) / max(1, len(records)),
-        "forced_action_fraction": (
-            1.0 - len(nontrivial_records) / max(1, len(records))
-        ),
-        "teacher_behavior_disagreement_fraction": sum(
-            record.get("executed_action", record["chosen_action"])
-            != record["chosen_action"]
-            for record in nontrivial_records
-        ) / max(1, len(nontrivial_records)),
-    }
-    if soft_targets:
-        entropies = [
-            -sum(probability * math.log(probability) for probability in target
-                 if probability > 0)
-            for target in soft_targets
-        ]
-        statistics["teacher_policy"] = {
-            "mean_entropy": sum(entropies) / len(entropies),
-            "mean_max_probability": sum(map(max, soft_targets)) / len(soft_targets),
-            "mean_visited_actions": sum(
-                sum(probability > 0 for probability in target)
-                for target in soft_targets
-            ) / len(soft_targets),
-            "one_hot_fraction": sum(
-                max(target) >= 1.0 - 1e-12 for target in soft_targets
-            ) / len(soft_targets),
-            "mean_simulations": sum(
-                record.get("teacher_simulations", 0)
-                for record in nontrivial_records
-            ) / len(nontrivial_records),
-            "adaptive_decision_fraction": sum(
+class DatasetStatistics:
+    """Accumulate dataset metrics without retaining completed games."""
+
+    def __init__(self) -> None:
+        self.games = 0
+        self.records = 0
+        self.winners: Counter[str] = Counter()
+        self.legal_actions = 0
+        self.nontrivial_records = 0
+        self.disagreements = 0
+        self.soft_targets = 0
+        self.entropy = 0.0
+        self.max_probability = 0.0
+        self.visited_actions = 0
+        self.one_hot = 0
+        self.simulations = 0
+        self.adaptive_decisions = 0
+        self.visited_value_range = 0.0
+
+    def add_game(self, records: list[dict]) -> None:
+        self.games += 1
+        if records:
+            winner = records[0]["winner"]
+            self.winners[
+                "draw" if winner is None else f"player_{winner}"
+            ] += 1
+        for record in records:
+            self.records += 1
+            self.legal_actions += record["legal_action_count"]
+            if record["legal_action_count"] <= 1:
+                continue
+            self.nontrivial_records += 1
+            self.disagreements += (
+                record.get("executed_action", record["chosen_action"])
+                != record["chosen_action"]
+            )
+            target = record.get("policy_target")
+            if target is None:
+                continue
+            self.soft_targets += 1
+            self.entropy += -sum(
+                probability * math.log(probability)
+                for probability in target
+                if probability > 0
+            )
+            self.max_probability += max(target)
+            self.visited_actions += sum(probability > 0 for probability in target)
+            self.one_hot += max(target) >= 1.0 - 1e-12
+            self.simulations += record.get("teacher_simulations", 0)
+            self.adaptive_decisions += (
                 record.get("teacher_adaptive_simulations", 0) > 0
-                for record in nontrivial_records
-            ) / len(nontrivial_records),
-            "mean_visited_value_range": sum(
-                (
-                    max(
-                        value for value, probability in zip(
-                            record.get("teacher_action_values", ()),
-                            record["policy_target"], strict=True,
-                        ) if probability > 0
-                    )
-                    - min(
-                        value for value, probability in zip(
-                            record.get("teacher_action_values", ()),
-                            record["policy_target"], strict=True,
-                        ) if probability > 0
-                    )
+            )
+            action_values = record.get("teacher_action_values", ())
+            if action_values:
+                visited_values = [
+                    value for value, probability in zip(
+                        action_values, target, strict=True
+                    ) if probability > 0
+                ]
+                self.visited_value_range += (
+                    max(visited_values) - min(visited_values)
                 )
-                if record.get("teacher_action_values") else 0.0
-                for record in nontrivial_records
-            ) / len(nontrivial_records),
+
+    def result(self) -> dict[str, object]:
+        statistics: dict[str, object] = {
+            "winner_counts": {
+                key: self.winners.get(key, 0)
+                for key in ("player_0", "player_1", "draw")
+            },
+            "mean_decisions_per_game": self.records / max(1, self.games),
+            "mean_legal_actions": self.legal_actions / max(1, self.records),
+            "forced_action_fraction": (
+                1.0 - self.nontrivial_records / max(1, self.records)
+            ),
+            "teacher_behavior_disagreement_fraction": (
+                self.disagreements / max(1, self.nontrivial_records)
+            ),
         }
-    return statistics
+        if self.soft_targets:
+            statistics["teacher_policy"] = {
+                "mean_entropy": self.entropy / self.soft_targets,
+                "mean_max_probability": self.max_probability / self.soft_targets,
+                "mean_visited_actions": self.visited_actions / self.soft_targets,
+                "one_hot_fraction": self.one_hot / self.soft_targets,
+                "mean_simulations": self.simulations / self.nontrivial_records,
+                "adaptive_decision_fraction": (
+                    self.adaptive_decisions / self.nontrivial_records
+                ),
+                "mean_visited_value_range": (
+                    self.visited_value_range / self.nontrivial_records
+                ),
+            }
+        return statistics
+
+
+def dataset_statistics(games: list[list[dict]]) -> dict[str, object]:
+    accumulator = DatasetStatistics()
+    for game in games:
+        accumulator.add_game(game)
+    return accumulator.result()
+
+
+def generated_games(args, game_seeds: list[int]):
+    """Yield completed games with bounded parallel-result memory."""
+    if args.workers <= 1:
+        for game_seed in game_seeds:
+            yield play_game(args.cards, game_seed, args.teacher, args)
+        return
+    with ProcessPoolExecutor(max_workers=args.workers) as executor:
+        seeds = iter(game_seeds)
+        pending = deque()
+        for _ in range(min(len(game_seeds), args.workers * 2)):
+            game_seed = next(seeds)
+            pending.append(executor.submit(
+                play_game, args.cards, game_seed, args.teacher, args
+            ))
+        while pending:
+            yield pending.popleft().result()
+            try:
+                game_seed = next(seeds)
+            except StopIteration:
+                continue
+            pending.append(executor.submit(
+                play_game, args.cards, game_seed, args.teacher, args
+            ))
 
 
 def play_game(cards: Path, seed: int, teacher: str, args) -> list[dict]:
@@ -234,67 +286,69 @@ def main() -> None:
     args = parser.parse_args()
     started = time.perf_counter()
     game_seeds = [args.seed + offset for offset in range(args.games)]
-    if args.workers > 1:
-        with ProcessPoolExecutor(max_workers=args.workers) as executor:
-            games = list(executor.map(
-                play_game,
-                [args.cards] * args.games,
-                game_seeds,
-                [args.teacher] * args.games,
-                [args] * args.games,
-            ))
-    else:
-        games = [
-            play_game(args.cards, game_seed, args.teacher, args)
-            for game_seed in game_seeds
-        ]
-    header = {
-        "record_type": "header",
-        "dataset_schema_version": 3,
-        "ruleset": "dragon-warrior-closed-v3",
-        "teacher": args.teacher,
-        "teacher_budget": (
-            {
-                "samples": args.samples,
-                "iterations_per_sample": args.iterations,
-                "simulations_per_decision": args.samples * args.iterations,
-                "rollout_depth": args.rollout_depth,
-                "min_simulations_per_root_action": (
-                    args.min_simulations_per_root_action
-                ),
-                "max_total_iterations": args.max_total_iterations,
-            }
-            if args.teacher == "ismcts" else None
-        ),
-        "behavior": args.behavior,
-        "behavior_budget": (
-            {
-                "samples": args.behavior_samples,
-                "iterations_per_sample": args.behavior_iterations,
-                "simulations_per_decision": (
-                    args.behavior_samples * args.behavior_iterations
-                ),
-                "rollout_depth": args.behavior_rollout_depth,
-                "min_simulations_per_root_action": (
-                    args.behavior_min_simulations_per_root_action
-                ),
-                "max_total_iterations": args.behavior_max_total_iterations,
-            }
-            if args.behavior == "ismcts" else None
-        ),
-        "feature_schema": feature_schema(),
-        "games": args.games,
-        "workers": args.workers,
-        "records": sum(map(len, games)),
-        "statistics": dataset_statistics(games),
-        "generation_seconds": time.perf_counter() - started,
-    }
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    with gzip.open(args.output, "wt", encoding="utf-8") as handle:
-        handle.write(json.dumps(header, separators=(",", ":")) + "\n")
-        for game_records in games:
-            for record in game_records:
-                handle.write(json.dumps(record, separators=(",", ":")) + "\n")
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=args.output.name + ".", suffix=".records.jsonl.gz",
+        dir=args.output.parent,
+    )
+    os.close(descriptor)
+    temporary_records = Path(temporary_name)
+    statistics = DatasetStatistics()
+    try:
+        with gzip.open(temporary_records, "wt", encoding="utf-8") as handle:
+            for game_records in generated_games(args, game_seeds):
+                statistics.add_game(game_records)
+                for record in game_records:
+                    handle.write(json.dumps(record, separators=(",", ":")) + "\n")
+        generation_seconds = time.perf_counter() - started
+        header = {
+            "record_type": "header",
+            "dataset_schema_version": 3,
+            "ruleset": "dragon-warrior-closed-v3",
+            "teacher": args.teacher,
+            "teacher_budget": (
+                {
+                    "samples": args.samples,
+                    "iterations_per_sample": args.iterations,
+                    "simulations_per_decision": args.samples * args.iterations,
+                    "rollout_depth": args.rollout_depth,
+                    "min_simulations_per_root_action": (
+                        args.min_simulations_per_root_action
+                    ),
+                    "max_total_iterations": args.max_total_iterations,
+                }
+                if args.teacher == "ismcts" else None
+            ),
+            "behavior": args.behavior,
+            "behavior_budget": (
+                {
+                    "samples": args.behavior_samples,
+                    "iterations_per_sample": args.behavior_iterations,
+                    "simulations_per_decision": (
+                        args.behavior_samples * args.behavior_iterations
+                    ),
+                    "rollout_depth": args.behavior_rollout_depth,
+                    "min_simulations_per_root_action": (
+                        args.behavior_min_simulations_per_root_action
+                    ),
+                    "max_total_iterations": args.behavior_max_total_iterations,
+                }
+                if args.behavior == "ismcts" else None
+            ),
+            "feature_schema": feature_schema(),
+            "games": args.games,
+            "workers": args.workers,
+            "records": statistics.records,
+            "statistics": statistics.result(),
+            "generation_seconds": generation_seconds,
+        }
+        with gzip.open(args.output, "wt", encoding="utf-8") as output_handle:
+            output_handle.write(json.dumps(header, separators=(",", ":")) + "\n")
+            with gzip.open(temporary_records, "rt", encoding="utf-8") as input_handle:
+                for line in input_handle:
+                    output_handle.write(line)
+    finally:
+        temporary_records.unlink(missing_ok=True)
     print(json.dumps({**header, "output": str(args.output)}, indent=2))
 
 
