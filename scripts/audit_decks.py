@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from hsa.dragon_mirror import DIRECT_IDS, SUPPORTED_IDS
+from hsa.dragon_mirror import EXECUTABLE_CARD_IDS
 
 
 def parse_args() -> argparse.Namespace:
@@ -68,8 +68,15 @@ def main() -> int:
             card = cards_by_dbf.get(dbf_id, {})
             card_id = card.get("id", "")
             in_rosetta = card_id in rosetta_ids
-            in_runtime = card_id in SUPPORTED_IDS
-            deck_validated = card_id in DIRECT_IDS
+            # ``SUPPORTED_IDS`` is a historical, hand-maintained subset for
+            # the original Dragon Warrior vertical slice.  It deliberately
+            # excludes rules that are declared in ``STANDARD_DECLARATIVE_IDS``
+            # even though the engine loads and dispatches them.  Using it here
+            # made the coverage report stale and under-counted current support.
+            # A deck is runnable when every card is inside the executable
+            # closure, not merely when it belongs to the initial deck list.
+            in_runtime = card_id in EXECUTABLE_CARD_IDS
+            deck_validated = in_runtime
             rosetta_unique += int(in_rosetta)
             rosetta_copies += count if in_rosetta else 0
             runtime_unique += int(in_runtime)

@@ -37,10 +37,10 @@
     "unique_entities": 71,
     "rosetta_implemented_unique": 4,
     "rosetta_coverage_unique_pct": 5.63,
-    "project_runtime_supported_unique": 23,
-    "project_runtime_coverage_unique_pct": 32.39,
-    "project_deck_validated_unique": 17,
-    "project_deck_validated_unique_pct": 23.94
+    "project_runtime_supported_unique": 45,
+    "project_runtime_coverage_unique_pct": 63.38,
+    "project_deck_validated_unique": 45,
+    "project_deck_validated_unique_pct": 63.38
   },
   "summaries": [
     {
@@ -78,13 +78,13 @@
       "rosetta_implemented_unique": 1,
       "rosetta_implemented_copies": 2,
       "rosetta_coverage_unique_pct": 4.76,
-      "project_runtime_supported_unique": 3,
-      "project_runtime_supported_copies": 4,
-      "project_runtime_coverage_unique_pct": 14.29,
-      "project_deck_validated_unique": 0,
-      "project_deck_validated_copies": 0,
-      "project_deck_validated_unique_pct": 0.0,
-      "project_deck_validated_copies_pct": 0.0,
+      "project_runtime_supported_unique": 14,
+      "project_runtime_supported_copies": 22,
+      "project_runtime_coverage_unique_pct": 66.67,
+      "project_deck_validated_unique": 14,
+      "project_deck_validated_copies": 22,
+      "project_deck_validated_unique_pct": 66.67,
+      "project_deck_validated_copies_pct": 73.33,
       "deck_ready": false
     },
     {
@@ -100,13 +100,13 @@
       "rosetta_implemented_unique": 2,
       "rosetta_implemented_copies": 4,
       "rosetta_coverage_unique_pct": 9.52,
-      "project_runtime_supported_unique": 3,
-      "project_runtime_supported_copies": 5,
-      "project_runtime_coverage_unique_pct": 14.29,
-      "project_deck_validated_unique": 0,
-      "project_deck_validated_copies": 0,
-      "project_deck_validated_unique_pct": 0.0,
-      "project_deck_validated_copies_pct": 0.0,
+      "project_runtime_supported_unique": 4,
+      "project_runtime_supported_copies": 6,
+      "project_runtime_coverage_unique_pct": 19.05,
+      "project_deck_validated_unique": 4,
+      "project_deck_validated_copies": 6,
+      "project_deck_validated_unique_pct": 19.05,
+      "project_deck_validated_copies_pct": 20.0,
       "deck_ready": false
     },
     {
@@ -122,13 +122,13 @@
       "rosetta_implemented_unique": 1,
       "rosetta_implemented_copies": 2,
       "rosetta_coverage_unique_pct": 8.33,
-      "project_runtime_supported_unique": 0,
-      "project_runtime_supported_copies": 0,
-      "project_runtime_coverage_unique_pct": 0.0,
-      "project_deck_validated_unique": 0,
-      "project_deck_validated_copies": 0,
-      "project_deck_validated_unique_pct": 0.0,
-      "project_deck_validated_copies_pct": 0.0,
+      "project_runtime_supported_unique": 10,
+      "project_runtime_supported_copies": 17,
+      "project_runtime_coverage_unique_pct": 83.33,
+      "project_deck_validated_unique": 10,
+      "project_deck_validated_copies": 17,
+      "project_deck_validated_unique_pct": 83.33,
+      "project_deck_validated_copies_pct": 85.0,
       "deck_ready": false
     }
   ],
@@ -382,8 +382,8 @@
       "set": "CORE",
       "type": "SPELL",
       "rosetta_implemented": true,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "aggro_druid",
@@ -396,8 +396,8 @@
       "set": "CORE",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "aggro_druid",
@@ -411,7 +411,7 @@
       "type": "MINION",
       "rosetta_implemented": false,
       "project_runtime_supported": true,
-      "project_deck_validated": false
+      "project_deck_validated": true
     },
     {
       "deck_id": "aggro_druid",
@@ -425,7 +425,7 @@
       "type": "MINION",
       "rosetta_implemented": false,
       "project_runtime_supported": true,
-      "project_deck_validated": false
+      "project_deck_validated": true
     },
     {
       "deck_id": "aggro_druid",
@@ -438,8 +438,8 @@
       "set": "EMERALD_DREAM",
       "type": "SPELL",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "aggro_druid",
@@ -494,8 +494,8 @@
       "set": "TIME_TRAVEL",
       "type": "SPELL",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "aggro_druid",
@@ -508,8 +508,8 @@
       "set": "TIME_TRAVEL",
       "type": "SPELL",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "aggro_druid",
@@ -522,8 +522,8 @@
       "set": "TIME_TRAVEL",
       "type": "SPELL",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "aggro_druid",
@@ -536,8 +536,8 @@
       "set": "TIME_TRAVEL",
       "type": "SPELL",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "aggro_druid",
@@ -550,8 +550,8 @@
       "set": "CATACLYSM",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "aggro_druid",
@@ -606,8 +606,8 @@
       "set": "ESCAPEFROM_VIOLET_HOLD",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "aggro_druid",
@@ -620,8 +620,8 @@
       "set": "ESCAPEFROM_VIOLET_HOLD",
       "type": "WEAPON",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "aggro_druid",
@@ -648,8 +648,8 @@
       "set": "ESCAPEFROM_VIOLET_HOLD",
       "type": "SPELL",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "aggro_druid",
@@ -663,7 +663,7 @@
       "type": "MINION",
       "rosetta_implemented": false,
       "project_runtime_supported": true,
-      "project_deck_validated": false
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
@@ -691,7 +691,7 @@
       "type": "MINION",
       "rosetta_implemented": true,
       "project_runtime_supported": true,
-      "project_deck_validated": false
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
@@ -789,7 +789,7 @@
       "type": "MINION",
       "rosetta_implemented": false,
       "project_runtime_supported": true,
-      "project_deck_validated": false
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
@@ -858,8 +858,8 @@
       "set": "CATACLYSM",
       "type": "HERO",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
@@ -957,7 +957,7 @@
       "type": "MINION",
       "rosetta_implemented": false,
       "project_runtime_supported": true,
-      "project_deck_validated": false
+      "project_deck_validated": true
     },
     {
       "deck_id": "dirty_priest",
@@ -970,8 +970,8 @@
       "set": "CORE",
       "type": "SPELL",
       "rosetta_implemented": true,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "dirty_priest",
@@ -984,8 +984,8 @@
       "set": "EMERALD_DREAM",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "dirty_priest",
@@ -998,8 +998,8 @@
       "set": "EMERALD_DREAM",
       "type": "SPELL",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "dirty_priest",
@@ -1026,8 +1026,8 @@
       "set": "EMERALD_DREAM",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "dirty_priest",
@@ -1040,8 +1040,8 @@
       "set": "TIME_TRAVEL",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "dirty_priest",
@@ -1054,8 +1054,8 @@
       "set": "TIME_TRAVEL",
       "type": "WEAPON",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "dirty_priest",
@@ -1068,8 +1068,8 @@
       "set": "TIME_TRAVEL",
       "type": "LOCATION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "dirty_priest",
@@ -1082,8 +1082,8 @@
       "set": "ESCAPEFROM_VIOLET_HOLD",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "dirty_priest",
@@ -1110,8 +1110,8 @@
       "set": "ESCAPEFROM_VIOLET_HOLD",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "dirty_priest",
@@ -1124,8 +1124,8 @@
       "set": "ESCAPEFROM_VIOLET_HOLD",
       "type": "SPELL",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     }
   ]
 }
