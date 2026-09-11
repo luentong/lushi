@@ -482,6 +482,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             game.players[1], enemy_minion
         ))
 
+    def test_mind_sweeper_tracks_opponent_card_copy_while_held(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        sweeper = self.add_hand(game, "JAIL_432")
+        copied_card = self.add_hand(game, "GAME_005")
+        copied_card.copied_from_opponent = True
+        game.step(Action("PLAY", copied_card.entity_id))
+        self.assertTrue(sweeper.opponent_card_copy_played_while_held)
+        game.step(Action("PLAY", sweeper.entity_id))
+        self.assertEqual(2, target.damage)
+
 
 if __name__ == "__main__":
     unittest.main()

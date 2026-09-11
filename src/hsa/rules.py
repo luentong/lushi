@@ -94,6 +94,7 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_510",
     "JAIL_513",
     "JAIL_514",
+    "JAIL_432",
     "JAIL_912",
     "JAIL_941",
     "JAIL_941t",
@@ -1038,6 +1039,21 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "powerlog_verified", "Power.log 23282dea + HearthstoneJSON 251332",
                 verification=("test_caged_cranium_counts_hand_after_play",),
+            ),
+        ),
+        CardRule(
+            "JAIL_432", {
+                Hook.BATTLECRY: (
+                    IfSourceAttribute(
+                        "opponent_card_copy_played_while_held",
+                        (DamageBoard(2, side="opponent"), ResolveDeaths()),
+                    ),
+                ),
+            },
+            RuleSource(
+                "powerlog_verified",
+                "Power.log 23282dea + HearthstoneJSON 251332",
+                verification=("test_mind_sweeper_tracks_opponent_card_copy_while_held",),
             ),
         ),
         CardRule(

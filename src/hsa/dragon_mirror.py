@@ -600,6 +600,8 @@ class CardInstance:
     dies_at_end_of_turn: bool = False
     mana_spent_while_held: int = 0
     minion_played_while_held: bool = False
+    opponent_card_copy_played_while_held: bool = False
+    copied_from_opponent: bool = False
     temporary: bool = False
     return_control_to: int | None = None
     return_control_at_end_of_turn: int | None = None
@@ -1218,6 +1220,7 @@ class DragonMirrorGame:
             self.next_entity_id += 1
             copied.cost_delta = 1 - copied.definition.cost
             copied.created_by = keymaster.card_id
+            copied.copied_from_opponent = True
             if len(opponent.hand) < 10:
                 opponent.hand.append(copied)
                 self._event(
@@ -2594,6 +2597,13 @@ class DragonMirrorGame:
         player.cards_played_this_turn += 1
         if not card.started_in_deck:
             player.generated_cards_played += 1
+        if card.copied_from_opponent:
+            for held in player.hand:
+                held.opponent_card_copy_played_while_held = True
+            self._event(
+                "opponent_card_copy_played", player=player.index,
+                card=card.card_id, entity=card.entity_id,
+            )
         if card.definition.card_type == "MINION":
             for held in player.hand:
                 held.minion_played_while_held = True
