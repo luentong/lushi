@@ -187,7 +187,17 @@ def encode_action(
         STATE_SCHEMA_VERSION,
     }:
         raise ValueError(f"unsupported action schema version: {schema_version}")
-    kind_index = ACTION_KINDS.index(action.kind)
+    # Keep the fixed action schema backward-compatible when newer rule
+    # modules introduce a choice action.  Choice picks have the same
+    # source/target semantics as discover picks, so encode them through the
+    # existing slot rather than changing model input dimensions.
+    encoded_kind = action.kind
+    if encoded_kind not in ACTION_KINDS:
+        if encoded_kind in {"RULE_CHOICE_PICK", "CATACLYSM_PICK"}:
+            encoded_kind = "DISCOVER_PICK"
+        else:
+            raise ValueError(f"unsupported action kind: {action.kind}")
+    kind_index = ACTION_KINDS.index(encoded_kind)
     source_zone, source_player, source_position, source_card = _locate_entity(
         game, action.source
     )
