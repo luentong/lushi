@@ -96,7 +96,6 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_CS2_093",  # Consecration
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
-    "JAIL_730",  # Stardust Scythe
     "CATA_302",  # Mend
     "CATA_308",  # Medivh's Triumph
     "JAIL_COIN1",  # The Coin
@@ -2843,14 +2842,6 @@ def build_rule_registry() -> RuleRegistry:
             {Hook.AFTER_HERO_ATTACK: (SummonDormant("EDR_416t", 2),)},
             RuleSource(
                 "powerlog_verified", local, "EDR_416", "internal",
-                ("test_powerlog_cards_and_triggers",),
-            ),
-        ),
-        CardRule(
-            "JAIL_730",
-            {Hook.AFTER_HERO_ATTACK: (AddToHand("JAIL_732"),)},
-            RuleSource(
-                "powerlog_verified", local, "JAIL_730", "internal",
                 ("test_powerlog_cards_and_triggers",),
             ),
         ),
