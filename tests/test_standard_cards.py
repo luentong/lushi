@@ -525,6 +525,21 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(1, len(game.players[0].deck))
         self.assertEqual(1, len(game.players[1].deck))
 
+    def test_spire_of_solitude_summons_hand_sized_demon_and_attacks(self):
+        game = self.game()
+        for _ in range(3):
+            self.add_hand(game, "GAME_005")
+        target = self.add_board(game, "CORE_CS2_065", 1)
+        location = Location(99_001, "JAIL_511", durability=2, cooldown=0)
+        game.players[0].locations.append(location)
+        game._use_location(Action("LOCATION", location.entity_id))
+        self.assertNotIn(target, game.players[1].board)
+        infiltrator = next(
+            card for card in game.players[0].board if card.card_id == "JAIL_511t"
+        )
+        self.assertEqual((3, 3), (infiltrator.attack, infiltrator.max_health))
+        self.assertEqual(1, location.durability)
+
 
 if __name__ == "__main__":
     unittest.main()

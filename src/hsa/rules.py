@@ -54,6 +54,7 @@ DECLARATIVE_METADATA_IDS = {
     "TIME_713t",  # Timeless Chest
     "TLC_813",  # Purifying Vines
     "CAP_400t2t",  # Imp-formant
+    "JAIL_511t",  # Shivarra Infiltrator
 }
 
 # Some Core printings retain the historical behavior ID while the pinned JSON
@@ -92,6 +93,7 @@ STANDARD_DECLARATIVE_IDS = {
     "END_011",
     "JAIL_872",
     "JAIL_510",
+    "JAIL_511",
     "JAIL_513",
     "JAIL_514",
     "JAIL_432",
@@ -657,6 +659,35 @@ class SummonRandomExecutableMinion:
 
 
 @dataclass(frozen=True)
+class SummonStatsByHandThenAttackRandomEnemyMinion:
+    card_id: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        if len(player.board) + len(player.locations) >= 7:
+            return
+        stats = len(player.hand)
+        minion = game._entity(self.card_id, created_by=context.card.card_id)
+        minion.attack_delta += stats - minion.definition.attack
+        minion.health_delta += stats - minion.definition.health
+        minion.summoned_turn = game.turn
+        game._summon(player, minion)
+        enemy = game.players[1 - player.index]
+        targets = [
+            target for target in enemy.board
+            if target.dormant_turns == 0 and not target.stealth
+        ]
+        if targets:
+            target = game.rng.choice(targets)
+            game._forced_minion_attack(player.index, minion, enemy.index, target)
+        game._event(
+            "hand_stat_summon", player=player.index,
+            source=context.card.card_id, card=minion.card_id,
+            entity=minion.entity_id, stats=stats,
+        )
+
+
+@dataclass(frozen=True)
 class AddToHand:
     card_id: str
     count: int = 1
@@ -1051,6 +1082,18 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "powerlog_verified", "Power.log 23282dea + HearthstoneJSON 251332",
                 verification=("test_annihilation_destroys_all_and_summons_bottom_demons",),
+            ),
+        ),
+        CardRule(
+            "JAIL_511", {
+                Hook.LOCATION: (
+                    SummonStatsByHandThenAttackRandomEnemyMinion("JAIL_511t"),
+                ),
+            },
+            RuleSource(
+                "powerlog_verified",
+                "Power.log 23282dea + HearthstoneJSON 251332",
+                verification=("test_spire_of_solitude_summons_hand_sized_demon_and_attacks",),
             ),
         ),
         CardRule(
