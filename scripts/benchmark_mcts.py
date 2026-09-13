@@ -34,10 +34,19 @@ def matchup_deck_counts(config_path: Path, deck_a: str, deck_b: str):
     config = json.loads(config_path.read_text(encoding="utf-8"))
     by_id = {item["id"]: item for item in config["decks"]}
     cards = json.loads((ROOT / "cards.zhCN.json").read_text(encoding="utf-8"))
-    by_dbf = {int(card["dbfId"]): card["id"] for card in cards if "dbfId" in card}
+    by_dbf = {int(card["dbfId"]): card for card in cards if "dbfId" in card}
     def decode(name):
         deck = Deck.from_deckstring(by_id[name]["deckstring"])
-        return {by_dbf[dbf_id]: count for dbf_id, count in deck.cards}
+        if len(deck.heroes) != 1:
+            raise ValueError(f"deck {name} must have exactly one hero")
+        hero = by_dbf[deck.heroes[0]]
+        card_class = str(hero.get("cardClass", ""))
+        if not card_class:
+            raise ValueError(f"deck {name} hero lacks cardClass")
+        return (
+            {by_dbf[dbf_id]["id"]: count for dbf_id, count in deck.cards},
+            card_class,
+        )
     return decode(deck_a), decode(deck_b)
 from hsa.evaluation import wilson_interval
 
@@ -74,13 +83,22 @@ def worker_device(requested: str, npu_devices: str, seed: int) -> str:
 
 
 def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> dict:
-    deck_counts = (
+    decoded_decks = (
         matchup_deck_counts(args.deck_config, args.deck_a, args.deck_b)
         if args.deck_a and args.deck_b else None
     )
-    if deck_counts is not None and getattr(args, "swap_decks", False):
-        deck_counts = (deck_counts[1], deck_counts[0])
-    game = DragonMirrorGame(cards, seed, deck_counts=deck_counts)
+    deck_counts = None
+    player_classes = ("WARRIOR", "WARRIOR")
+    if decoded_decks is not None:
+        (counts_a, class_a), (counts_b, class_b) = decoded_decks
+        deck_counts = (counts_a, counts_b)
+        player_classes = (class_a, class_b)
+        if getattr(args, "swap_decks", False):
+            deck_counts = (counts_b, counts_a)
+            player_classes = (class_b, class_a)
+    game = DragonMirrorGame(
+        cards, seed, deck_counts=deck_counts, player_classes=player_classes
+    )
     candidate_device = worker_device(args.device, args.npu_devices, seed)
     baseline_device = worker_device(
         args.baseline_device, args.npu_devices, seed
@@ -208,13 +226,22 @@ def _new_live_match(
     single NPU evaluate their visible root states together, while each match's
     CPU-side ISMCTS remains deterministic and independent.
     """
-    deck_counts = (
+    decoded_decks = (
         matchup_deck_counts(args.deck_config, args.deck_a, args.deck_b)
         if args.deck_a and args.deck_b else None
     )
-    if deck_counts is not None and args.swap_decks:
-        deck_counts = (deck_counts[1], deck_counts[0])
-    game = DragonMirrorGame(cards, seed, deck_counts=deck_counts)
+    deck_counts = None
+    player_classes = ("WARRIOR", "WARRIOR")
+    if decoded_decks is not None:
+        (counts_a, class_a), (counts_b, class_b) = decoded_decks
+        deck_counts = (counts_a, counts_b)
+        player_classes = (class_a, class_b)
+        if args.swap_decks:
+            deck_counts = (counts_b, counts_a)
+            player_classes = (class_b, class_a)
+    game = DragonMirrorGame(
+        cards, seed, deck_counts=deck_counts, player_classes=player_classes
+    )
     candidate_device = worker_device(args.device, args.npu_devices, seed)
     baseline_device = worker_device(args.baseline_device, args.npu_devices, seed)
     policies = [HeuristicPolicy(), HeuristicPolicy()]
