@@ -363,17 +363,6 @@ class InformationSetMCTSPolicy:
                 if not legal_map:
                     break
                 legal_items = list(legal_map.items())
-                priors: dict[tuple, float] = {}
-                if self.policy_value_model is not None:
-                    prediction = self.policy_value_model.predict(
-                        state, [action for _, action in legal_items]
-                    )
-                    priors = {
-                        key: float(prior)
-                        for (key, _), prior in zip(
-                            legal_items, prediction.priors, strict=True
-                        )
-                    }
                 available_children = [
                     child for key, child in node.children.items()
                     if key in legal_map
@@ -384,6 +373,22 @@ class InformationSetMCTSPolicy:
                     action for key, action in legal_map.items()
                     if key not in node.children
                 ]
+                # A child's prior is immutable once it is expanded.  Re-running
+                # the policy network on every revisit used to dominate NPU time
+                # despite PUCT consuming only ``child.prior`` below.  A new
+                # forward pass is needed only when a determinization exposes a
+                # previously unseen legal action.
+                priors: dict[tuple, float] = {}
+                if self.policy_value_model is not None and unexpanded:
+                    prediction = self.policy_value_model.predict(
+                        state, [action for _, action in legal_items]
+                    )
+                    priors = {
+                        key: float(prior)
+                        for (key, _), prior in zip(
+                            legal_items, prediction.priors, strict=True
+                        )
+                    }
                 if (
                     self.policy_value_model is not None
                     and not self.force_uniform_expansion
