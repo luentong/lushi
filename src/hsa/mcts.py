@@ -518,7 +518,12 @@ class InformationSetMCTSPolicy:
                     ).value
                     value = leaf if state.current == root_player else -leaf
             else:
-                rollout = state.clone()
+                # ``state`` is a per-iteration determinization. Once tree
+                # descent is complete, nothing below needs its pre-rollout
+                # contents: backpropagation only consumes ``path`` and the
+                # scalar result. Roll out in-place instead of paying for one
+                # additional full GameState copy per simulation.
+                rollout = state
                 for _ in range(self.rollout_depth):
                     if rollout.finished:
                         break
