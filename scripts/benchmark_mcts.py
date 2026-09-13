@@ -448,6 +448,11 @@ def main() -> int:
     )
     parser.add_argument("--search-seed", type=int, default=20260909)
     parser.add_argument("--max-actions", type=int, default=1000)
+    parser.add_argument(
+        "--mcts-seats",
+        default="0,1",
+        help="comma-separated candidate seats to evaluate (default: 0,1)",
+    )
     parser.add_argument("--workers", type=int, default=1)
     parser.add_argument(
         "--batch-root-priors",
@@ -468,9 +473,14 @@ def main() -> int:
                         help="place deck B in player 0 and deck A in player 1")
     parser.add_argument("--output", type=Path, default=ROOT / "reports" / "mcts-smoke.json")
     args = parser.parse_args()
+    candidate_seats = tuple(
+        int(item.strip()) for item in args.mcts_seats.split(",") if item.strip()
+    )
+    if not candidate_seats or any(seat not in (0, 1) for seat in candidate_seats):
+        raise ValueError("--mcts-seats must contain one or both of 0,1")
     jobs = [
         (args.cards, args.seed + offset, seat, args)
-        for offset in range(args.pairs) for seat in (0, 1)
+        for offset in range(args.pairs) for seat in candidate_seats
     ]
     benchmark_started = time.perf_counter()
     games = []
@@ -638,6 +648,7 @@ def main() -> int:
         "batch_root_priors": args.batch_root_priors,
         **batch_stats,
         "pairs": args.pairs,
+        "mcts_seats": list(candidate_seats),
         "games": len(games),
         "finished": sum(row["finished"] for row in games),
         "invalid_actions": sum(row["invalid_actions"] for row in games),
