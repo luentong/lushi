@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -54,6 +55,24 @@ def load_model(checkpoint: Path, device: str):
     return _MODEL_CACHE[key]
 
 
+def worker_device(requested: str, npu_devices: str, seed: int) -> str:
+    """Assign an NPU deterministically without making all workers use npu:0.
+
+    A search game is sequential, so each worker owns one model instance and
+    repeatedly issues small policy/value calls.  Mapping game seeds across a
+    user-provided device set gives concurrent worker processes separate NPU
+    contexts while retaining CPU behaviour unchanged.
+    """
+    if not requested.startswith("npu") or requested != "npu":
+        return requested
+    devices = [item.strip() for item in npu_devices.split(",") if item.strip()]
+    if not devices:
+        raise ValueError("--npu-devices must contain at least one device index")
+    # Include the worker PID so long-running workers remain pinned to one NPU
+    # even when ProcessPoolExecutor schedules several game seeds on it.
+    return f"npu:{devices[os.getpid() % len(devices)]}"
+
+
 def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> dict:
     deck_counts = (
         matchup_deck_counts(args.deck_config, args.deck_a, args.deck_b)
@@ -62,6 +81,10 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
     if deck_counts is not None and getattr(args, "swap_decks", False):
         deck_counts = (deck_counts[1], deck_counts[0])
     game = DragonMirrorGame(cards, seed, deck_counts=deck_counts)
+    candidate_device = worker_device(args.device, args.npu_devices, seed)
+    baseline_device = worker_device(
+        args.baseline_device, args.npu_devices, seed
+    )
     policies = [HeuristicPolicy(), HeuristicPolicy()]
     if args.baseline in {"ismcts", "puct"}:
         baseline_seat = 1 - mcts_seat
@@ -72,7 +95,7 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
                     "--baseline-checkpoint is required for puct baseline"
                 )
             baseline_model = load_model(
-                args.baseline_checkpoint, args.baseline_device
+                args.baseline_checkpoint, baseline_device
             )
             if not baseline_model.value_trained and not args.baseline_policy_only:
                 raise ValueError(
@@ -105,7 +128,7 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
     if args.mode == "puct":
         if args.checkpoint is None:
             raise ValueError("--checkpoint is required for puct mode")
-        model = load_model(args.checkpoint, args.device)
+        model = load_model(args.checkpoint, candidate_device)
         if not args.policy_only and not model.value_trained:
             raise ValueError(
                 "checkpoint value head was not trained; pass --policy-only"
@@ -169,6 +192,8 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
         "simulations": simulations,
         "adaptive_searches": adaptive_searches,
         "elapsed_seconds": time.perf_counter() - started,
+        "candidate_device": candidate_device,
+        "baseline_device": baseline_device,
     }
 
 
@@ -195,6 +220,10 @@ def main() -> int:
         help="experimental PUCT expansion that may revisit before all actions",
     )
     parser.add_argument("--device", default="cpu")
+    parser.add_argument(
+        "--npu-devices", default="0,1,2,3",
+        help="comma-separated NPU indices used when --device=npu",
+    )
     parser.add_argument("--baseline-checkpoint", type=Path)
     parser.add_argument("--baseline-device", default="cpu")
     parser.add_argument("--baseline-samples", type=int)
