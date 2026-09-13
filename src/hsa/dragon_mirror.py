@@ -709,6 +709,22 @@ class CardInstance:
     def has_race(self, race: str) -> bool:
         return race == self.definition.race or race in self.definition.races
 
+    def __deepcopy__(self, memo: dict[int, Any]) -> "CardInstance":
+        """Copy mutable instance state without recursively walking CardDef.
+
+        Card definitions are frozen and shared across all search branches.  A
+        generic dataclass deepcopy nevertheless spends substantial time
+        reconstructing the instance dictionary for every card in every MCTS
+        branch.  Most instance fields are scalars; only these three lists need
+        their own containers in a child state.
+        """
+        result = copy.copy(self)
+        memo[id(self)] = result
+        result.gifts = list(self.gifts)
+        result.temporary_attack_modifiers = list(self.temporary_attack_modifiers)
+        result.temporary_health_modifiers = list(self.temporary_health_modifiers)
+        return result
+
     def clone(self, entity_id: int) -> "CardInstance":
         result = copy.deepcopy(self)
         result.entity_id = entity_id
@@ -729,6 +745,13 @@ class Weapon:
     killed_minions: list[CardDef] = field(default_factory=list)
     ammunition: int | None = None
 
+    def __deepcopy__(self, memo: dict[int, Any]) -> "Weapon":
+        result = copy.copy(self)
+        memo[id(self)] = result
+        # CardDef is immutable, but the kill list itself is branch-local.
+        result.killed_minions = list(self.killed_minions)
+        return result
+
 
 @dataclass
 class Location:
@@ -737,6 +760,11 @@ class Location:
     durability: int
     cooldown: int = 1
     next_refresh: int = 1
+
+    def __deepcopy__(self, memo: dict[int, Any]) -> "Location":
+        result = copy.copy(self)
+        memo[id(self)] = result
+        return result
 
 
 @dataclass
@@ -794,6 +822,21 @@ class Player:
     recover_overdrawn_cards: bool = False
     overdrawn_cards: list[CardInstance] = field(default_factory=list)
     pending_end_turn_returns: list[CardInstance] = field(default_factory=list)
+
+    def __deepcopy__(self, memo: dict[int, Any]) -> "Player":
+        """Fast branch copy for the mutable player state used by MCTS."""
+        result = copy.copy(self)
+        memo[id(self)] = result
+        for name in (
+            "deck", "hand", "board", "dead_minions", "locations", "secrets",
+            "overdrawn_cards", "pending_end_turn_returns",
+        ):
+            setattr(result, name, copy.deepcopy(getattr(self, name), memo))
+        result.weapon = copy.deepcopy(self.weapon, memo)
+        result.played_races_this_turn = set(self.played_races_this_turn)
+        result.played_races_last_turn = set(self.played_races_last_turn)
+        result.damaged_characters_this_turn = set(self.damaged_characters_this_turn)
+        return result
 
     @property
     def attack(self) -> int:
@@ -1151,6 +1194,10 @@ class DragonMirrorGame:
         memo: dict[int, Any] = {
             id(self.card_defs): self.card_defs,
             id(self.rule_registry): self.rule_registry,
+            # Deck definitions are constructor input and never mutated by a
+            # game; sharing avoids rebuilding the nested count dictionaries in
+            # every search branch.
+            id(self.deck_counts): self.deck_counts,
         }
         if not include_history:
             memo[id(self.events)] = []
@@ -5057,31 +5104,6 @@ class DragonMirrorGame:
             token.rush = True
             token.summoned_turn = self.turn
             self._summon(player, token)
-        elif weapon.card_id == "JAIL_730":
-            soul = CardInstance(
-                self.next_entity_id,
-                CardDef(
-                    "JAIL_732", "Void Soul", "SPELL", 1,
-                    card_class="DEMONHUNTER",
-                    card_set="ESCAPEFROM_VIOLET_HOLD",
-                ),
-                created_by=weapon.card_id,
-                void_soul_cost=player.void_soul_level,
-            )
-            self.next_entity_id += 1
-            if len(player.hand) < 10:
-                player.hand.append(soul)
-                self._event(
-                    "void_soul_generated", player=player.index,
-                    card=soul.card_id, entity=soul.entity_id,
-                    source=weapon.card_id, destination="hand",
-                    cost=soul.void_soul_cost,
-                )
-            else:
-                self._event(
-                    "generated_burned", player=player.index,
-                    card=soul.card_id, source=weapon.card_id,
-                )
         elif weapon.card_id == "JAIL_458" and weapon.ammunition is not None:
             self._fire_tiny_pal_ammunition(player, weapon, attacked)
         self._dispatch_after_hero_attack(
@@ -5112,6 +5134,31 @@ class DragonMirrorGame:
                     payload={"hero_attack": attack_amount},
                 ),
             )
+        if weapon is not None and weapon.card_id == "JAIL_730":
+            soul = CardInstance(
+                self.next_entity_id,
+                CardDef(
+                    "JAIL_732", "Void Soul", "SPELL", 1,
+                    card_class="DEMONHUNTER",
+                    card_set="ESCAPEFROM_VIOLET_HOLD",
+                ),
+                created_by=weapon.card_id,
+                void_soul_cost=player.void_soul_level,
+            )
+            self.next_entity_id += 1
+            if len(player.hand) < 10:
+                player.hand.append(soul)
+                self._event(
+                    "void_soul_generated", player=player.index,
+                    card=soul.card_id, entity=soul.entity_id,
+                    source=weapon.card_id, destination="hand",
+                    cost=soul.void_soul_cost,
+                )
+            else:
+                self._event(
+                    "generated_burned", player=player.index,
+                    card=soul.card_id, source=weapon.card_id,
+                )
         if weapon is not None and self.rule_registry.has_hook(
             Hook.AFTER_HERO_ATTACK, weapon.card_id
         ):
