@@ -432,7 +432,7 @@ class InformationSetMCTSPolicy:
                         nodes += 1
                 elif unexpanded:
                     if use_neural_prior:
-                        ordered = sorted(
+                        action = min(
                             unexpanded,
                             key=lambda action: (
                                 -priors[information_action_key(state, action)],
@@ -440,14 +440,13 @@ class InformationSetMCTSPolicy:
                             ),
                         )
                     else:
-                        ordered = sorted(
+                        action = min(
                             unexpanded,
                             key=lambda action: (
                                 -self.rollout_policy.score(state, action),
                                 information_action_key(state, action),
                             ),
                         )
-                    action = ordered[0]
                     key = information_action_key(state, action)
                     child = _InformationNode(
                         action_key=key, availability=1,
