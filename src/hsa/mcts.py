@@ -284,6 +284,7 @@ class InformationSetMCTSPolicy:
         force_uniform_expansion: bool = True,
         min_simulations_per_root_action: int = 0,
         max_total_iterations: int | None = None,
+        neural_prior_depth: int | None = None,
     ):
         if samples < 1 or iterations_per_sample < 1:
             raise ValueError("samples and iterations_per_sample must be positive")
@@ -293,6 +294,8 @@ class InformationSetMCTSPolicy:
             raise ValueError("min simulations per root action must be non-negative")
         if max_total_iterations is not None and max_total_iterations < 1:
             raise ValueError("max total iterations must be positive")
+        if neural_prior_depth is not None and neural_prior_depth < 1:
+            raise ValueError("neural_prior_depth must be positive or None")
         self.samples = samples
         self.iterations_per_sample = iterations_per_sample
         self.tree_depth = tree_depth
@@ -304,6 +307,7 @@ class InformationSetMCTSPolicy:
         self.force_uniform_expansion = force_uniform_expansion
         self.min_simulations_per_root_action = min_simulations_per_root_action
         self.max_total_iterations = max_total_iterations
+        self.neural_prior_depth = neural_prior_depth
         self.decision_index = 0
         self.rollout_policy = HeuristicPolicy()
         self.last_search: dict[str, object] = {}
@@ -350,6 +354,10 @@ class InformationSetMCTSPolicy:
             else configured_iterations
         )
         seed_base = self.seed + self.decision_index * seed_stride
+        # At the root, the actor's visible state is identical across all
+        # determinizations.  A root-only policy prior may therefore be safely
+        # reused while the deeper tree remains heuristic/UCT guided.
+        root_priors: dict[tuple, float] | None = None
         for iteration in range(total_iterations):
             state = belief.sample_determinization(
                 game, seed=seed_base + iteration
@@ -379,16 +387,28 @@ class InformationSetMCTSPolicy:
                 # forward pass is needed only when a determinization exposes a
                 # previously unseen legal action.
                 priors: dict[tuple, float] = {}
-                if self.policy_value_model is not None and unexpanded:
-                    prediction = self.policy_value_model.predict(
-                        state, [action for _, action in legal_items]
+                use_neural_prior = (
+                    self.policy_value_model is not None
+                    and (
+                        self.neural_prior_depth is None
+                        or depth < self.neural_prior_depth
                     )
-                    priors = {
-                        key: float(prior)
-                        for (key, _), prior in zip(
-                            legal_items, prediction.priors, strict=True
+                )
+                if use_neural_prior and unexpanded:
+                    if depth == 0 and root_priors is not None:
+                        priors = root_priors
+                    else:
+                        prediction = self.policy_value_model.predict(
+                            state, [action for _, action in legal_items]
                         )
-                    }
+                        priors = {
+                            key: float(prior)
+                            for (key, _), prior in zip(
+                                legal_items, prediction.priors, strict=True
+                            )
+                        }
+                        if depth == 0:
+                            root_priors = priors
                 if (
                     self.policy_value_model is not None
                     and not self.force_uniform_expansion
@@ -402,13 +422,16 @@ class InformationSetMCTSPolicy:
                         key = information_action_key(state, action)
                         child = _InformationNode(
                             action_key=key, availability=1,
-                            prior=priors.get(key, 0.0),
+                            prior=(
+                                priors.get(key, 0.0)
+                                if use_neural_prior else 1.0 / len(legal_items)
+                            ),
                         )
                         node.children[key] = child
                         available_children.append(child)
                         nodes += 1
                 elif unexpanded:
-                    if self.policy_value_model is not None:
+                    if use_neural_prior:
                         ordered = sorted(
                             unexpanded,
                             key=lambda action: (
@@ -428,7 +451,10 @@ class InformationSetMCTSPolicy:
                     key = information_action_key(state, action)
                     child = _InformationNode(
                         action_key=key, availability=1,
-                        prior=priors.get(key, 0.0),
+                        prior=(
+                            priors.get(key, 0.0)
+                            if use_neural_prior else 1.0 / len(legal_items)
+                        ),
                     )
                     node.children[key] = child
                     nodes += 1
@@ -563,5 +589,6 @@ class InformationSetMCTSPolicy:
                 if self.policy_value_model is not None
                 else "uct"
             ),
+            "neural_prior_depth": self.neural_prior_depth,
         }
         return root_map[best.action_key]

@@ -32,6 +32,15 @@ class _EndTurnPrior:
         )
 
 
+class _CountingEndTurnPrior(_EndTurnPrior):
+    def __init__(self):
+        self.calls = 0
+
+    def predict(self, game, actions):
+        self.calls += 1
+        return super().predict(game, actions)
+
+
 class MCTSPolicyTests(unittest.TestCase):
     def test_mcts_returns_legal_action_and_does_not_mutate_root(self):
         game = DragonMirrorGame(CARDS, 101)
@@ -146,6 +155,23 @@ class MCTSPolicyTests(unittest.TestCase):
         action = policy.choose(game)
         self.assertIn(action.key(), {item.key() for item in game.legal_actions()})
         self.assertEqual("heuristic_rollout", policy.last_search["leaf_value_source"])
+
+    def test_root_only_neural_prior_reuses_one_visible_root_prediction(self):
+        game = DragonMirrorGame(CARDS, 140)
+        prior = _CountingEndTurnPrior()
+        policy = InformationSetMCTSPolicy(
+            samples=2,
+            iterations_per_sample=4,
+            tree_depth=4,
+            rollout_depth=2,
+            policy_value_model=prior,
+            use_model_value=False,
+            neural_prior_depth=1,
+        )
+        action = policy.choose(game)
+        self.assertIn(action.key(), {item.key() for item in game.legal_actions()})
+        self.assertEqual(1, prior.calls)
+        self.assertEqual(1, policy.last_search["neural_prior_depth"])
 
     def test_low_budget_puct_does_not_force_one_visit_per_legal_action(self):
         game = DragonMirrorGame(CARDS, 141)

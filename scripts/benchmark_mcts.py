@@ -124,6 +124,7 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
                 args.baseline_min_simulations_per_root_action
             ),
             max_total_iterations=args.baseline_max_total_iterations,
+            neural_prior_depth=args.baseline_neural_prior_depth,
         )
     if args.mode == "puct":
         if args.checkpoint is None:
@@ -144,6 +145,7 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
             force_uniform_expansion=not args.prior_first_expansion,
             min_simulations_per_root_action=args.min_simulations_per_root_action,
             max_total_iterations=args.max_total_iterations,
+            neural_prior_depth=args.neural_prior_depth,
         )
     else:
         search = (
@@ -210,6 +212,11 @@ def main() -> int:
     parser.add_argument("--tree-depth", type=int, default=8)
     parser.add_argument("--min-simulations-per-root-action", type=int, default=0)
     parser.add_argument("--max-total-iterations", type=int)
+    parser.add_argument(
+        "--neural-prior-depth",
+        type=int,
+        help="limit neural policy priors to this many tree levels; 1 is root only",
+    )
     parser.add_argument("--checkpoint", type=Path)
     parser.add_argument(
         "--policy-only", action="store_true",
@@ -234,6 +241,11 @@ def main() -> int:
         "--baseline-min-simulations-per-root-action", type=int, default=0
     )
     parser.add_argument("--baseline-max-total-iterations", type=int)
+    parser.add_argument(
+        "--baseline-neural-prior-depth",
+        type=int,
+        help="limit baseline neural priors to this many tree levels; 1 is root only",
+    )
     parser.add_argument(
         "--baseline-policy-only", action="store_true",
         help="use baseline checkpoint priors with heuristic rollout values",
@@ -334,6 +346,10 @@ def main() -> int:
             args.baseline_max_total_iterations
             if args.baseline in {"ismcts", "puct"} else None
         ),
+        "baseline_neural_prior_depth": (
+            args.baseline_neural_prior_depth
+            if args.baseline == "puct" else None
+        ),
         "iterations": args.iterations,
         "min_simulations_per_root_action": (
             args.min_simulations_per_root_action
@@ -342,6 +358,9 @@ def main() -> int:
         "max_total_iterations": (
             args.max_total_iterations
             if args.mode in {"ismcts", "puct"} else None
+        ),
+        "neural_prior_depth": (
+            args.neural_prior_depth if args.mode == "puct" else None
         ),
         "tree_depth": args.tree_depth if args.mode in {"ismcts", "puct"} else None,
         "rollout_depth": (
