@@ -369,6 +369,19 @@ def play_batched_root_priors(
     }
 
 
+def _batched_worker(
+    jobs: list[tuple], args: argparse.Namespace, worker_index: int,
+) -> tuple[list[dict], dict[str, int]]:
+    """Run one batch actor pinned to one requested NPU, when applicable."""
+    local_args = argparse.Namespace(**vars(args))
+    devices = [item.strip() for item in args.npu_devices.split(",") if item.strip()]
+    if args.device == "npu":
+        local_args.device = f"npu:{devices[worker_index % len(devices)]}"
+    if args.baseline_device == "npu":
+        local_args.baseline_device = f"npu:{devices[worker_index % len(devices)]}"
+    return play_batched_root_priors(jobs, local_args)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--pairs", type=int, default=5)
@@ -432,7 +445,7 @@ def main() -> int:
         action="store_true",
         help=(
             "interleave matches and batch policy-only root-prior PUCT "
-            "inference; requires --workers 1 and prior depth 1"
+            "inference; requires prior depth 1"
         ),
     )
     parser.add_argument(
@@ -454,8 +467,6 @@ def main() -> int:
     games = []
     batch_stats: dict[str, int] = {}
     if args.batch_root_priors:
-        if args.workers != 1:
-            raise ValueError("--batch-root-priors requires --workers 1")
         if (
             args.mode != "puct"
             or not args.policy_only
@@ -475,9 +486,35 @@ def main() -> int:
                 "batched PUCT baseline requires --baseline-policy-only, "
                 "--baseline-neural-prior-depth 1, and a checkpoint"
             )
-        games, batch_stats = play_batched_root_priors(jobs, args)
-        for count in range(1, len(games) + 1):
-            print(f"progress {count}/{len(jobs)} games", flush=True)
+        if args.device == "npu":
+            npu_count = len(
+                [item for item in args.npu_devices.split(",") if item.strip()]
+            )
+            if args.workers > npu_count:
+                raise ValueError(
+                    "--batch-root-priors workers cannot exceed --npu-devices "
+                    "when candidate --device=npu"
+                )
+        if args.workers == 1:
+            games, batch_stats = play_batched_root_priors(jobs, args)
+            for count in range(1, len(games) + 1):
+                print(f"progress {count}/{len(jobs)} games", flush=True)
+        else:
+            shards = [jobs[index::args.workers] for index in range(args.workers)]
+            with ProcessPoolExecutor(max_workers=args.workers) as executor:
+                futures = [
+                    executor.submit(_batched_worker, shard, args, index)
+                    for index, shard in enumerate(shards) if shard
+                ]
+                for future in as_completed(futures):
+                    shard_games, shard_stats = future.result()
+                    games.extend(shard_games)
+                    for key, value in shard_stats.items():
+                        if key == "root_prior_batch_max_size":
+                            batch_stats[key] = max(batch_stats.get(key, 0), value)
+                        else:
+                            batch_stats[key] = batch_stats.get(key, 0) + value
+                    print(f"progress {len(games)}/{len(jobs)} games", flush=True)
     elif args.workers > 1:
         with ProcessPoolExecutor(max_workers=args.workers) as executor:
             futures = [executor.submit(play, *job) for job in jobs]
