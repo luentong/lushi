@@ -580,11 +580,15 @@ class TorchPolicyValueModel:
         # this path never returns tensors that will participate in training.
         with torch.inference_mode():
             logits, values = self.model(states, action_tensor, mask)
-            probabilities = torch.softmax(logits, dim=1).cpu().tolist()
-            values = values.cpu().tolist()
+            # Return policy and value in one D2H transfer. Separate ``cpu``
+            # calls serialize two small NPU synchronizations per root batch.
+            results = torch.cat(
+                (torch.softmax(logits, dim=1), values.unsqueeze(1)), dim=1
+            ).cpu().tolist()
         for batch_index, (index, _, actions) in enumerate(nonempty):
+            result = results[batch_index]
             outputs[index] = PolicyValueOutput(
-                tuple(probabilities[batch_index][:len(actions)]),
-                float(values[batch_index]),
+                tuple(result[:len(actions)]),
+                float(result[-1]),
             )
         return tuple(outputs)
