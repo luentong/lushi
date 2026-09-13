@@ -831,7 +831,16 @@ class Player:
             "deck", "hand", "board", "dead_minions", "locations", "secrets",
             "overdrawn_cards", "pending_end_turn_returns",
         ):
-            setattr(result, name, copy.deepcopy(getattr(self, name), memo))
+            zone = getattr(self, name)
+            # ``clone(skip_hidden_zones_of=...)`` supplies branch-local empty
+            # zones through ``memo``. This is used only by public-belief
+            # determinizations, which replace the opponent's private hand and
+            # deck immediately after cloning. Avoiding a copy of cards that
+            # will be discarded materially reduces ISMCTS branch cost.
+            copied_zone = memo.get(id(zone))
+            if copied_zone is None:
+                copied_zone = copy.deepcopy(zone, memo)
+            setattr(result, name, copied_zone)
         result.weapon = copy.deepcopy(self.weapon, memo)
         result.played_races_this_turn = set(self.played_races_this_turn)
         result.played_races_last_turn = set(self.played_races_last_turn)
@@ -1183,13 +1192,21 @@ class DragonMirrorGame:
     def _event(self, kind: str, **payload: Any) -> None:
         self.events.append({"turn": self.turn, "kind": kind, **payload})
 
-    def clone(self, *, include_history: bool = False) -> "DragonMirrorGame":
+    def clone(
+        self,
+        *,
+        include_history: bool = False,
+        skip_hidden_zones_of: int | None = None,
+    ) -> "DragonMirrorGame":
         """Return an independent search state with the exact same RNG stream.
 
         Immutable card metadata and the read-only rule registry are shared;
         players, entities, pending decisions and RNG state are copied. Search
         normally drops historical events because they are not part of game
         semantics and become increasingly expensive to copy at deep nodes.
+        A public-belief determinization may also omit one player's private
+        hand/deck, provided it replaces both zones before the cloned state is
+        observed or stepped.
         """
         memo: dict[int, Any] = {
             id(self.card_defs): self.card_defs,
@@ -1201,6 +1218,12 @@ class DragonMirrorGame:
         }
         if not include_history:
             memo[id(self.events)] = []
+        if skip_hidden_zones_of is not None:
+            if skip_hidden_zones_of not in (0, 1):
+                raise ValueError("skip_hidden_zones_of must be player 0 or 1")
+            skipped = self.players[skip_hidden_zones_of]
+            memo[id(skipped.hand)] = []
+            memo[id(skipped.deck)] = []
         return copy.deepcopy(self, memo)
 
     def branch(
