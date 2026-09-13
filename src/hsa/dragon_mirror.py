@@ -1215,6 +1215,17 @@ class DragonMirrorGame:
         observed or stepped. Search callers can also disable event recording;
         event history is observability data and does not affect rule execution.
         """
+        # Search creates millions of short-lived branches. Generic deepcopy
+        # repeatedly reflects over the GameState object even though its static
+        # card metadata and rule registry are shared. Use an explicit copy for
+        # event-free search states; the ordinary deepcopy path remains for
+        # history-bearing diagnostics and compatibility callers.
+        use_search_clone = (
+            not include_history
+            and (record_events is False or (record_events is None and not self.record_events))
+        )
+        if use_search_clone:
+            return self._clone_for_search(skip_hidden_zones_of=skip_hidden_zones_of)
         memo: dict[int, Any] = {
             id(self.card_defs): self.card_defs,
             id(self.rule_registry): self.rule_registry,
@@ -1234,6 +1245,44 @@ class DragonMirrorGame:
         result = copy.deepcopy(self, memo)
         if record_events is not None:
             result.record_events = record_events
+        return result
+
+    def _clone_for_search(
+        self, *, skip_hidden_zones_of: int | None = None,
+    ) -> "DragonMirrorGame":
+        """Copy only mutable rule state for an event-free search branch."""
+        if skip_hidden_zones_of is not None and skip_hidden_zones_of not in (0, 1):
+            raise ValueError("skip_hidden_zones_of must be player 0 or 1")
+        memo: dict[int, Any] = {
+            id(self.card_defs): self.card_defs,
+            id(self.rule_registry): self.rule_registry,
+            id(self.deck_counts): self.deck_counts,
+        }
+        if skip_hidden_zones_of is not None:
+            skipped = self.players[skip_hidden_zones_of]
+            memo[id(skipped.hand)] = []
+            memo[id(skipped.deck)] = []
+
+        result = object.__new__(type(self))
+        memo[id(self)] = result
+        result.rng = copy.deepcopy(self.rng, memo)
+        result.seed = self.seed
+        result.turn = self.turn
+        result.current = self.current
+        result.next_entity_id = self.next_entity_id
+        result.invalid_actions = self.invalid_actions
+        result.events = []
+        result.record_events = False
+        result.finished = self.finished
+        result.winner = self.winner
+        result.minions_died_this_turn = self.minions_died_this_turn
+        result.deck_counts = self.deck_counts
+        result.card_defs = self.card_defs
+        result.rule_registry = self.rule_registry
+        result.players = copy.deepcopy(self.players, memo)
+        # Copy after player zones so pending-choice options that reference a
+        # held card retain the same cloned identity as that player's hand.
+        result.pending_choice = copy.deepcopy(self.pending_choice, memo)
         return result
 
     def branch(
