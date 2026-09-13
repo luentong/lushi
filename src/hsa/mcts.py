@@ -183,7 +183,9 @@ class DeterminizedMCTSPolicy:
             from .belief import PublicBelief
 
             belief = PublicBelief.from_game(game, game.current)
-            state = belief.sample_determinization(game, seed=sample_seed)
+            state = belief.sample_determinization(
+                game, seed=sample_seed, record_event=False
+            )
             search = MCTSPolicy(
                 iterations=self.iterations_per_sample,
                 rollout_depth=self.rollout_depth,
@@ -385,7 +387,7 @@ class InformationSetMCTSPolicy:
             root_priors = None
         for iteration in range(total_iterations):
             state = belief.sample_determinization(
-                game, seed=seed_base + iteration
+                game, seed=seed_base + iteration, record_event=False
             )
             node = root
             path = [root]

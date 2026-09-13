@@ -93,7 +93,7 @@ class PublicBelief:
     public_events_consumed: int
 
     def sample_determinization(
-        self, game: DragonMirrorGame, *, seed: int
+        self, game: DragonMirrorGame, *, seed: int, record_event: bool = True,
     ) -> DragonMirrorGame:
         """Rebuild opponent hidden zones without reading their true identities.
 
@@ -180,12 +180,13 @@ class PublicBelief:
                         card.burning_turns, modifier.burning_turns
                     )
                     card.burning_applied_turn = sampled.turn
-        sampled._event(
-            "determinization", observer=self.observer,
-            belief_model="public_dragon_mirror_v3", seed=seed,
-            hidden_hand=len(opponent.hand), hidden_deck=len(opponent.deck),
-            unresolved_hidden_slots=self.unresolved_hidden_slots,
-        )
+        if record_event:
+            sampled._event(
+                "determinization", observer=self.observer,
+                belief_model="public_dragon_mirror_v3", seed=seed,
+                hidden_hand=len(opponent.hand), hidden_deck=len(opponent.deck),
+                unresolved_hidden_slots=self.unresolved_hidden_slots,
+            )
         return sampled
 
     @classmethod
