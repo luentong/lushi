@@ -509,6 +509,25 @@ tokens are excluded from unresolved hidden-card fallback sampling; otherwise a
 source-less zero-tier Void Soul could enter a determinization. Known generated
 tokens remain represented by their source-specific public belief slots.
 
+For Ascend 910C policy inference, use the unqualified `npu` device together
+with the intended physical device set. The benchmark pins each process to one
+of those devices, so concurrent workers do not all default to `npu:0`:
+
+```bash
+source /usr/local/Ascend/cann-9.0.1/set_env.sh
+python scripts/benchmark_mcts.py \
+  --mode puct --checkpoint reports/policy-value-v5-structured-256.pt \
+  --policy-only --device npu --baseline puct \
+  --baseline-checkpoint reports/policy-value-v5-structured-256.pt \
+  --baseline-policy-only --baseline-device npu \
+  --npu-devices 0,1,2,3 --workers 4
+```
+
+This has been smoke-tested with four complete concurrent games on `npu:0` to
+`npu:3`, all finishing with zero illegal actions. Search-state cloning and rule
+execution remain CPU/Python work, so NPU inference improves only the network
+portion until batched search evaluation is added.
+
 The next budget-controlled study separated search strength from distillation.
 On 20 fresh seat-swapped games, plain 64-simulation ISMCTS beat otherwise
 identical 16-simulation ISMCTS 18/20, and beat 32-simulation ISMCTS 18/20.
