@@ -878,6 +878,10 @@ def _clean_text(value: str) -> str:
     return value or ""
 
 
+def _discard_search_event(*_args: Any, **_payload: Any) -> None:
+    """No-op event sink installed on event-free search branches."""
+
+
 class DragonMirrorGame:
     """A deterministic, closed-pool simulator for the supplied Dragon deck."""
 
@@ -1273,6 +1277,9 @@ class DragonMirrorGame:
         result.invalid_actions = self.invalid_actions
         result.events = []
         result.record_events = False
+        # Shadow the bound method for this branch. This removes a method call,
+        # branch and dictionary allocation from every simulated card trigger.
+        result._event = _discard_search_event
         result.finished = self.finished
         result.winner = self.winner
         result.minions_died_this_turn = self.minions_died_this_turn
