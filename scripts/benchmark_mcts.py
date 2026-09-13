@@ -199,6 +199,176 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
     }
 
 
+def _new_live_match(
+    cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace,
+) -> dict:
+    """Build one match without advancing it.
+
+    ``play_batched_root_priors`` interleaves many such matches. This lets a
+    single NPU evaluate their visible root states together, while each match's
+    CPU-side ISMCTS remains deterministic and independent.
+    """
+    deck_counts = (
+        matchup_deck_counts(args.deck_config, args.deck_a, args.deck_b)
+        if args.deck_a and args.deck_b else None
+    )
+    if deck_counts is not None and args.swap_decks:
+        deck_counts = (deck_counts[1], deck_counts[0])
+    game = DragonMirrorGame(cards, seed, deck_counts=deck_counts)
+    candidate_device = worker_device(args.device, args.npu_devices, seed)
+    baseline_device = worker_device(args.baseline_device, args.npu_devices, seed)
+    policies = [HeuristicPolicy(), HeuristicPolicy()]
+    if args.baseline in {"ismcts", "puct"}:
+        baseline_seat = 1 - mcts_seat
+        baseline_model = (
+            load_model(args.baseline_checkpoint, baseline_device)
+            if args.baseline == "puct" else None
+        )
+        policies[baseline_seat] = InformationSetMCTSPolicy(
+            samples=args.baseline_samples or args.samples,
+            iterations_per_sample=args.baseline_iterations or args.iterations,
+            tree_depth=args.baseline_tree_depth or args.tree_depth,
+            rollout_depth=(
+                args.baseline_rollout_depth
+                if args.baseline_rollout_depth is not None
+                else args.rollout_depth
+            ),
+            seed=args.search_seed + seed * 2 + baseline_seat,
+            policy_value_model=baseline_model,
+            use_model_value=False,
+            force_uniform_expansion=not args.baseline_prior_first_expansion,
+            min_simulations_per_root_action=(
+                args.baseline_min_simulations_per_root_action
+            ),
+            max_total_iterations=args.baseline_max_total_iterations,
+            neural_prior_depth=args.baseline_neural_prior_depth,
+        )
+    model = load_model(args.checkpoint, candidate_device)
+    policies[mcts_seat] = InformationSetMCTSPolicy(
+        samples=args.samples,
+        iterations_per_sample=args.iterations,
+        tree_depth=args.tree_depth,
+        rollout_depth=args.rollout_depth,
+        seed=args.search_seed + seed * 2 + mcts_seat,
+        policy_value_model=model,
+        use_model_value=False,
+        force_uniform_expansion=not args.prior_first_expansion,
+        min_simulations_per_root_action=args.min_simulations_per_root_action,
+        max_total_iterations=args.max_total_iterations,
+        neural_prior_depth=args.neural_prior_depth,
+    )
+    return {
+        "seed": seed,
+        "mcts_seat": mcts_seat,
+        "game": game,
+        "policies": policies,
+        "candidate_device": candidate_device,
+        "baseline_device": baseline_device,
+        "actions": 0,
+        "searches": 0,
+        "nodes": 0,
+        "simulations": 0,
+        "adaptive_searches": 0,
+        "started": time.perf_counter(),
+    }
+
+
+def _live_match_result(match: dict) -> dict:
+    game = match["game"]
+    return {
+        "seed": match["seed"],
+        "mcts_seat": match["mcts_seat"],
+        "winner": game.winner,
+        "mcts_win": game.winner == match["mcts_seat"],
+        "finished": game.finished,
+        "invalid_actions": game.invalid_actions,
+        "turns": game.turn,
+        "actions": match["actions"],
+        "searches": match["searches"],
+        "nodes": match["nodes"],
+        "simulations": match["simulations"],
+        "adaptive_searches": match["adaptive_searches"],
+        "elapsed_seconds": time.perf_counter() - match["started"],
+        "candidate_device": match["candidate_device"],
+        "baseline_device": match["baseline_device"],
+    }
+
+
+def play_batched_root_priors(
+    jobs: list[tuple], args: argparse.Namespace,
+) -> tuple[list[dict], dict[str, int]]:
+    """Run policy-only root-prior PUCT matches with batched NPU inference.
+
+    This intentionally supports only ``neural_prior_depth=1`` and heuristic
+    leaf rollout. Otherwise an ISMCTS decision would require neural calls at
+    different, data-dependent tree leaves and batching would silently change
+    the algorithm rather than merely its execution schedule.
+    """
+    matches = [_new_live_match(*job) for job in jobs]
+    completed: list[dict] = []
+    batch_calls = batch_requests = max_batch_size = 0
+    while matches:
+        requests_by_model: dict[int, tuple[object, list[tuple[dict, object]]]] = {}
+        for match in matches:
+            game = match["game"]
+            if game.finished or match["actions"] >= args.max_actions:
+                continue
+            policy = match["policies"][game.current]
+            if (
+                isinstance(policy, InformationSetMCTSPolicy)
+                and policy.policy_value_model is not None
+                and policy.neural_prior_depth == 1
+                and not policy.use_model_value
+                and len(game.legal_actions()) > 1
+            ):
+                key = id(policy.policy_value_model)
+                if key not in requests_by_model:
+                    requests_by_model[key] = (policy.policy_value_model, [])
+                requests_by_model[key][1].append((match, policy))
+
+        prepared: dict[tuple[int, int], object] = {}
+        for model, entries in requests_by_model.values():
+            batch = [(item["game"], item["game"].legal_actions()) for item, _ in entries]
+            outputs = model.predict_batch(batch)
+            batch_calls += 1
+            batch_requests += len(batch)
+            max_batch_size = max(max_batch_size, len(batch))
+            for (match, policy), output in zip(entries, outputs, strict=True):
+                prepared[(id(match), id(policy))] = output
+
+        next_matches: list[dict] = []
+        for match in matches:
+            game = match["game"]
+            if not game.finished and match["actions"] < args.max_actions:
+                actor = game.current
+                policy = match["policies"][actor]
+                prediction = prepared.get((id(match), id(policy)))
+                if prediction is not None:
+                    action = policy.choose(game, root_prediction=prediction)
+                else:
+                    action = policy.choose(game)
+                game.step(action)
+                if actor == match["mcts_seat"]:
+                    search = policy
+                    match["searches"] += 1
+                    match["nodes"] += int(search.last_search.get("nodes", 0))
+                    match["simulations"] += int(search.last_search.get("iterations", 0))
+                    match["adaptive_searches"] += int(
+                        search.last_search.get("adaptive_iterations", 0) > 0
+                    )
+                match["actions"] += 1
+            if game.finished or match["actions"] >= args.max_actions:
+                completed.append(_live_match_result(match))
+            else:
+                next_matches.append(match)
+        matches = next_matches
+    return completed, {
+        "root_prior_batch_calls": batch_calls,
+        "root_prior_batch_requests": batch_requests,
+        "root_prior_batch_max_size": max_batch_size,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--pairs", type=int, default=5)
@@ -258,6 +428,14 @@ def main() -> int:
     parser.add_argument("--max-actions", type=int, default=1000)
     parser.add_argument("--workers", type=int, default=1)
     parser.add_argument(
+        "--batch-root-priors",
+        action="store_true",
+        help=(
+            "interleave matches and batch policy-only root-prior PUCT "
+            "inference; requires --workers 1 and prior depth 1"
+        ),
+    )
+    parser.add_argument(
         "--baseline", choices=("heuristic", "ismcts", "puct"), default="heuristic"
     )
     parser.add_argument("--cards", type=Path, default=ROOT / "cards.251332.enUS.json")
@@ -274,7 +452,33 @@ def main() -> int:
     ]
     benchmark_started = time.perf_counter()
     games = []
-    if args.workers > 1:
+    batch_stats: dict[str, int] = {}
+    if args.batch_root_priors:
+        if args.workers != 1:
+            raise ValueError("--batch-root-priors requires --workers 1")
+        if (
+            args.mode != "puct"
+            or not args.policy_only
+            or args.neural_prior_depth != 1
+            or args.checkpoint is None
+        ):
+            raise ValueError(
+                "--batch-root-priors requires policy-only PUCT, a checkpoint, "
+                "and --neural-prior-depth 1"
+            )
+        if args.baseline == "puct" and (
+            not args.baseline_policy_only
+            or args.baseline_neural_prior_depth != 1
+            or args.baseline_checkpoint is None
+        ):
+            raise ValueError(
+                "batched PUCT baseline requires --baseline-policy-only, "
+                "--baseline-neural-prior-depth 1, and a checkpoint"
+            )
+        games, batch_stats = play_batched_root_priors(jobs, args)
+        for count in range(1, len(games) + 1):
+            print(f"progress {count}/{len(jobs)} games", flush=True)
+    elif args.workers > 1:
         with ProcessPoolExecutor(max_workers=args.workers) as executor:
             futures = [executor.submit(play, *job) for job in jobs]
             for future in as_completed(futures):
@@ -385,6 +589,8 @@ def main() -> int:
         "checkpoint": str(args.checkpoint) if args.mode == "puct" else None,
         "device": args.device if args.mode == "puct" else None,
         "workers": args.workers,
+        "batch_root_priors": args.batch_root_priors,
+        **batch_stats,
         "pairs": args.pairs,
         "games": len(games),
         "finished": sum(row["finished"] for row in games),
