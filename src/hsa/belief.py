@@ -18,6 +18,28 @@ from .dragon_mirror import (
 )
 
 
+# These pools depend on the supported ruleset, not on an individual sampled
+# world. Keeping them immutable at module scope avoids rebuilding and sorting
+# sets for every ISMCTS determinization.
+_GENERATION_POOLS: dict[str, tuple[str, ...]] = {
+    "CATA_556": tuple(sorted(LOW_COST_DRAGON_IDS)),
+    "CAP_107": ("CAP_107t",),
+    "EDR_456": tuple(sorted(DRAGON_IDS)),
+    "FIR_939": tuple(sorted(WARRIOR_MINION_IDS)),
+    "CAP_105": tuple(sorted(PIRATE_IDS)),
+    "CORE_DRG_024": tuple(sorted(PIRATE_IDS)),
+    "TLC_820": ("TLC_813",),
+    "CORE_DRG_107": ("CORE_EX1_277",),
+    "CORE_EX1_014": ("EX1_014t",),
+    "CATA_585": ("CATA_585",),
+    "JAIL_730": ("JAIL_732",),
+}
+_UNKNOWN_PUBLIC_POOL = tuple(sorted(
+    (set(SUPPORTED_IDS) | DRAGON_IDS | WARRIOR_MINION_IDS | PIRATE_IDS)
+    - SPECIAL_TOKEN_IDS
+))
+
+
 @dataclass(frozen=True)
 class GeneratedCardBelief:
     """One hidden generated card described only by public information."""
@@ -62,20 +84,7 @@ class HandModifierBelief:
 
 def _generation_candidates(source_card_id: str) -> tuple[str, ...]:
     """Return candidates for generation sources implemented by this slice."""
-    pools = {
-        "CATA_556": tuple(sorted(LOW_COST_DRAGON_IDS)),
-        "CAP_107": ("CAP_107t",),
-        "EDR_456": tuple(sorted(DRAGON_IDS)),
-        "FIR_939": tuple(sorted(WARRIOR_MINION_IDS)),
-        "CAP_105": tuple(sorted(PIRATE_IDS)),
-        "CORE_DRG_024": tuple(sorted(PIRATE_IDS)),
-        "TLC_820": ("TLC_813",),
-        "CORE_DRG_107": ("CORE_EX1_277",),
-        "CORE_EX1_014": ("EX1_014t",),
-        "CATA_585": ("CATA_585",),
-        "JAIL_730": ("JAIL_732",),
-    }
-    return pools.get(source_card_id, ())
+    return _GENERATION_POOLS.get(source_card_id, ())
 
 
 @dataclass(frozen=True)
@@ -124,13 +133,8 @@ class PublicBelief:
                 )
             )
 
-        unknown_pool = tuple(sorted(
-            (
-                set(SUPPORTED_IDS) | DRAGON_IDS | WARRIOR_MINION_IDS | PIRATE_IDS
-            ) - SPECIAL_TOKEN_IDS
-        ))
         candidates.extend(
-            (rng.choice(unknown_pool), False, "UNKNOWN_PUBLIC_GENERATOR", 0)
+            (rng.choice(_UNKNOWN_PUBLIC_POOL), False, "UNKNOWN_PUBLIC_GENERATOR", 0)
             for _ in range(self.unresolved_hidden_slots)
         )
         coin = ("GAME_005", False, "MULLIGAN", 0) if self.known_coin_in_hand else None
@@ -141,7 +145,12 @@ class PublicBelief:
         candidates = candidates[:non_coin_capacity]
         while len(candidates) < non_coin_capacity:
             candidates.append(
-                (rng.choice(unknown_pool), False, "UNKNOWN_PUBLIC_GENERATOR", 0)
+                (
+                    rng.choice(_UNKNOWN_PUBLIC_POOL),
+                    False,
+                    "UNKNOWN_PUBLIC_GENERATOR",
+                    0,
+                )
             )
         rng.shuffle(candidates)
         hand_specs = candidates[:self.opponent_hand_size - int(coin is not None)]
