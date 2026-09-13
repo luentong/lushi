@@ -116,7 +116,9 @@ class PublicBelief:
             raise ValueError("belief observer must be the player to act")
         # The sampled private zones replace the opponent's hand/deck below, so
         # copying their original hidden identities is pure search overhead.
-        sampled = game.clone(skip_hidden_zones_of=self.opponent)
+        sampled = game.clone(
+            skip_hidden_zones_of=self.opponent, record_events=record_event
+        )
         opponent = sampled.players[self.opponent]
         total_hidden = self.opponent_hand_size + self.opponent_deck_size
         rng = random.Random(seed)

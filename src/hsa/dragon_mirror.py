@@ -897,6 +897,9 @@ class DragonMirrorGame:
         self.next_entity_id = 1
         self.invalid_actions = 0
         self.events: list[dict[str, Any]] = []
+        # Production games retain a full event trace. Search branches can turn
+        # this off because events are audit data, not rule-engine state.
+        self.record_events = True
         self.finished = False
         self.winner: int | None = None
         self.pending_choice: dict[str, Any] | None = None
@@ -1190,6 +1193,8 @@ class DragonMirrorGame:
                 self._event("start_of_game", player=player.index, card="JAIL_509", effect="recover_overdrawn")
 
     def _event(self, kind: str, **payload: Any) -> None:
+        if not self.record_events:
+            return
         self.events.append({"turn": self.turn, "kind": kind, **payload})
 
     def clone(
@@ -1197,6 +1202,7 @@ class DragonMirrorGame:
         *,
         include_history: bool = False,
         skip_hidden_zones_of: int | None = None,
+        record_events: bool | None = None,
     ) -> "DragonMirrorGame":
         """Return an independent search state with the exact same RNG stream.
 
@@ -1206,7 +1212,8 @@ class DragonMirrorGame:
         semantics and become increasingly expensive to copy at deep nodes.
         A public-belief determinization may also omit one player's private
         hand/deck, provided it replaces both zones before the cloned state is
-        observed or stepped.
+        observed or stepped. Search callers can also disable event recording;
+        event history is observability data and does not affect rule execution.
         """
         memo: dict[int, Any] = {
             id(self.card_defs): self.card_defs,
@@ -1224,7 +1231,10 @@ class DragonMirrorGame:
             skipped = self.players[skip_hidden_zones_of]
             memo[id(skipped.hand)] = []
             memo[id(skipped.deck)] = []
-        return copy.deepcopy(self, memo)
+        result = copy.deepcopy(self, memo)
+        if record_events is not None:
+            result.record_events = record_events
+        return result
 
     def branch(
         self, action: Action, *, include_history: bool = False

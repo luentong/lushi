@@ -77,7 +77,10 @@ class MCTSPolicy:
             self.last_search = {"iterations": 0, "root_actions": 1, "nodes": 1}
             return legal[0]
         root_player = game.current
-        root = _Node(game.clone(), untried=self._ordered_actions(game, legal))
+        root = _Node(
+            game.clone(record_events=False),
+            untried=self._ordered_actions(game, legal),
+        )
         nodes = 1
         for _ in range(self.iterations):
             node = root
