@@ -59,6 +59,8 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
         matchup_deck_counts(args.deck_config, args.deck_a, args.deck_b)
         if args.deck_a and args.deck_b else None
     )
+    if deck_counts is not None and getattr(args, "swap_decks", False):
+        deck_counts = (deck_counts[1], deck_counts[0])
     game = DragonMirrorGame(cards, seed, deck_counts=deck_counts)
     policies = [HeuristicPolicy(), HeuristicPolicy()]
     if args.baseline in {"ismcts", "puct"}:
@@ -221,6 +223,8 @@ def main() -> int:
     parser.add_argument("--deck-config", type=Path, default=ROOT / "config" / "decks.json")
     parser.add_argument("--deck-a")
     parser.add_argument("--deck-b")
+    parser.add_argument("--swap-decks", action="store_true",
+                        help="place deck B in player 0 and deck A in player 1")
     parser.add_argument("--output", type=Path, default=ROOT / "reports" / "mcts-smoke.json")
     args = parser.parse_args()
     jobs = [
