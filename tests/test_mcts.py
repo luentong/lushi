@@ -173,6 +173,24 @@ class MCTSPolicyTests(unittest.TestCase):
         self.assertEqual(1, prior.calls)
         self.assertEqual(1, policy.last_search["neural_prior_depth"])
 
+    def test_precomputed_root_prior_avoids_search_time_model_call(self):
+        game = DragonMirrorGame(CARDS, 1401)
+        prior = _CountingEndTurnPrior()
+        legal = game.legal_actions()
+        prepared = _EndTurnPrior().predict(game, legal)
+        policy = InformationSetMCTSPolicy(
+            samples=2,
+            iterations_per_sample=4,
+            tree_depth=4,
+            rollout_depth=2,
+            policy_value_model=prior,
+            use_model_value=False,
+            neural_prior_depth=1,
+        )
+        action = policy.choose(game, root_prediction=prepared)
+        self.assertIn(action.key(), {item.key() for item in legal})
+        self.assertEqual(0, prior.calls)
+
     def test_low_budget_puct_does_not_force_one_visit_per_legal_action(self):
         game = DragonMirrorGame(CARDS, 141)
         policy = InformationSetMCTSPolicy(

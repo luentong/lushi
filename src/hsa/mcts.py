@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 
 from .dragon_mirror import Action, DragonMirrorGame
 from .policy import HeuristicPolicy, _card_value
+from .policy_value import PolicyValueOutput
 
 
 def evaluate_state(game: DragonMirrorGame, player_index: int) -> float:
@@ -322,7 +323,12 @@ class InformationSetMCTSPolicy:
             result[key] = action
         return result
 
-    def choose(self, game: DragonMirrorGame) -> Action:
+    def choose(
+        self,
+        game: DragonMirrorGame,
+        *,
+        root_prediction: PolicyValueOutput | None = None,
+    ) -> Action:
         legal = game.legal_actions()
         if not legal:
             raise RuntimeError("ISMCTS requested an action in a terminal state")
@@ -357,7 +363,15 @@ class InformationSetMCTSPolicy:
         # At the root, the actor's visible state is identical across all
         # determinizations.  A root-only policy prior may therefore be safely
         # reused while the deeper tree remains heuristic/UCT guided.
-        root_priors: dict[tuple, float] | None = None
+        if root_prediction is not None:
+            if len(root_prediction.priors) != len(legal):
+                raise ValueError("root_prediction must align with legal actions")
+            root_priors: dict[tuple, float] | None = {
+                information_action_key(game, action): float(prior)
+                for action, prior in zip(legal, root_prediction.priors, strict=True)
+            }
+        else:
+            root_priors = None
         for iteration in range(total_iterations):
             state = belief.sample_determinization(
                 game, seed=seed_base + iteration
