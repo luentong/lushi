@@ -540,7 +540,10 @@ class TorchPolicyValueModel:
         if not nonempty:
             return tuple(outputs)
         max_actions = max(len(actions) for _, _, actions in nonempty)
-        states = torch.tensor(
+        # Build compact CPU buffers first, then transfer each tensor once.
+        # Creating one NPU tensor per legal-action set turns a large batch into
+        # dozens of tiny H2D transfers and host/device synchronizations.
+        states_cpu = torch.tensor(
             [
                 encode_state(
                     game, game.current,
@@ -548,14 +551,14 @@ class TorchPolicyValueModel:
                 )
                 for _, game, _ in nonempty
             ],
-            dtype=torch.float32, device=self.device,
+            dtype=torch.float32,
         )
-        action_tensor = torch.zeros(
+        action_tensor_cpu = torch.zeros(
             (len(nonempty), max_actions, self.model.action_size),
-            dtype=torch.float32, device=self.device,
+            dtype=torch.float32,
         )
-        mask = torch.zeros(
-            (len(nonempty), max_actions), dtype=torch.bool, device=self.device
+        mask_cpu = torch.zeros(
+            (len(nonempty), max_actions), dtype=torch.bool
         )
         for batch_index, (_, game, actions) in enumerate(nonempty):
             encoded = torch.tensor(
@@ -566,11 +569,16 @@ class TorchPolicyValueModel:
                     )
                     for action in actions
                 ],
-                dtype=torch.float32, device=self.device,
+                dtype=torch.float32,
             )
-            action_tensor[batch_index, :len(actions)] = encoded
-            mask[batch_index, :len(actions)] = True
-        with torch.no_grad():
+            action_tensor_cpu[batch_index, :len(actions)] = encoded
+            mask_cpu[batch_index, :len(actions)] = True
+        states = states_cpu.to(self.device)
+        action_tensor = action_tensor_cpu.to(self.device)
+        mask = mask_cpu.to(self.device)
+        # Inference mode also disables autograd version-counter bookkeeping;
+        # this path never returns tensors that will participate in training.
+        with torch.inference_mode():
             logits, values = self.model(states, action_tensor, mask)
             probabilities = torch.softmax(logits, dim=1).cpu().tolist()
             values = values.cpu().tolist()
