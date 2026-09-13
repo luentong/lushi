@@ -397,14 +397,20 @@ class InformationSetMCTSPolicy:
             for depth in range(self.tree_depth):
                 if state.finished:
                     break
-                # Determinization only replaces the opponent's hidden zones;
-                # the acting player's hand, public board and resource state at
-                # depth zero are invariant. Reuse the root's already encoded
-                # action map instead of regenerating every target combination
-                # for every sampled world.
-                legal_map = (
-                    root_legal_map if depth == 0 else self._legal_map(state)
-                )
+                # Determinization normally only replaces the opponent's hidden
+                # zones, so a non-choice root can reuse its already encoded
+                # action map. Dynamic choice options are the exception: build
+                # their map per sampled state and only reuse priors if keys
+                # still match the visible root exactly.
+                if depth == 0 and game.pending_choice is None:
+                    legal_map = root_legal_map
+                    root_actions_match = True
+                else:
+                    legal_map = self._legal_map(state)
+                    root_actions_match = (
+                        depth == 0
+                        and legal_map.keys() == root_legal_map.keys()
+                    )
                 if not legal_map:
                     break
                 legal_items = list(legal_map.items())
@@ -432,7 +438,11 @@ class InformationSetMCTSPolicy:
                     )
                 )
                 if use_neural_prior and unexpanded:
-                    if depth == 0 and root_priors is not None:
+                    if (
+                        depth == 0
+                        and root_actions_match
+                        and root_priors is not None
+                    ):
                         priors = root_priors
                     else:
                         prediction = self.policy_value_model.predict(
@@ -444,7 +454,7 @@ class InformationSetMCTSPolicy:
                                 legal_items, prediction.priors, strict=True
                             )
                         }
-                        if depth == 0:
+                        if depth == 0 and root_actions_match:
                             root_priors = priors
                 if (
                     self.policy_value_model is not None
@@ -472,7 +482,7 @@ class InformationSetMCTSPolicy:
                         action = min(
                             unexpanded,
                             key=lambda action: (
-                                -priors[information_action_key(state, action)],
+                                -priors.get(information_action_key(state, action), 0.0),
                                 information_action_key(state, action),
                             ),
                         )
