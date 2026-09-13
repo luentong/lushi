@@ -308,7 +308,9 @@ def play_batched_root_priors(
     completed: list[dict] = []
     batch_calls = batch_requests = max_batch_size = 0
     while matches:
-        requests_by_model: dict[int, tuple[object, list[tuple[dict, object]]]] = {}
+        requests_by_model: dict[
+            int, tuple[object, list[tuple[dict, object, tuple]]]
+        ] = {}
         for match in matches:
             game = match["game"]
             if game.finished or match["actions"] >= args.max_actions:
@@ -319,22 +321,24 @@ def play_batched_root_priors(
                 and policy.policy_value_model is not None
                 and policy.neural_prior_depth == 1
                 and not policy.use_model_value
-                and len(game.legal_actions()) > 1
             ):
+                legal_actions = tuple(game.legal_actions())
+                if len(legal_actions) <= 1:
+                    continue
                 key = id(policy.policy_value_model)
                 if key not in requests_by_model:
                     requests_by_model[key] = (policy.policy_value_model, [])
-                requests_by_model[key][1].append((match, policy))
+                requests_by_model[key][1].append((match, policy, legal_actions))
 
-        prepared: dict[tuple[int, int], object] = {}
+        prepared: dict[tuple[int, int], tuple[object, tuple]] = {}
         for model, entries in requests_by_model.values():
-            batch = [(item["game"], item["game"].legal_actions()) for item, _ in entries]
+            batch = [(item["game"], legal) for item, _, legal in entries]
             outputs = model.predict_batch(batch)
             batch_calls += 1
             batch_requests += len(batch)
             max_batch_size = max(max_batch_size, len(batch))
-            for (match, policy), output in zip(entries, outputs, strict=True):
-                prepared[(id(match), id(policy))] = output
+            for (match, policy, legal), output in zip(entries, outputs, strict=True):
+                prepared[(id(match), id(policy))] = (output, legal)
 
         next_matches: list[dict] = []
         for match in matches:
@@ -342,9 +346,14 @@ def play_batched_root_priors(
             if not game.finished and match["actions"] < args.max_actions:
                 actor = game.current
                 policy = match["policies"][actor]
-                prediction = prepared.get((id(match), id(policy)))
-                if prediction is not None:
-                    action = policy.choose(game, root_prediction=prediction)
+                prepared_root = prepared.get((id(match), id(policy)))
+                if prepared_root is not None:
+                    prediction, legal_actions = prepared_root
+                    action = policy.choose(
+                        game,
+                        root_prediction=prediction,
+                        root_actions=legal_actions,
+                    )
                 else:
                     action = policy.choose(game)
                 game.step(action)

@@ -328,8 +328,13 @@ class InformationSetMCTSPolicy:
         game: DragonMirrorGame,
         *,
         root_prediction: PolicyValueOutput | None = None,
+        root_actions: tuple[Action, ...] | None = None,
     ) -> Action:
-        legal = game.legal_actions()
+        # A batched actor has already materialized these actions to encode its
+        # root policy request. Reusing the exact tuple avoids a second target
+        # enumeration (which can be expensive on wide boards) and guarantees
+        # the injected prediction has the same action ordering.
+        legal = list(root_actions) if root_actions is not None else game.legal_actions()
         if not legal:
             raise RuntimeError("ISMCTS requested an action in a terminal state")
         if len(legal) == 1:
@@ -343,6 +348,12 @@ class InformationSetMCTSPolicy:
         from .belief import PublicBelief
 
         root_player = game.current
+        root_legal_map: dict[tuple, Action] = {}
+        for action in legal:
+            key = information_action_key(game, action)
+            if key in root_legal_map:
+                raise RuntimeError(f"information action collision: {key}")
+            root_legal_map[key] = action
         belief = PublicBelief.from_game(game, root_player)
         root = _InformationNode()
         nodes = 1
@@ -381,7 +392,14 @@ class InformationSetMCTSPolicy:
             for depth in range(self.tree_depth):
                 if state.finished:
                     break
-                legal_map = self._legal_map(state)
+                # Determinization only replaces the opponent's hidden zones;
+                # the acting player's hand, public board and resource state at
+                # depth zero are invariant. Reuse the root's already encoded
+                # action map instead of regenerating every target combination
+                # for every sampled world.
+                legal_map = (
+                    root_legal_map if depth == 0 else self._legal_map(state)
+                )
                 if not legal_map:
                     break
                 legal_items = list(legal_map.items())
@@ -546,7 +564,7 @@ class InformationSetMCTSPolicy:
                 visited.visits += 1
                 visited.value_sum += value
 
-        root_map = self._legal_map(game)
+        root_map = root_legal_map
         available_root = [
             child for key, child in root.children.items() if key in root_map
         ]
