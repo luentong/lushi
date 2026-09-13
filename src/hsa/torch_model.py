@@ -519,30 +519,64 @@ class TorchPolicyValueModel:
         )
 
     def predict(self, game, actions) -> PolicyValueOutput:
-        if not actions:
-            return PolicyValueOutput((), 0.0)
+        return self.predict_batch(((game, actions),))[0]
+
+    def predict_batch(self, requests) -> tuple[PolicyValueOutput, ...]:
+        """Evaluate variable-sized legal-action sets in one model forward pass.
+
+        Search is presently sequential, but actor/learner scheduling can gather
+        leaf requests from several trees.  Padding only occurs within that
+        gathered batch and the mask ensures impossible padded actions never
+        receive probability mass.  Keeping the ordinary ``predict`` method as
+        a one-item wrapper preserves the existing policy interface.
+        """
+        requests = tuple(requests)
+        outputs = [PolicyValueOutput((), 0.0) for _ in requests]
+        nonempty = [
+            (index, game, tuple(actions))
+            for index, (game, actions) in enumerate(requests)
+            if actions
+        ]
+        if not nonempty:
+            return tuple(outputs)
+        max_actions = max(len(actions) for _, _, actions in nonempty)
         states = torch.tensor(
-            [encode_state(
-                game, game.current,
-                schema_version=self.state_schema_version,
-            )],
-            dtype=torch.float32, device=self.device,
-        )
-        action_tensor = torch.tensor(
-            [[
-                encode_action(
-                    game, action,
+            [
+                encode_state(
+                    game, game.current,
                     schema_version=self.state_schema_version,
                 )
-                for action in actions
-            ]],
+                for _, game, _ in nonempty
+            ],
             dtype=torch.float32, device=self.device,
         )
-        mask = torch.ones(
-            (1, len(actions)), dtype=torch.bool, device=self.device
+        action_tensor = torch.zeros(
+            (len(nonempty), max_actions, self.model.action_size),
+            dtype=torch.float32, device=self.device,
         )
+        mask = torch.zeros(
+            (len(nonempty), max_actions), dtype=torch.bool, device=self.device
+        )
+        for batch_index, (_, game, actions) in enumerate(nonempty):
+            encoded = torch.tensor(
+                [
+                    encode_action(
+                        game, action,
+                        schema_version=self.state_schema_version,
+                    )
+                    for action in actions
+                ],
+                dtype=torch.float32, device=self.device,
+            )
+            action_tensor[batch_index, :len(actions)] = encoded
+            mask[batch_index, :len(actions)] = True
         with torch.no_grad():
             logits, values = self.model(states, action_tensor, mask)
-            priors = torch.softmax(logits[0], dim=0).cpu().tolist()
-            value = float(values[0].cpu().item())
-        return PolicyValueOutput(tuple(priors), value)
+            probabilities = torch.softmax(logits, dim=1).cpu().tolist()
+            values = values.cpu().tolist()
+        for batch_index, (index, _, actions) in enumerate(nonempty):
+            outputs[index] = PolicyValueOutput(
+                tuple(probabilities[batch_index][:len(actions)]),
+                float(values[batch_index]),
+            )
+        return tuple(outputs)
