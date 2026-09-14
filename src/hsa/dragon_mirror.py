@@ -331,6 +331,10 @@ STANDARD_VANILLA_IDS = {
     "TLC_468t1", "TLC_468t2", "TIME_700t", "CAP_802t", "EDR_523t",
     "TLC_513t2", "TLC_519t", "CATA_561t", "EDR_233t2", "TLC_446t2",
     "TLC_446t3", "TLC_446t4",
+    "CORE_EDR_002e", "CATA_151e", "TLC_631e", "TIME_861e2",
+    "CATA_530e", "CATA_553e2", "JAIL_500e", "JAIL_516e",
+    "MEND_044e3", "NEW_4183_Copy", "CAP_805e", "TLC_446e",
+    "CAP_105t", "TIME_870t",
     "CATA_134t3", "CATA_135t", "CATA_190t14", "CATA_210t",
     "CATA_452t", "CATA_465t", "CATA_470t1", "CATA_478t", "CATA_479t3",
     "Core_CS2_200",  # Boulderfist Ogre
