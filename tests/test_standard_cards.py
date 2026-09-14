@@ -241,6 +241,12 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", bola.entity_id))
         self.assertNotIn(bola, game.players[0].hand)
 
+        recipe = self.add_hand(game, "JAIL_866")
+        game.players[0].mana = 10
+        game.players[0].deck = [game._entity("CAP_107t", started_in_deck=True) for _ in range(2)]
+        game.step(Action("PLAY", recipe.entity_id))
+        self.assertTrue(all(card.attack_delta >= 3 for card in game.players[0].hand if card.card_id == "CAP_107t"))
+
     def test_second_core_spell_tranche(self):
         game = self.game()
         enemy = self.add_board(game, "CORE_LOOT_137", 1)

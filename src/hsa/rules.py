@@ -107,7 +107,7 @@ STANDARD_DECLARATIVE_IDS = {
     "RLK_709",  # Remorseless Winter
     "EDR_843a", "EDR_843b", "EDR_843t1", "CAP_405t4",
     "EDR_817", "CAP_102",
-    "TIME_023", "EDR_251", "JAIL_377", "EDR_231",
+    "TIME_023", "EDR_251", "JAIL_377", "EDR_231", "JAIL_866",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -279,6 +279,28 @@ class DrawThenDrawIfCostAtMost:
         game._draw(context.player)
         if len(context.player.hand) > before and context.player.hand[-1].cost <= self.maximum_cost:
             game._draw(context.player)
+
+
+@dataclass(frozen=True)
+class DrawMinionsAndBuffIfMana:
+    count: int
+    minimum_mana: int
+    attack: int
+    health: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        drawn: list[Any] = []
+        for _ in range(self.count):
+            card = game._draw_matching(
+                context.player,
+                lambda candidate: candidate.definition.card_type == "MINION",
+            )
+            if card is not None:
+                drawn.append(card)
+        if context.player.mana >= self.minimum_mana:
+            for card in drawn:
+                card.attack_delta += self.attack
+                card.health_delta += self.health
 
 
 @dataclass(frozen=True)
@@ -3039,6 +3061,10 @@ def build_rule_registry() -> RuleRegistry:
             "EDR_231", {Hook.SPELL: (HealActionTarget(4), Draw(), OfferImbueHeroPowerOptions())},
             RuleSource("upstream_adapted", rosetta, "EDR_231", "AGPL-3.0", ("test_conditional_draw_tranche",)),
             TargetSpec(TargetKind.FRIENDLY_CHARACTER),
+        ),
+        CardRule(
+            "JAIL_866", {Hook.SPELL: (DrawMinionsAndBuffIfMana(2, 10, 3, 3),)},
+            RuleSource("upstream_adapted", rosetta, "JAIL_866", "AGPL-3.0", ("test_conditional_draw_tranche",)),
         ),
         ),
         CardRule(
