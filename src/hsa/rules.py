@@ -2755,7 +2755,7 @@ def build_rule_registry() -> RuleRegistry:
             "CORE_AT_055", {Hook.SPELL: (HealActionTarget(5),)},
             RuleSource(
                 "upstream_adapted", rosetta, "AT_055", "AGPL-3.0",
-                ("test_simple_core_spell_rules",),
+                ("test_simple_core_spell_tranche",),
             ),
             TargetSpec(TargetKind.ANY_CHARACTER),
         ),
@@ -2763,14 +2763,14 @@ def build_rule_registry() -> RuleRegistry:
             "CORE_CS2_023", {Hook.SPELL: (Draw(2),)},
             RuleSource(
                 "upstream_adapted", rosetta, "CS2_023", "AGPL-3.0",
-                ("test_simple_core_spell_rules",),
+                ("test_simple_core_spell_tranche",),
             ),
         ),
         CardRule(
             "CORE_CS2_076", {Hook.SPELL: (DestroyActionTarget(),)},
             RuleSource(
                 "upstream_adapted", rosetta, "CS2_076", "AGPL-3.0",
-                ("test_simple_core_spell_rules",),
+                ("test_simple_core_spell_tranche",),
             ),
             TargetSpec(TargetKind.ENEMY_MINION),
         ),
@@ -2778,7 +2778,7 @@ def build_rule_registry() -> RuleRegistry:
             "CORE_DS1_185", {Hook.SPELL: (DamageActionTarget(2),)},
             RuleSource(
                 "upstream_adapted", rosetta, "DS1_185", "AGPL-3.0",
-                ("test_simple_core_spell_rules",),
+                ("test_simple_core_spell_tranche",),
             ),
             TargetSpec(TargetKind.ANY_CHARACTER),
         ),
