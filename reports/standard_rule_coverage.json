@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 180,
+      "declarative": 181,
       "legacy_compatibility": 339,
-      "not_implemented": 1642
+      "not_implemented": 1641
     },
     "collectible_implementation": {
-      "declarative": 156,
+      "declarative": 157,
       "legacy_compatibility": 234,
-      "not_implemented": 776
+      "not_implemented": 775
     },
     "fully_implemented": false
   },
@@ -26940,9 +26940,9 @@
       "mechanics": "",
       "text": "Draw 2 cards. Pick one to have its Cost reduced by (2).",
       "text_sha256": "af9256c2ab2b084528216ce81b20ac7bf8ce4a586abe2248384b349a152b50f7",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_810",

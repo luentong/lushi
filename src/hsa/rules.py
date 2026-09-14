@@ -122,6 +122,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_218", "CORE_BOT_222",
     "TLC_823",
     "MEND_043",
+    "TIME_770",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -1142,6 +1143,45 @@ class DrawAndArmorRepeatIfNoMinionLastTurn:
         for _ in range(repeats):
             game._draw(context.player)
             game._gain_armor(context.player, self.armor)
+
+
+@dataclass(frozen=True)
+class DiscountHeldCard:
+    entity_id: int
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for card in context.player.hand:
+            if card.entity_id == self.entity_id:
+                card.cost_delta -= self.amount
+                game._event("discount_held_card", player=context.player.index,
+                            source=context.card.card_id, entity=card.entity_id,
+                            card=card.card_id, amount=self.amount)
+                return
+
+
+@dataclass(frozen=True)
+class DrawTwoThenChooseDiscount:
+    amount: int = 2
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        drawn = []
+        for _ in range(2):
+            before = {card.entity_id for card in context.player.hand}
+            game._draw(context.player)
+            drawn.extend(card for card in context.player.hand if card.entity_id not in before)
+        if not drawn:
+            return
+        options = tuple(
+            (f"discount_{card.entity_id}_{card.card_id}",
+             (DiscountHeldCard(card.entity_id, self.amount),))
+            for card in drawn
+        )
+        game.pending_choice = {
+            "kind": "RULE_CHOICE", "player": context.player.index,
+            "card": context.card, "action": context.action,
+            "options": options,
+        }
 
 
 @dataclass(frozen=True)
@@ -3415,6 +3455,10 @@ def build_rule_registry() -> RuleRegistry:
                 "powerlog_verified", local, "JAIL_COIN1", "internal",
                 ("test_latest_powerlog_simple_rules",),
             ),
+        ),
+        CardRule(
+            "TIME_770", {Hook.SPELL: (DrawTwoThenChooseDiscount(2),)},
+            RuleSource("upstream_adapted", rosetta, "TIME_770", "AGPL-3.0", ("test_fast_forward_draw_choose_discount",)),
         ),
         CardRule(
             "CORE_AT_037", {Hook.SPELL: (OfferEffectChoice((

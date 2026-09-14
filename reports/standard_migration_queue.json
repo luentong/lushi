@@ -4,9 +4,9 @@
   "policy": "reference_matches require human review; only focused tests may promote a card to executable",
   "summary": {
     "cards": 2161,
-    "todo": 1641,
+    "todo": 1640,
     "upstream_reference_review": 1,
-    "verified": 519,
+    "verified": 520,
     "by_tranche": {
       "A0_vanilla_and_keywords": 114,
       "A1_draw_discard": 163,
@@ -860,24 +860,6 @@
       "mechanics": "DEATHRATTLE",
       "text": "Costs (1) less for each Coin you're holding. Deathrattle: Draw a card.",
       "text_sha256": "c4ec27d447a758d5dc143383197da99c4566f23f3e97cc0832e1dc64d2f84f02",
-      "implementation": "not_implemented",
-      "queue_status": "todo",
-      "tranche": "A1_draw_discard",
-      "upstream_repositories": [],
-      "upstream_match_count": 0,
-      "verification": "missing"
-    },
-    {
-      "card_id": "TIME_770",
-      "dbf_id": 121142,
-      "name": "Fast Forward",
-      "set": "TIME_TRAVEL",
-      "class": "ROGUE",
-      "type": "SPELL",
-      "collectible": true,
-      "mechanics": "",
-      "text": "Draw 2 cards. Pick one to have its Cost reduced by (2).",
-      "text_sha256": "af9256c2ab2b084528216ce81b20ac7bf8ce4a586abe2248384b349a152b50f7",
       "implementation": "not_implemented",
       "queue_status": "todo",
       "tranche": "A1_draw_discard",
@@ -32573,6 +32555,24 @@
         "fireplace"
       ],
       "upstream_match_count": 3,
+      "verification": "focused_or_regression_tests"
+    },
+    {
+      "card_id": "TIME_770",
+      "dbf_id": 121142,
+      "name": "Fast Forward",
+      "set": "TIME_TRAVEL",
+      "class": "ROGUE",
+      "type": "SPELL",
+      "collectible": true,
+      "mechanics": "",
+      "text": "Draw 2 cards. Pick one to have its Cost reduced by (2).",
+      "text_sha256": "af9256c2ab2b084528216ce81b20ac7bf8ce4a586abe2248384b349a152b50f7",
+      "implementation": "declarative",
+      "queue_status": "verified",
+      "tranche": "A1_draw_discard",
+      "upstream_repositories": [],
+      "upstream_match_count": 0,
       "verification": "focused_or_regression_tests"
     },
     {

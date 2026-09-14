@@ -482,6 +482,7 @@ TIME_713,declarative,battlecry,local_spec,,0,focused_test_and_regression
 TIME_713t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TIME_714,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TIME_720,declarative,battlecry,local_spec,,0,focused_test_and_regression
+TIME_770,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 TIME_852,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TIME_861e2,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TIME_870t,legacy_compatibility,,local_legacy,,0,regression_suite_only

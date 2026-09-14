@@ -1687,6 +1687,20 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(2, len(game.players[0].hand))
         self.assertEqual(6, game.players[0].armor)
 
+    def test_fast_forward_draw_choose_discount(self):
+        game = self.game()
+        game.players[0].deck = [
+            game._entity("CORE_CS2_231", started_in_deck=True),
+            game._entity("CORE_CS2_120", started_in_deck=True),
+        ]
+        fast = self.add_hand(game, "TIME_770")
+        game.step(Action("PLAY", fast.entity_id))
+        self.assertEqual("RULE_CHOICE", game.pending_choice["kind"])
+        options = game.pending_choice["options"]
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        discounted = next(card for card in game.players[0].hand if card.entity_id == options[0][1][0].entity_id)
+        self.assertEqual(-2, discounted.cost_delta)
+
 
 if __name__ == "__main__":
     unittest.main()
