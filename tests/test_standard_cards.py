@@ -1679,6 +1679,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(before - max(0, beast.definition.cost - 2), game.players[0].mana)
         self.assertEqual(0, game.players[0].next_beast_cost_reduction)
 
+    def test_heartroot_stones_repeat(self):
+        game = self.game()
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True) for _ in range(2)]
+        stones = self.add_hand(game, "MEND_043")
+        game.step(Action("PLAY", stones.entity_id))
+        self.assertEqual(2, len(game.players[0].hand))
+        self.assertEqual(6, game.players[0].armor)
+
 
 if __name__ == "__main__":
     unittest.main()

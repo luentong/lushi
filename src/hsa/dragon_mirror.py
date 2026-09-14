@@ -835,6 +835,8 @@ class Player:
     fire_spell_played: bool = False
     played_races_this_turn: set[str] = field(default_factory=set)
     played_races_last_turn: set[str] = field(default_factory=set)
+    minion_played_this_turn: bool = False
+    minion_played_last_turn: bool = False
     damaged_characters_this_turn: set[str] = field(default_factory=set)
     herald_count: int = 0
     geddon_draw: bool = False
@@ -2139,6 +2141,8 @@ class DragonMirrorGame:
             player.frozen_turn = -1
         player.played_races_last_turn = set(player.played_races_this_turn)
         player.played_races_this_turn.clear()
+        player.minion_played_last_turn = player.minion_played_this_turn
+        player.minion_played_this_turn = False
         for card in list(player.hand):
             if card.temporary:
                 player.hand.remove(card)
@@ -3367,6 +3371,7 @@ class DragonMirrorGame:
                 card=card.card_id, entity=card.entity_id,
             )
         if card.definition.card_type == "MINION":
+            player.minion_played_this_turn = True
             for held in player.hand:
                 held.minion_played_while_held = True
             maievs = [

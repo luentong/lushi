@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 179,
+      "declarative": 180,
       "legacy_compatibility": 339,
-      "not_implemented": 1643
+      "not_implemented": 1642
     },
     "collectible_implementation": {
-      "declarative": 155,
+      "declarative": 156,
       "legacy_compatibility": 234,
-      "not_implemented": 777
+      "not_implemented": 776
     },
     "fully_implemented": false
   },
@@ -21405,9 +21405,9 @@
       "mechanics": "",
       "text": "Draw a card and gain 3 Armor. If you didn't play a minion last turn, do it again.",
       "text_sha256": "de3037357701fe337796bab4ec055089ea8c04c8ec9974fd1410ca0f94b842e6",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "MEND_044",

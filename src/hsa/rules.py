@@ -121,6 +121,7 @@ STANDARD_DECLARATIVE_IDS = {
     "RLK_025",
     "TIME_218", "CORE_BOT_222",
     "TLC_823",
+    "MEND_043",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -1130,6 +1131,17 @@ class DiscountNextBeast:
         context.player.next_beast_cost_reduction = max(
             context.player.next_beast_cost_reduction, self.amount
         )
+
+
+@dataclass(frozen=True)
+class DrawAndArmorRepeatIfNoMinionLastTurn:
+    armor: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        repeats = 1 if context.player.minion_played_last_turn else 2
+        for _ in range(repeats):
+            game._draw(context.player)
+            game._gain_armor(context.player, self.armor)
 
 
 @dataclass(frozen=True)
@@ -3383,6 +3395,10 @@ def build_rule_registry() -> RuleRegistry:
             "TLC_823", {Hook.SPELL: (DamageActionTarget(3), DiscountNextBeast(2))},
             RuleSource("upstream_adapted", rosetta, "TLC_823", "AGPL-3.0", ("test_cower_in_fear_beast_discount",)),
             TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "MEND_043", {Hook.SPELL: (DrawAndArmorRepeatIfNoMinionLastTurn(3),)},
+            RuleSource("upstream_adapted", rosetta, "MEND_043", "AGPL-3.0", ("test_heartroot_stones_repeat",)),
         ),
         CardRule(
             "RLK_024", {Hook.SPELL: (DamageActionTarget(6),)},

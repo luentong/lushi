@@ -425,6 +425,7 @@ JAIL_COIN1,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 JAIL_EVENT_100t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 MEND_040,legacy_compatibility,,local_legacy,,0,regression_suite_only
 MEND_042,declarative,spell,powerlog_verified,,0,focused_test_and_regression
+MEND_043,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 MEND_044e3,legacy_compatibility,,local_legacy,,0,regression_suite_only
 NEW_4183_Copy,legacy_compatibility,,local_legacy,,0,regression_suite_only
 RLK_024,declarative,spell,upstream_adapted,,0,focused_test_and_regression
