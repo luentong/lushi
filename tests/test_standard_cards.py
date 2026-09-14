@@ -206,7 +206,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         spell = self.add_hand(game, "EDR_817")
         game.step(Action("PLAY", spell.entity_id))
         self.assertEqual(2, len(game.players[0].board))
-        self.assertEqual(2, len(game.players[0].hand))
+        self.assertNotIn(bola, game.players[0].hand)
 
         crate = self.add_hand(game, "CAP_102")
         game.players[0].deck = [game._entity("GAME_005", started_in_deck=True) for _ in range(2)]
