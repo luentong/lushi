@@ -2617,6 +2617,10 @@ class DragonMirrorRulesTests(unittest.TestCase):
         ))
         game.step(Action("END_TURN"))
         game.step(Action("END_TURN"))
+        self.assertFalse(any(
+            action.kind == "PREPARE" and action.source == securitybot.entity_id
+            for action in game.legal_actions()
+        ))
         self.assertTrue(any(
             action.kind == "PLAY" and action.source == securitybot.entity_id
             for action in game.legal_actions()

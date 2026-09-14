@@ -677,6 +677,8 @@ class CardInstance:
     mirrex_tracker: bool = False
     spell_damage_bonus: int = 0
     prepared_turn: int = -1
+    # Prepare is a one-time state on the card, not a per-turn activation.
+    prepared: bool = False
     dynamic_spell_damage: int = 0
     spells_cast_while_held: int = 0
     illusion_fake: bool = False
@@ -2891,7 +2893,7 @@ class DragonMirrorGame:
             self._refresh_continuous(candidate)
         actions = [Action("END_TURN")]
         for card in player.hand:
-            if "Prepare" in card.definition.text and card.prepared_turn != self.turn:
+            if "Prepare" in card.definition.text and not card.prepared:
                 actions.append(Action("PREPARE", card.entity_id))
             if card.prepared_turn == self.turn:
                 continue
@@ -3288,10 +3290,13 @@ class DragonMirrorGame:
     def _prepare(self, entity_id: int | None) -> None:
         player = self.players[self.current]
         card = next(card for card in player.hand if card.entity_id == entity_id)
+        if card.prepared:
+            raise ValueError("card can only be prepared once")
         spent = player.mana
         player.mana = 0
         card.cost_delta -= spent + 1
         card.prepared_turn = self.turn
+        card.prepared = True
         self._event(
             "prepare", player=player.index, card=card.card_id,
             entity=card.entity_id, spent=spent, discount=spent + 1,
@@ -6645,6 +6650,7 @@ class DragonMirrorGame:
                 "mirrex_tracker": card.mirrex_tracker,
                 "spell_damage_bonus": card.spell_damage_bonus,
                 "prepared_turn": card.prepared_turn,
+                "prepared": card.prepared,
                 "dynamic_spell_damage": card.dynamic_spell_damage,
                 "spells_cast_while_held": card.spells_cast_while_held,
                 "illusion_fake": card.illusion_fake,
