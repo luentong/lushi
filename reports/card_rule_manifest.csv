@@ -96,6 +96,7 @@ CORE_BAR_801,declarative,spell,upstream_adapted,RosettaStone,2,focused_test_and_
 CORE_BOT_222,declarative,spell,upstream_adapted,"RosettaStone,fireplace",2,focused_test_and_regression
 CORE_BRM_013,declarative,spell,upstream_adapted,"RosettaStone,fireplace",5,focused_test_and_regression
 CORE_BT_035,declarative,spell,upstream_adapted,"RosettaStone,fireplace",12,focused_test_and_regression
+CORE_BT_072,declarative,spell,upstream_adapted,"RosettaStone,fireplace",3,focused_test_and_regression
 CORE_BT_120,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",3,regression_suite_only
 CORE_BT_156,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",3,regression_suite_only
 CORE_BT_187,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",4,regression_suite_only

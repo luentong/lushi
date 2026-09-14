@@ -117,6 +117,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_CS2_072", "CORE_CS2_108", "CORE_EX1_309", "CORE_EX1_312",
     "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074",
     "CORE_CS1_112", "CORE_WON_337",
+    "CORE_BT_072",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -3371,6 +3372,11 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CORE_WON_337", {Hook.SPELL: (GainArmor(4), SummonRandomExecutableMinion(cost=4))},
             RuleSource("upstream_adapted", rosetta, "WON_337", "AGPL-3.0", ("test_standard_holy_nova_portal",)),
+        ),
+        CardRule(
+            "CORE_BT_072", {Hook.SPELL: (FreezeActionTarget(), Summon("CORE_CS2_033", count=2))},
+            RuleSource("upstream_adapted", rosetta, "BT_072", "AGPL-3.0", ("test_standard_deep_freeze",)),
+            TargetSpec(TargetKind.ENEMY_CHARACTER),
         ),
         CardRule(
             "CORE_EX1_238", {Hook.SPELL: (DamageActionTarget(3), Overload(1))},

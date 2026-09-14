@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 194,
+      "declarative": 195,
       "legacy_compatibility": 339,
-      "not_implemented": 1628
+      "not_implemented": 1627
     },
     "collectible_implementation": {
-      "declarative": 170,
+      "declarative": 171,
       "legacy_compatibility": 234,
-      "not_implemented": 762
+      "not_implemented": 761
     },
     "fully_implemented": false
   },
@@ -5520,9 +5520,9 @@
       "mechanics": "FREEZE",
       "text": "Freeze an enemy. Summon two 3/6 Water Elementals.",
       "text_sha256": "fce8c00f1a9c0cc590a76cd4d92890bf0aa96e559187bc34d76d9124f100db5f",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_BT_120",

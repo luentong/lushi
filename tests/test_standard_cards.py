@@ -382,6 +382,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(4, game.players[0].armor)
         self.assertTrue(game.players[0].board)
 
+    def test_standard_deep_freeze(self):
+        game = self.game()
+        enemy = self.add_board(game, "CORE_EX1_007", 1)
+        spell = self.add_hand(game, "CORE_BT_072")
+        game.step(Action("PLAY", spell.entity_id, 1, enemy.entity_id))
+        self.assertEqual(game.turn, enemy.frozen_turn)
+        self.assertEqual(2, sum(card.card_id == "CORE_CS2_033" for card in game.players[0].board))
+
     def test_powerlog_cards_and_triggers(self):
         game = self.game()
         game._equip_weapon(game.players[0], Weapon("EDR_416", "Shepherd's Crook", 3, 2))
