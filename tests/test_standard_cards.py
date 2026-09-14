@@ -119,7 +119,10 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         far = self.add_hand(game, "CORE_CS2_053")
         game.players[0].deck = [game._entity("CORE_CS2_065", started_in_deck=True)]
         game.step(Action("PLAY", far.entity_id))
-        discounted = next(card for card in game.players[0].hand if card.card_id == "CORE_CS2_065")
+        discounted = max(
+            (card for card in game.players[0].hand if card.card_id == "CORE_CS2_065"),
+            key=lambda card: card.entity_id,
+        )
         self.assertEqual(-3, discounted.cost_delta)
 
         hoarder = self.add_hand(game, "CORE_EX1_096")
