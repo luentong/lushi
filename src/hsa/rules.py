@@ -101,6 +101,10 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_CFM_604",  # Greater Healing Potion
     "CORE_BRM_013",  # Quick Shot
     "CORE_EX1_302",  # Mortal Coil
+    "CORE_EX1_007",  # Acolyte of Pain
+    "CORE_RLK_121",  # Acolyte of Death
+    "RLK_511",  # Harbinger of Winter
+    "RLK_709",  # Remorseless Winter
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -263,6 +267,7 @@ class DrawMatching:
     card_type: str | None = None
     min_cost: int | None = None
     race: str | None = None
+    spell_school: str | None = None
     cost_delta: int = 0
 
     def execute(self, game: Any, context: RuleContext) -> None:
@@ -271,6 +276,7 @@ class DrawMatching:
                 (self.card_type is None or card.definition.card_type == self.card_type)
                 and (self.min_cost is None or card.cost >= self.min_cost)
                 and (self.race is None or card.has_race(self.race))
+                and (self.spell_school is None or card.definition.spell_school == self.spell_school)
             )
 
         for _ in range(self.count):
@@ -874,6 +880,19 @@ class DamageAllCharacters:
                 game._damage_minion(
                     player.index, minion, amount, context.card
                 )
+
+
+@dataclass(frozen=True)
+class DamageAllEnemies:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
+        game._damage_hero(enemy, amount, context.card)
+        for minion in list(enemy.board):
+            game._damage_minion(enemy.index, minion, amount, context.card)
+        game._resolve_deaths()
 
 
 @dataclass(frozen=True)
@@ -2931,6 +2950,14 @@ def build_rule_registry() -> RuleRegistry:
                 "upstream_adapted", rosetta, "EX1_096", "AGPL-3.0",
                 ("test_a1_draw_and_discard_tranche",),
             ),
+        ),
+        CardRule(
+            "RLK_511", {Hook.DEATHRATTLE: (DrawMatching(card_type="SPELL", spell_school="FROST"),)},
+            RuleSource("upstream_adapted", rosetta, "RLK_511", "AGPL-3.0", ("test_a1_undead_and_frost_draw_tranche",)),
+        ),
+        CardRule(
+            "RLK_709", {Hook.SPELL: (DamageAllEnemies(2), Draw())},
+            RuleSource("upstream_adapted", rosetta, "RLK_709", "AGPL-3.0", ("test_a1_undead_and_frost_draw_tranche",)),
         ),
         CardRule(
             "EDR_416",

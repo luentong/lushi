@@ -6028,6 +6028,22 @@ class DragonMirrorGame:
                     )
             self.minions_died_this_turn += len(dead)
 
+            # Acolyte of Death observes the completed death batch. Each
+            # friendly Undead death produces one draw before deathrattles.
+            undead_deaths = {
+                player.index: sum(minion.has_race("UNDEAD") for owner, minion in dead if owner.index == player.index)
+                for player in self.players
+            }
+            for player in self.players:
+                count = undead_deaths[player.index]
+                if not count:
+                    continue
+                sources = [m for m in player.board if m.card_id == "CORE_RLK_121" and not m.silenced and m.dormant_turns == 0]
+                for source in sources:
+                    for _ in range(count):
+                        self._draw(player)
+                        self._event("acolyte_of_death_draw", player=player.index, entity=source.entity_id)
+
             for owner in self.players:
                 if not any(player is owner for player, _ in dead):
                     continue

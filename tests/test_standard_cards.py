@@ -153,6 +153,35 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", quick.entity_id, 1, None))
         self.assertEqual(27, game.players[1].health)
 
+    def test_acolyte_of_pain_draws_after_nonlethal_damage(self):
+        game = self.game()
+        acolyte = self.add_board(game, "CORE_EX1_007", 0)
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True)]
+        game._damage_minion(0, acolyte, 1)
+        self.assertEqual(1, len(game.players[0].hand))
+
+    def test_a1_undead_and_frost_draw_tranche(self):
+        game = self.game()
+        acolyte = self.add_board(game, "CORE_RLK_121", 0)
+        undead = self.add_board(game, "CAP_800", 0)
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True)]
+        game._damage_minion(0, undead, undead.max_health)
+        game._resolve_deaths()
+        self.assertEqual(1, len(game.players[0].hand))
+
+        frost = self.add_hand(game, "RLK_511")
+        game.players[0].deck = [game._entity("CORE_RLK_709", started_in_deck=True)]
+        game.step(Action("PLAY", frost.entity_id))
+        game._damage_minion(0, frost, frost.max_health)
+        game._resolve_deaths()
+        self.assertTrue(any(card.card_id == "CORE_RLK_709" for card in game.players[0].hand))
+
+        winter = self.add_hand(game, "RLK_709")
+        enemy = self.add_board(game, "CORE_LOOT_137", 1)
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True)]
+        game.step(Action("PLAY", winter.entity_id))
+        self.assertEqual(28, game.players[1].health)
+
     def test_second_core_spell_tranche(self):
         game = self.game()
         enemy = self.add_board(game, "CORE_LOOT_137", 1)

@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 144,
+      "declarative": 146,
       "legacy_compatibility": 285,
-      "not_implemented": 1732
+      "not_implemented": 1730
     },
     "collectible_implementation": {
-      "declarative": 124,
+      "declarative": 126,
       "legacy_compatibility": 227,
-      "not_implemented": 815
+      "not_implemented": 813
     },
     "fully_implemented": false
   },
@@ -22320,9 +22320,9 @@
       "mechanics": "DEATHRATTLE",
       "text": "Deathrattle: Draw a Frost spell.",
       "text_sha256": "b739ce1d611b7852e5f2446b584c7b9f3d6e0a05a6c22b59bc63ccb440e2232b",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "RLK_705t",
@@ -22380,9 +22380,9 @@
       "mechanics": "",
       "text": "Deal $2 damage to all enemies. Draw a card.",
       "text_sha256": "f40f1c6871ef2feda9acc4db1db5c667d351b1f2562143adb15d6af70d1afddc",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "RLK_720",
