@@ -297,7 +297,7 @@ class DrawMinionsAndBuffIfMana:
             )
             if card is not None:
                 drawn.append(card)
-        if context.player.mana >= self.minimum_mana:
+        if context.player.max_mana >= self.minimum_mana:
             for card in drawn:
                 card.attack_delta += self.attack
                 card.health_delta += self.health
@@ -3053,6 +3053,7 @@ def build_rule_registry() -> RuleRegistry:
                 "powerlog_verified", local, "EDR_416", "internal",
                 ("test_powerlog_cards_and_triggers",),
             ),
+        ),
         CardRule(
             "JAIL_377", {Hook.SPELL: (DrawThenDrawIfCostAtMost(2),)},
             RuleSource("upstream_adapted", rosetta, "JAIL_377", "AGPL-3.0", ("test_conditional_draw_tranche",)),
@@ -3065,7 +3066,6 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "JAIL_866", {Hook.SPELL: (DrawMinionsAndBuffIfMana(2, 10, 3, 3),)},
             RuleSource("upstream_adapted", rosetta, "JAIL_866", "AGPL-3.0", ("test_conditional_draw_tranche",)),
-        ),
         ),
         CardRule(
             "CATA_302", {Hook.SPELL: (HealActionTargetToFull(), Draw())},
