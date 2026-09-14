@@ -8,8 +8,8 @@
     "generated_or_auxiliary_entities": 995,
     "implementation": {
       "declarative": 146,
-      "legacy_compatibility": 305,
-      "not_implemented": 1710
+      "legacy_compatibility": 325,
+      "not_implemented": 1690
     },
     "collectible_implementation": {
       "declarative": 126,
@@ -975,9 +975,9 @@
       "mechanics": "REBORN",
       "text": "Reborn",
       "text_sha256": "388c9225a0d44757fb34160872c30e57879cbe07227ae63649d92c3f417fd8a4",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_803",
@@ -3030,9 +3030,9 @@
       "mechanics": "DIVINE_SHIELD",
       "text": "Divine Shield",
       "text_sha256": "65c0b9020e2cc8abd77a21e0632bdbcc0794e63380924e04b08445b4864bc93e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_477",
@@ -4095,9 +4095,9 @@
       "mechanics": "RUSH",
       "text": "Rush",
       "text_sha256": "34ebcd9fcba8b65689b051c3005a425f2d253adfaf42ff0f9cf99487762df7de",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_563",
@@ -11070,9 +11070,9 @@
       "mechanics": "CHARGE",
       "text": "Charge",
       "text_sha256": "ff9f88ce353a222860a9f826971a2b2ee3da6b06c696d67537285890506d4bda",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_100t6e",
@@ -11085,9 +11085,9 @@
       "mechanics": "",
       "text": "Charge",
       "text_sha256": "ff9f88ce353a222860a9f826971a2b2ee3da6b06c696d67537285890506d4bda",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_100t7",
@@ -11730,9 +11730,9 @@
       "mechanics": "WINDFURY",
       "text": "Windfury",
       "text_sha256": "9409ea5a31e0c555256a52444a04b3a28052e45bbb1dbc22ca8a78615ace2ef5",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_234",
@@ -13605,9 +13605,9 @@
       "mechanics": "STEALTH",
       "text": "Stealth",
       "text_sha256": "526a40a447ddd7aa52d34bb62dbf1da04dc4aba8403769d239ade80893ffef7a",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_524",
@@ -20790,9 +20790,9 @@
       "mechanics": "TAUNT",
       "text": "Taunt",
       "text_sha256": "aa1c342daeb99a7dd8a63d75bed9ad127b763c6cd74891b0ce1a090898c7534e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_890",
@@ -22845,9 +22845,9 @@
       "mechanics": "REBORN",
       "text": "Reborn",
       "text_sha256": "388c9225a0d44757fb34160872c30e57879cbe07227ae63649d92c3f417fd8a4",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "RLK_Prologue_RLK_707",
@@ -23115,9 +23115,9 @@
       "mechanics": "WINDFURY",
       "text": "Windfury",
       "text_sha256": "9409ea5a31e0c555256a52444a04b3a28052e45bbb1dbc22ca8a78615ace2ef5",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "Story_11_FireballPuzzle",
@@ -26520,9 +26520,9 @@
       "mechanics": "TAUNT",
       "text": "Taunt",
       "text_sha256": "aa1c342daeb99a7dd8a63d75bed9ad127b763c6cd74891b0ce1a090898c7534e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_701",
@@ -28185,9 +28185,9 @@
       "mechanics": "RUSH",
       "text": "Rush",
       "text_sha256": "34ebcd9fcba8b65689b051c3005a425f2d253adfaf42ff0f9cf99487762df7de",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_102",
@@ -29445,9 +29445,9 @@
       "mechanics": "RUSH",
       "text": "Rush",
       "text_sha256": "34ebcd9fcba8b65689b051c3005a425f2d253adfaf42ff0f9cf99487762df7de",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_430",
@@ -29835,9 +29835,9 @@
       "mechanics": "LIFESTEAL,RUSH",
       "text": "Rush Lifesteal",
       "text_sha256": "4497ca4053e4e84af22c4bc912ec661a6aa531245f251a7ad5cbe11854540ecd",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_446t3",
@@ -29850,9 +29850,9 @@
       "mechanics": "CHARGE,ELUSIVE",
       "text": "Charge Elusive",
       "text_sha256": "93198c7d436800a515943f503157f9db3232ca3ce9e2dd90f71b1b0bf3cb6597",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_446t4",
@@ -29865,9 +29865,9 @@
       "mechanics": "REBORN,TAUNT",
       "text": "Taunt Reborn",
       "text_sha256": "e373b26c137e234956e95871e6aabc7cce73b77b0e9bff50ac5b6c111ca3755e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_447",
@@ -30645,9 +30645,9 @@
       "mechanics": "POISONOUS",
       "text": "Poisonous",
       "text_sha256": "573c8b628420891981b2eb72fec57c17cfa2cade0f4010bcd47c87c019783164",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_468t2",
@@ -30660,9 +30660,9 @@
       "mechanics": "TAUNT",
       "text": "Taunt",
       "text_sha256": "aa1c342daeb99a7dd8a63d75bed9ad127b763c6cd74891b0ce1a090898c7534e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_469",
@@ -30885,9 +30885,9 @@
       "mechanics": "STEALTH",
       "text": "Summoned When Drawn Stealth",
       "text_sha256": "c24ea4853b5c7363ef1103bc3fb44538d3b37e4bb08b5a7244538179051c920d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_514",
@@ -31020,9 +31020,9 @@
       "mechanics": "POISONOUS,STEALTH",
       "text": "Stealth Poisonous",
       "text_sha256": "e253180a34872c4f411a9e7f55f5f5b6743575ef61f53ff2dae1ec17d3469708",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_520",

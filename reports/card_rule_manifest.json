@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 477,
+    "supported_cards": 497,
     "declarative_rules": 149,
     "legacy_special_case_rules": 2,
-    "legacy_compatibility_rules": 326,
+    "legacy_compatibility_rules": 346,
     "cards_with_upstream_match": 123
   },
   "cards": [
@@ -171,6 +171,22 @@
     },
     {
       "card_id": "CAP_800",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "CAP_802t",
       "implementation": "legacy_compatibility",
       "hooks": [],
       "effects": {},
@@ -892,6 +908,22 @@
       "verification_status": "regression_suite_only"
     },
     {
+      "card_id": "CATA_476t",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
       "card_id": "CATA_478t",
       "implementation": "legacy_compatibility",
       "hooks": [],
@@ -1088,6 +1120,22 @@
     },
     {
       "card_id": "CATA_558",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "CATA_561t",
       "implementation": "legacy_compatibility",
       "hooks": [],
       "effects": {},
@@ -10261,6 +10309,38 @@
       "verification_status": "focused_test_and_regression"
     },
     {
+      "card_id": "EDR_100t6",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "EDR_100t6e",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
       "card_id": "EDR_102",
       "implementation": "legacy_compatibility",
       "hooks": [],
@@ -10278,6 +10358,22 @@
     },
     {
       "card_id": "EDR_209t5",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "EDR_233t2",
       "implementation": "legacy_compatibility",
       "hooks": [],
       "effects": {},
@@ -10894,6 +10990,22 @@
     },
     {
       "card_id": "EDR_521",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "EDR_523t",
       "implementation": "legacy_compatibility",
       "hooks": [],
       "effects": {},
@@ -13410,6 +13522,22 @@
       "verification_status": "focused_test_and_regression"
     },
     {
+      "card_id": "JAIL_887t3",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
       "card_id": "JAIL_890",
       "implementation": "legacy_compatibility",
       "hooks": [],
@@ -13771,6 +13899,22 @@
       "verification_status": "regression_suite_only"
     },
     {
+      "card_id": "RLK_Prologue_RLK_705t",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
       "card_id": "SW_108t",
       "implementation": "declarative",
       "hooks": [
@@ -13825,6 +13969,22 @@
     },
     {
       "card_id": "Story_09_Imp",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "Story_09_StormwatcherPuzzle",
       "implementation": "legacy_compatibility",
       "hooks": [],
       "effects": {},
@@ -14353,6 +14513,22 @@
       "verification_status": "regression_suite_only"
     },
     {
+      "card_id": "TIME_700t",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
       "card_id": "TIME_701",
       "implementation": "declarative",
       "hooks": [
@@ -14611,6 +14787,22 @@
       "metadata_source": "HearthstoneJSON build 251332",
       "upstream_matches": [],
       "verification_status": "focused_test_and_regression"
+    },
+    {
+      "card_id": "TLC_101t",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
     },
     {
       "card_id": "TLC_102",
@@ -14981,6 +15173,22 @@
       "verification_status": "regression_suite_only"
     },
     {
+      "card_id": "TLC_429t",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
       "card_id": "TLC_432",
       "implementation": "legacy_compatibility",
       "hooks": [],
@@ -15014,6 +15222,54 @@
     },
     {
       "card_id": "TLC_443t",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "TLC_446t2",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "TLC_446t3",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "TLC_446t4",
       "implementation": "legacy_compatibility",
       "hooks": [],
       "effects": {},
@@ -15085,6 +15341,38 @@
       "verification_status": "regression_suite_only"
     },
     {
+      "card_id": "TLC_468t1",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "TLC_468t2",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
       "card_id": "TLC_480",
       "implementation": "legacy_compatibility",
       "hooks": [],
@@ -15117,7 +15405,39 @@
       "verification_status": "regression_suite_only"
     },
     {
+      "card_id": "TLC_513t2",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
       "card_id": "TLC_514",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "TLC_519t",
       "implementation": "legacy_compatibility",
       "hooks": [],
       "effects": {},

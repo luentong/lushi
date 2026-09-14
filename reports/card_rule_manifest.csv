@@ -8,6 +8,7 @@ CAP_107t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CAP_400t2t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CAP_404,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 CAP_800,legacy_compatibility,,local_legacy,,0,regression_suite_only
+CAP_802t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_111,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_130,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_131,declarative,battlecry,powerlog_verified,,0,focused_test_and_regression
@@ -47,6 +48,7 @@ CATA_465t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_469,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_470t1,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_476,legacy_compatibility,,local_legacy,,0,regression_suite_only
+CATA_476t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_478t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_479t3,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_484,legacy_compatibility,,local_legacy,,0,regression_suite_only
@@ -59,6 +61,7 @@ CATA_550,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_551t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_556,legacy_special_case,,local_spec,,0,focused_test_and_regression
 CATA_558,legacy_compatibility,,local_legacy,,0,regression_suite_only
+CATA_561t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_581,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
 CATA_582,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_584,legacy_compatibility,,local_legacy,,0,regression_suite_only
@@ -223,8 +226,11 @@ DREAM_03,legacy_compatibility,,local_legacy,RosettaStone,7,regression_suite_only
 DREAM_04,declarative,spell,official_text,"RosettaStone,fireplace",8,focused_test_and_regression
 DREAM_05,declarative,spell,official_text,"RosettaStone,fireplace",14,focused_test_and_regression
 EDR_000,declarative,battlecry,local_spec,,0,focused_test_and_regression
+EDR_100t6,legacy_compatibility,,local_legacy,,0,regression_suite_only
+EDR_100t6e,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_102,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_209t5,legacy_compatibility,,local_legacy,,0,regression_suite_only
+EDR_233t2,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_258,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_260,declarative,deathrattle,local_spec,,0,focused_test_and_regression
 EDR_260t,legacy_compatibility,,local_legacy,,0,regression_suite_only
@@ -257,6 +263,7 @@ EDR_492,declarative,battlecry,local_spec,,0,focused_test_and_regression
 EDR_492t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_493,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_521,legacy_compatibility,,local_legacy,,0,regression_suite_only
+EDR_523t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_524,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_529,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_571,declarative,deathrattle,local_spec,,0,focused_test_and_regression
@@ -369,6 +376,7 @@ JAIL_872,declarative,after_hero_attack,powerlog_verified,,0,focused_test_and_reg
 JAIL_875,declarative,after_hero_attack,powerlog_verified,,0,focused_test_and_regression
 JAIL_880,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_882,declarative,deathrattle,local_spec,,0,focused_test_and_regression
+JAIL_887t3,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_890,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_906,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_912,declarative,deathrattle,powerlog_verified,,0,focused_test_and_regression
@@ -387,8 +395,10 @@ RLK_705t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 RLK_708,declarative,"battlecry,deathrattle",local_spec,,0,focused_test_and_regression
 RLK_709,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 RLK_958,legacy_compatibility,,local_legacy,,0,regression_suite_only
+RLK_Prologue_RLK_705t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 SW_108t,declarative,spell,upstream_adapted,RosettaStone,3,focused_test_and_regression
 Story_09_Imp,legacy_compatibility,,local_legacy,,0,regression_suite_only
+Story_09_StormwatcherPuzzle,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TIME_001,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TIME_003,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TIME_004,legacy_compatibility,,local_legacy,,0,regression_suite_only
@@ -419,6 +429,7 @@ TIME_603,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TIME_606,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TIME_610,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TIME_610t2,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TIME_700t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TIME_701,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 TIME_702,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 TIME_713,declarative,battlecry,local_spec,,0,focused_test_and_regression
@@ -432,6 +443,7 @@ TIME_876,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TIME_890,declarative,battlecry,official_text_and_powerlog_verified,,0,focused_test_and_regression
 TIME_890t,legacy_special_case,,official_text_and_powerlog_verified,,0,focused_test_and_regression
 TIME_890t2,declarative,location,official_text,,0,focused_test_and_regression
+TLC_101t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_102,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_110,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_221,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
@@ -453,15 +465,23 @@ TLC_243,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_248,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_249,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_401,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TLC_429t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_432,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_436,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_443t,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TLC_446t2,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TLC_446t3,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TLC_446t4,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_451,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 TLC_461,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_463,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TLC_468t1,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TLC_468t2,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_480,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_482,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TLC_513t2,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_514,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TLC_519t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_600,declarative,battlecry,local_spec,,0,focused_test_and_regression
 TLC_603,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_606,legacy_compatibility,,local_legacy,,0,regression_suite_only
