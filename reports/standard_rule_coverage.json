@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 182,
+      "declarative": 185,
       "legacy_compatibility": 339,
-      "not_implemented": 1640
+      "not_implemented": 1637
     },
     "collectible_implementation": {
-      "declarative": 158,
+      "declarative": 161,
       "legacy_compatibility": 234,
-      "not_implemented": 774
+      "not_implemented": 771
     },
     "fully_implemented": false
   },
@@ -7425,9 +7425,9 @@
       "mechanics": "",
       "text": "Deal $2 damage to a minion. If it survives, draw a card.",
       "text_sha256": "2b959cb8a00be719c29625293b06361b803e7eb414e62f51df9b2007f01a8815",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_EX1_414",
@@ -7545,9 +7545,9 @@
       "mechanics": "",
       "text": "Gain 5 Armor. Draw a card.",
       "text_sha256": "a0b7ce874499dc40376ad4db97d215709ba6579d990327d696af1fd175db8e6f",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_EX1_610",
@@ -7680,9 +7680,9 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Deal 3 damage to the enemy hero. Restore #3 Health to your hero.",
       "text_sha256": "1cf92fb7dbf0941631ec770fac8a437ca8ef9eeff647e52a9087a0c67986a631",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_GIL_623",

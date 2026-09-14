@@ -161,14 +161,17 @@ CORE_EX1_278,declarative,spell,upstream_adapted,"RosettaStone,fireplace",3,focus
 CORE_EX1_302,declarative,spell,upstream_adapted,"RosettaStone,fireplace",6,focused_test_and_regression
 CORE_EX1_310,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",3,regression_suite_only
 CORE_EX1_319,declarative,battlecry,upstream_adapted,"RosettaStone,fireplace",6,focused_test_and_regression
+CORE_EX1_391,declarative,spell,upstream_adapted,"RosettaStone,fireplace",5,focused_test_and_regression
 CORE_EX1_414,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",13,regression_suite_only
 CORE_EX1_506a,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",9,regression_suite_only
 CORE_EX1_507,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",13,regression_suite_only
 CORE_EX1_509,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",12,regression_suite_only
 CORE_EX1_604,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",12,regression_suite_only
+CORE_EX1_606,declarative,spell,upstream_adapted,"RosettaStone,fireplace",6,focused_test_and_regression
 CORE_EX1_610,declarative,spell,official_text_and_engine_verified,"RosettaStone,fireplace",5,focused_test_and_regression
 CORE_GIL_191t,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",7,regression_suite_only
 CORE_GIL_558,legacy_compatibility,,local_legacy,RosettaStone,1,regression_suite_only
+CORE_GIL_622,declarative,battlecry,upstream_adapted,"RosettaStone,fireplace",5,focused_test_and_regression
 CORE_GVG_044,legacy_compatibility,,local_legacy,RosettaStone,2,regression_suite_only
 CORE_GVG_085,legacy_compatibility,,local_legacy,RosettaStone,4,regression_suite_only
 CORE_GVG_103,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",2,regression_suite_only
