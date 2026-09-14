@@ -315,6 +315,15 @@ BASIC_AUXILIARY_IDS = {
     "HERO_11bpt",  # Frail Ghoul
 }
 
+# Metadata-only Standard cards with no printed text or hidden triggers. They
+# use the engine's ordinary minion lifecycle (summon, attack, damage, death)
+# and are intentionally kept separate from generated pools until a focused
+# regression test promotes them there.
+STANDARD_VANILLA_IDS = {
+    "Core_CS2_200",  # Boulderfist Ogre
+    "TLC_248",       # Ultragigasaur
+}
+
 BASIC_TOTEM_IDS = ("CS2_050", "CS2_051", "CS2_052", "NEW1_009")
 
 # Their outer rule is implemented, but they remain unreachable from random
@@ -436,7 +445,8 @@ SUPPORTED_IDS = (
     | SUPPORTED_VOID_SOUL_DEMON_IDS | ADDITIONAL_GENERATED_MINION_IDS
     | ADDITIONAL_PLAYABLE_MINION_IDS | ADDITIONAL_PLAYABLE_CARD_IDS
     | ADDITIONAL_PLAYABLE_SPELL_IDS
-    | SPECIAL_TOKEN_IDS | BLOCKED_GENERATOR_IDS | DECLARATIVE_METADATA_IDS
+    | SPECIAL_TOKEN_IDS | BLOCKED_GENERATOR_IDS | STANDARD_VANILLA_IDS
+    | DECLARATIVE_METADATA_IDS
     | DECLARATIVE_METADATA_ALIASES.keys()
 )
 EXECUTABLE_CARD_IDS = SUPPORTED_IDS | STANDARD_DECLARATIVE_IDS

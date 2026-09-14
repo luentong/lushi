@@ -51,6 +51,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(3, target.max_health)
         self.assertEqual(before_hand, len(game.players[0].hand))
 
+    def test_metadata_only_vanilla_standard_minions_use_normal_lifecycle(self):
+        game = self.game()
+        ogre = self.add_hand(game, "Core_CS2_200")
+        giga = self.add_hand(game, "TLC_248")
+        game.step(Action("PLAY", ogre.entity_id))
+        game.step(Action("PLAY", giga.entity_id))
+        self.assertIn(ogre, game.players[0].board)
+        self.assertIn(giga, game.players[0].board)
+        self.assertEqual((6, 7), (ogre.attack, ogre.max_health))
+        self.assertEqual((14, 28), (giga.attack, giga.max_health))
+
     def test_simple_core_spell_tranche(self):
         game = self.game()
         game.players[0].health = 20

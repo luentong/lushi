@@ -8,13 +8,13 @@
     "generated_or_auxiliary_entities": 995,
     "implementation": {
       "declarative": 137,
-      "legacy_compatibility": 245,
-      "not_implemented": 1779
+      "legacy_compatibility": 247,
+      "not_implemented": 1777
     },
     "collectible_implementation": {
       "declarative": 117,
-      "legacy_compatibility": 225,
-      "not_implemented": 824
+      "legacy_compatibility": 227,
+      "not_implemented": 822
     },
     "fully_implemented": false
   },
@@ -9705,9 +9705,9 @@
       "mechanics": "",
       "text": "",
       "text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "Core_LOE_115",
@@ -28995,9 +28995,9 @@
       "mechanics": "",
       "text": "",
       "text_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_249",

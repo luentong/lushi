@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 407,
+    "supported_cards": 409,
     "declarative_rules": 140,
     "legacy_special_case_rules": 2,
-    "legacy_compatibility_rules": 265,
+    "legacy_compatibility_rules": 267,
     "cards_with_upstream_match": 108
   },
   "cards": [
@@ -8027,6 +8027,22 @@
       "verification_status": "regression_suite_only"
     },
     {
+      "card_id": "Core_CS2_200",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
       "card_id": "DINO_132",
       "implementation": "legacy_compatibility",
       "hooks": [],
@@ -12934,6 +12950,22 @@
     },
     {
       "card_id": "TLC_243",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "TLC_248",
       "implementation": "legacy_compatibility",
       "hooks": [],
       "effects": {},

@@ -169,6 +169,7 @@ CS3_022,legacy_compatibility,,local_legacy,RosettaStone,2,regression_suite_only
 CS3_024,legacy_compatibility,,local_legacy,RosettaStone,2,regression_suite_only
 CS3_025,legacy_compatibility,,local_legacy,RosettaStone,6,regression_suite_only
 CS3_035,legacy_compatibility,,local_legacy,RosettaStone,2,regression_suite_only
+Core_CS2_200,legacy_compatibility,,local_legacy,,0,regression_suite_only
 DINO_132,legacy_compatibility,,local_legacy,,0,regression_suite_only
 DINO_138,legacy_compatibility,,local_legacy,,0,regression_suite_only
 DINO_400,legacy_compatibility,,local_legacy,,0,regression_suite_only
@@ -384,6 +385,7 @@ TLC_240,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_241,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_241t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_243,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TLC_248,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_249,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_401,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_432,legacy_compatibility,,local_legacy,,0,regression_suite_only
