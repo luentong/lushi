@@ -320,6 +320,12 @@ BASIC_AUXILIARY_IDS = {
 # and are intentionally kept separate from generated pools until a focused
 # regression test promotes them there.
 STANDARD_VANILLA_IDS = {
+    # Keyword-only A0 tranche (no Battlecry/Deathrattle/random text).
+    "RLK_067", "CORE_BT_921", "EDR_272", "CORE_CS2_179",
+    "CORE_EX1_028", "CS3_038", "EDR_598", "FIR_901t", "JAIL_454t",
+    "RLK_077t", "RLK_705t", "TLC_443t", "CATA_528t", "DINO_136t",
+    "TLC_903t", "CATA_132t", "EDR_209t5", "CATA_551t", "EDR_850pe",
+    "TIME_006t1",
     "CATA_134t3", "CATA_135t", "CATA_190t14", "CATA_210t",
     "CATA_452t", "CATA_465t", "CATA_470t1", "CATA_478t", "CATA_479t3",
     "Core_CS2_200",  # Boulderfist Ogre

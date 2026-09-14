@@ -8,13 +8,13 @@
     "generated_or_auxiliary_entities": 995,
     "implementation": {
       "declarative": 146,
-      "legacy_compatibility": 285,
-      "not_implemented": 1730
+      "legacy_compatibility": 305,
+      "not_implemented": 1710
     },
     "collectible_implementation": {
       "declarative": 126,
-      "legacy_compatibility": 227,
-      "not_implemented": 813
+      "legacy_compatibility": 234,
+      "not_implemented": 806
     },
     "fully_implemented": false
   },
@@ -1155,9 +1155,9 @@
       "mechanics": "TAUNT",
       "text": "Taunt",
       "text_sha256": "aa1c342daeb99a7dd8a63d75bed9ad127b763c6cd74891b0ce1a090898c7534e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_133",
@@ -3675,9 +3675,9 @@
       "mechanics": "TAUNT",
       "text": "Taunt",
       "text_sha256": "aa1c342daeb99a7dd8a63d75bed9ad127b763c6cd74891b0ce1a090898c7534e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_529",
@@ -3885,9 +3885,9 @@
       "mechanics": "TAUNT",
       "text": "Taunt",
       "text_sha256": "aa1c342daeb99a7dd8a63d75bed9ad127b763c6cd74891b0ce1a090898c7534e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_552",
@@ -5760,9 +5760,9 @@
       "mechanics": "LIFESTEAL",
       "text": "Lifesteal",
       "text_sha256": "3fa7fb78015de1ab3cb62a2032789b047c7f4b247372c823a3be42abb6e9e6f1",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_CATA_001",
@@ -6450,9 +6450,9 @@
       "mechanics": "TAUNT",
       "text": "Taunt",
       "text_sha256": "aa1c342daeb99a7dd8a63d75bed9ad127b763c6cd74891b0ce1a090898c7534e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_CS2_188",
@@ -6885,9 +6885,9 @@
       "mechanics": "STEALTH",
       "text": "Stealth",
       "text_sha256": "526a40a447ddd7aa52d34bb62dbf1da04dc4aba8403769d239ade80893ffef7a",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_EX1_043",
@@ -9690,9 +9690,9 @@
       "mechanics": "RUSH",
       "text": "Rush",
       "text_sha256": "34ebcd9fcba8b65689b051c3005a425f2d253adfaf42ff0f9cf99487762df7de",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "Core_CS2_200",
@@ -9855,9 +9855,9 @@
       "mechanics": "RUSH",
       "text": "Rush",
       "text_sha256": "34ebcd9fcba8b65689b051c3005a425f2d253adfaf42ff0f9cf99487762df7de",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "DINO_137",
@@ -11580,9 +11580,9 @@
       "mechanics": "TAUNT",
       "text": "Taunt",
       "text_sha256": "aa1c342daeb99a7dd8a63d75bed9ad127b763c6cd74891b0ce1a090898c7534e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_226",
@@ -12255,9 +12255,9 @@
       "mechanics": "ELUSIVE,LIFESTEAL,TAUNT",
       "text": "Elusive Lifesteal Taunt",
       "text_sha256": "78f72e868d06b9cdb9c839dadba5ed9464d42b04d5ca3d1c3f12d3f8e6f1d82c",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_273",
@@ -13935,9 +13935,9 @@
       "mechanics": "ELUSIVE",
       "text": "Elusive",
       "text_sha256": "b22d58e783495e79ad2cbe289b1e2b0e31dce1f1912a2420df0775e6cdf04cb5",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_654",
@@ -14955,9 +14955,9 @@
       "mechanics": "RUSH",
       "text": "Rush",
       "text_sha256": "34ebcd9fcba8b65689b051c3005a425f2d253adfaf42ff0f9cf99487762df7de",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_850pe1",
@@ -16665,9 +16665,9 @@
       "mechanics": "TAUNT",
       "text": "Taunt",
       "text_sha256": "aa1c342daeb99a7dd8a63d75bed9ad127b763c6cd74891b0ce1a090898c7534e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "FIR_902",
@@ -19050,9 +19050,9 @@
       "mechanics": "LIFESTEAL",
       "text": "Lifesteal",
       "text_sha256": "3fa7fb78015de1ab3cb62a2032789b047c7f4b247372c823a3be42abb6e9e6f1",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_455",
@@ -22230,9 +22230,9 @@
       "mechanics": "LIFESTEAL",
       "text": "Lifesteal",
       "text_sha256": "3fa7fb78015de1ab3cb62a2032789b047c7f4b247372c823a3be42abb6e9e6f1",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "RLK_077t",
@@ -22245,9 +22245,9 @@
       "mechanics": "REBORN,RUSH",
       "text": "Rush Reborn",
       "text_sha256": "fe1c4b84285e87e32437a58e4e3bd3d6c3bf115acc8ea284ad0a1807e9f0b4d0",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "RLK_085t",
@@ -22335,9 +22335,9 @@
       "mechanics": "REBORN",
       "text": "Reborn",
       "text_sha256": "388c9225a0d44757fb34160872c30e57879cbe07227ae63649d92c3f417fd8a4",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "RLK_707",
@@ -23520,9 +23520,9 @@
       "mechanics": "TAUNT",
       "text": "Taunt",
       "text_sha256": "aa1c342daeb99a7dd8a63d75bed9ad127b763c6cd74891b0ce1a090898c7534e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_008",
@@ -29745,9 +29745,9 @@
       "mechanics": "TAUNT",
       "text": "Taunt",
       "text_sha256": "aa1c342daeb99a7dd8a63d75bed9ad127b763c6cd74891b0ce1a090898c7534e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_444",
@@ -32340,9 +32340,9 @@
       "mechanics": "RUSH",
       "text": "Rush",
       "text_sha256": "34ebcd9fcba8b65689b051c3005a425f2d253adfaf42ff0f9cf99487762df7de",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "legacy_compatibility",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_987",
