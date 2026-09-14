@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 166,
+      "declarative": 168,
       "legacy_compatibility": 339,
-      "not_implemented": 1656
+      "not_implemented": 1654
     },
     "collectible_implementation": {
-      "declarative": 142,
+      "declarative": 144,
       "legacy_compatibility": 234,
-      "not_implemented": 790
+      "not_implemented": 788
     },
     "fully_implemented": false
   },
@@ -6225,9 +6225,9 @@
       "mechanics": "FREEZE",
       "text": "Deal $3 damage to a character and Freeze it.",
       "text_sha256": "6eb2b8e19a847744609c55370d69793ebfc8040db877696e8404df1b13ecdaf6",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_CS2_028",
@@ -6240,9 +6240,9 @@
       "mechanics": "FREEZE",
       "text": "Deal $2 damage to all enemy minions and Freeze them.",
       "text_sha256": "15d7cf52e1958ef856bde7a8d1351ad184cbb5cbe700e04f8075ae41c1b623eb",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_CS2_029",

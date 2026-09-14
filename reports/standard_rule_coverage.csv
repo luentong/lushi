@@ -412,8 +412,8 @@ CORE_CS1_130,69509,Holy Smite,CORE,PRIEST,SPELL,True,,Deal $3 damage to a minion
 CORE_CS2_004,120786,Power Word: Shield,CORE,PRIEST,SPELL,True,,Give a minion +2 Health. Draw a card.,8a285589fbf9ae9fba2a614406ac46fc4a89745286226dbe6ad15ceb0bc6b337,declarative,True,focused_or_regression_tests
 CORE_CS2_009,69511,Mark of the Wild,CORE,DRUID,SPELL,True,,Give a minion Taunt and +2/+3. (+2 Attack/+3 Health),1465b8a2c13afe5e27f9232591d786909c16f6c67f28ce5cbb180fb6f9dc6c00,not_implemented,False,missing
 CORE_CS2_023,69500,Arcane Intellect,CORE,MAGE,SPELL,True,,Draw 2 cards.,d431f7496ea56cf6c2970ab414d18e15ae296393776c135f4ec582d724ae5ae1,declarative,True,focused_or_regression_tests
-CORE_CS2_024,111365,Frostbolt,CORE,MAGE,SPELL,True,FREEZE,Deal $3 damage to a character and Freeze it.,6eb2b8e19a847744609c55370d69793ebfc8040db877696e8404df1b13ecdaf6,not_implemented,False,missing
-CORE_CS2_028,76273,Blizzard,CORE,MAGE,SPELL,True,FREEZE,Deal $2 damage to all enemy minions and Freeze them.,15d7cf52e1958ef856bde7a8d1351ad184cbb5cbe700e04f8075ae41c1b623eb,not_implemented,False,missing
+CORE_CS2_024,111365,Frostbolt,CORE,MAGE,SPELL,True,FREEZE,Deal $3 damage to a character and Freeze it.,6eb2b8e19a847744609c55370d69793ebfc8040db877696e8404df1b13ecdaf6,declarative,True,focused_or_regression_tests
+CORE_CS2_028,76273,Blizzard,CORE,MAGE,SPELL,True,FREEZE,Deal $2 damage to all enemy minions and Freeze them.,15d7cf52e1958ef856bde7a8d1351ad184cbb5cbe700e04f8075ae41c1b623eb,declarative,True,focused_or_regression_tests
 CORE_CS2_029,69501,Fireball,CORE,MAGE,SPELL,True,,Deal $6 damage.,c1a9b901409f63e6d95dc0ff0d1e1b1d6e5618496ee56570ca98b3d455867ed3,declarative,True,focused_or_regression_tests
 CORE_CS2_032,69502,Flamestrike,CORE,MAGE,SPELL,True,,Deal $5 damage to all enemy minions.,e44278a5e248189168fc0bbd4f0b7230991d02aec886c31cffd3f864fabbd24f,declarative,True,focused_or_regression_tests
 CORE_CS2_039e,90293,Windfury,CORE,SHAMAN,ENCHANTMENT,False,,Windfury.,991c78d2149c15d72968f7e9e83fa0463715dd447afbebd702429517c32abcd6,not_implemented,False,missing

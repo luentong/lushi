@@ -1552,13 +1552,29 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         roots = self.add_hand(damage_game, "CORE_AT_037")
         damage_game.step(Action("PLAY", roots.entity_id, 1, target.entity_id))
         damage_game.step(Action("RULE_CHOICE_PICK", 0))
-        self.assertEqual(2, target.damage)
+        self.assertEqual(5, target.damage)
 
         summon_game = self.game()
         roots = self.add_hand(summon_game, "CORE_AT_037")
         summon_game.step(Action("PLAY", roots.entity_id))
         summon_game.step(Action("RULE_CHOICE_PICK", 1))
         self.assertEqual(2, len(summon_game.players[0].board))
+
+    def test_frostbolt_and_blizzard_freeze_targets(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        frostbolt = self.add_hand(game, "CORE_CS2_024")
+        game.step(Action("PLAY", frostbolt.entity_id, 1, target.entity_id))
+        self.assertEqual(3, target.damage)
+        self.assertEqual(game.turn, target.frozen_turn)
+
+        blizzard = self.add_hand(game, "CORE_CS2_028")
+        second = self.add_board(game, "CORE_CS2_231", 1)
+        game.step(Action("PLAY", blizzard.entity_id))
+        self.assertEqual(5, target.damage)
+        self.assertEqual(2, second.damage)
+        self.assertEqual(game.turn, target.frozen_turn)
+        self.assertEqual(game.turn, second.frozen_turn)
 
 
 if __name__ == "__main__":

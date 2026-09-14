@@ -111,6 +111,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_EX1_154", "CATA_526", "TLC_231", "TLC_236", "EDR_226",
     "RLK_024", "CATA_156",
     "CORE_AT_037",
+    "CORE_CS2_024", "CORE_CS2_028",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -990,6 +991,30 @@ class DamageAllMinionsThenDrawPerDeath:
             "damage_all_minions_draw_per_death", player=context.player.index,
             source=context.card.card_id, amount=amount, deaths=max(0, before - after),
         )
+
+
+@dataclass(frozen=True)
+class FreezeActionTarget:
+    """Freeze a targeted character for the current turn."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        target_player = game.players[context.action.target_player]
+        if context.action.target_entity is None:
+            target_player.frozen_turn = game.turn
+        else:
+            game._find_minion(
+                context.action.target_player, context.action.target_entity
+            ).frozen_turn = game.turn
+
+
+@dataclass(frozen=True)
+class FreezeAllEnemyMinions:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        for minion in enemy.board:
+            minion.frozen_turn = game.turn
 
 
 @dataclass(frozen=True)
@@ -3228,6 +3253,15 @@ def build_rule_registry() -> RuleRegistry:
             )),)},
             RuleSource("upstream_adapted", rosetta, "AT_037", "AGPL-3.0", ("test_living_roots_choose_one",)),
             TargetSpec(TargetKind.ANY_CHARACTER, optional=True),
+        ),
+        CardRule(
+            "CORE_CS2_024", {Hook.SPELL: (DamageActionTarget(3), FreezeActionTarget())},
+            RuleSource("upstream_adapted", rosetta, "CS2_024", "AGPL-3.0", ("test_frostbolt_and_blizzard_freeze_targets",)),
+            TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "CORE_CS2_028", {Hook.SPELL: (DamageBoard(2), FreezeAllEnemyMinions())},
+            RuleSource("upstream_adapted", rosetta, "CS2_028", "AGPL-3.0", ("test_frostbolt_and_blizzard_freeze_targets",)),
         ),
         CardRule(
             "EDR_463",
