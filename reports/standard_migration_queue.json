@@ -4,9 +4,9 @@
   "policy": "reference_matches require human review; only focused tests may promote a card to executable",
   "summary": {
     "cards": 2161,
-    "todo": 1656,
+    "todo": 1655,
     "upstream_reference_review": 1,
-    "verified": 504,
+    "verified": 505,
     "by_tranche": {
       "A0_vanilla_and_keywords": 114,
       "A1_draw_discard": 163,
@@ -2462,24 +2462,6 @@
       "mechanics": "",
       "text": "Get two 1-Cost Gorishi Stingers. Each one deals $2 damage and summons a 2/1 Grub with Rush.",
       "text_sha256": "2f29f034fc780a95ab6969134e5447f882150bef59680a421990df87be060478",
-      "implementation": "not_implemented",
-      "queue_status": "todo",
-      "tranche": "A2_damage_heal",
-      "upstream_repositories": [],
-      "upstream_match_count": 0,
-      "verification": "missing"
-    },
-    {
-      "card_id": "CORE_AT_037",
-      "dbf_id": 76289,
-      "name": "Living Roots",
-      "set": "CORE",
-      "class": "DRUID",
-      "type": "SPELL",
-      "collectible": true,
-      "mechanics": "CHOOSE_ONE",
-      "text": "Choose One - Deal $2 damage; or Summon two 1/1 Saplings.",
-      "text_sha256": "d2199bf00d912368d69cb7101a6ae34dd08b0ff209b5d18e6e05634591942610",
       "implementation": "not_implemented",
       "queue_status": "todo",
       "tranche": "A2_damage_heal",
@@ -33380,6 +33362,27 @@
       "tranche": "A2_damage_heal",
       "upstream_repositories": [],
       "upstream_match_count": 0,
+      "verification": "focused_or_regression_tests"
+    },
+    {
+      "card_id": "CORE_AT_037",
+      "dbf_id": 76289,
+      "name": "Living Roots",
+      "set": "CORE",
+      "class": "DRUID",
+      "type": "SPELL",
+      "collectible": true,
+      "mechanics": "CHOOSE_ONE",
+      "text": "Choose One - Deal $2 damage; or Summon two 1/1 Saplings.",
+      "text_sha256": "d2199bf00d912368d69cb7101a6ae34dd08b0ff209b5d18e6e05634591942610",
+      "implementation": "declarative",
+      "queue_status": "verified",
+      "tranche": "A2_damage_heal",
+      "upstream_repositories": [
+        "RosettaStone",
+        "fireplace"
+      ],
+      "upstream_match_count": 19,
       "verification": "focused_or_regression_tests"
     },
     {

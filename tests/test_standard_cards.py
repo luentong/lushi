@@ -1546,6 +1546,20 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(26, game.players[1].health)
         self.assertEqual(4, enemy.damage)
 
+    def test_living_roots_choose_one(self):
+        damage_game = self.game()
+        target = self.add_board(damage_game, "CORE_LOOT_137", 1)
+        roots = self.add_hand(damage_game, "CORE_AT_037")
+        damage_game.step(Action("PLAY", roots.entity_id, 1, target.entity_id))
+        damage_game.step(Action("RULE_CHOICE_PICK", 0))
+        self.assertEqual(2, target.damage)
+
+        summon_game = self.game()
+        roots = self.add_hand(summon_game, "CORE_AT_037")
+        summon_game.step(Action("PLAY", roots.entity_id))
+        summon_game.step(Action("RULE_CHOICE_PICK", 1))
+        self.assertEqual(2, len(summon_game.players[0].board))
+
 
 if __name__ == "__main__":
     unittest.main()

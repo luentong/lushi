@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 165,
+      "declarative": 166,
       "legacy_compatibility": 339,
-      "not_implemented": 1657
+      "not_implemented": 1656
     },
     "collectible_implementation": {
-      "declarative": 141,
+      "declarative": 142,
       "legacy_compatibility": 234,
-      "not_implemented": 791
+      "not_implemented": 790
     },
     "fully_implemented": false
   },
@@ -5205,9 +5205,9 @@
       "mechanics": "CHOOSE_ONE",
       "text": "Choose One - Deal $2 damage; or Summon two 1/1 Saplings.",
       "text_sha256": "d2199bf00d912368d69cb7101a6ae34dd08b0ff209b5d18e6e05634591942610",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_AT_052",

@@ -344,7 +344,7 @@ CATA_COIN3,130979,The Coin,CATACLYSM,NEUTRAL,SPELL,False,,Gain 1 Mana Crystal th
 CATA_COIN4,129483,The Coin,CATACLYSM,NEUTRAL,SPELL,False,,Gain 1 Mana Crystal this turn only.,7e0b9838c71ab2fca09f4defa0790398e06cf2d4f4f0c10ea1634a74b712d126,not_implemented,False,missing
 CATA_COIN5,130518,The Coin,CATACLYSM,NEUTRAL,SPELL,False,,Gain 1 Mana Crystal this turn only.,7e0b9838c71ab2fca09f4defa0790398e06cf2d4f4f0c10ea1634a74b712d126,not_implemented,False,missing
 CATA_COIN6,130740,The Coin,CATACLYSM,NEUTRAL,SPELL,False,,Gain 1 Mana Crystal this turn only.,7e0b9838c71ab2fca09f4defa0790398e06cf2d4f4f0c10ea1634a74b712d126,not_implemented,False,missing
-CORE_AT_037,76289,Living Roots,CORE,DRUID,SPELL,True,CHOOSE_ONE,Choose One - Deal $2 damage; or Summon two 1/1 Saplings.,d2199bf00d912368d69cb7101a6ae34dd08b0ff209b5d18e6e05634591942610,not_implemented,False,missing
+CORE_AT_037,76289,Living Roots,CORE,DRUID,SPELL,True,CHOOSE_ONE,Choose One - Deal $2 damage; or Summon two 1/1 Saplings.,d2199bf00d912368d69cb7101a6ae34dd08b0ff209b5d18e6e05634591942610,declarative,True,focused_or_regression_tests
 CORE_AT_052,129849,Totem Golem,CORE,SHAMAN,MINION,True,OVERLOAD,Overload: (1),aaed179d533ad14cdc3a2e24517455e22d574c244eeabaf943426d219efb74e9,not_implemented,False,missing
 CORE_AT_055,69707,Flash Heal,CORE,PRIEST,SPELL,True,,Restore #5 Health.,caebafaf154d01d22e7685b6b599baa74bc1c50753cc29b97c77e153fa7b04a8,declarative,True,focused_or_regression_tests
 CORE_AT_062,111364,Ball of Spiders,CORE,HUNTER,SPELL,True,,"Summon three 1/1 Webspinners with ""Deathrattle: Get a random Beast.""",4783fdc91246e16104eeb6e85c158037823207aaac73de7a442774d76131fbb8,not_implemented,False,missing
