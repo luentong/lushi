@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 171,
+      "declarative": 172,
       "legacy_compatibility": 339,
-      "not_implemented": 1651
+      "not_implemented": 1650
     },
     "collectible_implementation": {
-      "declarative": 147,
+      "declarative": 148,
       "legacy_compatibility": 234,
-      "not_implemented": 785
+      "not_implemented": 784
     },
     "fully_implemented": false
   },
@@ -3255,9 +3255,9 @@
       "mechanics": "",
       "text": "Deal $2 damage. Deal $1 damage to a random enemy minion.",
       "text_sha256": "7ebfb055b6e96c86d7815106ab3f3a82275b21842297292c3244efd108b837ca",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_487",

@@ -1603,6 +1603,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(2, target.damage)
         self.assertTrue(any(card.card_id == "EDR_810t" for card in game.players[0].board))
 
+    def test_sleet_storm_fixed_and_random_damage(self):
+        game = self.game()
+        enemy = self.add_board(game, "CORE_LOOT_137", 1)
+        storm = self.add_hand(game, "CATA_485")
+        game.step(Action("PLAY", storm.entity_id))
+        self.assertEqual(28, game.players[1].health)
+        self.assertEqual(1, enemy.damage)
+
 
 if __name__ == "__main__":
     unittest.main()

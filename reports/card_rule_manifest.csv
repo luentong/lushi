@@ -59,6 +59,7 @@ CATA_476t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_478t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_479t3,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_484,legacy_compatibility,,local_legacy,,0,regression_suite_only
+CATA_485,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 CATA_490,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_492,declarative,location,powerlog_verified,,0,focused_test_and_regression
 CATA_496,declarative,spell,powerlog_verified,,0,focused_test_and_regression

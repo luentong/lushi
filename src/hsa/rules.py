@@ -114,6 +114,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_CS2_024", "CORE_CS2_028", "CORE_RLK_063",
     "CORE_BAR_801",
     "EDR_814",
+    "CATA_485",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -622,6 +623,25 @@ class DamageRandomEnemyCharacters:
         game._event(
             "random_enemy_damage", player=context.player.index,
             source=context.card.card_id, amount=amount, targets=chosen,
+        )
+
+
+@dataclass(frozen=True)
+class DamageRandomEnemyMinion:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        targets = [m for m in enemy.board if m.dormant_turns == 0 and not m.stealth]
+        if not targets:
+            return
+        target = game.rng.choice(targets)
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
+        game._damage_minion(enemy.index, target, amount, context.card)
+        game._resolve_deaths()
+        game._event(
+            "random_enemy_minion_damage", player=context.player.index,
+            source=context.card.card_id, amount=amount, target=target.entity_id,
         )
 
 
@@ -3196,6 +3216,10 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CATA_526", {Hook.SPELL: (DamageAllMinionsThenDrawPerDeath(1),)},
             RuleSource("upstream_adapted", rosetta, "CATA_526", "AGPL-3.0", ("test_batch_draw_damage_and_choose_one_cards",)),
+        ),
+        CardRule(
+            "CATA_485", {Hook.SPELL: (DamageHero(2, "opponent"), DamageRandomEnemyMinion(1))},
+            RuleSource("upstream_adapted", rosetta, "CATA_485", "AGPL-3.0", ("test_sleet_storm_fixed_and_random_damage",)),
         ),
         CardRule(
             "CORE_EX1_154", {Hook.SPELL: (OfferEffectChoice((
