@@ -304,6 +304,31 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(13, enemy.damage)
         self.assertEqual(28, game.players[1].health)
 
+    def test_standard_basic_damage_draw(self):
+        game = self.game()
+        game.players[0].deck = [
+            game._entity("GAME_005", started_in_deck=True),
+            game._entity("GAME_005", started_in_deck=True),
+        ]
+        wounded = self.add_board(game, "CORE_EX1_007", 1)
+        slam = self.add_hand(game, "CORE_EX1_391")
+        before = len(game.players[0].hand)
+        game.step(Action("PLAY", slam.entity_id, 1, wounded.entity_id))
+        self.assertEqual(before, len(game.players[0].hand))
+        self.assertEqual(2, wounded.damage)
+
+        shield = self.add_hand(game, "CORE_EX1_606")
+        before = len(game.players[0].hand)
+        game.step(Action("PLAY", shield.entity_id))
+        self.assertEqual(5, game.players[0].armor)
+        self.assertEqual(before, len(game.players[0].hand))
+
+        game.players[0].health = 20
+        lifedrinker = self.add_hand(game, "CORE_GIL_622")
+        game.step(Action("PLAY", lifedrinker.entity_id))
+        self.assertEqual(27, game.players[1].health)
+        self.assertEqual(23, game.players[0].health)
+
     def test_powerlog_cards_and_triggers(self):
         game = self.game()
         game._equip_weapon(game.players[0], Weapon("EDR_416", "Shepherd's Crook", 3, 2))
