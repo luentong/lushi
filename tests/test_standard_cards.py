@@ -1630,6 +1630,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertFalse(any(card is target for card in game.players[1].board))
         self.assertTrue(any(card.card_id == "JAIL_732" for card in game.players[0].hand))
 
+    def test_life_cycle_replaces_same_cost(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_CS2_231", 1)
+        cycle = self.add_hand(game, "TLC_235")
+        game.step(Action("PLAY", cycle.entity_id, 1, target.entity_id))
+        self.assertFalse(any(card is target for card in game.players[1].board))
+        replacement = game.players[1].board[0]
+        self.assertEqual(0, replacement.definition.cost)
+
 
 if __name__ == "__main__":
     unittest.main()

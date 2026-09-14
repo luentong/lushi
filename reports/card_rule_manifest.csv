@@ -499,6 +499,7 @@ TLC_227,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_
 TLC_228,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_230t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_231,declarative,spell,upstream_adapted,,0,focused_test_and_regression
+TLC_235,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 TLC_236,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 TLC_237t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_240,legacy_compatibility,,local_legacy,,0,regression_suite_only

@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 174,
+      "declarative": 175,
       "legacy_compatibility": 339,
-      "not_implemented": 1648
+      "not_implemented": 1647
     },
     "collectible_implementation": {
-      "declarative": 150,
+      "declarative": 151,
       "legacy_compatibility": 234,
-      "not_implemented": 782
+      "not_implemented": 781
     },
     "fully_implemented": false
   },
@@ -28665,9 +28665,9 @@
       "mechanics": "",
       "text": "Destroy a minion. Summon a random minion of the same Cost to replace it.",
       "text_sha256": "c62957a22f03e0bb575bbd0223eb349f4727874f8462140cf6c04888f685bbe6",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_236",

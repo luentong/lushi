@@ -117,6 +117,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_485",
     "JAIL_441",
     "JAIL_891",
+    "TLC_235",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -652,6 +653,30 @@ class DamageActionTargetThenAddToHandIfKilled:
             "damage_target_add_if_killed", player=context.player.index,
             source=context.card.card_id, target=target.entity_id,
             killed=killed, generated=self.card_id if killed else None,
+        )
+
+
+@dataclass(frozen=True)
+class DestroyActionTargetReplaceSameCost:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        owner = game.players[context.action.target_player]
+        target = game._find_minion(owner.index, context.action.target_entity)
+        cost = target.definition.cost
+        target.damage = target.max_health
+        game._resolve_deaths()
+        # Resolve the replacement on the original owner's side, even when the
+        # spell targeted an enemy minion.
+        previous = context.player
+        context.player = owner
+        try:
+            SummonRandomExecutableMinion(cost=cost).execute(game, context)
+        finally:
+            context.player = previous
+        game._event(
+            "destroy_replace_same_cost", player=previous.index,
+            source=context.card.card_id, owner=owner.index, cost=cost,
         )
 
 
@@ -3299,6 +3324,11 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "JAIL_891", {Hook.SPELL: (DamageActionTargetThenAddToHandIfKilled(3, "JAIL_732"),)},
             RuleSource("upstream_adapted", rosetta, "JAIL_891", "AGPL-3.0", ("test_void_blast_generates_void_soul",)),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "TLC_235", {Hook.SPELL: (DestroyActionTargetReplaceSameCost(),)},
+            RuleSource("upstream_adapted", rosetta, "TLC_235", "AGPL-3.0", ("test_life_cycle_replaces_same_cost",)),
             TargetSpec(TargetKind.ANY_MINION),
         ),
         CardRule(
