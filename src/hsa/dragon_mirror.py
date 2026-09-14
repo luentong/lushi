@@ -800,7 +800,8 @@ class Location:
     entity_id: int
     card_id: str
     durability: int
-    cooldown: int = 1
+    # A location enters play and becomes dormant for one full turn.
+    cooldown: int = 2
     next_refresh: int = 1
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "Location":
@@ -3467,7 +3468,7 @@ class DragonMirrorGame:
                     )
             self._refresh_continuous(controller)
         elif card.definition.card_type == "LOCATION":
-            player.locations.append(Location(card.entity_id, card.card_id, card.definition.health, 1))
+            player.locations.append(Location(card.entity_id, card.card_id, card.definition.health, 2))
         elif card.definition.card_type == "HERO":
             self._play_hero_card(player, card)
         else:
@@ -5642,7 +5643,9 @@ class DragonMirrorGame:
             )
             location.next_refresh += 1
         location.durability -= 1
-        location.cooldown = 1
+        # Locations are dormant for the entire following turn; the next
+        # refresh at turn start reduces 2 -> 1, and the subsequent one 1 -> 0.
+        location.cooldown = 2
         if location.durability <= 0:
             player.locations.remove(location)
 

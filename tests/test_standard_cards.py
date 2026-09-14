@@ -1081,7 +1081,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.players[0].locations.append(location)
         game.step(Action("LOCATION", location.entity_id))
         self.assertEqual(1, game.players[0].herald_count)
-        self.assertEqual((1, 1), (location.durability, location.cooldown))
+        self.assertEqual((1, 2), (location.durability, location.cooldown))
         self.assertEqual(1, len(game.players[0].hand))
         self.assertTrue(any(
             card.card_id == "CATA_580t" for card in game.players[0].board

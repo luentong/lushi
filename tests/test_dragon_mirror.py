@@ -267,7 +267,7 @@ class DragonMirrorRulesTests(unittest.TestCase):
         target = self.add_board(game, "JAIL_384", 1)
         self.play(game, location_card)
         location = game.players[0].locations[0]
-        self.assertEqual(1, location.cooldown)
+        self.assertEqual(2, location.cooldown)
         location.cooldown = 0
         game.step(Action("LOCATION", location.entity_id, 1, target.entity_id))
         self.assertEqual(1, target.damage)
