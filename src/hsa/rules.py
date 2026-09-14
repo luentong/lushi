@@ -107,7 +107,7 @@ STANDARD_DECLARATIVE_IDS = {
     "RLK_709",  # Remorseless Winter
     "EDR_843a", "EDR_843b", "EDR_843t1", "CAP_405t4",
     "EDR_817", "CAP_102",
-    "TIME_023", "EDR_251",
+    "TIME_023", "EDR_251", "JAIL_377", "EDR_231",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -268,6 +268,17 @@ class DrawBottom:
             card = context.player.deck.pop(0)
             game._refresh_scrappy(context.player)
             game._receive_drawn_card(context.player, card)
+
+
+@dataclass(frozen=True)
+class DrawThenDrawIfCostAtMost:
+    maximum_cost: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        before = len(context.player.hand)
+        game._draw(context.player)
+        if len(context.player.hand) > before and context.player.hand[-1].cost <= self.maximum_cost:
+            game._draw(context.player)
 
 
 @dataclass(frozen=True)
@@ -3020,6 +3031,15 @@ def build_rule_registry() -> RuleRegistry:
                 "powerlog_verified", local, "EDR_416", "internal",
                 ("test_powerlog_cards_and_triggers",),
             ),
+        CardRule(
+            "JAIL_377", {Hook.SPELL: (DrawThenDrawIfCostAtMost(2),)},
+            RuleSource("upstream_adapted", rosetta, "JAIL_377", "AGPL-3.0", ("test_conditional_draw_tranche",)),
+        ),
+        CardRule(
+            "EDR_231", {Hook.SPELL: (HealActionTarget(4), Draw(), OfferImbueHeroPowerOptions())},
+            RuleSource("upstream_adapted", rosetta, "EDR_231", "AGPL-3.0", ("test_conditional_draw_tranche",)),
+            TargetSpec(TargetKind.FRIENDLY_CHARACTER),
+        ),
         ),
         CardRule(
             "CATA_302", {Hook.SPELL: (HealActionTargetToFull(), Draw())},

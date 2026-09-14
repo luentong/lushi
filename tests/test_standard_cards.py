@@ -231,6 +231,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", origin.entity_id))
         self.assertEqual(3, sum(c.card_id == "CORE_AT_055" for c in game.players[0].hand))
 
+    def test_conditional_draw_tranche(self):
+        game = self.game()
+        game.players[0].deck = [
+            game._entity("CORE_CS2_065", started_in_deck=True),
+            game._entity("CORE_AT_055", started_in_deck=True),
+        ]
+        bola = self.add_hand(game, "JAIL_377")
+        game.step(Action("PLAY", bola.entity_id))
+        self.assertEqual(2, len(game.players[0].hand))
+
     def test_second_core_spell_tranche(self):
         game = self.game()
         enemy = self.add_board(game, "CORE_LOOT_137", 1)

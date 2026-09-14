@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 519,
+    "supported_cards": 521,
     "declarative_rules": 157,
     "legacy_special_case_rules": 2,
-    "legacy_compatibility_rules": 360,
+    "legacy_compatibility_rules": 362,
     "cards_with_upstream_match": 123
   },
   "cards": [
@@ -10518,6 +10518,22 @@
       "verification_status": "regression_suite_only"
     },
     {
+      "card_id": "EDR_231",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
       "card_id": "EDR_233t2",
       "implementation": "legacy_compatibility",
       "hooks": [],
@@ -13047,6 +13063,22 @@
     },
     {
       "card_id": "JAIL_311",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "JAIL_377",
       "implementation": "legacy_compatibility",
       "hooks": [],
       "effects": {},
