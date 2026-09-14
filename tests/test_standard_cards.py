@@ -1232,6 +1232,19 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             for event in game.events
         ))
 
+    def test_azalina_copies_trigger_mind_sweeper(self):
+        game = self.game()
+        enemy = self.add_board(game, "CORE_LOOT_137", 1)
+        sweeper = self.add_hand(game, "JAIL_432")
+        copied_location = game._entity("CORE_REV_990", started_in_deck=True)
+        copied_location.copied_from_opponent = True
+        copied_location.created_by = "JAIL_430"
+        game.players[0].hand.append(copied_location)
+        game.step(Action("PLAY", copied_location.entity_id))
+        self.assertTrue(sweeper.opponent_card_copy_played_while_held)
+        game.step(Action("PLAY", sweeper.entity_id))
+        self.assertEqual(2, enemy.damage)
+
     def test_amirdrassil_increments_its_mana_refresh_each_use(self):
         game = self.game()
         location_card = self.add_hand(game, "FIR_907")

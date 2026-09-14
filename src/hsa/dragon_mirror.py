@@ -1140,6 +1140,8 @@ class DragonMirrorGame:
                 )
                 for definition in copied_definitions
             ]
+            for copied in copies:
+                copied.copied_from_opponent = True
             # The normal game shuffle below mixes retained and copied cards.
             player.deck = own + copies
             player.max_health = 40
