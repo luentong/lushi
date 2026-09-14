@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 157,
+      "declarative": 163,
       "legacy_compatibility": 339,
-      "not_implemented": 1665
+      "not_implemented": 1659
     },
     "collectible_implementation": {
-      "declarative": 133,
+      "declarative": 139,
       "legacy_compatibility": 234,
-      "not_implemented": 799
+      "not_implemented": 793
     },
     "fully_implemented": false
   },
@@ -3615,9 +3615,9 @@
       "mechanics": "",
       "text": "Deal $1 damage to all minions. Draw a card for each that died.",
       "text_sha256": "206d0fe1d6250548ad2dfc7fb9d74aeca92ba3fa3c045215884cc03466d60392",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_527",
@@ -5895,9 +5895,9 @@
       "mechanics": "",
       "text": "Deal $3 damage to two random enemy minions. Draw a card for each that dies.",
       "text_sha256": "90f00c448331de55e17c8cd13df956689455c5174e697ffc3fb964bfafa20648",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_CATA_008",
@@ -7080,9 +7080,9 @@
       "mechanics": "CHOOSE_ONE",
       "text": "Choose One - Deal $3 damage to a minion; or $1 damage and draw a card.",
       "text_sha256": "d0534c434770a589f838b4bfd940b88672bc769fcf57130d3bceb01410e2ab4a",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_EX1_160",
@@ -11595,9 +11595,9 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Draw a Beast. Imbue your Hero Power.",
       "text_sha256": "96b055e0c0adf1acfbca7569a2dd481f1954974775fde0c856ef3be7d41bd3ae",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_227",
@@ -28545,9 +28545,9 @@
       "mechanics": "",
       "text": "Draw a minion. If it has 5 or more Attack, give it +5 Health and gain 5 Armor.",
       "text_sha256": "4528157482e83feed717ba0df75634a2a46a1d1e3bd592d104a5800ad8b8f001",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_231e",
@@ -28680,9 +28680,9 @@
       "mechanics": "",
       "text": "Draw a 1, 2, 3, and 4-Cost minion. Kindred: They cost (1) less.",
       "text_sha256": "6d7d0dd119b9d142682c5395c4ef168b1fd2cc0048e0f176f0f868b714310c3e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_237",

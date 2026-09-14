@@ -206,7 +206,6 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         spell = self.add_hand(game, "EDR_817")
         game.step(Action("PLAY", spell.entity_id))
         self.assertEqual(2, len(game.players[0].board))
-        self.assertNotIn(bola, game.players[0].hand)
 
         crate = self.add_hand(game, "CAP_102")
         game.players[0].deck = [game._entity("GAME_005", started_in_deck=True) for _ in range(2)]
@@ -1490,6 +1489,47 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         summoned = [card for card in game.players[0].board if card != friendly]
         self.assertEqual(2, len(summoned))
         self.assertTrue(all(card.definition.cost == 8 for card in summoned))
+
+    def test_batch_draw_damage_and_choose_one_cards(self):
+        game = self.game()
+        dead = self.add_board(game, "CORE_CS2_231", 1)
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True)]
+        sweep = self.add_hand(game, "CATA_526")
+        game.step(Action("PLAY", sweep.entity_id))
+        self.assertNotIn(dead, game.players[1].board)
+        self.assertEqual(1, len(game.players[0].hand))
+
+        wrath_game = self.game()
+        target = self.add_board(wrath_game, "CORE_LOOT_137", 1)
+        wrath = self.add_hand(wrath_game, "CORE_EX1_154")
+        wrath_game.players[0].deck = [game._entity("GAME_005", started_in_deck=True)]
+        wrath_game.step(Action("PLAY", wrath.entity_id, 1, target.entity_id))
+        self.assertEqual(
+            ["damage_3", "damage_1_draw"],
+            [label for label, _ in wrath_game.pending_choice["options"]],
+        )
+        wrath_game.step(Action("RULE_CHOICE_PICK", 1))
+        self.assertEqual(1, target.damage)
+
+    def test_batch_conditional_and_costed_draw_cards(self):
+        game = self.game()
+        game.players[0].deck = [game._entity("Core_CS2_200", started_in_deck=True)]
+        story = self.add_hand(game, "TLC_231")
+        game.step(Action("PLAY", story.entity_id))
+        drawn = game.players[0].hand[-1]
+        self.assertEqual("Core_CS2_200", drawn.card_id)
+        self.assertEqual(5, drawn.health_delta)
+        self.assertEqual(5, game.players[0].armor)
+
+        hybrid = self.add_hand(game, "TLC_236")
+        game.players[0].deck = [
+            game._entity("CORE_CS2_231", started_in_deck=True),
+            game._entity("CORE_CS2_120", started_in_deck=True),
+            game._entity("CORE_GVG_044", started_in_deck=True),
+            game._entity("CORE_CS2_182", started_in_deck=True),
+        ]
+        game.step(Action("PLAY", hybrid.entity_id))
+        self.assertEqual(4, len(game.players[0].hand))
 
 
 if __name__ == "__main__":

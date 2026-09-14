@@ -108,6 +108,7 @@ STANDARD_DECLARATIVE_IDS = {
     "EDR_843a", "EDR_843b", "EDR_843t1", "CAP_405t4",
     "EDR_817", "CAP_102",
     "TIME_023", "EDR_251", "JAIL_377", "EDR_231", "JAIL_866", "CORE_CATA_007",
+    "CORE_EX1_154", "CATA_526", "TLC_231", "TLC_236", "EDR_226",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -967,6 +968,78 @@ class DamageRandomEnemyMinionsThenDrawPerKill:
             game._draw(context.player)
 
 
+@dataclass(frozen=True)
+class DamageAllMinionsThenDrawPerDeath:
+    """Deal equal damage to every minion, then draw once per death."""
+
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        before = sum(len(player.board) for player in game.players)
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
+        for player in game.players:
+            for minion in list(player.board):
+                game._damage_minion(player.index, minion, amount, context.card)
+        game._resolve_deaths()
+        after = sum(len(player.board) for player in game.players)
+        for _ in range(max(0, before - after)):
+            game._draw(context.player)
+        game._event(
+            "damage_all_minions_draw_per_death", player=context.player.index,
+            source=context.card.card_id, amount=amount, deaths=max(0, before - after),
+        )
+
+
+@dataclass(frozen=True)
+class DrawMinionThenBuffIfAttack:
+    """Draw a minion and conditionally buff it based on printed attack."""
+
+    minimum_attack: int
+    health: int
+    armor: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        drawn = game._draw_matching(
+            context.player,
+            lambda card: card.definition.card_type == "MINION",
+        )
+        qualified = drawn is not None and drawn.definition.attack >= self.minimum_attack
+        if qualified:
+            drawn.health_delta += self.health
+            game._gain_armor(context.player, self.armor)
+        game._event(
+            "draw_minion_conditional_buff", player=context.player.index,
+            source=context.card.card_id,
+            drawn=None if drawn is None else drawn.card_id,
+            qualified=qualified,
+        )
+
+
+@dataclass(frozen=True)
+class DrawMinionsByCosts:
+    """Draw one minion at each listed printed cost; Kindred discounts them."""
+
+    costs: tuple[int, ...]
+    discount_if_kindred: int = 1
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        races = set(player.played_races_last_turn)
+        kindred = bool(races & set(context.card.definition.races))
+        for cost in self.costs:
+            drawn = game._draw_matching(
+                player,
+                lambda card, cost=cost: (
+                    card.definition.card_type == "MINION"
+                    and card.definition.cost == cost
+                ),
+            )
+            if drawn is not None and kindred:
+                drawn.cost_delta -= self.discount_if_kindred
+        game._event(
+            "draw_minions_by_cost", player=player.index,
+            source=context.card.card_id, costs=list(self.costs), kindred=kindred,
+        )
 @dataclass(frozen=True)
 class DestroyMinionsByAttack:
     minimum: int
@@ -3090,6 +3163,30 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CORE_CATA_007", {Hook.SPELL: (DamageRandomEnemyMinionsThenDrawPerKill(3, 2),)},
             RuleSource("upstream_adapted", rosetta, "CATA_007", "AGPL-3.0", ("test_conditional_draw_tranche",)),
+        ),
+        CardRule(
+            "CATA_526", {Hook.SPELL: (DamageAllMinionsThenDrawPerDeath(1),)},
+            RuleSource("upstream_adapted", rosetta, "CATA_526", "AGPL-3.0", ("test_batch_draw_damage_and_choose_one_cards",)),
+        ),
+        CardRule(
+            "CORE_EX1_154", {Hook.SPELL: (OfferEffectChoice((
+                ("damage_3", (DamageActionTarget(3),)),
+                ("damage_1_draw", (DamageActionTarget(1), Draw())),
+            )),)},
+            RuleSource("upstream_adapted", rosetta, "EX1_154", "AGPL-3.0", ("test_batch_draw_damage_and_choose_one_cards",)),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "TLC_231", {Hook.SPELL: (DrawMinionThenBuffIfAttack(5, 5, 5),)},
+            RuleSource("upstream_adapted", rosetta, "TLC_231", "AGPL-3.0", ("test_batch_conditional_and_costed_draw_cards",)),
+        ),
+        CardRule(
+            "TLC_236", {Hook.SPELL: (DrawMinionsByCosts((1, 2, 3, 4)),)},
+            RuleSource("upstream_adapted", rosetta, "TLC_236", "AGPL-3.0", ("test_batch_conditional_and_costed_draw_cards",)),
+        ),
+        CardRule(
+            "EDR_226", {Hook.BATTLECRY: (DrawMatching(race="BEAST"), OfferImbueHeroPowerOptions())},
+            RuleSource("upstream_adapted", rosetta, "EDR_226", "AGPL-3.0", ("test_batch_conditional_and_costed_draw_cards",)),
         ),
         CardRule(
             "CATA_302", {Hook.SPELL: (HealActionTargetToFull(), Draw())},
