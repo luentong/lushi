@@ -44,6 +44,19 @@ def main() -> int:
                 return option.definition.name
         return name(entity_id)
 
+    def player_summary(player):
+        board = ", ".join(f"{name(card.entity_id)} ({card.attack}/{card.max_health})" for card in player.board) or "empty"
+        weapon = player.weapon.name if player.weapon is not None else "none"
+        locations = ", ".join(
+            f"{name(location.entity_id)} (durability {location.durability}, cooldown {location.cooldown})"
+            for location in player.locations
+        ) or "none"
+        return (
+            f"P{player.index + 1}: HP {player.health}/{player.max_health}, Armor {player.armor}, "
+            f"Mana {player.mana}/{player.max_mana}, Hand {len(player.hand)}, Deck {len(player.deck)}, "
+            f"Board [{board}], Weapon [{weapon}], Locations [{locations}]"
+        )
+
     lines = ["# Dragon Warrior vs Dirty Priest: Full Action Trace", "", "Fixed seed: 202609140001", ""]
     number = 0
     while not game.finished and number < 300:
@@ -56,6 +69,10 @@ def main() -> int:
             text += f" -> [Player {action.target_player + 1} hero]"
         lines.append(f"{number + 1}. Player {game.current + 1}: {text}")
         game.step(action); number += 1
+        if action.kind == "END_TURN":
+            lines.append("   Global state after turn:")
+            lines.append(f"   - {player_summary(game.players[0])}")
+            lines.append(f"   - {player_summary(game.players[1])}")
     winner = f"Player {game.winner + 1}" if game.winner is not None else "none"
     lines += ["", f"Result: {number} actions, {game.turn} turns; winner: {winner}; invalid actions: {game.invalid_actions}."]
     output = ROOT / "reports" / "dragon-vs-dirty-priest-one-game.en.md"
