@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 181,
+      "declarative": 182,
       "legacy_compatibility": 339,
-      "not_implemented": 1641
+      "not_implemented": 1640
     },
     "collectible_implementation": {
-      "declarative": 157,
+      "declarative": 158,
       "legacy_compatibility": 234,
-      "not_implemented": 775
+      "not_implemented": 774
     },
     "fully_implemented": false
   },
@@ -17790,9 +17790,9 @@
       "mechanics": "",
       "text": "Draw 3 cards. Pick one to give to your opponent.",
       "text_sha256": "0864cbab92371927a93db5575d22b7c2bc79d707df9d6f7baf0da10d99f899ff",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_225",

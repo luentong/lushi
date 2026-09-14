@@ -1701,6 +1701,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         discounted = next(card for card in game.players[0].hand if card.entity_id == options[0][1][0].entity_id)
         self.assertEqual(-2, discounted.cost_delta)
 
+    def test_dark_bribe_draw_give(self):
+        game = self.game()
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True) for _ in range(3)]
+        bribe = self.add_hand(game, "JAIL_206")
+        game.step(Action("PLAY", bribe.entity_id))
+        self.assertEqual("RULE_CHOICE", game.pending_choice["kind"])
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        self.assertEqual(1, len(game.players[1].hand))
+        self.assertEqual(2, len(game.players[0].hand))
+
 
 if __name__ == "__main__":
     unittest.main()

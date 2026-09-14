@@ -368,6 +368,7 @@ JAIL_029,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_200,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_201,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 JAIL_202,legacy_compatibility,,local_legacy,,0,regression_suite_only
+JAIL_206,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 JAIL_307,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
 JAIL_311,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_377,declarative,spell,upstream_adapted,,0,focused_test_and_regression

@@ -122,7 +122,8 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_218", "CORE_BOT_222",
     "TLC_823",
     "MEND_043",
-    "TIME_770",
+    "TIME_770", "JAIL_206",
+    "JAIL_206",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -1158,6 +1159,39 @@ class DiscountHeldCard:
                             source=context.card.card_id, entity=card.entity_id,
                             card=card.card_id, amount=self.amount)
                 return
+
+
+@dataclass(frozen=True)
+class GiveHeldCardToOpponent:
+    entity_id: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        opponent = game.players[1 - context.player.index]
+        for index, card in enumerate(context.player.hand):
+            if card.entity_id == self.entity_id:
+                context.player.hand.pop(index)
+                if len(opponent.hand) < 10:
+                    opponent.hand.append(card)
+                return
+
+
+@dataclass(frozen=True)
+class DrawThreeThenGiveOne:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        drawn = []
+        for _ in range(3):
+            before = {card.entity_id for card in context.player.hand}
+            game._draw(context.player)
+            drawn.extend(card for card in context.player.hand if card.entity_id not in before)
+        if drawn:
+            game.pending_choice = {
+                "kind": "RULE_CHOICE", "player": context.player.index,
+                "card": context.card, "action": context.action,
+                "options": tuple(
+                    (f"give_{card.entity_id}_{card.card_id}", (GiveHeldCardToOpponent(card.entity_id),))
+                    for card in drawn
+                ),
+            }
 
 
 @dataclass(frozen=True)
@@ -3459,6 +3493,10 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "TIME_770", {Hook.SPELL: (DrawTwoThenChooseDiscount(2),)},
             RuleSource("upstream_adapted", rosetta, "TIME_770", "AGPL-3.0", ("test_fast_forward_draw_choose_discount",)),
+        ),
+        CardRule(
+            "JAIL_206", {Hook.SPELL: (DrawThreeThenGiveOne(),)},
+            RuleSource("upstream_adapted", rosetta, "JAIL_206", "AGPL-3.0", ("test_dark_bribe_draw_give",)),
         ),
         CardRule(
             "CORE_AT_037", {Hook.SPELL: (OfferEffectChoice((

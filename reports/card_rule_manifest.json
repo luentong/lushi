@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 562,
-    "declarative_rules": 184,
+    "supported_cards": 563,
+    "declarative_rules": 185,
     "legacy_special_case_rules": 2,
     "legacy_compatibility_rules": 376,
     "cards_with_upstream_match": 134
@@ -14043,6 +14043,30 @@
       "metadata_source": "HearthstoneJSON build 251332",
       "upstream_matches": [],
       "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "JAIL_206",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "DrawThreeThenGiveOne"
+        ]
+      },
+      "rule_source": {
+        "kind": "upstream_adapted",
+        "reference": "vendor/RosettaStone@e10749b5f0c08d3a6135bce317cb11d1738846ad",
+        "upstream_card_id": "JAIL_206",
+        "license": "AGPL-3.0",
+        "verification": [
+          "test_dark_bribe_draw_give"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
     },
     {
       "card_id": "JAIL_307",
