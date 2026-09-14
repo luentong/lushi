@@ -33,6 +33,7 @@ CATA_151t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_155,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_155t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_155t1,legacy_compatibility,,local_legacy,,0,regression_suite_only
+CATA_156,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 CATA_160,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_190h,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_190p,declarative,hero_power,powerlog_verified,,0,focused_test_and_regression
@@ -415,6 +416,7 @@ MEND_040,legacy_compatibility,,local_legacy,,0,regression_suite_only
 MEND_042,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 MEND_044e3,legacy_compatibility,,local_legacy,,0,regression_suite_only
 NEW_4183_Copy,legacy_compatibility,,local_legacy,,0,regression_suite_only
+RLK_024,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 RLK_067,legacy_compatibility,,local_legacy,,0,regression_suite_only
 RLK_077t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 RLK_503,legacy_compatibility,,local_legacy,,0,regression_suite_only

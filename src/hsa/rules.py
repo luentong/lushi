@@ -109,6 +109,7 @@ STANDARD_DECLARATIVE_IDS = {
     "EDR_817", "CAP_102",
     "TIME_023", "EDR_251", "JAIL_377", "EDR_231", "JAIL_866", "CORE_CATA_007",
     "CORE_EX1_154", "CATA_526", "TLC_231", "TLC_236", "EDR_226",
+    "RLK_024", "CATA_156",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -3202,6 +3203,15 @@ def build_rule_registry() -> RuleRegistry:
                 "powerlog_verified", local, "CATA_308", "internal",
                 ("test_latest_powerlog_simple_rules",),
             ),
+        ),
+        CardRule(
+            "RLK_024", {Hook.SPELL: (DamageActionTarget(6),)},
+            RuleSource("upstream_adapted", rosetta, "RLK_024", "AGPL-3.0", ("test_batch_direct_damage_rules",)),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "CATA_156", {Hook.SPELL: (DamageAllEnemies(4),)},
+            RuleSource("upstream_adapted", rosetta, "CATA_156", "AGPL-3.0", ("test_batch_direct_damage_rules",)),
         ),
         CardRule(
             "JAIL_COIN1", {Hook.SPELL: (GainMana(1),)},

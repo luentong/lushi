@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 163,
+      "declarative": 165,
       "legacy_compatibility": 339,
-      "not_implemented": 1659
+      "not_implemented": 1657
     },
     "collectible_implementation": {
-      "declarative": 139,
+      "declarative": 141,
       "legacy_compatibility": 234,
-      "not_implemented": 793
+      "not_implemented": 791
     },
     "fully_implemented": false
   },
@@ -1815,9 +1815,9 @@
       "mechanics": "",
       "text": "Herald {0}. Deal $4 damage to all enemy minions.",
       "text_sha256": "180bf3eef920f0884643f89f75db24e72c3cecefc0ef8959be4be17e4c612512",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_158",
@@ -22110,9 +22110,9 @@
       "mechanics": "LIFESTEAL",
       "text": "Lifesteal Deal $6 damage to a minion.",
       "text_sha256": "7415a28f14e2d71f1c3f053651d9cf4259ab3b56e287dcd6f7dbc3db09b2e6b3",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "RLK_025",

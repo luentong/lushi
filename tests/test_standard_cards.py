@@ -1531,6 +1531,21 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", hybrid.entity_id))
         self.assertEqual(4, len(game.players[0].hand))
 
+    def test_batch_direct_damage_rules(self):
+        game = self.game()
+        game.players[0].health = 20
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        strike = self.add_hand(game, "RLK_024")
+        game.step(Action("PLAY", strike.entity_id, 1, target.entity_id))
+        self.assertEqual(6, target.damage)
+        self.assertEqual(26, game.players[0].health)
+
+        sweep = self.add_hand(game, "CATA_156")
+        enemy = self.add_board(game, "CORE_CS2_231", 1)
+        game.step(Action("PLAY", sweep.entity_id))
+        self.assertEqual(26, game.players[1].health)
+        self.assertEqual(4, enemy.damage)
+
 
 if __name__ == "__main__":
     unittest.main()
