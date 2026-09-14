@@ -329,6 +329,23 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(27, game.players[1].health)
         self.assertEqual(23, game.players[0].health)
 
+    def test_standard_conditional_destroy(self):
+        game = self.game()
+        clean = self.add_board(game, "CORE_EX1_007", 1)
+        backstab = self.add_hand(game, "CORE_CS2_072")
+        game.step(Action("PLAY", backstab.entity_id, 1, clean.entity_id))
+        self.assertEqual(2, clean.damage)
+        execute = self.add_hand(game, "CORE_CS2_108")
+        game.step(Action("PLAY", execute.entity_id, 1, clean.entity_id))
+        self.assertNotIn(clean, game.players[1].board)
+
+        target = self.add_board(game, "CORE_EX1_007", 1)
+        siphon = self.add_hand(game, "CORE_EX1_309")
+        game.players[0].health = 20
+        game.step(Action("PLAY", siphon.entity_id, 1, target.entity_id))
+        self.assertEqual(23, game.players[0].health)
+        self.assertNotIn(target, game.players[1].board)
+
     def test_powerlog_cards_and_triggers(self):
         game = self.game()
         game._equip_weapon(game.players[0], Weapon("EDR_416", "Shepherd's Crook", 3, 2))

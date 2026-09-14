@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 185,
+      "declarative": 189,
       "legacy_compatibility": 339,
-      "not_implemented": 1637
+      "not_implemented": 1633
     },
     "collectible_implementation": {
-      "declarative": 161,
+      "declarative": 165,
       "legacy_compatibility": 234,
-      "not_implemented": 771
+      "not_implemented": 767
     },
     "fully_implemented": false
   },
@@ -6345,9 +6345,9 @@
       "mechanics": "",
       "text": "Deal $2 damage to an undamaged minion.",
       "text_sha256": "01eb3c1228aa95e51cb84c7a307be72d65d72bff423a5de2483927582587e911",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_CS2_074",
@@ -6420,9 +6420,9 @@
       "mechanics": "",
       "text": "Destroy a damaged enemy minion.",
       "text_sha256": "a67629a656c26eb76d901524a98751999532a5474d56cd41b5097d70ee81f6eb",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_CS2_122",
@@ -7320,9 +7320,9 @@
       "mechanics": "",
       "text": "Destroy a minion. Restore #3 Health to your hero.",
       "text_sha256": "7aecf6db4cf045fcc90ccfd64decd444b0f40a66841f5fbafe44ab85060840d9",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_EX1_310",
@@ -7350,9 +7350,9 @@
       "mechanics": "",
       "text": "Destroy all minions and locations.",
       "text_sha256": "8dacba93ec5317d5b951cb9fba6562b749490080a04695cab923bd30e955832b",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_EX1_319",

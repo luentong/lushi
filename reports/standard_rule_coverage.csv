@@ -420,12 +420,12 @@ CORE_CS2_039e,90293,Windfury,CORE,SHAMAN,ENCHANTMENT,False,,Windfury.,991c78d214
 CORE_CS2_042,69516,Fire Elemental,CORE,SHAMAN,MINION,True,BATTLECRY,Battlecry: Deal 4 damage.,c4b9d8dc41b8c8eb77b2978ffe28fa18e470776cf3c4236833cc910f3312bd6e,not_implemented,False,missing
 CORE_CS2_053,76293,Far Sight,CORE,SHAMAN,SPELL,True,,Draw a card. That card costs (3) less.,3b67bbfccd49f4bdbaeeeb804ff2ddf6d47ecca1e2c5cb05534db02e5dcd4516,declarative,True,focused_or_regression_tests
 CORE_CS2_062,69519,Hellfire,CORE,WARLOCK,SPELL,True,,Deal $3 damage to ALL characters.,63052469523ecf7c4f5a06dedf728fd8ff00db4e998a4084af7a70e171fd39a7,declarative,True,focused_or_regression_tests
-CORE_CS2_072,69521,Backstab,CORE,ROGUE,SPELL,True,,Deal $2 damage to an undamaged minion.,01eb3c1228aa95e51cb84c7a307be72d65d72bff423a5de2483927582587e911,not_implemented,False,missing
+CORE_CS2_072,69521,Backstab,CORE,ROGUE,SPELL,True,,Deal $2 damage to an undamaged minion.,01eb3c1228aa95e51cb84c7a307be72d65d72bff423a5de2483927582587e911,declarative,True,focused_or_regression_tests
 CORE_CS2_074,69522,Deadly Poison,CORE,ROGUE,SPELL,True,,Give your weapon +2 Attack.,62ebadccf21b504d9da1aa52e1d7eae476c330dd5643cb0d951a274bd063ab78,not_implemented,False,missing
 CORE_CS2_076,69525,Assassinate,CORE,ROGUE,SPELL,True,,Destroy an enemy minion.,72562e1de706442e27e115722d5e083e43f949be4b3c6d3c9503cafff3522041,declarative,True,focused_or_regression_tests
 CORE_CS2_093,69532,Consecration,CORE,PALADIN,SPELL,True,,Deal $2 damage to all enemies.,a856d816bd952d82386f48eb1d36293be42f6aaf47ef5a11f30cf96773764506,declarative,True,focused_or_regression_tests
 CORE_CS2_094,102790,Hammer of Wrath,CORE,PALADIN,SPELL,True,,Deal $3 damage. Draw a card.,572d1eb2f460f659685ff148dec15aa2df6b63c2a51870b89155b9c905674023,declarative,True,focused_or_regression_tests
-CORE_CS2_108,69535,Execute,CORE,WARRIOR,SPELL,True,,Destroy a damaged enemy minion.,a67629a656c26eb76d901524a98751999532a5474d56cd41b5097d70ee81f6eb,not_implemented,False,missing
+CORE_CS2_108,69535,Execute,CORE,WARRIOR,SPELL,True,,Destroy a damaged enemy minion.,a67629a656c26eb76d901524a98751999532a5474d56cd41b5097d70ee81f6eb,declarative,True,focused_or_regression_tests
 CORE_CS2_122,69537,Raid Leader,CORE,NEUTRAL,MINION,True,AURA,Your other minions have +1 Attack.,a98b248beb2c1ee594d37a0e3d713a16168195e62e98e4a46a51c62cff826dca,legacy_compatibility,True,focused_or_regression_tests
 CORE_CS2_179,69542,Sen'jin Shieldmasta,CORE,NEUTRAL,MINION,True,TAUNT,Taunt,aa1c342daeb99a7dd8a63d75bed9ad127b763c6cd74891b0ce1a090898c7534e,legacy_compatibility,True,focused_or_regression_tests
 CORE_CS2_188,69649,Abusive Sergeant,CORE,NEUTRAL,MINION,True,BATTLECRY,Battlecry: Give a minion +2 Attack this turn.,e2fe08d6a1e8c5c9ff45a9fa9347fd7fa0316f165d910c007af124425c62ef24,legacy_compatibility,True,focused_or_regression_tests
@@ -485,9 +485,9 @@ CORE_EX1_278,126895,Shiv,CORE,ROGUE,SPELL,True,,Deal $1 damage. Draw a card.,01c
 CORE_EX1_287,69607,Counterspell,CORE,MAGE,SPELL,True,SECRET,"Secret: When your opponent casts a spell, Counter it.",fa4b6d3ac58be3da4f5a86b04d96bd82ea581f80a9401f7177b0434ca0e55a1b,not_implemented,False,missing
 CORE_EX1_289,69608,Ice Barrier,CORE,MAGE,SPELL,True,SECRET,"Secret: When your hero is attacked, gain 8 Armor.",a46d57a70faa4b30e72e0edc05bf697f7208d6bc772ca77e218f16484242d5da,not_implemented,False,missing
 CORE_EX1_302,69553,Mortal Coil,CORE,WARLOCK,SPELL,True,,"Deal $1 damage to a minion. If it dies, draw a card.",42fed741316b3708eb1078687d2de3fecb7dc8cc0dc2af12235b2a29cbf4b770,declarative,True,focused_or_regression_tests
-CORE_EX1_309,69634,Siphon Soul,CORE,WARLOCK,SPELL,True,,Destroy a minion. Restore #3 Health to your hero.,7aecf6db4cf045fcc90ccfd64decd444b0f40a66841f5fbafe44ab85060840d9,not_implemented,False,missing
+CORE_EX1_309,69634,Siphon Soul,CORE,WARLOCK,SPELL,True,,Destroy a minion. Restore #3 Health to your hero.,7aecf6db4cf045fcc90ccfd64decd444b0f40a66841f5fbafe44ab85060840d9,declarative,True,focused_or_regression_tests
 CORE_EX1_310,111457,Doomguard,CORE,WARLOCK,MINION,True,"BATTLECRY,CHARGE",Charge. Battlecry: Discard two random cards.,1c8fce7e09599831dae24d3f0aa3d300f63d64b28f88c0cbcd793341f2c0daec,legacy_compatibility,True,focused_or_regression_tests
-CORE_EX1_312,69635,Twisting Nether,CORE,WARLOCK,SPELL,True,,Destroy all minions and locations.,8dacba93ec5317d5b951cb9fba6562b749490080a04695cab923bd30e955832b,not_implemented,False,missing
+CORE_EX1_312,69635,Twisting Nether,CORE,WARLOCK,SPELL,True,,Destroy all minions and locations.,8dacba93ec5317d5b951cb9fba6562b749490080a04695cab923bd30e955832b,declarative,True,focused_or_regression_tests
 CORE_EX1_319,69636,Flame Imp,CORE,WARLOCK,MINION,True,BATTLECRY,Battlecry: Deal 3 damage to your hero.,c2ebfaf68d814c28beec2ca79722f1920c229c90a39146cac7e8656c12e5a51a,declarative,True,focused_or_regression_tests
 CORE_EX1_323,69637,Lord Jaraxxus,CORE,WARLOCK,HERO,True,BATTLECRY,Battlecry: Equip a 3/8 Blood Fury.,fe29dbd9c8408384c9a7a07241ac2263e5480f981c6aa63e5c8d2afd21d2d50c,not_implemented,False,missing
 CORE_EX1_362,69611,Argent Protector,CORE,PALADIN,MINION,True,BATTLECRY,Battlecry: Give a friendly minion Divine Shield.,29763a00903e6c13787584af29a07c0e62642f39b0de0eb8ae7f90383a894e72,not_implemented,False,missing

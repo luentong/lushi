@@ -114,6 +114,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_CS2_024", "CORE_CS2_028", "CORE_RLK_063",
     "CORE_BAR_801",
     "CORE_EX1_391", "CORE_EX1_606", "CORE_GIL_622",
+    "CORE_CS2_072", "CORE_CS2_108", "CORE_EX1_309", "CORE_EX1_312",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -634,6 +635,29 @@ class DamageRandomEnemyCharacters:
             "random_enemy_damage", player=context.player.index,
             source=context.card.card_id, amount=amount, targets=chosen,
         )
+
+
+@dataclass(frozen=True)
+class DamageActionTargetIfUndamaged:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        if target.damage == 0:
+            game._damage_minion(context.action.target_player, target, self.amount, context.card)
+
+
+@dataclass(frozen=True)
+class DestroyActionTargetIfDamaged:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        if target.damage > 0:
+            target.damage = target.max_health
+            game._resolve_deaths()
 
 
 @dataclass(frozen=True)
@@ -1294,6 +1318,15 @@ class DestroyAllMinions:
         for player in game.players:
             for minion in player.board:
                 minion.damage = minion.max_health
+
+
+@dataclass(frozen=True)
+class DestroyAllMinionsAndLocations:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        DestroyAllMinions().execute(game, context)
+        for player in game.players:
+            player.locations.clear()
+        game._resolve_deaths()
 
 
 @dataclass(frozen=True)
@@ -3287,6 +3320,25 @@ def build_rule_registry() -> RuleRegistry:
                 ("test_standard_basic_damage_draw",),
             ),
             TargetSpec(TargetKind.ENEMY_MINION),
+        ),
+        CardRule(
+            "CORE_CS2_072", {Hook.SPELL: (DamageActionTargetIfUndamaged(2),)},
+            RuleSource("upstream_adapted", rosetta, "CS2_072", "AGPL-3.0", ("test_standard_conditional_destroy",)),
+            TargetSpec(TargetKind.ENEMY_MINION),
+        ),
+        CardRule(
+            "CORE_CS2_108", {Hook.SPELL: (DestroyActionTargetIfDamaged(),)},
+            RuleSource("upstream_adapted", rosetta, "CS2_108", "AGPL-3.0", ("test_standard_conditional_destroy",)),
+            TargetSpec(TargetKind.ENEMY_MINION),
+        ),
+        CardRule(
+            "CORE_EX1_309", {Hook.SPELL: (DestroyActionTarget(), HealHero(3), ResolveDeaths())},
+            RuleSource("upstream_adapted", rosetta, "EX1_309", "AGPL-3.0", ("test_standard_conditional_destroy",)),
+            TargetSpec(TargetKind.ENEMY_MINION),
+        ),
+        CardRule(
+            "CORE_EX1_312", {Hook.SPELL: (DestroyAllMinionsAndLocations(),)},
+            RuleSource("upstream_adapted", rosetta, "EX1_312", "AGPL-3.0", ("test_standard_conditional_destroy",)),
         ),
         CardRule(
             "CORE_EX1_606", {Hook.SPELL: (GainArmor(5), Draw())},
