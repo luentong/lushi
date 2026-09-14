@@ -1552,7 +1552,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         roots = self.add_hand(damage_game, "CORE_AT_037")
         damage_game.step(Action("PLAY", roots.entity_id, 1, target.entity_id))
         damage_game.step(Action("RULE_CHOICE_PICK", 0))
-        self.assertEqual(5, target.damage)
+        self.assertEqual(2, target.damage)
 
         summon_game = self.game()
         roots = self.add_hand(summon_game, "CORE_AT_037")
