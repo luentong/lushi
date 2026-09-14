@@ -1576,6 +1576,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(game.turn, target.frozen_turn)
         self.assertEqual(game.turn, second.frozen_turn)
 
+    def test_frostwyrms_fury_damage_freeze_summon(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        other = self.add_board(game, "CORE_CS2_231", 1)
+        fury = self.add_hand(game, "CORE_RLK_063")
+        game.step(Action("PLAY", fury.entity_id, 1, target.entity_id))
+        self.assertEqual(5, target.damage)
+        self.assertEqual(game.turn, target.frozen_turn)
+        self.assertEqual(game.turn, other.frozen_turn)
+        self.assertTrue(any(card.card_id == "RLK_063t" for card in game.players[0].board))
+
 
 if __name__ == "__main__":
     unittest.main()

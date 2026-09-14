@@ -111,7 +111,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_EX1_154", "CATA_526", "TLC_231", "TLC_236", "EDR_226",
     "RLK_024", "CATA_156",
     "CORE_AT_037",
-    "CORE_CS2_024", "CORE_CS2_028",
+    "CORE_CS2_024", "CORE_CS2_028", "CORE_RLK_063",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -3262,6 +3262,13 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CORE_CS2_028", {Hook.SPELL: (DamageBoard(2), FreezeAllEnemyMinions())},
             RuleSource("upstream_adapted", rosetta, "CS2_028", "AGPL-3.0", ("test_frostbolt_and_blizzard_freeze_targets",)),
+        ),
+        CardRule(
+            "CORE_RLK_063", {Hook.SPELL: (
+                DamageActionTarget(5), FreezeAllEnemyMinions(), Summon("RLK_063t"),
+            )},
+            RuleSource("upstream_adapted", rosetta, "RLK_063", "AGPL-3.0", ("test_frostwyrms_fury_damage_freeze_summon",)),
+            TargetSpec(TargetKind.ANY_CHARACTER),
         ),
         CardRule(
             "EDR_463",

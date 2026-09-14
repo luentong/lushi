@@ -186,6 +186,7 @@ CORE_OG_149,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",2,regres
 CORE_OG_218,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",12,regression_suite_only
 CORE_REV_946,legacy_compatibility,,local_legacy,RosettaStone,1,regression_suite_only
 CORE_REV_990,legacy_compatibility,,local_legacy,RosettaStone,2,regression_suite_only
+CORE_RLK_063,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 CORE_RLK_121,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CORE_RLK_814,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CORE_SCH_717,legacy_compatibility,,local_legacy,RosettaStone,2,regression_suite_only
@@ -420,6 +421,7 @@ MEND_042,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 MEND_044e3,legacy_compatibility,,local_legacy,,0,regression_suite_only
 NEW_4183_Copy,legacy_compatibility,,local_legacy,,0,regression_suite_only
 RLK_024,declarative,spell,upstream_adapted,,0,focused_test_and_regression
+RLK_063t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 RLK_067,legacy_compatibility,,local_legacy,,0,regression_suite_only
 RLK_077t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 RLK_503,legacy_compatibility,,local_legacy,,0,regression_suite_only

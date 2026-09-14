@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 168,
+      "declarative": 169,
       "legacy_compatibility": 339,
-      "not_implemented": 1654
+      "not_implemented": 1653
     },
     "collectible_implementation": {
-      "declarative": 144,
+      "declarative": 145,
       "legacy_compatibility": 234,
-      "not_implemented": 788
+      "not_implemented": 787
     },
     "fully_implemented": false
   },
@@ -8400,9 +8400,9 @@
       "mechanics": "",
       "text": "Deal $5 damage. Freeze all enemy minions. Summon a 5/5 Frostwyrm.",
       "text_sha256": "3ed2b590d318fda3ad77cc958b2e222965105d2f6bdc1312699584caa2e056be",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_RLK_066",
