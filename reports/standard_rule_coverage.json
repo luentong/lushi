@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 192,
+      "declarative": 194,
       "legacy_compatibility": 339,
-      "not_implemented": 1630
+      "not_implemented": 1628
     },
     "collectible_implementation": {
-      "declarative": 168,
+      "declarative": 170,
       "legacy_compatibility": 234,
-      "not_implemented": 764
+      "not_implemented": 762
     },
     "fully_implemented": false
   },
@@ -6150,9 +6150,9 @@
       "mechanics": "",
       "text": "Deal $2 damage to all enemy minions. Restore #2 Health to all friendly characters.",
       "text_sha256": "9cfe1eb92996c2f94ccc07022b00c8dd05a03371e5e1618526beb09beae7d696",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_CS1_130",
@@ -9300,9 +9300,9 @@
       "mechanics": "",
       "text": "Gain 4 Armor. Summon a random 4-Cost minion.",
       "text_sha256": "7cfc59fc13b95ba5c5cac7373e13904e7c43fad9aca627057c42be36a2015fad",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_WON_350",

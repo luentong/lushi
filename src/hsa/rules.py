@@ -116,6 +116,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_EX1_391", "CORE_EX1_606", "CORE_GIL_622",
     "CORE_CS2_072", "CORE_CS2_108", "CORE_EX1_309", "CORE_EX1_312",
     "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074",
+    "CORE_CS1_112", "CORE_WON_337",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -3362,6 +3363,14 @@ def build_rule_registry() -> RuleRegistry:
             "CORE_CS2_009", {Hook.SPELL: (BuffActionTargetWithTaunt(2, 3),)},
             RuleSource("upstream_adapted", rosetta, "CS2_009", "AGPL-3.0", ("test_standard_buff_overload_weapon",)),
             TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "CORE_CS1_112", {Hook.SPELL: (DamageBoard(2), HealFriendlyCharacters(2))},
+            RuleSource("upstream_adapted", rosetta, "CS1_112", "AGPL-3.0", ("test_standard_holy_nova_portal",)),
+        ),
+        CardRule(
+            "CORE_WON_337", {Hook.SPELL: (GainArmor(4), SummonRandomExecutableMinion(cost=4))},
+            RuleSource("upstream_adapted", rosetta, "WON_337", "AGPL-3.0", ("test_standard_holy_nova_portal",)),
         ),
         CardRule(
             "CORE_EX1_238", {Hook.SPELL: (DamageActionTarget(3), Overload(1))},

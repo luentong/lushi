@@ -365,6 +365,23 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", poison.entity_id))
         self.assertEqual(3, game.players[0].weapon.attack)
 
+    def test_standard_holy_nova_portal(self):
+        game = self.game()
+        friendly = self.add_board(game, "CORE_EX1_007", 0)
+        enemy = self.add_board(game, "CORE_EX1_007", 1)
+        friendly.damage = 2
+        game.players[0].health = 25
+        nova = self.add_hand(game, "CORE_CS1_112")
+        game.step(Action("PLAY", nova.entity_id))
+        self.assertEqual(0, friendly.damage)
+        self.assertEqual(2, enemy.damage)
+        self.assertEqual(27, game.players[0].health)
+
+        portal = self.add_hand(game, "CORE_WON_337")
+        game.step(Action("PLAY", portal.entity_id))
+        self.assertEqual(4, game.players[0].armor)
+        self.assertTrue(game.players[0].board)
+
     def test_powerlog_cards_and_triggers(self):
         game = self.game()
         game._equip_weapon(game.players[0], Weapon("EDR_416", "Shepherd's Crook", 3, 2))
