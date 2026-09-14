@@ -349,7 +349,7 @@ STANDARD_VANILLA_IDS = {
     # Core vanilla minions used as stable fixtures and valid neutral pool
     # members for the declarative draw rules.
     "CORE_CS2_231", "CORE_CS2_120", "CORE_GVG_044", "CORE_CS2_182",
-    "TTN_950t", "RLK_063t",
+    "TTN_950t", "RLK_063t", "BAR_035t",
 }
 
 BASIC_TOTEM_IDS = ("CS2_050", "CS2_051", "CS2_052", "NEW1_009")

@@ -1587,6 +1587,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(game.turn, other.frozen_turn)
         self.assertTrue(any(card.card_id == "RLK_063t" for card in game.players[0].board))
 
+    def test_wound_prey_damage_summon(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        prey = self.add_hand(game, "CORE_BAR_801")
+        game.step(Action("PLAY", prey.entity_id, 1, target.entity_id))
+        self.assertEqual(1, target.damage)
+        self.assertTrue(any(card.card_id == "BAR_035t" for card in game.players[0].board))
+
 
 if __name__ == "__main__":
     unittest.main()

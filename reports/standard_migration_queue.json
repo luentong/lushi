@@ -4,9 +4,9 @@
   "policy": "reference_matches require human review; only focused tests may promote a card to executable",
   "summary": {
     "cards": 2161,
-    "todo": 1652,
+    "todo": 1651,
     "upstream_reference_review": 1,
-    "verified": 508,
+    "verified": 509,
     "by_tranche": {
       "A0_vanilla_and_keywords": 114,
       "A1_draw_discard": 163,
@@ -2552,24 +2552,6 @@
       "mechanics": "",
       "text": "Deal $3 damage. If you've played another copy of this, hit all enemies instead.",
       "text_sha256": "01c932d014daa81b7e48b16f291afd5c01286dea788ec5f6ba6dcb9de0e355e9",
-      "implementation": "not_implemented",
-      "queue_status": "todo",
-      "tranche": "A2_damage_heal",
-      "upstream_repositories": [],
-      "upstream_match_count": 0,
-      "verification": "missing"
-    },
-    {
-      "card_id": "CORE_BAR_801",
-      "dbf_id": 117039,
-      "name": "Wound Prey",
-      "set": "CORE",
-      "class": "HUNTER",
-      "type": "SPELL",
-      "collectible": true,
-      "mechanics": "",
-      "text": "Deal $1 damage. Summon a 1/1 Hyena with Rush.",
-      "text_sha256": "681638f6f70566b82ee393a74df254bc5e1f7a13e093a104546e9163a8473ceb",
       "implementation": "not_implemented",
       "queue_status": "todo",
       "tranche": "A2_damage_heal",
@@ -33383,6 +33365,26 @@
       "tranche": "A2_damage_heal",
       "upstream_repositories": [],
       "upstream_match_count": 0,
+      "verification": "focused_or_regression_tests"
+    },
+    {
+      "card_id": "CORE_BAR_801",
+      "dbf_id": 117039,
+      "name": "Wound Prey",
+      "set": "CORE",
+      "class": "HUNTER",
+      "type": "SPELL",
+      "collectible": true,
+      "mechanics": "",
+      "text": "Deal $1 damage. Summon a 1/1 Hyena with Rush.",
+      "text_sha256": "681638f6f70566b82ee393a74df254bc5e1f7a13e093a104546e9163a8473ceb",
+      "implementation": "declarative",
+      "queue_status": "verified",
+      "tranche": "A2_damage_heal",
+      "upstream_repositories": [
+        "RosettaStone"
+      ],
+      "upstream_match_count": 2,
       "verification": "focused_or_regression_tests"
     },
     {

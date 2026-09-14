@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 169,
+      "declarative": 170,
       "legacy_compatibility": 339,
-      "not_implemented": 1653
+      "not_implemented": 1652
     },
     "collectible_implementation": {
-      "declarative": 145,
+      "declarative": 146,
       "legacy_compatibility": 234,
-      "not_implemented": 787
+      "not_implemented": 786
     },
     "fully_implemented": false
   },
@@ -5385,9 +5385,9 @@
       "mechanics": "",
       "text": "Deal $1 damage. Summon a 1/1 Hyena with Rush.",
       "text_sha256": "681638f6f70566b82ee393a74df254bc5e1f7a13e093a104546e9163a8473ceb",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_BAR_812",
