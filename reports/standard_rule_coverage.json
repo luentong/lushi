@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 176,
+      "declarative": 178,
       "legacy_compatibility": 339,
-      "not_implemented": 1646
+      "not_implemented": 1644
     },
     "collectible_implementation": {
-      "declarative": 152,
+      "declarative": 154,
       "legacy_compatibility": 234,
-      "not_implemented": 780
+      "not_implemented": 778
     },
     "fully_implemented": false
   },
@@ -5430,9 +5430,9 @@
       "mechanics": "",
       "text": "Deal $4 damage to a minion and your hero.",
       "text_sha256": "18ced0d0965173fe0e1c8024402cbcdf2a44e5b108e790b07c5a327feba9d235",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_BOT_256",
@@ -25455,9 +25455,9 @@
       "mechanics": "",
       "text": "Deal $1 damage to a minion. Give your hero +1 Attack this turn.",
       "text_sha256": "1166c9386ace1003db1cce7b897a6a08c06b042b162de0d9a81fd87c5a0ad589",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_218e",

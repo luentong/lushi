@@ -4,9 +4,9 @@
   "policy": "reference_matches require human review; only focused tests may promote a card to executable",
   "summary": {
     "cards": 2161,
-    "todo": 1645,
+    "todo": 1643,
     "upstream_reference_review": 1,
-    "verified": 515,
+    "verified": 517,
     "by_tranche": {
       "A0_vanilla_and_keywords": 114,
       "A1_draw_discard": 163,
@@ -4558,24 +4558,6 @@
       "verification": "missing"
     },
     {
-      "card_id": "TIME_218",
-      "dbf_id": 121020,
-      "name": "Static Shock",
-      "set": "TIME_TRAVEL",
-      "class": "SHAMAN",
-      "type": "SPELL",
-      "collectible": true,
-      "mechanics": "",
-      "text": "Deal $1 damage to a minion. Give your hero +1 Attack this turn.",
-      "text_sha256": "1166c9386ace1003db1cce7b897a6a08c06b042b162de0d9a81fd87c5a0ad589",
-      "implementation": "not_implemented",
-      "queue_status": "todo",
-      "tranche": "A2_damage_heal",
-      "upstream_repositories": [],
-      "upstream_match_count": 0,
-      "verification": "missing"
-    },
-    {
       "card_id": "CAP_403",
       "dbf_id": 127057,
       "name": "Frame Job",
@@ -4640,24 +4622,6 @@
       "mechanics": "AURA,COLOSSAL",
       "text": "Colossal +2 Your Arms and Soldiers destroy minions in the enemy's deck instead.",
       "text_sha256": "c69f7ea860b916805f0a91d1fdd382ae1928529282f075ff00651d6de8d5c494",
-      "implementation": "not_implemented",
-      "queue_status": "todo",
-      "tranche": "A2_damage_heal",
-      "upstream_repositories": [],
-      "upstream_match_count": 0,
-      "verification": "missing"
-    },
-    {
-      "card_id": "CORE_BOT_222",
-      "dbf_id": 102212,
-      "name": "Spirit Bomb",
-      "set": "CORE",
-      "class": "WARLOCK",
-      "type": "SPELL",
-      "collectible": true,
-      "mechanics": "",
-      "text": "Deal $4 damage to a minion and your hero.",
-      "text_sha256": "18ced0d0965173fe0e1c8024402cbcdf2a44e5b108e790b07c5a327feba9d235",
       "implementation": "not_implemented",
       "queue_status": "todo",
       "tranche": "A2_damage_heal",
@@ -34612,6 +34576,24 @@
       "verification": "focused_or_regression_tests"
     },
     {
+      "card_id": "TIME_218",
+      "dbf_id": 121020,
+      "name": "Static Shock",
+      "set": "TIME_TRAVEL",
+      "class": "SHAMAN",
+      "type": "SPELL",
+      "collectible": true,
+      "mechanics": "",
+      "text": "Deal $1 damage to a minion. Give your hero +1 Attack this turn.",
+      "text_sha256": "1166c9386ace1003db1cce7b897a6a08c06b042b162de0d9a81fd87c5a0ad589",
+      "implementation": "declarative",
+      "queue_status": "verified",
+      "tranche": "A2_damage_heal",
+      "upstream_repositories": [],
+      "upstream_match_count": 0,
+      "verification": "focused_or_regression_tests"
+    },
+    {
       "card_id": "TLC_221",
       "dbf_id": 117532,
       "name": "Sizzling Swarm",
@@ -34681,6 +34663,27 @@
       "tranche": "A2_damage_heal",
       "upstream_repositories": [],
       "upstream_match_count": 0,
+      "verification": "focused_or_regression_tests"
+    },
+    {
+      "card_id": "CORE_BOT_222",
+      "dbf_id": 102212,
+      "name": "Spirit Bomb",
+      "set": "CORE",
+      "class": "WARLOCK",
+      "type": "SPELL",
+      "collectible": true,
+      "mechanics": "",
+      "text": "Deal $4 damage to a minion and your hero.",
+      "text_sha256": "18ced0d0965173fe0e1c8024402cbcdf2a44e5b108e790b07c5a327feba9d235",
+      "implementation": "declarative",
+      "queue_status": "verified",
+      "tranche": "A2_damage_heal",
+      "upstream_repositories": [
+        "RosettaStone",
+        "fireplace"
+      ],
+      "upstream_match_count": 2,
       "verification": "focused_or_regression_tests"
     },
     {

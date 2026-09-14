@@ -119,6 +119,7 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_891",
     "TLC_235",
     "RLK_025",
+    "TIME_218", "CORE_BOT_222",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -3355,6 +3356,16 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "RLK_025", {Hook.SPELL: (DamageActionTargetThenOfferRuneIfKilled(3, "frost"),)},
             RuleSource("upstream_adapted", rosetta, "RLK_025", "AGPL-3.0", ("test_frost_strike_rune_discover",)),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "TIME_218", {Hook.SPELL: (DamageActionTarget(1), GainHeroAttack(1))},
+            RuleSource("upstream_adapted", rosetta, "TIME_218", "AGPL-3.0", ("test_static_shock_damage_attack",)),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "CORE_BOT_222", {Hook.SPELL: (DamageActionTarget(4), DamageHero(4))},
+            RuleSource("upstream_adapted", rosetta, "BOT_222", "AGPL-3.0", ("test_spirit_bomb_self_damage",)),
             TargetSpec(TargetKind.ANY_MINION),
         ),
         CardRule(

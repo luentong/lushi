@@ -1651,6 +1651,22 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             for cid in game.pending_choice["pool"]
         ))
 
+    def test_static_shock_damage_attack(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        shock = self.add_hand(game, "TIME_218")
+        game.step(Action("PLAY", shock.entity_id, 1, target.entity_id))
+        self.assertEqual(1, target.damage)
+        self.assertEqual(1, game.players[0].hero_attack_bonus)
+
+    def test_spirit_bomb_self_damage(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        bomb = self.add_hand(game, "CORE_BOT_222")
+        game.step(Action("PLAY", bomb.entity_id, 1, target.entity_id))
+        self.assertEqual(4, target.damage)
+        self.assertEqual(26, game.players[0].health)
+
 
 if __name__ == "__main__":
     unittest.main()
