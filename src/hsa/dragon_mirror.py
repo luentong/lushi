@@ -320,8 +320,17 @@ BASIC_AUXILIARY_IDS = {
 # and are intentionally kept separate from generated pools until a focused
 # regression test promotes them there.
 STANDARD_VANILLA_IDS = {
+    "CATA_134t3", "CATA_135t", "CATA_190t14", "CATA_210t",
+    "CATA_452t", "CATA_465t", "CATA_470t1", "CATA_478t", "CATA_479t3",
     "Core_CS2_200",  # Boulderfist Ogre
-    "TLC_248",       # Ultragigasaur
+    "CORE_EX1_506a", "CORE_GIL_191t", "CS3_002t", "Core_CS2_200",
+    "DINO_130t", "EDR_457t", "EDR_813at", "EDR_846t5",
+    "EDR_847pt2", "EDR_847pt3", "EDR_847pt4", "EDR_851t", "END_009t",
+    "JAIL_504tt01", "JAIL_504tt04", "JAIL_504tt07", "JAIL_504tt20",
+    "JAIL_511t", "JAIL_EVENT_100t", "Story_09_Imp", "TIME_005t9t",
+    "TIME_053", "TIME_434t", "TIME_443t", "TIME_443t2", "TIME_610t2",
+    "TIME_873t", "TLC_230t", "TLC_237t", "TLC_240t", "TLC_240t2",
+    "TLC_240t3", "TLC_248", "TLC_831t",
 }
 
 BASIC_TOTEM_IDS = ("CS2_050", "CS2_051", "CS2_052", "NEW1_009")

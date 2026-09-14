@@ -8,7 +8,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from hsa.dragon_mirror import Action, DragonMirrorGame, Location, Weapon
+from hsa.dragon_mirror import (
+    Action, DragonMirrorGame, Location, STANDARD_VANILLA_IDS, Weapon,
+)
 
 
 CARDS = ROOT / "cards.251332.enUS.json"
@@ -61,6 +63,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertIn(giga, game.players[0].board)
         self.assertEqual((6, 7), (ogre.attack, ogre.max_health))
         self.assertEqual((14, 28), (giga.attack, giga.max_health))
+
+    def test_all_standard_vanilla_entities_are_constructible_and_playable(self):
+        # This is intentionally table-driven: adding another text-free token
+        # to the tranche automatically exercises metadata loading and the
+        # ordinary minion/weapon/location play path.
+        for card_id in sorted(STANDARD_VANILLA_IDS):
+            game = self.game()
+            card = self.add_hand(game, card_id)
+            game.step(Action("PLAY", card.entity_id))
+            self.assertNotIn(card, game.players[0].hand, card_id)
 
     def test_simple_core_spell_tranche(self):
         game = self.game()
