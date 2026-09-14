@@ -3089,7 +3089,7 @@ def build_rule_registry() -> RuleRegistry:
         ),
         CardRule(
             "CORE_CATA_007", {Hook.SPELL: (DamageRandomEnemyMinionsThenDrawPerKill(3, 2),)},
-            RuleSource("upstream_adapted", rosetta, "CATA_007", "AGPL-3.0", ("test_consumption_random_damage",)),
+            RuleSource("upstream_adapted", rosetta, "CATA_007", "AGPL-3.0", ("test_conditional_draw_tranche",)),
         ),
         CardRule(
             "CATA_302", {Hook.SPELL: (HealActionTargetToFull(), Draw())},
