@@ -1102,6 +1102,9 @@ class DestroyActionTargetIfAttackAtMost:
         target = game._find_minion(
             context.action.target_player, context.action.target_entity
         )
+        if target.attack <= self.maximum_attack:
+            target.damage = target.max_health
+            game._resolve_deaths()
 
 
 @dataclass(frozen=True)
@@ -1146,9 +1149,6 @@ class DamageActionTargetThenDrawIfHandEmpty:
             game._resolve_deaths()
         if not context.player.hand:
             game._draw(context.player)
-        if target.attack <= self.maximum_attack:
-            target.damage = target.max_health
-            game._resolve_deaths()
 
 
 @dataclass(frozen=True)
