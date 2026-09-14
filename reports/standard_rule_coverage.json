@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 154,
+      "declarative": 157,
       "legacy_compatibility": 339,
-      "not_implemented": 1668
+      "not_implemented": 1665
     },
     "collectible_implementation": {
-      "declarative": 130,
+      "declarative": 133,
       "legacy_compatibility": 234,
-      "not_implemented": 802
+      "not_implemented": 799
     },
     "fully_implemented": false
   },
@@ -11655,9 +11655,9 @@
       "mechanics": "",
       "text": "Restore #4 Health. Draw a card. Imbue your Hero Power.",
       "text_sha256": "7f7d904997d15e5c4761eadf6f6b16f87769a3c13fcade8482b7833aaa675ea1",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_232",
@@ -18165,9 +18165,9 @@
       "mechanics": "",
       "text": "Draw a card. If it costs (2) or less, draw another.",
       "text_sha256": "84256d343fbf30103fec8b4a99260e4ec2fec584f3dd88e44b451d58385668ed",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_379",
@@ -20475,9 +20475,9 @@
       "mechanics": "",
       "text": "Draw 2 minions. If you have 10 or more Mana, give them +3/+3.",
       "text_sha256": "5a973e5c1bf3c49b17275d5d681c431e46a9b8265e82fe5daf0cc01f3467beee",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_866e",
