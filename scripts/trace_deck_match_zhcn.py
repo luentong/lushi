@@ -63,12 +63,19 @@ def main() -> int:
         definition = getattr(card, "definition", None)
         return zh_names.get(card.card_id, definition.name if definition is not None else card.card_id)
 
+    def pending_name(entity_id):
+        pending = game.pending_choice or {}
+        for option in pending.get("options", []):
+            if getattr(option, "entity_id", None) == entity_id:
+                return zh_names.get(option.card_id, option.definition.name)
+        return name(entity_id)
+
     lines = ["# 龙战 vs 脏牧：完整中文操作轨迹", "", "固定 seed：202609140001", ""]
     action_no = 0
     while not game.finished and action_no < 300:
         action = policies[game.current].choose(game)
         label = LABELS.get(action.kind, action.kind)
-        source = name(action.source)
+        source = pending_name(action.source) if action.kind.endswith("PICK") else name(action.source)
         text = f"{label}【{source}】" if source else label
         if action.target_entity is not None:
             text += f" → 【{name(action.target_entity)}】"
