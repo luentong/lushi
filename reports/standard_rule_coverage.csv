@@ -410,7 +410,7 @@ CORE_CFM_790,102225,Dirty Rat,CORE,NEUTRAL,MINION,True,"BATTLECRY,TAUNT",Taunt B
 CORE_CS1_112,69508,Holy Nova,CORE,PRIEST,SPELL,True,,Deal $2 damage to all enemy minions. Restore #2 Health to all friendly characters.,9cfe1eb92996c2f94ccc07022b00c8dd05a03371e5e1618526beb09beae7d696,not_implemented,False,missing
 CORE_CS1_130,69509,Holy Smite,CORE,PRIEST,SPELL,True,,Deal $3 damage to a minion.,44499b054fe6189fafafb21af7c3caa6d643b930340e3b31c760ec0f4bb99424,declarative,True,focused_or_regression_tests
 CORE_CS2_004,120786,Power Word: Shield,CORE,PRIEST,SPELL,True,,Give a minion +2 Health. Draw a card.,8a285589fbf9ae9fba2a614406ac46fc4a89745286226dbe6ad15ceb0bc6b337,declarative,True,focused_or_regression_tests
-CORE_CS2_009,69511,Mark of the Wild,CORE,DRUID,SPELL,True,,Give a minion Taunt and +2/+3. (+2 Attack/+3 Health),1465b8a2c13afe5e27f9232591d786909c16f6c67f28ce5cbb180fb6f9dc6c00,not_implemented,False,missing
+CORE_CS2_009,69511,Mark of the Wild,CORE,DRUID,SPELL,True,,Give a minion Taunt and +2/+3. (+2 Attack/+3 Health),1465b8a2c13afe5e27f9232591d786909c16f6c67f28ce5cbb180fb6f9dc6c00,declarative,True,focused_or_regression_tests
 CORE_CS2_023,69500,Arcane Intellect,CORE,MAGE,SPELL,True,,Draw 2 cards.,d431f7496ea56cf6c2970ab414d18e15ae296393776c135f4ec582d724ae5ae1,declarative,True,focused_or_regression_tests
 CORE_CS2_024,111365,Frostbolt,CORE,MAGE,SPELL,True,FREEZE,Deal $3 damage to a character and Freeze it.,6eb2b8e19a847744609c55370d69793ebfc8040db877696e8404df1b13ecdaf6,declarative,True,focused_or_regression_tests
 CORE_CS2_028,76273,Blizzard,CORE,MAGE,SPELL,True,FREEZE,Deal $2 damage to all enemy minions and Freeze them.,15d7cf52e1958ef856bde7a8d1351ad184cbb5cbe700e04f8075ae41c1b623eb,declarative,True,focused_or_regression_tests
@@ -421,7 +421,7 @@ CORE_CS2_042,69516,Fire Elemental,CORE,SHAMAN,MINION,True,BATTLECRY,Battlecry: D
 CORE_CS2_053,76293,Far Sight,CORE,SHAMAN,SPELL,True,,Draw a card. That card costs (3) less.,3b67bbfccd49f4bdbaeeeb804ff2ddf6d47ecca1e2c5cb05534db02e5dcd4516,declarative,True,focused_or_regression_tests
 CORE_CS2_062,69519,Hellfire,CORE,WARLOCK,SPELL,True,,Deal $3 damage to ALL characters.,63052469523ecf7c4f5a06dedf728fd8ff00db4e998a4084af7a70e171fd39a7,declarative,True,focused_or_regression_tests
 CORE_CS2_072,69521,Backstab,CORE,ROGUE,SPELL,True,,Deal $2 damage to an undamaged minion.,01eb3c1228aa95e51cb84c7a307be72d65d72bff423a5de2483927582587e911,declarative,True,focused_or_regression_tests
-CORE_CS2_074,69522,Deadly Poison,CORE,ROGUE,SPELL,True,,Give your weapon +2 Attack.,62ebadccf21b504d9da1aa52e1d7eae476c330dd5643cb0d951a274bd063ab78,not_implemented,False,missing
+CORE_CS2_074,69522,Deadly Poison,CORE,ROGUE,SPELL,True,,Give your weapon +2 Attack.,62ebadccf21b504d9da1aa52e1d7eae476c330dd5643cb0d951a274bd063ab78,declarative,True,focused_or_regression_tests
 CORE_CS2_076,69525,Assassinate,CORE,ROGUE,SPELL,True,,Destroy an enemy minion.,72562e1de706442e27e115722d5e083e43f949be4b3c6d3c9503cafff3522041,declarative,True,focused_or_regression_tests
 CORE_CS2_093,69532,Consecration,CORE,PALADIN,SPELL,True,,Deal $2 damage to all enemies.,a856d816bd952d82386f48eb1d36293be42f6aaf47ef5a11f30cf96773764506,declarative,True,focused_or_regression_tests
 CORE_CS2_094,102790,Hammer of Wrath,CORE,PALADIN,SPELL,True,,Deal $3 damage. Draw a card.,572d1eb2f460f659685ff148dec15aa2df6b63c2a51870b89155b9c905674023,declarative,True,focused_or_regression_tests
@@ -477,7 +477,7 @@ CORE_EX1_189,69672,Brightwing,CORE,NEUTRAL,MINION,True,BATTLECRY,Battlecry: Add 
 CORE_EX1_193,69566,Psychic Conjurer,CORE,PRIEST,MINION,True,BATTLECRY,Battlecry: Copy a card in your opponent’s deck and add it to your hand.,2eafcffd5901ec1ead3cbddd0819a8bbdd95593e0b232eab1527e60c51c84f03,legacy_compatibility,True,focused_or_regression_tests
 CORE_EX1_197,69616,Shadow Word: Ruin,CORE,PRIEST,SPELL,True,,Destroy all minions with 5 or more Attack.,fb78662e9f9b5ca77b49ab2ee45bf44667deeb67256d8a734fc770f8bfd2b2fb,declarative,True,focused_or_regression_tests
 CORE_EX1_198,69617,Natalie Seline,CORE,PRIEST,MINION,True,BATTLECRY,Battlecry: Destroy a minion and gain its Health.,268edb5c70135f88b8ec67f847e800f83a95125ed05719b1ca6714abe4781ecc,not_implemented,False,missing
-CORE_EX1_238,69625,Lightning Bolt,CORE,SHAMAN,SPELL,True,OVERLOAD,Deal $3 damage. Overload: (1),0a742b67ba7d6ed10b0b64877cd9abd2749a118eade6bd19a7645cdfe808c8bd,not_implemented,False,missing
+CORE_EX1_238,69625,Lightning Bolt,CORE,SHAMAN,SPELL,True,OVERLOAD,Deal $3 damage. Overload: (1),0a742b67ba7d6ed10b0b64877cd9abd2749a118eade6bd19a7645cdfe808c8bd,declarative,True,focused_or_regression_tests
 CORE_EX1_246,69551,Hex,CORE,SHAMAN,SPELL,True,,Transform a minion into a 0/1 Frog with Taunt.,1d94147bc8c40be6e111c0b5206e4aa3c0ee732fcff40b28b0d5597563df6796,not_implemented,False,missing
 CORE_EX1_250,69627,Earth Elemental,CORE,SHAMAN,MINION,True,"OVERLOAD,TAUNT",Taunt Overload: (2),16b4ecf38fd35cae14313139f7705ad2079ebe84ecdace3623c76e81b1a9807f,not_implemented,False,missing
 CORE_EX1_259,69629,Lightning Storm,CORE,SHAMAN,SPELL,True,OVERLOAD,Deal $3 damage to all enemy minions. Overload: (1),070b0d74a53813cabe3a1088f4ba7baf01cf13d1264e68734feb8eae9857982d,not_implemented,False,missing

@@ -115,6 +115,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BAR_801",
     "CORE_EX1_391", "CORE_EX1_606", "CORE_GIL_622",
     "CORE_CS2_072", "CORE_CS2_108", "CORE_EX1_309", "CORE_EX1_312",
+    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -647,6 +648,37 @@ class DamageActionTargetIfUndamaged:
         target = game._find_minion(context.action.target_player, context.action.target_entity)
         if target.damage == 0:
             game._damage_minion(context.action.target_player, target, self.amount, context.card)
+
+
+@dataclass(frozen=True)
+class BuffActionTargetWithTaunt:
+    attack: int
+    health: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        target.attack_delta += self.attack
+        target.health_delta += self.health
+        target.taunt = True
+
+
+@dataclass(frozen=True)
+class Overload:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._overload(context.player, self.amount)
+
+
+@dataclass(frozen=True)
+class BuffWeaponAttack:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.player.weapon is not None:
+            context.player.weapon.attack += self.amount
 
 
 @dataclass(frozen=True)
@@ -3325,6 +3357,20 @@ def build_rule_registry() -> RuleRegistry:
             "CORE_CS2_072", {Hook.SPELL: (DamageActionTargetIfUndamaged(2),)},
             RuleSource("upstream_adapted", rosetta, "CS2_072", "AGPL-3.0", ("test_standard_conditional_destroy",)),
             TargetSpec(TargetKind.ENEMY_MINION),
+        ),
+        CardRule(
+            "CORE_CS2_009", {Hook.SPELL: (BuffActionTargetWithTaunt(2, 3),)},
+            RuleSource("upstream_adapted", rosetta, "CS2_009", "AGPL-3.0", ("test_standard_buff_overload_weapon",)),
+            TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "CORE_EX1_238", {Hook.SPELL: (DamageActionTarget(3), Overload(1))},
+            RuleSource("upstream_adapted", rosetta, "EX1_238", "AGPL-3.0", ("test_standard_buff_overload_weapon",)),
+            TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "CORE_CS2_074", {Hook.SPELL: (BuffWeaponAttack(2),)},
+            RuleSource("upstream_adapted", rosetta, "CS2_074", "AGPL-3.0", ("test_standard_buff_overload_weapon",)),
         ),
         CardRule(
             "CORE_CS2_108", {Hook.SPELL: (DestroyActionTargetIfDamaged(),)},

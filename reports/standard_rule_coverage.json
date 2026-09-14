@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 189,
+      "declarative": 192,
       "legacy_compatibility": 339,
-      "not_implemented": 1633
+      "not_implemented": 1630
     },
     "collectible_implementation": {
-      "declarative": 165,
+      "declarative": 168,
       "legacy_compatibility": 234,
-      "not_implemented": 767
+      "not_implemented": 764
     },
     "fully_implemented": false
   },
@@ -6195,9 +6195,9 @@
       "mechanics": "",
       "text": "Give a minion Taunt and +2/+3. (+2 Attack/+3 Health)",
       "text_sha256": "1465b8a2c13afe5e27f9232591d786909c16f6c67f28ce5cbb180fb6f9dc6c00",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_CS2_023",
@@ -6360,9 +6360,9 @@
       "mechanics": "",
       "text": "Give your weapon +2 Attack.",
       "text_sha256": "62ebadccf21b504d9da1aa52e1d7eae476c330dd5643cb0d951a274bd063ab78",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_CS2_076",
@@ -7200,9 +7200,9 @@
       "mechanics": "OVERLOAD",
       "text": "Deal $3 damage. Overload: (1)",
       "text_sha256": "0a742b67ba7d6ed10b0b64877cd9abd2749a118eade6bd19a7645cdfe808c8bd",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_EX1_246",

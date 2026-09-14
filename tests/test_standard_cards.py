@@ -346,6 +346,25 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(23, game.players[0].health)
         self.assertNotIn(target, game.players[1].board)
 
+    def test_standard_buff_overload_weapon(self):
+        game = self.game()
+        friendly = self.add_board(game, "CORE_EX1_007", 0)
+        mark = self.add_hand(game, "CORE_CS2_009")
+        game.step(Action("PLAY", mark.entity_id, 0, friendly.entity_id))
+        self.assertEqual((3, 7), (friendly.attack, friendly.max_health))
+        self.assertTrue(friendly.taunt)
+
+        enemy = self.add_board(game, "CORE_EX1_007", 1)
+        bolt = self.add_hand(game, "CORE_EX1_238")
+        game.step(Action("PLAY", bolt.entity_id, 1, enemy.entity_id))
+        self.assertEqual(3, enemy.damage)
+        self.assertEqual(1, game.players[0].overload_next_turn)
+
+        game._equip_weapon(game.players[0], Weapon("TEST_WEAPON", "Test Weapon", 1, 2))
+        poison = self.add_hand(game, "CORE_CS2_074")
+        game.step(Action("PLAY", poison.entity_id))
+        self.assertEqual(3, game.players[0].weapon.attack)
+
     def test_powerlog_cards_and_triggers(self):
         game = self.game()
         game._equip_weapon(game.players[0], Weapon("EDR_416", "Shepherd's Crook", 3, 2))
