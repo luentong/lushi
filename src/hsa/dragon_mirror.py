@@ -5949,6 +5949,18 @@ class DragonMirrorGame:
             dealt = health_before_damage - max(0, minion.health)
             owner = self._source_controller(source)
             owner.health = min(owner.max_health, owner.health + dealt)
+        # Acolyte of Pain draws after damage is applied, before death
+        # processing removes a lethal copy from the board.
+        if (
+            minion.card_id == "CORE_EX1_007"
+            and not minion.silenced
+            and minion in self.players[player_index].board
+        ):
+            self._draw(self.players[player_index])
+            self._event(
+                "acolyte_of_pain_draw", player=player_index,
+                entity=minion.entity_id,
+            )
         self._check_warptooth(player_index)
 
     def _check_warptooth(self, damaged_owner: int) -> None:
