@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 173,
+      "declarative": 174,
       "legacy_compatibility": 339,
-      "not_implemented": 1649
+      "not_implemented": 1648
     },
     "collectible_implementation": {
-      "declarative": 149,
+      "declarative": 150,
       "legacy_compatibility": 234,
-      "not_implemented": 783
+      "not_implemented": 782
     },
     "fully_implemented": false
   },
@@ -20835,9 +20835,9 @@
       "mechanics": "",
       "text": "Deal $3 damage to a minion. If it dies, get a Void Soul.",
       "text_sha256": "2fadea8f1f33b4028f72cc55fe249655324f06175b600bfade4aad3891d0189d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_892",

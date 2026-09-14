@@ -414,6 +414,7 @@ JAIL_880,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_882,declarative,deathrattle,local_spec,,0,focused_test_and_regression
 JAIL_887t3,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_890,legacy_compatibility,,local_legacy,,0,regression_suite_only
+JAIL_891,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 JAIL_906,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_912,declarative,deathrattle,powerlog_verified,,0,focused_test_and_regression
 JAIL_941,declarative,spell,powerlog_verified,,0,focused_test_and_regression

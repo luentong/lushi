@@ -116,6 +116,7 @@ STANDARD_DECLARATIVE_IDS = {
     "EDR_814",
     "CATA_485",
     "JAIL_441",
+    "JAIL_891",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -624,6 +625,33 @@ class DamageRandomEnemyCharacters:
         game._event(
             "random_enemy_damage", player=context.player.index,
             source=context.card.card_id, amount=amount, targets=chosen,
+        )
+
+
+@dataclass(frozen=True)
+class DamageActionTargetThenAddToHandIfKilled:
+    amount: int
+    card_id: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        game._damage_minion(
+            context.action.target_player, target,
+            game._spell_effect_amount(context.player, context.card, self.amount),
+            context.card,
+        )
+        killed = target.health <= 0
+        game._resolve_deaths()
+        if killed:
+            AddToHand(self.card_id).execute(game, context)
+        game._event(
+            "damage_target_add_if_killed", player=context.player.index,
+            source=context.card.card_id, target=target.entity_id,
+            killed=killed, generated=self.card_id if killed else None,
         )
 
 
@@ -3266,6 +3294,11 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "JAIL_441", {Hook.SPELL: (DamageActionTarget(3), RefreshHeroPower())},
             RuleSource("upstream_adapted", rosetta, "JAIL_441", "AGPL-3.0", ("test_drink_blood_lifesteal_refresh",)),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "JAIL_891", {Hook.SPELL: (DamageActionTargetThenAddToHandIfKilled(3, "JAIL_732"),)},
+            RuleSource("upstream_adapted", rosetta, "JAIL_891", "AGPL-3.0", ("test_void_blast_generates_void_soul",)),
             TargetSpec(TargetKind.ANY_MINION),
         ),
         CardRule(

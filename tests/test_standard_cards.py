@@ -1622,6 +1622,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(23, game.players[0].health)
         self.assertFalse(game.players[0].hero_power_used)
 
+    def test_void_blast_generates_void_soul(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_CS2_231", 1)
+        blast = self.add_hand(game, "JAIL_891")
+        game.step(Action("PLAY", blast.entity_id, 1, target.entity_id))
+        self.assertFalse(any(card is target for card in game.players[1].board))
+        self.assertTrue(any(card.card_id == "JAIL_732" for card in game.players[0].hand))
+
 
 if __name__ == "__main__":
     unittest.main()
