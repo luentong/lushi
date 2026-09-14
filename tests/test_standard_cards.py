@@ -213,6 +213,24 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", crate.entity_id))
         self.assertEqual(4, len(game.players[0].board))
 
+    def test_bottom_and_origin_draw_tranche(self):
+        game = self.game()
+        bottom = game._entity("GAME_005", started_in_deck=True)
+        top = game._entity("CORE_AT_055", started_in_deck=True)
+        game.players[0].deck = [bottom, top]
+        spell = self.add_hand(game, "TIME_023")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(2, len(game.players[0].hand))
+        self.assertEqual({"GAME_005", "CORE_AT_055"}, {c.card_id for c in game.players[0].hand})
+
+        origin = self.add_hand(game, "EDR_251")
+        game.players[0].deck = [
+            game._entity("CORE_AT_055", started_in_deck=True),
+            game._entity("CORE_AT_055", started_in_deck=False),
+        ]
+        game.step(Action("PLAY", origin.entity_id))
+        self.assertEqual(2, sum(c.card_id == "CORE_AT_055" for c in game.players[0].hand))
+
     def test_second_core_spell_tranche(self):
         game = self.game()
         enemy = self.add_board(game, "CORE_LOOT_137", 1)

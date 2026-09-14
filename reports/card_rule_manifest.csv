@@ -239,6 +239,7 @@ EDR_100t6e,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_102,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_209t5,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_233t2,legacy_compatibility,,local_legacy,,0,regression_suite_only
+EDR_251,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 EDR_258,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_260,declarative,deathrattle,local_spec,,0,focused_test_and_regression
 EDR_260t,legacy_compatibility,,local_legacy,,0,regression_suite_only
@@ -423,6 +424,7 @@ TIME_006t1,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TIME_008,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TIME_015,declarative,battlecry,local_spec,,0,focused_test_and_regression
 TIME_017,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TIME_023,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 TIME_024,declarative,battlecry,local_spec,,0,focused_test_and_regression
 TIME_034,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TIME_043,legacy_compatibility,,local_legacy,,0,regression_suite_only

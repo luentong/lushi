@@ -107,6 +107,7 @@ STANDARD_DECLARATIVE_IDS = {
     "RLK_709",  # Remorseless Winter
     "EDR_843a", "EDR_843b", "EDR_843t1", "CAP_405t4",
     "EDR_817", "CAP_102",
+    "TIME_023", "EDR_251",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -256,6 +257,20 @@ class Draw:
 
 
 @dataclass(frozen=True)
+class DrawBottom:
+    count: int = 1
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for _ in range(self.count):
+            if not context.player.deck:
+                game._draw(context.player)
+                continue
+            card = context.player.deck.pop(0)
+            game._refresh_scrappy(context.player)
+            game._receive_drawn_card(context.player, card)
+
+
+@dataclass(frozen=True)
 class ArmSecret:
     """Move a Secret spell from resolution into the controller's secret zone."""
 
@@ -270,6 +285,7 @@ class DrawMatching:
     min_cost: int | None = None
     race: str | None = None
     spell_school: str | None = None
+    started_in_deck: bool | None = None
     cost_delta: int = 0
 
     def execute(self, game: Any, context: RuleContext) -> None:
@@ -279,6 +295,7 @@ class DrawMatching:
                 and (self.min_cost is None or card.cost >= self.min_cost)
                 and (self.race is None or card.has_race(self.race))
                 and (self.spell_school is None or card.definition.spell_school == self.spell_school)
+                and (self.started_in_deck is None or card.started_in_deck == self.started_in_deck)
             )
 
         for _ in range(self.count):
@@ -2984,6 +3001,17 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CAP_102", {Hook.SPELL: (Draw(2), Summon("CAP_107t", count=2))},
             RuleSource("upstream_adapted", rosetta, "CAP_102", "AGPL-3.0", ("test_draw_summon_tranche",)),
+        ),
+        CardRule(
+            "TIME_023", {Hook.SPELL: (DrawBottom(2),)},
+            RuleSource("upstream_adapted", rosetta, "TIME_023", "AGPL-3.0", ("test_bottom_and_origin_draw_tranche",)),
+        ),
+        CardRule(
+            "EDR_251", {Hook.SPELL: (
+                DrawMatching(card_type="SPELL", started_in_deck=True),
+                DrawMatching(card_type="SPELL", started_in_deck=False),
+            )},
+            RuleSource("upstream_adapted", rosetta, "EDR_251", "AGPL-3.0", ("test_bottom_and_origin_draw_tranche",)),
         ),
         CardRule(
             "EDR_416",

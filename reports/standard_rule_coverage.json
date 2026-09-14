@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 152,
+      "declarative": 154,
       "legacy_compatibility": 339,
-      "not_implemented": 1670
+      "not_implemented": 1668
     },
     "collectible_implementation": {
-      "declarative": 128,
+      "declarative": 130,
       "legacy_compatibility": 234,
-      "not_implemented": 804
+      "not_implemented": 802
     },
     "fully_implemented": false
   },
@@ -11790,9 +11790,9 @@
       "mechanics": "",
       "text": "Draw a spell that started in your deck and one that didn't.",
       "text_sha256": "7f98847dbb4cb05e9526c7cbadc169a57081816e6dabee5194cf8225f29824b5",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_252",
@@ -23910,9 +23910,9 @@
       "mechanics": "",
       "text": "Draw the bottom two cards from your deck.",
       "text_sha256": "2a95b75174f9b05a5de1c5c8d812f8fd9a3c3732183f051067b8a2021db4fc45",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_024",
