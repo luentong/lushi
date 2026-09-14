@@ -229,7 +229,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             game._entity("CORE_AT_055", started_in_deck=False),
         ]
         game.step(Action("PLAY", origin.entity_id))
-        self.assertEqual(2, sum(c.card_id == "CORE_AT_055" for c in game.players[0].hand))
+        self.assertEqual(3, sum(c.card_id == "CORE_AT_055" for c in game.players[0].hand))
 
     def test_second_core_spell_tranche(self):
         game = self.game()
