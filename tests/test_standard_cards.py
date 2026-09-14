@@ -241,6 +241,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", bola.entity_id))
         self.assertNotIn(bola, game.players[0].hand)
 
+    def test_consumption_random_damage_draw(self):
+        game = self.game()
+        first = self.add_board(game, "CORE_LOOT_137", 1)
+        second = self.add_board(game, "CORE_LOOT_137", 1)
+        first.damage = first.max_health - 3
+        second.damage = second.max_health - 3
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True) for _ in range(2)]
+        spell = self.add_hand(game, "CORE_CATA_007")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(2, len(game.players[0].hand))
+        self.assertEqual([], game.players[1].board)
+
         recipe = self.add_hand(game, "JAIL_866")
         game.players[0].mana = 10
         game.players[0].deck = [game._entity("CAP_107t", started_in_deck=True) for _ in range(2)]
