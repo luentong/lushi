@@ -687,6 +687,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertIn(small, game.players[0].board)
         self.assertNotIn(large, game.players[1].board)
 
+    def test_shadow_word_ruin_does_not_affect_dormant_minion(self):
+        game = self.game()
+        dormant = self.add_board(game, "TIME_063", 0)
+        dormant.dormant_turns = 2
+        dormant.attack_delta = 10
+        spell = self.add_hand(game, "CORE_EX1_197")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertIn(dormant, game.players[0].board)
+        self.assertEqual(0, dormant.damage)
+
     def test_drain_soul_has_lifesteal_and_requires_a_minion(self):
         game = self.game()
         game.players[0].health = 20

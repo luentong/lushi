@@ -1276,7 +1276,7 @@ class DestroyMinionsByAttack:
     def execute(self, game: Any, context: RuleContext) -> None:
         for player in game.players:
             for minion in list(player.board):
-                if minion.attack >= self.minimum:
+                if minion.dormant_turns <= 0 and minion.attack >= self.minimum:
                     minion.damage = minion.max_health
 
 
