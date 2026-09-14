@@ -107,7 +107,7 @@ STANDARD_DECLARATIVE_IDS = {
     "RLK_709",  # Remorseless Winter
     "EDR_843a", "EDR_843b", "EDR_843t1", "CAP_405t4",
     "EDR_817", "CAP_102",
-    "TIME_023", "EDR_251", "JAIL_377", "EDR_231", "JAIL_866",
+    "TIME_023", "EDR_251", "JAIL_377", "EDR_231", "JAIL_866", "CORE_CATA_007",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -945,6 +945,26 @@ class DamageAllEnemies:
         for minion in list(enemy.board):
             game._damage_minion(enemy.index, minion, amount, context.card)
         game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class DamageRandomEnemyMinionsThenDrawPerKill:
+    amount: int
+    count: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        killed = 0
+        for _ in range(self.count):
+            if not enemy.board:
+                break
+            target = game.rng.choice(list(enemy.board))
+            game._damage_minion(enemy.index, target, self.amount, context.card)
+            if target.health <= 0:
+                killed += 1
+            game._resolve_deaths()
+        for _ in range(killed):
+            game._draw(context.player)
 
 
 @dataclass(frozen=True)
@@ -3066,6 +3086,10 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "JAIL_866", {Hook.SPELL: (DrawMinionsAndBuffIfMana(2, 10, 3, 3),)},
             RuleSource("upstream_adapted", rosetta, "JAIL_866", "AGPL-3.0", ("test_conditional_draw_tranche",)),
+        ),
+        CardRule(
+            "CORE_CATA_007", {Hook.SPELL: (DamageRandomEnemyMinionsThenDrawPerKill(3, 2),)},
+            RuleSource("upstream_adapted", rosetta, "CATA_007", "AGPL-3.0", ("test_consumption_random_damage",)),
         ),
         CardRule(
             "CATA_302", {Hook.SPELL: (HealActionTargetToFull(), Draw())},
