@@ -1472,7 +1472,7 @@ MEND_900,127427,Teamwork,CATACLYSM,PALADIN,SPELL,True,,Summon and get four {0} S
 NEW_4183_Copy,121006,dummy ench,TIME_TRAVEL,NEUTRAL,ENCHANTMENT,False,,,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,legacy_compatibility,True,focused_or_regression_tests
 RLK_008t,79278,Risen Ghoul,CORE,DEATHKNIGHT,MINION,False,RUSH,Rush Doesn't leave a Corpse.,8e3517ce77774e39f8bba81b5828babe9eb1154cfa7ca6e87d3fca68da22d867,not_implemented,False,missing
 RLK_024,78324,Death Strike,CORE,DEATHKNIGHT,SPELL,True,LIFESTEAL,Lifesteal Deal $6 damage to a minion.,7415a28f14e2d71f1c3f053651d9cf4259ab3b56e287dcd6f7dbc3db09b2e6b3,declarative,True,focused_or_regression_tests
-RLK_025,78325,Frost Strike,CORE,DEATHKNIGHT,SPELL,True,,"Deal $3 damage to a minion. If it dies, Discover a Frost Rune card.",565c5ce37e20417df1ff80d54cccdc8c1a3efb59d2f09ed305fb7fd1f53a8c4c,not_implemented,False,missing
+RLK_025,78325,Frost Strike,CORE,DEATHKNIGHT,SPELL,True,,"Deal $3 damage to a minion. If it dies, Discover a Frost Rune card.",565c5ce37e20417df1ff80d54cccdc8c1a3efb59d2f09ed305fb7fd1f53a8c4c,declarative,True,focused_or_regression_tests
 RLK_039t,87267,Grain Crate,CORE,DEATHKNIGHT,SPELL,False,,Casts When Drawn Summon a 2/2 Undead Peasant.,8b17a107031e2dd0d535982fec8f1929f80e70316714ae98acc566d754f92acd,not_implemented,False,missing
 RLK_048,78342,Anti-Magic Shell,CORE,DEATHKNIGHT,SPELL,True,,Give your minions +1/+1 and Elusive.,265228223b100268fa7a1e5630ca36854d86455c2dbe36a56d2049c38a1b8ad1,not_implemented,False,missing
 RLK_048e,78557,Anti-Magic Shell,CORE,DEATHKNIGHT,ENCHANTMENT,False,,+1/+1 and Elusive.,bd9f950635dd0fa96406b4f0953efccc4ed4aa3ac9f6c800200050de870e13ef,not_implemented,False,missing

@@ -1639,6 +1639,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         replacement = game.players[1].board[0]
         self.assertEqual(0, replacement.definition.cost)
 
+    def test_frost_strike_rune_discover(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_CS2_231", 1)
+        strike = self.add_hand(game, "RLK_025")
+        game.step(Action("PLAY", strike.entity_id, 1, target.entity_id))
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        self.assertTrue(all(
+            game.card_defs[cid].card_class == "DEATHKNIGHT"
+            and game.card_defs[cid].rune_cost.get("frost", 0) > 0
+            for cid in game.pending_choice["pool"]
+        ))
+
 
 if __name__ == "__main__":
     unittest.main()

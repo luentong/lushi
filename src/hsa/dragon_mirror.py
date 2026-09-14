@@ -4838,6 +4838,25 @@ class DragonMirrorGame:
                      for card in options],
         )
 
+    def _offer_rune_discover(self, player: Player, *, rune: str, source_card_id: str) -> None:
+        candidates = sorted(
+            card_id for card_id, definition in self.card_defs.items()
+            if card_id in EXECUTABLE_CARD_IDS
+            and definition.card_class == "DEATHKNIGHT"
+            and getattr(definition, "rune_cost", None)
+            and definition.rune_cost.get(rune.casefold(), 0) > 0
+        )
+        self.rng.shuffle(candidates)
+        options = [self._entity(card_id, created_by=source_card_id) for card_id in candidates[:3]]
+        self.pending_choice = {
+            "kind": "DISCOVER", "player": player.index,
+            "pool": tuple(candidates), "dark_gift": False,
+            "repeats_left": 0, "after_pick": None,
+            "source_card_id": source_card_id, "options": options,
+        }
+        self._event("rune_discover_offer", player=player.index, rune=rune,
+                    source=source_card_id, options=[c.card_id for c in options])
+
     def _add_random_executable_class_card(
         self, player: Player, *, card_class: str, source_card_id: str
     ) -> None:

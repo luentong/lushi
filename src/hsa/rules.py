@@ -118,6 +118,7 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_441",
     "JAIL_891",
     "TLC_235",
+    "RLK_025",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -678,6 +679,26 @@ class DestroyActionTargetReplaceSameCost:
             "destroy_replace_same_cost", player=previous.index,
             source=context.card.card_id, owner=owner.index, cost=cost,
         )
+
+
+@dataclass(frozen=True)
+class DamageActionTargetThenOfferRuneIfKilled:
+    amount: int
+    rune: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        game._damage_minion(
+            context.action.target_player, target,
+            game._spell_effect_amount(context.player, context.card, self.amount),
+            context.card,
+        )
+        killed = target.health <= 0
+        game._resolve_deaths()
+        if killed:
+            game._offer_rune_discover(context.player, rune=self.rune, source_card_id=context.card.card_id)
 
 
 @dataclass(frozen=True)
@@ -3329,6 +3350,11 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "TLC_235", {Hook.SPELL: (DestroyActionTargetReplaceSameCost(),)},
             RuleSource("upstream_adapted", rosetta, "TLC_235", "AGPL-3.0", ("test_life_cycle_replaces_same_cost",)),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "RLK_025", {Hook.SPELL: (DamageActionTargetThenOfferRuneIfKilled(3, "frost"),)},
+            RuleSource("upstream_adapted", rosetta, "RLK_025", "AGPL-3.0", ("test_frost_strike_rune_discover",)),
             TargetSpec(TargetKind.ANY_MINION),
         ),
         CardRule(

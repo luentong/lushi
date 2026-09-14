@@ -427,6 +427,7 @@ MEND_042,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 MEND_044e3,legacy_compatibility,,local_legacy,,0,regression_suite_only
 NEW_4183_Copy,legacy_compatibility,,local_legacy,,0,regression_suite_only
 RLK_024,declarative,spell,upstream_adapted,,0,focused_test_and_regression
+RLK_025,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 RLK_063t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 RLK_067,legacy_compatibility,,local_legacy,,0,regression_suite_only
 RLK_077t,legacy_compatibility,,local_legacy,,0,regression_suite_only

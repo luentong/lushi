@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 175,
+      "declarative": 176,
       "legacy_compatibility": 339,
-      "not_implemented": 1647
+      "not_implemented": 1646
     },
     "collectible_implementation": {
-      "declarative": 151,
+      "declarative": 152,
       "legacy_compatibility": 234,
-      "not_implemented": 781
+      "not_implemented": 780
     },
     "fully_implemented": false
   },
@@ -22125,9 +22125,9 @@
       "mechanics": "",
       "text": "Deal $3 damage to a minion. If it dies, Discover a Frost Rune card.",
       "text_sha256": "565c5ce37e20417df1ff80d54cccdc8c1a3efb59d2f09ed305fb7fd1f53a8c4c",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "RLK_039t",
