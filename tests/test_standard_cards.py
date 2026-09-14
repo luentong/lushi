@@ -1611,6 +1611,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(28, game.players[1].health)
         self.assertEqual(1, enemy.damage)
 
+    def test_drink_blood_lifesteal_refresh(self):
+        game = self.game()
+        game.players[0].health = 20
+        game.players[0].hero_power_used = True
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        drink = self.add_hand(game, "JAIL_441")
+        game.step(Action("PLAY", drink.entity_id, 1, target.entity_id))
+        self.assertEqual(3, target.damage)
+        self.assertEqual(23, game.players[0].health)
+        self.assertFalse(game.players[0].hero_power_used)
+
 
 if __name__ == "__main__":
     unittest.main()

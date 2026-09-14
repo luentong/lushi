@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 172,
+      "declarative": 173,
       "legacy_compatibility": 339,
-      "not_implemented": 1650
+      "not_implemented": 1649
     },
     "collectible_implementation": {
-      "declarative": 148,
+      "declarative": 149,
       "legacy_compatibility": 234,
-      "not_implemented": 784
+      "not_implemented": 783
     },
     "fully_implemented": false
   },
@@ -18675,9 +18675,9 @@
       "mechanics": "LIFESTEAL",
       "text": "Lifesteal Deal $3 damage to a minion. Refresh your Hero Power.",
       "text_sha256": "1dc777b4aa102cf078ba293263f542ba6446345111acb6492b178c77293562f7",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_4411e",

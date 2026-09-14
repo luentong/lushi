@@ -115,6 +115,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BAR_801",
     "EDR_814",
     "CATA_485",
+    "JAIL_441",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -1037,6 +1038,12 @@ class FreezeAllEnemyMinions:
         enemy = game.players[1 - context.player.index]
         for minion in enemy.board:
             minion.frozen_turn = game.turn
+
+
+@dataclass(frozen=True)
+class RefreshHeroPower:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.hero_power_used = False
 
 
 @dataclass(frozen=True)
@@ -3255,6 +3262,11 @@ def build_rule_registry() -> RuleRegistry:
                 "powerlog_verified", local, "CATA_308", "internal",
                 ("test_latest_powerlog_simple_rules",),
             ),
+        ),
+        CardRule(
+            "JAIL_441", {Hook.SPELL: (DamageActionTarget(3), RefreshHeroPower())},
+            RuleSource("upstream_adapted", rosetta, "JAIL_441", "AGPL-3.0", ("test_drink_blood_lifesteal_refresh",)),
+            TargetSpec(TargetKind.ANY_MINION),
         ),
         CardRule(
             "RLK_024", {Hook.SPELL: (DamageActionTarget(6),)},
