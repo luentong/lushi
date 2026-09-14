@@ -4,9 +4,9 @@
   "policy": "reference_matches require human review; only focused tests may promote a card to executable",
   "summary": {
     "cards": 2161,
-    "todo": 1735,
+    "todo": 1732,
     "upstream_reference_review": 0,
-    "verified": 426,
+    "verified": 429,
     "by_tranche": {
       "A0_vanilla_and_keywords": 114,
       "A1_draw_discard": 163,
@@ -1423,24 +1423,6 @@
       "verification": "missing"
     },
     {
-      "card_id": "CORE_BRM_013",
-      "dbf_id": 69691,
-      "name": "Quick Shot",
-      "set": "CORE",
-      "class": "HUNTER",
-      "type": "SPELL",
-      "collectible": true,
-      "mechanics": "AFFECTED_BY_SPELL_POWER",
-      "text": "Deal $3 damage. If your hand is empty, draw a card.",
-      "text_sha256": "a4f5bce8d1f466c3f930a4bae74442f0afaea936b83533712f634ccb55fbeedf",
-      "implementation": "not_implemented",
-      "queue_status": "todo",
-      "tranche": "A1_draw_discard",
-      "upstream_repositories": [],
-      "upstream_match_count": 0,
-      "verification": "missing"
-    },
-    {
       "card_id": "EDR_226",
       "dbf_id": 114018,
       "name": "Exotic Houndmaster",
@@ -1981,24 +1963,6 @@
       "verification": "missing"
     },
     {
-      "card_id": "CORE_CFM_604",
-      "dbf_id": 120459,
-      "name": "Greater Healing Potion",
-      "set": "CORE",
-      "class": "PRIEST",
-      "type": "SPELL",
-      "collectible": true,
-      "mechanics": "",
-      "text": "Restore #12 Health to a friendly character. Draw a card.",
-      "text_sha256": "54fb2faf2f78f9d94a5117128751133d35d8bcef0e4db5a7867e0d1c8226f533",
-      "implementation": "not_implemented",
-      "queue_status": "todo",
-      "tranche": "A1_draw_discard",
-      "upstream_repositories": [],
-      "upstream_match_count": 0,
-      "verification": "missing"
-    },
-    {
       "card_id": "JAIL_430",
       "dbf_id": 126055,
       "name": "Azalina Soulsever",
@@ -2297,24 +2261,6 @@
       "mechanics": "InvisibleDeathrattle",
       "text": "When you play or discard this, summon two random 1-Cost minions.",
       "text_sha256": "de4712127183a0bae1a9d1f5b32f49cd9f2047e62e203045eabd454230a4427c",
-      "implementation": "not_implemented",
-      "queue_status": "todo",
-      "tranche": "A1_draw_discard",
-      "upstream_repositories": [],
-      "upstream_match_count": 0,
-      "verification": "missing"
-    },
-    {
-      "card_id": "CORE_EX1_302",
-      "dbf_id": 69553,
-      "name": "Mortal Coil",
-      "set": "CORE",
-      "class": "WARLOCK",
-      "type": "SPELL",
-      "collectible": true,
-      "mechanics": "",
-      "text": "Deal $1 damage to a minion. If it dies, draw a card.",
-      "text_sha256": "42fed741316b3708eb1078687d2de3fecb7dc8cc0dc2af12235b2a29cbf4b770",
       "implementation": "not_implemented",
       "queue_status": "todo",
       "tranche": "A1_draw_discard",
@@ -32559,6 +32505,27 @@
       "verification": "focused_or_regression_tests"
     },
     {
+      "card_id": "CORE_BRM_013",
+      "dbf_id": 69691,
+      "name": "Quick Shot",
+      "set": "CORE",
+      "class": "HUNTER",
+      "type": "SPELL",
+      "collectible": true,
+      "mechanics": "AFFECTED_BY_SPELL_POWER",
+      "text": "Deal $3 damage. If your hand is empty, draw a card.",
+      "text_sha256": "a4f5bce8d1f466c3f930a4bae74442f0afaea936b83533712f634ccb55fbeedf",
+      "implementation": "declarative",
+      "queue_status": "verified",
+      "tranche": "A1_draw_discard",
+      "upstream_repositories": [
+        "RosettaStone",
+        "fireplace"
+      ],
+      "upstream_match_count": 5,
+      "verification": "focused_or_regression_tests"
+    },
+    {
       "card_id": "JAIL_882",
       "dbf_id": 126425,
       "name": "R4T-C4TCH3R",
@@ -32906,6 +32873,27 @@
       "verification": "focused_or_regression_tests"
     },
     {
+      "card_id": "CORE_CFM_604",
+      "dbf_id": 120459,
+      "name": "Greater Healing Potion",
+      "set": "CORE",
+      "class": "PRIEST",
+      "type": "SPELL",
+      "collectible": true,
+      "mechanics": "",
+      "text": "Restore #12 Health to a friendly character. Draw a card.",
+      "text_sha256": "54fb2faf2f78f9d94a5117128751133d35d8bcef0e4db5a7867e0d1c8226f533",
+      "implementation": "declarative",
+      "queue_status": "verified",
+      "tranche": "A1_draw_discard",
+      "upstream_repositories": [
+        "RosettaStone",
+        "fireplace"
+      ],
+      "upstream_match_count": 3,
+      "verification": "focused_or_regression_tests"
+    },
+    {
       "card_id": "CORE_CS2_004",
       "dbf_id": 120786,
       "name": "Power Word: Shield",
@@ -33059,6 +33047,27 @@
       "tranche": "A1_draw_discard",
       "upstream_repositories": [],
       "upstream_match_count": 0,
+      "verification": "focused_or_regression_tests"
+    },
+    {
+      "card_id": "CORE_EX1_302",
+      "dbf_id": 69553,
+      "name": "Mortal Coil",
+      "set": "CORE",
+      "class": "WARLOCK",
+      "type": "SPELL",
+      "collectible": true,
+      "mechanics": "",
+      "text": "Deal $1 damage to a minion. If it dies, draw a card.",
+      "text_sha256": "42fed741316b3708eb1078687d2de3fecb7dc8cc0dc2af12235b2a29cbf4b770",
+      "implementation": "declarative",
+      "queue_status": "verified",
+      "tranche": "A1_draw_discard",
+      "upstream_repositories": [
+        "RosettaStone",
+        "fireplace"
+      ],
+      "upstream_match_count": 6,
       "verification": "focused_or_regression_tests"
     },
     {

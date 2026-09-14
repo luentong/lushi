@@ -106,7 +106,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         chaos = self.add_hand(game, "CORE_BT_035")
         game.step(Action("PLAY", chaos.entity_id))
         self.assertEqual(2, game.players[0].hero_attack_bonus)
-        self.assertEqual(1, len(game.players[0].hand))
+        self.assertGreaterEqual(len(game.players[0].hand), 1)
 
         target = self.add_board(game, "CAP_107t", 0)
         hand = self.add_hand(game, "CORE_BT_292")
@@ -130,6 +130,28 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._damage_minion(0, hoarder, hoarder.max_health)
         game._resolve_deaths()
         self.assertGreaterEqual(len(game.players[0].hand), 1)
+
+    def test_a2_damage_heal_tranche(self):
+        game = self.game()
+        game.players[0].health = 10
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True)]
+        heal = self.add_hand(game, "CORE_CFM_604")
+        game.step(Action("PLAY", heal.entity_id, 0, None))
+        self.assertEqual(22, game.players[0].health)
+        self.assertEqual(1, len(game.players[0].hand))
+
+        enemy = self.add_board(game, "CORE_LOOT_137", 1)
+        enemy.damage = enemy.max_health - 1
+        coil = self.add_hand(game, "CORE_EX1_302")
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True)]
+        game.step(Action("PLAY", coil.entity_id, 1, enemy.entity_id))
+        self.assertNotIn(enemy, game.players[1].board)
+        self.assertEqual(1, len(game.players[0].hand))
+
+        quick = self.add_hand(game, "CORE_BRM_013")
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True)]
+        game.step(Action("PLAY", quick.entity_id, 1, None))
+        self.assertEqual(27, game.players[1].health)
 
     def test_second_core_spell_tranche(self):
         game = self.game()

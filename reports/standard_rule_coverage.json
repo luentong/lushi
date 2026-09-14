@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 141,
+      "declarative": 144,
       "legacy_compatibility": 285,
-      "not_implemented": 1735
+      "not_implemented": 1732
     },
     "collectible_implementation": {
-      "declarative": 121,
+      "declarative": 124,
       "legacy_compatibility": 227,
-      "not_implemented": 818
+      "not_implemented": 815
     },
     "fully_implemented": false
   },
@@ -5490,9 +5490,9 @@
       "mechanics": "AFFECTED_BY_SPELL_POWER",
       "text": "Deal $3 damage. If your hand is empty, draw a card.",
       "text_sha256": "a4f5bce8d1f466c3f930a4bae74442f0afaea936b83533712f634ccb55fbeedf",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_BT_035",
@@ -6075,9 +6075,9 @@
       "mechanics": "",
       "text": "Restore #12 Health to a friendly character. Draw a card.",
       "text_sha256": "54fb2faf2f78f9d94a5117128751133d35d8bcef0e4db5a7867e0d1c8226f533",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_CFM_670",
@@ -7305,9 +7305,9 @@
       "mechanics": "",
       "text": "Deal $1 damage to a minion. If it dies, draw a card.",
       "text_sha256": "42fed741316b3708eb1078687d2de3fecb7dc8cc0dc2af12235b2a29cbf4b770",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_EX1_309",

@@ -98,6 +98,9 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BT_292",  # Hand of A'dal
     "CORE_CS2_053",  # Far Sight
     "CORE_EX1_096",  # Loot Hoarder
+    "CORE_CFM_604",  # Greater Healing Potion
+    "CORE_BRM_013",  # Quick Shot
+    "CORE_EX1_302",  # Mortal Coil
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -1099,6 +1102,50 @@ class DestroyActionTargetIfAttackAtMost:
         target = game._find_minion(
             context.action.target_player, context.action.target_entity
         )
+
+
+@dataclass(frozen=True)
+class DamageActionTargetThenDrawIfKilled:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        owner = game.players[context.action.target_player]
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        game._damage_minion(
+            owner.index, target,
+            game._spell_effect_amount(context.player, context.card, self.amount),
+            context.card,
+        )
+        killed = target.health <= 0
+        game._resolve_deaths()
+        if killed:
+            game._draw(context.player)
+        game._event(
+            "damage_target_draw_if_killed", player=context.player.index,
+            source=context.card.card_id, target=target.entity_id, killed=killed,
+        )
+
+
+@dataclass(frozen=True)
+class DamageActionTargetThenDrawIfHandEmpty:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        target_player = context.action.target_player
+        target = game.players[target_player] if context.action.target_entity is None else game._find_minion(target_player, context.action.target_entity)
+        if context.action.target_entity is None:
+            game._damage_hero(target_player, self.amount, context.card)
+        else:
+            game._damage_minion(target_player, target, self.amount, context.card)
+            game._resolve_deaths()
+        if not context.player.hand:
+            game._draw(context.player)
         if target.attack <= self.maximum_attack:
             target.damage = target.max_health
             game._resolve_deaths()
@@ -2847,6 +2894,21 @@ def build_rule_registry() -> RuleRegistry:
                 "upstream_adapted", rosetta, "BT_035", "AGPL-3.0",
                 ("test_a1_draw_and_discard_tranche",),
             ),
+        ),
+        CardRule(
+            "CORE_CFM_604", {Hook.SPELL: (HealActionTarget(12), Draw())},
+            RuleSource("upstream_adapted", rosetta, "CFM_604", "AGPL-3.0", ("test_a2_damage_heal_tranche",)),
+            TargetSpec(TargetKind.FRIENDLY_CHARACTER),
+        ),
+        CardRule(
+            "CORE_BRM_013", {Hook.SPELL: (DamageActionTargetThenDrawIfHandEmpty(3),)},
+            RuleSource("upstream_adapted", rosetta, "BRM_013", "AGPL-3.0", ("test_a2_damage_heal_tranche",)),
+            TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "CORE_EX1_302", {Hook.SPELL: (DamageActionTargetThenDrawIfKilled(1),)},
+            RuleSource("upstream_adapted", rosetta, "EX1_302", "AGPL-3.0", ("test_a2_damage_heal_tranche",)),
+            TargetSpec(TargetKind.ANY_MINION),
         ),
         CardRule(
             "CORE_BT_292", {Hook.SPELL: (BuffActionTarget(2, 1), Draw())},
