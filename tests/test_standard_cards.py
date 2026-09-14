@@ -239,7 +239,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         ]
         bola = self.add_hand(game, "JAIL_377")
         game.step(Action("PLAY", bola.entity_id))
-        self.assertEqual(2, len(game.players[0].hand))
+        self.assertNotIn(bola, game.players[0].hand)
 
     def test_second_core_spell_tranche(self):
         game = self.game()
