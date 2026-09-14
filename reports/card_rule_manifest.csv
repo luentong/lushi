@@ -545,4 +545,13 @@ TLC_831t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_888,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_903t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_COIN1,declarative,spell,powerlog_verified,,0,focused_test_and_regression
+TTN_081t,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TTN_710,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TTN_727t,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TTN_801t1,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TTN_812t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TTN_950t,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TTN_950t2,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TTN_960t5,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TTN_960t6,legacy_compatibility,,local_legacy,,0,regression_suite_only
+YOG_506t,legacy_compatibility,,local_legacy,,0,regression_suite_only

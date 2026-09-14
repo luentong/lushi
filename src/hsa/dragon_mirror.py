@@ -350,6 +350,8 @@ STANDARD_VANILLA_IDS = {
     # members for the declarative draw rules.
     "CORE_CS2_231", "CORE_CS2_120", "CORE_GVG_044", "CORE_CS2_182",
     "TTN_950t", "RLK_063t", "BAR_035t",
+    "TTN_081t", "TTN_710", "TTN_727t", "TTN_801t1", "TTN_812t",
+    "TTN_950t2", "TTN_960t5", "TTN_960t6", "YOG_506t",
 }
 
 BASIC_TOTEM_IDS = ("CS2_050", "CS2_051", "CS2_052", "NEW1_009")
