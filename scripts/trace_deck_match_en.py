@@ -45,6 +45,7 @@ def main() -> int:
         return name(entity_id)
 
     def player_summary(player):
+        hand = ", ".join(name(card.entity_id) for card in player.hand) or "empty"
         board = ", ".join(f"{name(card.entity_id)} ({card.attack}/{card.max_health})" for card in player.board) or "empty"
         weapon = player.weapon.name if player.weapon is not None else "none"
         locations = ", ".join(
@@ -53,7 +54,7 @@ def main() -> int:
         ) or "none"
         return (
             f"P{player.index + 1}: HP {player.health}/{player.max_health}, Armor {player.armor}, "
-            f"Mana {player.mana}/{player.max_mana}, Hand {len(player.hand)}, Deck {len(player.deck)}, "
+            f"Mana {player.mana}/{player.max_mana}, Hand {len(player.hand)} [{hand}], Deck {len(player.deck)}, "
             f"Board [{board}], Weapon [{weapon}], Locations [{locations}]"
         )
 
