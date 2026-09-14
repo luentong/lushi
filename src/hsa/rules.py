@@ -1140,7 +1140,7 @@ class DamageActionTargetThenDrawIfHandEmpty:
         target_player = context.action.target_player
         target = game.players[target_player] if context.action.target_entity is None else game._find_minion(target_player, context.action.target_entity)
         if context.action.target_entity is None:
-            game._damage_hero(target_player, self.amount, context.card)
+            game._damage_hero(game.players[target_player], self.amount, context.card)
         else:
             game._damage_minion(target_player, target, self.amount, context.card)
             game._resolve_deaths()
