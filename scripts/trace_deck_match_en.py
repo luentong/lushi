@@ -34,7 +34,9 @@ def main() -> int:
         card = find(entity_id)
         if card is None: return str(entity_id) if entity_id is not None else ""
         definition = getattr(card, "definition", None)
-        return definition.name if definition is not None else card.card_id
+        if definition is not None:
+            return definition.name
+        return game.card_defs.get(card.card_id, None).name if card.card_id in game.card_defs else card.card_id
 
     def pending_name(entity_id):
         for option in (game.pending_choice or {}).get("options", []):
@@ -48,7 +50,10 @@ def main() -> int:
         action = policies[game.current].choose(game)
         source = pending_name(action.source) if action.kind.endswith("PICK") else name(action.source)
         text = LABELS.get(action.kind, action.kind) + (f" [{source}]" if source else "")
-        if action.target_entity is not None: text += f" -> [{name(action.target_entity)}]"
+        if action.target_entity is not None:
+            text += f" -> [{name(action.target_entity)}]"
+        elif action.target_player is not None and action.kind in {"HERO_ATTACK", "HERO_POWER"}:
+            text += f" -> [Player {action.target_player + 1} hero]"
         lines.append(f"{number + 1}. Player {game.current + 1}: {text}")
         game.step(action); number += 1
     winner = f"Player {game.winner + 1}" if game.winner is not None else "none"

@@ -9,7 +9,7 @@ Fixed seed: 202609140001
 5. Player 2: Play [Unshackle Soul] -> [Carrier Whelp]
 6. Player 2: End turn
 7. Player 1: Play [Brood Keeper]
-8. Player 1: Hero attack
+8. Player 1: Hero attack -> [Player 2 hero]
 9. Player 1: End turn
 10. Player 2: Play [Mind Sweeper]
 11. Player 2: End turn
@@ -18,12 +18,12 @@ Fixed seed: 202609140001
 14. Player 1: Play [Timelord Nozdormu]
 15. Player 1: End turn
 16. Player 2: Play [Kaldorei Priestess]
-17. Player 2: Use location [CORE_REV_990] -> [Kaldorei Priestess]
+17. Player 2: Use location [Sanguine Depths] -> [Kaldorei Priestess]
 18. Player 2: End turn
 19. Player 1: Play [Shadowflame Suffusion] -> [Kaldorei Priestess]
 20. Player 1: Pick Discover [Afflicted Devastator]
 21. Player 1: Play [Searing Fissure]
-22. Player 1: Hero attack
+22. Player 1: Hero attack -> [Player 2 hero]
 23. Player 1: End turn
 24. Player 2: Play [Shadow Word: Ruin]
 25. Player 2: Prepare [Soothsayer]
@@ -32,7 +32,7 @@ Fixed seed: 202609140001
 28. Player 1: Play [Darkrider]
 29. Player 1: Pick Discover [Chillmaw]
 30. Player 1: End turn
-31. Player 2: Use location [CORE_REV_990] -> [Darkrider]
+31. Player 2: Use location [Sanguine Depths] -> [Darkrider]
 32. Player 2: Play [Bitterbloom Knight]
 33. Player 2: Play [Searing Fissure]
 34. Player 2: Hero attack -> [Prescient Slitherdrake]
@@ -51,7 +51,7 @@ Fixed seed: 202609140001
 47. Player 2: Play [Hook n' Heave]
 48. Player 2: Pick Discover [Time Skipper]
 49. Player 2: Play [Time Skipper]
-50. Player 2: Use location [CORE_REV_990] -> [Time Skipper]
+50. Player 2: Use location [Sanguine Depths] -> [Time Skipper]
 51. Player 2: Play [Darkrider]
 52. Player 2: Pick Discover [Runaway Blackwing]
 53. Player 2: End turn
@@ -87,7 +87,7 @@ Fixed seed: 202609140001
 83. Player 1: Play [Hook n' Heave]
 84. Player 1: Pick Discover [Captain Crowley]
 85. Player 1: Play [Captain Crowley]
-86. Player 1: Use location [CATA_584]
+86. Player 1: Use location [Erupting Volcano]
 87. Player 1: Use hero power
 88. Player 1: End turn
 89. Player 2: Minion attack [Soothsayer] -> [Captain Crowley]
@@ -96,11 +96,11 @@ Fixed seed: 202609140001
 92. Player 2: Minion attack [Time Skipper] -> [Cannoneer]
 93. Player 2: Play [Runaway Blackwing]
 94. Player 2: End turn
-95. Player 1: Use location [CORE_REV_990] -> [Warptooth]
+95. Player 1: Use location [Sanguine Depths] -> [Warptooth]
 96. Player 1: Play [Hook n' Heave]
 97. Player 1: Pick Discover [Time Skipper]
 98. Player 1: Play [Time Skipper]
-99. Player 1: Use location [CATA_584]
+99. Player 1: Use location [Erupting Volcano]
 100. Player 1: Use hero power
 101. Player 1: End turn
 102. Player 2: Minion attack [Runaway Blackwing] -> [Time Skipper]
@@ -111,7 +111,7 @@ Fixed seed: 202609140001
 107. Player 1: Play [Cannonmaster]
 108. Player 1: Play [Cannoneer]
 109. Player 1: Play [The Coin]
-110. Player 1: Use location [CATA_584]
+110. Player 1: Use location [Erupting Volcano]
 111. Player 1: Use hero power
 112. Player 1: End turn
 113. Player 2: Minion attack [Medivh the Hallowed] -> [Cannonmaster]
@@ -119,8 +119,8 @@ Fixed seed: 202609140001
 115. Player 2: End turn
 116. Player 1: Minion attack [Cannoneer] -> [Medivh the Hallowed]
 117. Player 1: Play [Windpeak Wyrm] -> [Medivh the Hallowed]
-118. Player 1: Use location [CORE_REV_990] -> [Windpeak Wyrm]
-119. Player 1: Use location [CATA_584]
+118. Player 1: Use location [Sanguine Depths] -> [Windpeak Wyrm]
+119. Player 1: Use location [Erupting Volcano]
 120. Player 1: Use hero power
 121. Player 1: End turn
 122. Player 2: Play [Azalina Soulsever]
@@ -130,19 +130,19 @@ Fixed seed: 202609140001
 126. Player 1: Minion attack [Windpeak Wyrm] -> [Azalina Soulsever]
 127. Player 1: Play [Cannonmaster]
 128. Player 1: Play [Cannoneer]
-129. Player 1: Use location [CATA_584]
+129. Player 1: Use location [Erupting Volcano]
 130. Player 1: Use hero power
 131. Player 1: End turn
 132. Player 2: Minion attack [Cannonmaster] -> [Cannonmaster]
 133. Player 2: Play [Windpeak Wyrm] -> [Cannoneer]
 134. Player 2: Play [Brood Keeper]
-135. Player 2: Hero attack
-136. Player 2: Use location [TIME_890t2]
+135. Player 2: Hero attack -> [Player 1 hero]
+136. Player 2: Use location [Karazhan the Sanctum]
 137. Player 2: End turn
-138. Player 1: Use location [CORE_REV_990] -> [Sandscale Dragon]
+138. Player 1: Use location [Sanguine Depths] -> [Sandscale Dragon]
 139. Player 1: Play [Searing Fissure]
 140. Player 1: Hero attack -> [Brood Keeper]
-141. Player 1: Use location [CATA_584]
+141. Player 1: Use location [Erupting Volcano]
 142. Player 1: Use hero power
 143. Player 1: End turn
 144. Player 2: Minion attack [Sandscale Dragon]
