@@ -120,6 +120,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TLC_235",
     "RLK_025",
     "TIME_218", "CORE_BOT_222",
+    "TLC_823",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -1119,6 +1120,16 @@ class FreezeAllEnemyMinions:
 class RefreshHeroPower:
     def execute(self, game: Any, context: RuleContext) -> None:
         context.player.hero_power_used = False
+
+
+@dataclass(frozen=True)
+class DiscountNextBeast:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.next_beast_cost_reduction = max(
+            context.player.next_beast_cost_reduction, self.amount
+        )
 
 
 @dataclass(frozen=True)
@@ -3366,6 +3377,11 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CORE_BOT_222", {Hook.SPELL: (DamageActionTarget(4), DamageHero(4))},
             RuleSource("upstream_adapted", rosetta, "BOT_222", "AGPL-3.0", ("test_spirit_bomb_self_damage",)),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "TLC_823", {Hook.SPELL: (DamageActionTarget(3), DiscountNextBeast(2))},
+            RuleSource("upstream_adapted", rosetta, "TLC_823", "AGPL-3.0", ("test_cower_in_fear_beast_discount",)),
             TargetSpec(TargetKind.ANY_MINION),
         ),
         CardRule(

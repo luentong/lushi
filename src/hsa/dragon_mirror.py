@@ -851,6 +851,7 @@ class Player:
     overload_next_turn: int = 0
     locked_mana: int = 0
     next_demon_free: bool = False
+    next_beast_cost_reduction: int = 0
     hero_divine_shield: bool = False
     hero_divine_shield_hits: int = 0
     hero_divine_shield_toreth: bool = False
@@ -1856,6 +1857,7 @@ class DragonMirrorGame:
         player.hero_attack_bonus = 0
         player.hero_attacks_this_turn = 0
         player.hero_power_used = False
+        player.next_beast_cost_reduction = 0
         player.fire_spell_played = False
         player.cards_played_this_turn = 0
         player.dragons_played_this_turn = 0
@@ -2214,6 +2216,8 @@ class DragonMirrorGame:
                 and minion.dormant_turns == 0
                 for owner in self.players for minion in owner.board
             )
+        if card.has_race("BEAST"):
+            cost -= player.next_beast_cost_reduction
         if card.card_id == "TLC_600" and "DRAGON" in player.played_races_last_turn:
             cost -= 3
         if card.card_id == "END_033" and any(
@@ -2394,6 +2398,8 @@ class DragonMirrorGame:
                 if minion.has_race("PIRATE")
                 else 0
             )
+        if card.has_race("BEAST") and player.next_beast_cost_reduction:
+            player.next_beast_cost_reduction = 0
             minion.weapon_attack_bonus = (
                 2
                 if minion.card_id == "CORE_WON_351"

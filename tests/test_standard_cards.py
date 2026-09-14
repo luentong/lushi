@@ -1667,6 +1667,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(4, target.damage)
         self.assertEqual(26, game.players[0].health)
 
+    def test_cower_in_fear_beast_discount(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        fear = self.add_hand(game, "TLC_823")
+        beast = self.add_hand(game, "EDR_810t")
+        game.step(Action("PLAY", fear.entity_id, 1, target.entity_id))
+        self.assertEqual(2, game.players[0].next_beast_cost_reduction)
+        before = game.players[0].mana
+        game.step(Action("PLAY", beast.entity_id))
+        self.assertEqual(before - max(0, beast.definition.cost - 2), game.players[0].mana)
+        self.assertEqual(0, game.players[0].next_beast_cost_reduction)
+
 
 if __name__ == "__main__":
     unittest.main()

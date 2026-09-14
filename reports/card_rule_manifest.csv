@@ -544,6 +544,7 @@ TLC_632t,declarative,hero_power,official_text_and_engine_verified,,0,focused_tes
 TLC_632t2,declarative,hero_power,official_text_and_engine_verified,,0,focused_test_and_regression
 TLC_813,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_820,declarative,deathrattle,local_spec,,0,focused_test_and_regression
+TLC_823,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 TLC_831t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_888,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_903t,legacy_compatibility,,local_legacy,,0,regression_suite_only

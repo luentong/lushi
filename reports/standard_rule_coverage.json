@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 178,
+      "declarative": 179,
       "legacy_compatibility": 339,
-      "not_implemented": 1644
+      "not_implemented": 1643
     },
     "collectible_implementation": {
-      "declarative": 154,
+      "declarative": 155,
       "legacy_compatibility": 234,
-      "not_implemented": 778
+      "not_implemented": 777
     },
     "fully_implemented": false
   },
@@ -31785,9 +31785,9 @@
       "mechanics": "",
       "text": "Deal $3 damage to a minion. The next Beast you play this turn costs (2) less.",
       "text_sha256": "b19d9e548f5463f1cae0a81aa1681f62a88d83eefe32e1cc52c9389234d6a3f6",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_823e1",
