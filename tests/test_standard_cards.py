@@ -170,11 +170,11 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(1, len(game.players[0].hand))
 
         frost = self.add_hand(game, "RLK_511")
-        game.players[0].deck = [game._entity("CORE_RLK_709", started_in_deck=True)]
+        game.players[0].deck = [game._entity("RLK_709", started_in_deck=True)]
         game.step(Action("PLAY", frost.entity_id))
         game._damage_minion(0, frost, frost.max_health)
         game._resolve_deaths()
-        self.assertTrue(any(card.card_id == "CORE_RLK_709" for card in game.players[0].hand))
+        self.assertTrue(any(card.card_id == "RLK_709" for card in game.players[0].hand))
 
         winter = self.add_hand(game, "RLK_709")
         enemy = self.add_board(game, "CORE_LOOT_137", 1)
