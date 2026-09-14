@@ -2398,8 +2398,6 @@ class DragonMirrorGame:
                 if minion.has_race("PIRATE")
                 else 0
             )
-        if card.has_race("BEAST") and player.next_beast_cost_reduction:
-            player.next_beast_cost_reduction = 0
             minion.weapon_attack_bonus = (
                 2
                 if minion.card_id == "CORE_WON_351"
@@ -3345,6 +3343,8 @@ class DragonMirrorGame:
                 "demon_discount_consumed", player=player.index,
                 card=card.card_id,
             )
+        if card.has_race("BEAST") and player.next_beast_cost_reduction:
+            player.next_beast_cost_reduction = 0
         controller = (
             self.players[action.target_player]
             if card.card_id == "JAIL_455" and action.target_player is not None
