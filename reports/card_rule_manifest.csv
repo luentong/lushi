@@ -1,5 +1,6 @@
 ﻿card_id,implementation,hooks,source_kind,upstream_repositories,upstream_match_count,verification_status
 CAP_004,declarative,deathrattle,local_spec,,0,focused_test_and_regression
+CAP_102,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 CAP_104,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CAP_105,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CAP_105t,legacy_compatibility,,local_legacy,,0,regression_suite_only
@@ -281,6 +282,7 @@ EDR_810,declarative,battlecry,local_spec,,0,focused_test_and_regression
 EDR_810t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_813at,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_816,legacy_compatibility,,local_legacy,,0,regression_suite_only
+EDR_817,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 EDR_818,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_843a,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 EDR_843b,declarative,spell,upstream_adapted,,0,focused_test_and_regression

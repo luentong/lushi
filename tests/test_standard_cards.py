@@ -200,6 +200,19 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", bulk.entity_id))
         self.assertGreaterEqual(len(game.players[0].hand), 3)
 
+    def test_draw_summon_tranche(self):
+        game = self.game()
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True) for _ in range(4)]
+        spell = self.add_hand(game, "EDR_817")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(2, len(game.players[0].board))
+        self.assertEqual(2, len(game.players[0].hand))
+
+        crate = self.add_hand(game, "CAP_102")
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True) for _ in range(2)]
+        game.step(Action("PLAY", crate.entity_id))
+        self.assertEqual(4, len(game.players[0].board))
+
     def test_second_core_spell_tranche(self):
         game = self.game()
         enemy = self.add_board(game, "CORE_LOOT_137", 1)

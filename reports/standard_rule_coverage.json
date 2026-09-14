@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 150,
+      "declarative": 152,
       "legacy_compatibility": 339,
-      "not_implemented": 1672
+      "not_implemented": 1670
     },
     "collectible_implementation": {
-      "declarative": 126,
+      "declarative": 128,
       "legacy_compatibility": 234,
-      "not_implemented": 806
+      "not_implemented": 804
     },
     "fully_implemented": false
   },
@@ -270,9 +270,9 @@
       "mechanics": "",
       "text": "Draw 2 cards. Summon two 1/1 Cannoneers.",
       "text_sha256": "35dc9c80adbc4dce1b8bd48f979a53b88c5606fad409d8040be6b27bd3790053",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_103",
@@ -14310,9 +14310,9 @@
       "mechanics": "",
       "text": "Draw 2 cards. Summon two 0/2 Leeches.",
       "text_sha256": "7573c426ccd86a230bae304073b67db50be7fc4064c307178d33a5de5cc36d68",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_818",

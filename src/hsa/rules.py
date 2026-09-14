@@ -106,6 +106,7 @@ STANDARD_DECLARATIVE_IDS = {
     "RLK_511",  # Harbinger of Winter
     "RLK_709",  # Remorseless Winter
     "EDR_843a", "EDR_843b", "EDR_843t1", "CAP_405t4",
+    "EDR_817", "CAP_102",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -2975,6 +2976,14 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CAP_405t4", {Hook.SPELL: (Draw(3),)},
             RuleSource("upstream_adapted", rosetta, "CAP_405t4", "AGPL-3.0", ("test_type_draw_tranche",)),
+        ),
+        CardRule(
+            "EDR_817", {Hook.SPELL: (Draw(2), Summon("EDR_810t", count=2))},
+            RuleSource("upstream_adapted", rosetta, "EDR_817", "AGPL-3.0", ("test_draw_summon_tranche",)),
+        ),
+        CardRule(
+            "CAP_102", {Hook.SPELL: (Draw(2), Summon("CAP_107t", count=2))},
+            RuleSource("upstream_adapted", rosetta, "CAP_102", "AGPL-3.0", ("test_draw_summon_tranche",)),
         ),
         CardRule(
             "EDR_416",
