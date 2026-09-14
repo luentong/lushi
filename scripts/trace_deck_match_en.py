@@ -46,7 +46,13 @@ def main() -> int:
 
     def player_summary(player):
         hand = ", ".join(name(card.entity_id) for card in player.hand) or "empty"
-        board = ", ".join(f"{name(card.entity_id)} ({card.attack}/{card.max_health})" for card in player.board) or "empty"
+        board = ", ".join(
+            f"{name(card.entity_id)} ({card.attack}/{card.max_health - card.damage}, "
+            f"damage {card.damage}"
+            + (f", dormant {card.dormant_turns}" if card.dormant_turns else "")
+            + ")"
+            for card in player.board
+        ) or "empty"
         weapon = player.weapon.name if player.weapon is not None else "none"
         locations = ", ".join(
             f"{name(location.entity_id)} (durability {location.durability}, cooldown {location.cooldown})"
