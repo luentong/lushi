@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 137,
+      "declarative": 141,
       "legacy_compatibility": 285,
-      "not_implemented": 1739
+      "not_implemented": 1735
     },
     "collectible_implementation": {
-      "declarative": 117,
+      "declarative": 121,
       "legacy_compatibility": 227,
-      "not_implemented": 822
+      "not_implemented": 818
     },
     "fully_implemented": false
   },
@@ -5505,9 +5505,9 @@
       "mechanics": "",
       "text": "Give your hero +2 Attack this turn. Draw a card.",
       "text_sha256": "499418d4c0b7d6bf63843cbccb293734428cb09ba51506f10875d52228192147",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_BT_072",
@@ -5595,9 +5595,9 @@
       "mechanics": "",
       "text": "Give a minion +2/+1. Draw a card.",
       "text_sha256": "8a865782fc3ef2bb0b73b8d5ec4e9d5b1cb94884e63cb0abd635a012ead8c5bd",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_BT_321",
@@ -6315,9 +6315,9 @@
       "mechanics": "",
       "text": "Draw a card. That card costs (3) less.",
       "text_sha256": "3b67bbfccd49f4bdbaeeeb804ff2ddf6d47ecca1e2c5cb05534db02e5dcd4516",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_CS2_062",
@@ -6960,9 +6960,9 @@
       "mechanics": "DEATHRATTLE",
       "text": "Deathrattle: Draw a card.",
       "text_sha256": "3d661d10ac53627f31c4f5970177bc73c803a4499b5d408fae268582c646f669",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_EX1_100",

@@ -97,6 +97,36 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", assassinate.entity_id, 1, enemy.entity_id))
         self.assertNotIn(enemy, game.players[1].board)
 
+    def test_a1_draw_and_discard_tranche(self):
+        game = self.game()
+        game.players[0].deck = [
+            game._entity("GAME_005", started_in_deck=True),
+            game._entity("CORE_CS2_065", started_in_deck=True),
+        ]
+        chaos = self.add_hand(game, "CORE_BT_035")
+        game.step(Action("PLAY", chaos.entity_id))
+        self.assertEqual(2, game.players[0].hero_attack_bonus)
+        self.assertEqual(1, len(game.players[0].hand))
+
+        target = self.add_board(game, "CAP_107t", 0)
+        hand = self.add_hand(game, "CORE_BT_292")
+        before = len(game.players[0].hand)
+        game.step(Action("PLAY", hand.entity_id, 0, target.entity_id))
+        self.assertEqual((3, 2), (target.attack, target.max_health))
+        # The spell leaves hand and immediately replaces itself with one draw.
+        self.assertEqual(before, len(game.players[0].hand))
+
+        far = self.add_hand(game, "CORE_CS2_053")
+        game.step(Action("PLAY", far.entity_id))
+        discounted = next(card for card in game.players[0].hand if card.card_id == "CORE_CS2_065")
+        self.assertEqual(-3, discounted.cost_delta)
+
+        hoarder = self.add_hand(game, "CORE_EX1_096")
+        game.step(Action("PLAY", hoarder.entity_id))
+        game._damage_minion(0, hoarder, hoarder.max_health)
+        game._resolve_deaths()
+        self.assertGreaterEqual(len(game.players[0].hand), 1)
+
     def test_second_core_spell_tranche(self):
         game = self.game()
         enemy = self.add_board(game, "CORE_LOOT_137", 1)

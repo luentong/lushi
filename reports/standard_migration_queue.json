@@ -4,9 +4,9 @@
   "policy": "reference_matches require human review; only focused tests may promote a card to executable",
   "summary": {
     "cards": 2161,
-    "todo": 1739,
+    "todo": 1735,
     "upstream_reference_review": 0,
-    "verified": 422,
+    "verified": 426,
     "by_tranche": {
       "A0_vanilla_and_keywords": 114,
       "A1_draw_discard": 163,
@@ -1189,24 +1189,6 @@
       "verification": "missing"
     },
     {
-      "card_id": "CORE_BT_035",
-      "dbf_id": 69558,
-      "name": "Chaos Strike",
-      "set": "CORE",
-      "class": "DEMONHUNTER",
-      "type": "SPELL",
-      "collectible": true,
-      "mechanics": "",
-      "text": "Give your hero +2 Attack this turn. Draw a card.",
-      "text_sha256": "499418d4c0b7d6bf63843cbccb293734428cb09ba51506f10875d52228192147",
-      "implementation": "not_implemented",
-      "queue_status": "todo",
-      "tranche": "A1_draw_discard",
-      "upstream_repositories": [],
-      "upstream_match_count": 0,
-      "verification": "missing"
-    },
-    {
       "card_id": "CORE_BT_491",
       "dbf_id": 69684,
       "name": "Spectral Sight",
@@ -1765,24 +1747,6 @@
       "verification": "missing"
     },
     {
-      "card_id": "CORE_EX1_096",
-      "dbf_id": 69665,
-      "name": "Loot Hoarder",
-      "set": "CORE",
-      "class": "NEUTRAL",
-      "type": "MINION",
-      "collectible": true,
-      "mechanics": "DEATHRATTLE",
-      "text": "Deathrattle: Draw a card.",
-      "text_sha256": "3d661d10ac53627f31c4f5970177bc73c803a4499b5d408fae268582c646f669",
-      "implementation": "not_implemented",
-      "queue_status": "todo",
-      "tranche": "A1_draw_discard",
-      "upstream_repositories": [],
-      "upstream_match_count": 0,
-      "verification": "missing"
-    },
-    {
       "card_id": "DINO_411",
       "dbf_id": 118496,
       "name": "Holy Eggbearer",
@@ -1937,24 +1901,6 @@
       "mechanics": "DEATHRATTLE",
       "text": "Deathrattle: Draw another copy of cards you've played this game.@ (@ cards)",
       "text_sha256": "a104728899ecf22bff25d0eae115620b2bceb7afc64eba5ce66ab41bb3f6485b",
-      "implementation": "not_implemented",
-      "queue_status": "todo",
-      "tranche": "A1_draw_discard",
-      "upstream_repositories": [],
-      "upstream_match_count": 0,
-      "verification": "missing"
-    },
-    {
-      "card_id": "CORE_BT_292",
-      "dbf_id": 102197,
-      "name": "Hand of A'dal",
-      "set": "CORE",
-      "class": "PALADIN",
-      "type": "SPELL",
-      "collectible": true,
-      "mechanics": "",
-      "text": "Give a minion +2/+1. Draw a card.",
-      "text_sha256": "8a865782fc3ef2bb0b73b8d5ec4e9d5b1cb94884e63cb0abd635a012ead8c5bd",
       "implementation": "not_implemented",
       "queue_status": "todo",
       "tranche": "A1_draw_discard",
@@ -2225,24 +2171,6 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Draw a card and reduce its Cost by (10). Repeat this with excess Cost reduction.",
       "text_sha256": "8d0d593ed2779253517c7c588b59aefe71719a059eb53019b39e4c33e319e7bd",
-      "implementation": "not_implemented",
-      "queue_status": "todo",
-      "tranche": "A1_draw_discard",
-      "upstream_repositories": [],
-      "upstream_match_count": 0,
-      "verification": "missing"
-    },
-    {
-      "card_id": "CORE_CS2_053",
-      "dbf_id": 76293,
-      "name": "Far Sight",
-      "set": "CORE",
-      "class": "SHAMAN",
-      "type": "SPELL",
-      "collectible": true,
-      "mechanics": "",
-      "text": "Draw a card. That card costs (3) less.",
-      "text_sha256": "3b67bbfccd49f4bdbaeeeb804ff2ddf6d47ecca1e2c5cb05534db02e5dcd4516",
       "implementation": "not_implemented",
       "queue_status": "todo",
       "tranche": "A1_draw_discard",
@@ -32499,6 +32427,27 @@
       "verification": "focused_or_regression_tests"
     },
     {
+      "card_id": "CORE_BT_035",
+      "dbf_id": 69558,
+      "name": "Chaos Strike",
+      "set": "CORE",
+      "class": "DEMONHUNTER",
+      "type": "SPELL",
+      "collectible": true,
+      "mechanics": "",
+      "text": "Give your hero +2 Attack this turn. Draw a card.",
+      "text_sha256": "499418d4c0b7d6bf63843cbccb293734428cb09ba51506f10875d52228192147",
+      "implementation": "declarative",
+      "queue_status": "verified",
+      "tranche": "A1_draw_discard",
+      "upstream_repositories": [
+        "RosettaStone",
+        "fireplace"
+      ],
+      "upstream_match_count": 12,
+      "verification": "focused_or_regression_tests"
+    },
+    {
       "card_id": "CORE_BT_480",
       "dbf_id": 69683,
       "name": "Crimson Sigil Runner",
@@ -32688,6 +32637,27 @@
       "verification": "focused_or_regression_tests"
     },
     {
+      "card_id": "CORE_EX1_096",
+      "dbf_id": 69665,
+      "name": "Loot Hoarder",
+      "set": "CORE",
+      "class": "NEUTRAL",
+      "type": "MINION",
+      "collectible": true,
+      "mechanics": "DEATHRATTLE",
+      "text": "Deathrattle: Draw a card.",
+      "text_sha256": "3d661d10ac53627f31c4f5970177bc73c803a4499b5d408fae268582c646f669",
+      "implementation": "declarative",
+      "queue_status": "verified",
+      "tranche": "A1_draw_discard",
+      "upstream_repositories": [
+        "RosettaStone",
+        "fireplace"
+      ],
+      "upstream_match_count": 5,
+      "verification": "focused_or_regression_tests"
+    },
+    {
       "card_id": "CORE_KAR_061",
       "dbf_id": 120180,
       "name": "The Curator",
@@ -32837,6 +32807,27 @@
       "verification": "focused_or_regression_tests"
     },
     {
+      "card_id": "CORE_BT_292",
+      "dbf_id": 102197,
+      "name": "Hand of A'dal",
+      "set": "CORE",
+      "class": "PALADIN",
+      "type": "SPELL",
+      "collectible": true,
+      "mechanics": "",
+      "text": "Give a minion +2/+1. Draw a card.",
+      "text_sha256": "8a865782fc3ef2bb0b73b8d5ec4e9d5b1cb94884e63cb0abd635a012ead8c5bd",
+      "implementation": "declarative",
+      "queue_status": "verified",
+      "tranche": "A1_draw_discard",
+      "upstream_repositories": [
+        "RosettaStone",
+        "fireplace"
+      ],
+      "upstream_match_count": 9,
+      "verification": "focused_or_regression_tests"
+    },
+    {
       "card_id": "CORE_CS2_094",
       "dbf_id": 102790,
       "name": "Hammer of Wrath",
@@ -32975,6 +32966,27 @@
         "fireplace"
       ],
       "upstream_match_count": 3,
+      "verification": "focused_or_regression_tests"
+    },
+    {
+      "card_id": "CORE_CS2_053",
+      "dbf_id": 76293,
+      "name": "Far Sight",
+      "set": "CORE",
+      "class": "SHAMAN",
+      "type": "SPELL",
+      "collectible": true,
+      "mechanics": "",
+      "text": "Draw a card. That card costs (3) less.",
+      "text_sha256": "3b67bbfccd49f4bdbaeeeb804ff2ddf6d47ecca1e2c5cb05534db02e5dcd4516",
+      "implementation": "declarative",
+      "queue_status": "verified",
+      "tranche": "A1_draw_discard",
+      "upstream_repositories": [
+        "RosettaStone",
+        "fireplace"
+      ],
+      "upstream_match_count": 12,
       "verification": "focused_or_regression_tests"
     },
     {

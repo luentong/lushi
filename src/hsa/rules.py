@@ -94,6 +94,10 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_EX1_278",  # Shiv
     "CORE_TRL_307",  # Flash of Light
     "CORE_CS2_093",  # Consecration
+    "CORE_BT_035",  # Chaos Strike
+    "CORE_BT_292",  # Hand of A'dal
+    "CORE_CS2_053",  # Far Sight
+    "CORE_EX1_096",  # Loot Hoarder
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -2835,6 +2839,35 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "upstream_adapted", rosetta, "CS2_093", "AGPL-3.0",
                 ("test_second_core_spell_tranche",),
+            ),
+        ),
+        CardRule(
+            "CORE_BT_035", {Hook.SPELL: (GainHeroAttack(2), Draw())},
+            RuleSource(
+                "upstream_adapted", rosetta, "BT_035", "AGPL-3.0",
+                ("test_a1_draw_and_discard_tranche",),
+            ),
+        ),
+        CardRule(
+            "CORE_BT_292", {Hook.SPELL: (BuffActionTarget(2, 1), Draw())},
+            RuleSource(
+                "upstream_adapted", rosetta, "BT_292", "AGPL-3.0",
+                ("test_a1_draw_and_discard_tranche",),
+            ),
+            TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "CORE_CS2_053", {Hook.SPELL: (DrawMatching(cost_delta=-3),)},
+            RuleSource(
+                "upstream_adapted", rosetta, "CS2_053", "AGPL-3.0",
+                ("test_a1_draw_and_discard_tranche",),
+            ),
+        ),
+        CardRule(
+            "CORE_EX1_096", {Hook.DEATHRATTLE: (Draw(),)},
+            RuleSource(
+                "upstream_adapted", rosetta, "EX1_096", "AGPL-3.0",
+                ("test_a1_draw_and_discard_tranche",),
             ),
         ),
         CardRule(
