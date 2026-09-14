@@ -182,6 +182,24 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", winter.entity_id))
         self.assertEqual(28, game.players[1].health)
 
+    def test_type_draw_tranche(self):
+        game = self.game()
+        game.players[0].deck = [
+            game._entity("CORE_CS2_065", started_in_deck=True),
+            game._entity("CORE_AT_055", started_in_deck=True),
+        ]
+        spell = self.add_hand(game, "EDR_843a")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual("CORE_AT_055", game.players[0].hand[-1].card_id)
+        minion = self.add_hand(game, "EDR_843b")
+        game.step(Action("PLAY", minion.entity_id))
+        self.assertTrue(any(card.card_id == "CORE_CS2_065" for card in game.players[0].hand))
+
+        bulk = self.add_hand(game, "CAP_405t4")
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True) for _ in range(3)]
+        game.step(Action("PLAY", bulk.entity_id))
+        self.assertGreaterEqual(len(game.players[0].hand), 3)
+
     def test_second_core_spell_tranche(self):
         game = self.game()
         enemy = self.add_board(game, "CORE_LOOT_137", 1)

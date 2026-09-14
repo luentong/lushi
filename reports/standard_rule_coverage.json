@@ -7,9 +7,9 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 146,
+      "declarative": 150,
       "legacy_compatibility": 339,
-      "not_implemented": 1676
+      "not_implemented": 1672
     },
     "collectible_implementation": {
       "declarative": 126,
@@ -600,9 +600,9 @@
       "mechanics": "",
       "text": "Draw 3 cards.",
       "text_sha256": "8619e16e844a591fbc178baf6c2f8c48866083de40c725208731b67d5dd8d28d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_405t5",
@@ -14595,9 +14595,9 @@
       "mechanics": "",
       "text": "Draw a spell.",
       "text_sha256": "61ef74c6d0ae717bf7db7750dbb60c1a9f8edde0f2ab8cfb0d4c2156e08dabb7",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_843b",
@@ -14610,9 +14610,9 @@
       "mechanics": "",
       "text": "Draw a minion.",
       "text_sha256": "91a03a92500489b20a6e84af48e50da125b96ea973b068a89960efebfb61e7bf",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_843t1",
@@ -14625,9 +14625,9 @@
       "mechanics": "",
       "text": "Draw a spell and a minion.",
       "text_sha256": "3859eb1aecd8a20a6580cb5cd03a335abd99224b22c3e97cac4c00b038285419",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_844",

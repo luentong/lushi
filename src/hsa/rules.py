@@ -105,6 +105,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_RLK_121",  # Acolyte of Death
     "RLK_511",  # Harbinger of Winter
     "RLK_709",  # Remorseless Winter
+    "EDR_843a", "EDR_843b", "EDR_843t1", "CAP_405t4",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -2958,6 +2959,22 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "RLK_709", {Hook.SPELL: (DamageAllEnemies(2), Draw())},
             RuleSource("upstream_adapted", rosetta, "RLK_709", "AGPL-3.0", ("test_a1_undead_and_frost_draw_tranche",)),
+        ),
+        CardRule(
+            "EDR_843a", {Hook.SPELL: (DrawMatching(card_type="SPELL"),)},
+            RuleSource("upstream_adapted", rosetta, "EDR_843a", "AGPL-3.0", ("test_type_draw_tranche",)),
+        ),
+        CardRule(
+            "EDR_843b", {Hook.SPELL: (DrawMatching(card_type="MINION"),)},
+            RuleSource("upstream_adapted", rosetta, "EDR_843b", "AGPL-3.0", ("test_type_draw_tranche",)),
+        ),
+        CardRule(
+            "EDR_843t1", {Hook.SPELL: (DrawMatching(card_type="SPELL"), DrawMatching(card_type="MINION"))},
+            RuleSource("upstream_adapted", rosetta, "EDR_843t1", "AGPL-3.0", ("test_type_draw_tranche",)),
+        ),
+        CardRule(
+            "CAP_405t4", {Hook.SPELL: (Draw(3),)},
+            RuleSource("upstream_adapted", rosetta, "CAP_405t4", "AGPL-3.0", ("test_type_draw_tranche",)),
         ),
         CardRule(
             "EDR_416",
