@@ -113,6 +113,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_AT_037",
     "CORE_CS2_024", "CORE_CS2_028", "CORE_RLK_063",
     "CORE_BAR_801",
+    "EDR_814",
     "EDR_416",  # Shepherd's Crook
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
@@ -3274,6 +3275,11 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CORE_BAR_801", {Hook.SPELL: (DamageActionTarget(1), Summon("BAR_035t"))},
             RuleSource("upstream_adapted", rosetta, "BAR_801", "AGPL-3.0", ("test_wound_prey_damage_summon",)),
+            TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "EDR_814", {Hook.SPELL: (DamageActionTarget(2), Summon("EDR_810t"))},
+            RuleSource("upstream_adapted", rosetta, "EDR_814", "AGPL-3.0", ("test_infested_breath_damage_summon",)),
             TargetSpec(TargetKind.ANY_CHARACTER),
         ),
         CardRule(

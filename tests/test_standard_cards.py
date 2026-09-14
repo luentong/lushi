@@ -1595,6 +1595,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(1, target.damage)
         self.assertTrue(any(card.card_id == "BAR_035t" for card in game.players[0].board))
 
+    def test_infested_breath_damage_summon(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        breath = self.add_hand(game, "EDR_814")
+        game.step(Action("PLAY", breath.entity_id, 1, target.entity_id))
+        self.assertEqual(2, target.damage)
+        self.assertTrue(any(card.card_id == "EDR_810t" for card in game.players[0].board))
+
 
 if __name__ == "__main__":
     unittest.main()

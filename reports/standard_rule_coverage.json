@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 170,
+      "declarative": 171,
       "legacy_compatibility": 339,
-      "not_implemented": 1652
+      "not_implemented": 1651
     },
     "collectible_implementation": {
-      "declarative": 146,
+      "declarative": 147,
       "legacy_compatibility": 234,
-      "not_implemented": 786
+      "not_implemented": 785
     },
     "fully_implemented": false
   },
@@ -14250,9 +14250,9 @@
       "mechanics": "",
       "text": "Deal $2 damage. Summon a 0/2 Leech.",
       "text_sha256": "3c47b9606779610ca6496f1be6eedfbd339aba8ba22a87b307ba4089ed6cd529",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_815",
