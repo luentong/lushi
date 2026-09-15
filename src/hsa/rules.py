@@ -125,6 +125,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_DS1_184",
     "CATA_491",
     "CAP_801",
+    "CATA_215",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -2044,6 +2045,7 @@ class ReturnActionTargetToOwnerHand:
         target.temporary_health_modifiers.clear()
         target.temporary_immune_expiry_turn = -1
         target.destroy_at_turn_start = -1
+        target.playable_after_turn = game.turn + 1
         if len(owner.hand) < 10:
             owner.hand.append(target)
             destination = "hand"
@@ -3474,6 +3476,11 @@ def build_rule_registry() -> RuleRegistry:
             "CAP_801", {Hook.SPELL: (BuffActionTargetWithRebornTaunt(2, 3),)},
             RuleSource("upstream_adapted", rosetta, "CAP_801", "AGPL-3.0", ("test_standard_haunt",)),
             TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "CATA_215", {Hook.SPELL: (ReturnActionTargetToOwnerHand(),)},
+            RuleSource("upstream_adapted", rosetta, "CATA_215", "AGPL-3.0", ("test_standard_daze_bounce_lock",)),
+            TargetSpec(TargetKind.ENEMY_MINION),
         ),
         CardRule(
             "CORE_CS1_112", {Hook.SPELL: (DamageBoard(2), HealFriendlyCharacters(2))},

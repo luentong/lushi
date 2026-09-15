@@ -965,6 +965,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertTrue(target.taunt)
         self.assertTrue(target.reborn)
 
+    def test_standard_daze_bounce_lock(self):
+        game = self.game()
+        target = self.add_board(game, "CAP_107t", 1)
+        spell = self.add_hand(game, "CATA_215")
+        game.step(Action("PLAY", spell.entity_id, 1, target.entity_id))
+        self.assertIn(target, game.players[1].hand)
+        self.assertEqual(game.turn + 1, target.playable_after_turn)
+
     def test_panther_mask_sets_stats_stealth_and_draws(self):
         game = self.game()
         target = self.add_board(game, "CORE_CS2_065", 1)

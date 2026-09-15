@@ -663,6 +663,7 @@ class CardInstance:
     started_in_deck: bool = False
     created_by: str | None = None
     dormant_turns: int = 0
+    playable_after_turn: int = -1
     summoned_when_drawn: bool = False
     immune: bool = False
     infinite_attack_next_turn: bool = False
@@ -2909,6 +2910,8 @@ class DragonMirrorGame:
             if "Prepare" in card.definition.text and not card.prepared:
                 actions.append(Action("PREPARE", card.entity_id))
             if card.prepared_turn == self.turn:
+                continue
+            if self.turn <= card.playable_after_turn:
                 continue
             effective_cost = self._effective_cost(player, card)
             if card.card_id == "TLC_436":

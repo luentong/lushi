@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 204,
+      "declarative": 205,
       "legacy_compatibility": 339,
-      "not_implemented": 1618
+      "not_implemented": 1617
     },
     "collectible_implementation": {
-      "declarative": 180,
+      "declarative": 181,
       "legacy_compatibility": 234,
-      "not_implemented": 752
+      "not_implemented": 751
     },
     "fully_implemented": false
   },
@@ -2310,9 +2310,9 @@
       "mechanics": "",
       "text": "Return an enemy minion to its owner's hand. They can't play it next turn.",
       "text_sha256": "5dbee96ac5f1bad3593f2677c7ba2b0d9e30334df3f2077b5dae8ec6dca53eac",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_215e",
