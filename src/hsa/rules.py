@@ -123,8 +123,6 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_EX1_246",
     "CORE_EX1_160",
     "CORE_DS1_184",
-    "CORE_CS2_075", "CORE_CS2_077", "CORE_CS2_089",
-    "CORE_CS2_013", "CORE_EX1_164",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -3521,6 +3519,10 @@ def build_rule_registry() -> RuleRegistry:
                 ("draw_three", (Draw(3),)),
             )),)},
             RuleSource("upstream_adapted", rosetta, "EX1_164", "AGPL-3.0", ("test_standard_mana_spells",)),
+        ),
+        CardRule(
+            "CORE_EX1_284", {Hook.BATTLECRY: (Draw(),)},
+            RuleSource("upstream_adapted", rosetta, "EX1_284", "AGPL-3.0", ("test_standard_azure_drake_draw",)),
         ),
         CardRule(
             "CORE_EX1_129", {Hook.SPELL: (DamageBoard(1), Draw())},

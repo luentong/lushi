@@ -165,6 +165,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("RULE_CHOICE_PICK", 1))
         self.assertEqual(3, len(game.players[0].hand))
 
+    def test_standard_azure_drake_draw(self):
+        game = self.game()
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True)]
+        drake = self.add_hand(game, "CORE_EX1_284")
+        game.step(Action("PLAY", drake.entity_id))
+        self.assertIn(drake, game.players[0].board)
+        self.assertEqual(1, len(game.players[0].hand))
+
     def test_a1_draw_and_discard_tranche(self):
         game = self.game()
         game.players[0].deck = [
