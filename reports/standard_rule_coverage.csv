@@ -478,7 +478,7 @@ CORE_EX1_193,69566,Psychic Conjurer,CORE,PRIEST,MINION,True,BATTLECRY,Battlecry:
 CORE_EX1_197,69616,Shadow Word: Ruin,CORE,PRIEST,SPELL,True,,Destroy all minions with 5 or more Attack.,fb78662e9f9b5ca77b49ab2ee45bf44667deeb67256d8a734fc770f8bfd2b2fb,declarative,True,focused_or_regression_tests
 CORE_EX1_198,69617,Natalie Seline,CORE,PRIEST,MINION,True,BATTLECRY,Battlecry: Destroy a minion and gain its Health.,268edb5c70135f88b8ec67f847e800f83a95125ed05719b1ca6714abe4781ecc,not_implemented,False,missing
 CORE_EX1_238,69625,Lightning Bolt,CORE,SHAMAN,SPELL,True,OVERLOAD,Deal $3 damage. Overload: (1),0a742b67ba7d6ed10b0b64877cd9abd2749a118eade6bd19a7645cdfe808c8bd,declarative,True,focused_or_regression_tests
-CORE_EX1_246,69551,Hex,CORE,SHAMAN,SPELL,True,,Transform a minion into a 0/1 Frog with Taunt.,1d94147bc8c40be6e111c0b5206e4aa3c0ee732fcff40b28b0d5597563df6796,not_implemented,False,missing
+CORE_EX1_246,69551,Hex,CORE,SHAMAN,SPELL,True,,Transform a minion into a 0/1 Frog with Taunt.,1d94147bc8c40be6e111c0b5206e4aa3c0ee732fcff40b28b0d5597563df6796,declarative,True,focused_or_regression_tests
 CORE_EX1_250,69627,Earth Elemental,CORE,SHAMAN,MINION,True,"OVERLOAD,TAUNT",Taunt Overload: (2),16b4ecf38fd35cae14313139f7705ad2079ebe84ecdace3623c76e81b1a9807f,not_implemented,False,missing
 CORE_EX1_259,69629,Lightning Storm,CORE,SHAMAN,SPELL,True,OVERLOAD,Deal $3 damage to all enemy minions. Overload: (1),070b0d74a53813cabe3a1088f4ba7baf01cf13d1264e68734feb8eae9857982d,declarative,True,focused_or_regression_tests
 CORE_EX1_278,126895,Shiv,CORE,ROGUE,SPELL,True,,Deal $1 damage. Draw a card.,01cb10b38d4d8aa32845b4c32046c945fd3367db228936d3bcbef7ad3fd73157,declarative,True,focused_or_regression_tests

@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 198,
+      "declarative": 199,
       "legacy_compatibility": 339,
-      "not_implemented": 1624
+      "not_implemented": 1623
     },
     "collectible_implementation": {
-      "declarative": 174,
+      "declarative": 175,
       "legacy_compatibility": 234,
-      "not_implemented": 758
+      "not_implemented": 757
     },
     "fully_implemented": false
   },
@@ -7215,9 +7215,9 @@
       "mechanics": "",
       "text": "Transform a minion into a 0/1 Frog with Taunt.",
       "text_sha256": "1d94147bc8c40be6e111c0b5206e4aa3c0ee732fcff40b28b0d5597563df6796",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_EX1_250",

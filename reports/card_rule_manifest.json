@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 580,
-    "declarative_rules": 201,
+    "supported_cards": 582,
+    "declarative_rules": 202,
     "legacy_special_case_rules": 2,
-    "legacy_compatibility_rules": 377,
-    "cards_with_upstream_match": 150
+    "legacy_compatibility_rules": 378,
+    "cards_with_upstream_match": 152
   },
   "cards": [
     {
@@ -7398,6 +7398,85 @@
           "match_kind": "historical_alias",
           "path": "fireplace/cards/uldum/zephrys_the_great.py",
           "line": 33
+        }
+      ],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
+      "card_id": "CORE_EX1_246",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "TransformActionTarget"
+        ]
+      },
+      "rule_source": {
+        "kind": "upstream_adapted",
+        "reference": "vendor/RosettaStone@e10749b5f0c08d3a6135bce317cb11d1738846ad",
+        "upstream_card_id": "EX1_246",
+        "license": "AGPL-3.0",
+        "verification": [
+          "test_standard_hex_transform"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "CORE_EX1_246",
+          "match_kind": "exact",
+          "path": "Sources/Rosetta/PlayMode/CardSets/CoreCardsGen.cpp",
+          "line": 2150
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "CORE_EX1_246",
+          "match_kind": "exact",
+          "path": "Sources/Rosetta/PlayMode/CardSets/CoreCardsGen.cpp",
+          "line": 2168
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "EX1_246",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/LegacyCardsGen.cpp",
+          "line": 2009
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "EX1_246",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/LegacyCardsGen.cpp",
+          "line": 2027
+        },
+        {
+          "repository": "fireplace",
+          "commit": "47a2572a000db66645bb74a425a090d51f1004fa",
+          "license": "AGPL-3.0",
+          "matched_id": "EX1_246",
+          "match_kind": "historical_alias",
+          "path": "fireplace/cards/classic/shaman.py",
+          "line": 143
+        },
+        {
+          "repository": "fireplace",
+          "commit": "47a2572a000db66645bb74a425a090d51f1004fa",
+          "license": "AGPL-3.0",
+          "matched_id": "EX1_246",
+          "match_kind": "historical_alias",
+          "path": "fireplace/cards/uldum/zephrys_the_great.py",
+          "line": 116
         }
       ],
       "verification_status": "focused_test_and_regression"
@@ -19179,6 +19258,86 @@
       },
       "metadata_source": "HearthstoneJSON build 251332",
       "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "hexfrog",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "hexfrog",
+          "match_kind": "exact",
+          "path": "Sources/Rosetta/PlayMode/CardSets/CoreCardsGen.cpp",
+          "line": 2165
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "hexfrog",
+          "match_kind": "exact",
+          "path": "Sources/Rosetta/PlayMode/CardSets/LegacyCardsGen.cpp",
+          "line": 2024
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "hexfrog",
+          "match_kind": "exact",
+          "path": "Sources/Rosetta/PlayMode/CardSets/LegacyCardsGen.cpp",
+          "line": 3731
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "hexfrog",
+          "match_kind": "exact",
+          "path": "Sources/Rosetta/PlayMode/CardSets/LegacyCardsGen.cpp",
+          "line": 3741
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "hexfrog",
+          "match_kind": "exact",
+          "path": "Sources/Rosetta/PlayMode/CardSets/TheBarrensCardsGen.cpp",
+          "line": 2332
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "hexfrog",
+          "match_kind": "exact",
+          "path": "Sources/Rosetta/PlayMode/CardSets/VanillaCardsGen.cpp",
+          "line": 3996
+        },
+        {
+          "repository": "fireplace",
+          "commit": "47a2572a000db66645bb74a425a090d51f1004fa",
+          "license": "AGPL-3.0",
+          "matched_id": "hexfrog",
+          "match_kind": "exact",
+          "path": "fireplace/cards/classic/shaman.py",
+          "line": 147
+        }
+      ],
       "verification_status": "regression_suite_only"
     }
   ]

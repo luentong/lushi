@@ -165,6 +165,7 @@ CORE_EX1_169,declarative,spell,upstream_adapted,"RosettaStone,fireplace",5,focus
 CORE_EX1_193,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",5,regression_suite_only
 CORE_EX1_197,declarative,spell,upstream_adapted,"RosettaStone,fireplace",5,focused_test_and_regression
 CORE_EX1_238,declarative,spell,upstream_adapted,"RosettaStone,fireplace",6,focused_test_and_regression
+CORE_EX1_246,declarative,spell,upstream_adapted,"RosettaStone,fireplace",6,focused_test_and_regression
 CORE_EX1_259,declarative,spell,upstream_adapted,"RosettaStone,fireplace",6,focused_test_and_regression
 CORE_EX1_277,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",7,regression_suite_only
 CORE_EX1_278,declarative,spell,upstream_adapted,"RosettaStone,fireplace",3,focused_test_and_regression
@@ -579,3 +580,4 @@ TTN_950t2,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TTN_960t5,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TTN_960t6,legacy_compatibility,,local_legacy,,0,regression_suite_only
 YOG_506t,legacy_compatibility,,local_legacy,,0,regression_suite_only
+hexfrog,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",7,regression_suite_only

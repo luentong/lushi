@@ -120,6 +120,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BT_072",
     "CORE_EX1_145",
     "CORE_EX1_619", "CORE_EX1_259",
+    "CORE_EX1_246",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -1382,6 +1383,23 @@ class SetAllMinionHealth:
             for minion in player.board:
                 minion.health_delta += self.health - minion.max_health
                 minion.damage = min(minion.damage, max(0, minion.max_health - self.health))
+
+
+@dataclass(frozen=True)
+class TransformActionTarget:
+    card_id: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        owner = game.players[context.action.target_player]
+        target = game._find_minion(owner.index, context.action.target_entity)
+        replacement = game._entity(self.card_id, created_by=context.card.card_id)
+        replacement.entity_id = target.entity_id
+        owner.board[owner.board.index(target)] = replacement
+        game._event("transform", player=context.player.index,
+                    source=context.card.card_id, target=target.entity_id,
+                    replacement=self.card_id)
 
 
 @dataclass(frozen=True)
@@ -3448,6 +3466,11 @@ def build_rule_registry() -> RuleRegistry:
                 "upstream_adapted", rosetta, "GIL_622", "AGPL-3.0",
                 ("test_standard_basic_damage_draw",),
             ),
+        ),
+        CardRule(
+            "CORE_EX1_246", {Hook.SPELL: (TransformActionTarget("hexfrog"),)},
+            RuleSource("upstream_adapted", rosetta, "EX1_246", "AGPL-3.0", ("test_standard_hex_transform",)),
+            TargetSpec(TargetKind.ANY_MINION),
         ),
         CardRule(
             "CORE_EX1_129", {Hook.SPELL: (DamageBoard(1), Draw())},

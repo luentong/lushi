@@ -415,6 +415,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(3, enemy.damage)
         self.assertEqual(1, game.players[0].overload_next_turn)
 
+    def test_standard_hex_transform(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_EX1_007", 1)
+        target.attack_delta = 5
+        hex_spell = self.add_hand(game, "CORE_EX1_246")
+        game.step(Action("PLAY", hex_spell.entity_id, 1, target.entity_id))
+        transformed = game.players[1].board[0]
+        self.assertEqual("hexfrog", transformed.card_id)
+        self.assertEqual((0, 1), (transformed.attack, transformed.max_health))
+        self.assertTrue(transformed.taunt)
+        self.assertEqual(target.entity_id, transformed.entity_id)
+
     def test_powerlog_cards_and_triggers(self):
         game = self.game()
         game._equip_weapon(game.players[0], Weapon("EDR_416", "Shepherd's Crook", 3, 2))
