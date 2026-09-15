@@ -397,7 +397,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         bolt = self.add_hand(game, "CORE_EX1_238")
         game.step(Action("PLAY", prep.entity_id))
         self.assertEqual(2, game.players[0].next_spell_cost_reduction)
-        self.assertEqual(1, game._effective_cost(game.players[0], bolt))
+        self.assertEqual(0, game._effective_cost(game.players[0], bolt))
         game.step(Action("PLAY", bolt.entity_id, 1, None))
         self.assertEqual(0, game.players[0].next_spell_cost_reduction)
 
