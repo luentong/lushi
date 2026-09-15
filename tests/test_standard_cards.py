@@ -2028,6 +2028,41 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(1, len(game.players[1].hand))
         self.assertEqual(2, len(game.players[0].hand))
 
+    def test_arcane_flow_shatters_and_merges_at_hand_edges(self):
+        game = self.game()
+        game.players[0].hand.clear()
+        game.players[0].deck = [game._entity("CATA_489", started_in_deck=True)]
+        game._draw(game.players[0])
+        self.assertEqual(["CATA_489t", "CATA_489t2"],
+                         [card.card_id for card in game.players[0].hand])
+        left, right = game.players[0].hand
+        filler = game._entity("GAME_005")
+        game.players[0].hand.insert(1, filler)
+        game._normalize_shattered_hand(game.players[0])
+        self.assertEqual(3, len(game.players[0].hand))
+        game.players[0].hand.remove(filler)
+        game._normalize_shattered_hand(game.players[0])
+        self.assertEqual(["CATA_489"],
+                         [card.card_id for card in game.players[0].hand])
+
+    def test_arcane_flow_halves_and_merged_spell_have_correct_effects(self):
+        game = self.game()
+        enemy = self.add_board(game, "CORE_LOOT_137", 1)
+        game.players[1].health = 30
+        left = self.add_hand(game, "CATA_489t")
+        game.step(Action("PLAY", left.entity_id))
+        self.assertEqual(26, game.players[1].health)
+
+        right = self.add_hand(game, "CATA_489t2")
+        game.step(Action("PLAY", right.entity_id))
+        self.assertEqual(24, game.players[1].health)
+        self.assertEqual(2, enemy.damage)
+
+        merged = self.add_hand(game, "CATA_489")
+        game.step(Action("PLAY", merged.entity_id))
+        self.assertEqual(18, game.players[1].health)
+        self.assertEqual(4, enemy.damage)
+
 
 if __name__ == "__main__":
     unittest.main()

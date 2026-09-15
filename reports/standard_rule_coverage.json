@@ -7,9 +7,9 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 211,
+      "declarative": 213,
       "legacy_compatibility": 337,
-      "not_implemented": 1613
+      "not_implemented": 1611
     },
     "collectible_implementation": {
       "declarative": 187,
@@ -3375,9 +3375,9 @@
       "mechanics": "EVIL_GLOW",
       "text": "Shattered Deal $4 damage.",
       "text_sha256": "3cccaeefd084bfb9a0dcdd56168b65884433d6b87d99ab6e5478d08adefc7098",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_489t2",
@@ -3390,9 +3390,9 @@
       "mechanics": "EVIL_GLOW",
       "text": "Shattered Deal $2 damage to all enemies.",
       "text_sha256": "b45ebb1455a59843ef8dd6078bc4f44496b89db148dfa41e286758c73f57b95a",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_490",

@@ -131,6 +131,8 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_203",
     "CATA_554",
     "CATA_557",
+    "CATA_489",  # Arcane Flow (Shatter base card)
+    "CATA_489t", "CATA_489t2",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -3577,6 +3579,18 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CATA_557", {Hook.SPELL: (SylvanasTriumphDamage(),)},
             RuleSource("upstream_adapted", rosetta, "CATA_557", "AGPL-3.0", ("test_standard_sylvanas_triumph_repeat",)),
+        ),
+        CardRule(
+            "CATA_489", {Hook.SPELL: (DamageHero(4, "opponent"), DamageHero(2, "opponent"), DamageBoard(2, "opponent"))},
+            RuleSource("upstream_adapted", rosetta, "CATA_489", "AGPL-3.0", ("test_arcane_flow_shatters_and_merges_at_hand_edges", "test_arcane_flow_halves_and_merged_spell_have_correct_effects")),
+        ),
+        CardRule(
+            "CATA_489t", {Hook.SPELL: (DamageHero(4, "opponent"),)},
+            RuleSource("upstream_adapted", rosetta, "CATA_489t", "AGPL-3.0", ("test_arcane_flow_halves_and_merged_spell_have_correct_effects",)),
+        ),
+        CardRule(
+            "CATA_489t2", {Hook.SPELL: (DamageHero(2, "opponent"), DamageBoard(2, "opponent"))},
+            RuleSource("upstream_adapted", rosetta, "CATA_489t2", "AGPL-3.0", ("test_arcane_flow_halves_and_merged_spell_have_correct_effects",)),
         ),
         CardRule(
             "CORE_CS1_112", {Hook.SPELL: (DamageBoard(2), HealFriendlyCharacters(2))},

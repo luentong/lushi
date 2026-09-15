@@ -687,6 +687,8 @@ class CardInstance:
     prepared_turn: int = -1
     # Prepare is a one-time state on the card, not a per-turn activation.
     prepared: bool = False
+    shatter_origin: str | None = None
+    shatter_half: str | None = None
     dynamic_spell_damage: int = 0
     spells_cast_while_held: int = 0
     illusion_fake: bool = False
@@ -1552,6 +1554,10 @@ class DragonMirrorGame:
         self._receive_drawn_card(player, card)
 
     def _receive_drawn_card(self, player: Player, card: CardInstance) -> None:
+        if card.card_id == "CATA_489":
+            self._split_shatter_card(player, card)
+            self._after_card_draw(player, card)
+            return
         if card.casts_when_drawn_damage:
             self._event(
                 "casts_when_drawn", player=player.index, card=card.card_id,
@@ -3168,6 +3174,8 @@ class DragonMirrorGame:
             self._resolve_rule_choice(action.source)
         elif action.kind == "CATACLYSM_PICK":
             self._resolve_deathwing_cataclysm(action.source)
+        for owner in self.players:
+            self._normalize_shattered_hand(owner)
         self._resolve_deaths()
         self._check_winner()
 
@@ -5133,6 +5141,8 @@ class DragonMirrorGame:
         elif gift == "sweet_dreams": card.attack_delta += 4; card.health_delta += 5
 
     def _add_generated(self, player: Player, card: CardInstance) -> str:
+        if card.card_id == "CATA_489":
+            return "hand" if self._split_shatter_card(player, card) else "burned"
         if "sweet_dreams" in card.gifts:
             player.deck.append(card)
             return "deck"
@@ -5140,6 +5150,51 @@ class DragonMirrorGame:
             player.hand.append(card)
             return "hand"
         return "burned"
+
+    def _split_shatter_card(self, player: Player, card: CardInstance) -> bool:
+        """Replace a Shatter card entering hand with its two half-cards.
+
+        The two pieces are placed at opposite ends of the hand.  Hand-size
+        limits are applied independently, so a partially full hand can keep
+        one half while burning the other instead of exceeding ten cards.
+        """
+        available = max(0, 10 - len(player.hand))
+        if available == 0:
+            self._event("shatter_burn", player=player.index, card=card.card_id,
+                        halves=2)
+            return False
+        left = card.clone(self.next_entity_id)
+        self.next_entity_id += 1
+        right = card.clone(self.next_entity_id)
+        self.next_entity_id += 1
+        left.definition = self.card_defs["CATA_489t"]
+        right.definition = self.card_defs["CATA_489t2"]
+        left.shatter_origin = right.shatter_origin = card.card_id
+        left.shatter_half, right.shatter_half = "left", "right"
+        if available >= 2:
+            player.hand.insert(0, left)
+            player.hand.append(right)
+            burned = 0
+        else:
+            player.hand.append(left)
+            burned = 1
+        self._event("shatter_split", player=player.index, source=card.card_id,
+                    halves=[left.entity_id, right.entity_id], burned=burned)
+        return True
+
+    def _normalize_shattered_hand(self, player: Player) -> None:
+        for index in range(len(player.hand) - 1):
+            left, right = player.hand[index], player.hand[index + 1]
+            if left.shatter_origin != right.shatter_origin or left.shatter_origin is None:
+                continue
+            if {left.shatter_half, right.shatter_half} != {"left", "right"}:
+                continue
+            merged = self._entity(left.shatter_origin, created_by="SHATTER_MERGE")
+            merged.cost_delta = left.cost_delta
+            player.hand[index:index + 2] = [merged]
+            self._event("shatter_merge", player=player.index,
+                        source=merged.card_id, halves=[left.entity_id, right.entity_id])
+            return
 
     def _stadium_weapons(self, player: Player) -> None:
         for p in self.players:
