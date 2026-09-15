@@ -856,6 +856,7 @@ class Player:
     frozen_turn: int = -1
     cards_played_this_turn: int = 0
     generated_cards_played: int = 0
+    played_card_counts: dict[str, int] = field(default_factory=dict)
     pending_phoenixes: int = 0
     corpses: int = 0
     pending_magmaw_bodies: int = 0
@@ -900,6 +901,7 @@ class Player:
         result.played_races_this_turn = set(self.played_races_this_turn)
         result.played_races_last_turn = set(self.played_races_last_turn)
         result.damaged_characters_this_turn = set(self.damaged_characters_this_turn)
+        result.played_card_counts = dict(self.played_card_counts)
         return result
 
     @property
@@ -3388,6 +3390,7 @@ class DragonMirrorGame:
             created_by=card.created_by,
         )
         player.cards_played_this_turn += 1
+        player.played_card_counts[card.card_id] = player.played_card_counts.get(card.card_id, 0) + 1
         if not card.started_in_deck:
             player.generated_cards_played += 1
         if card.copied_from_opponent:

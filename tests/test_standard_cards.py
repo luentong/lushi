@@ -1011,6 +1011,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("EARTHEN_ROAR_PICK", second.entity_id))
         self.assertEqual(1, second.max_health)
 
+    def test_standard_sylvanas_triumph_repeat(self):
+        game = self.game()
+        game.players[1].health = 30
+        first = self.add_hand(game, "CATA_557")
+        game.step(Action("PLAY", first.entity_id))
+        self.assertEqual(27, game.players[1].health)
+        second = self.add_hand(game, "CATA_557")
+        game.step(Action("PLAY", second.entity_id))
+        self.assertEqual(24, game.players[1].health)
+
     def test_panther_mask_sets_stats_stealth_and_draws(self):
         game = self.game()
         target = self.add_board(game, "CORE_CS2_065", 1)

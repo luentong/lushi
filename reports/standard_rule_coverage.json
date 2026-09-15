@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 209,
+      "declarative": 210,
       "legacy_compatibility": 337,
-      "not_implemented": 1615
+      "not_implemented": 1614
     },
     "collectible_implementation": {
-      "declarative": 185,
+      "declarative": 186,
       "legacy_compatibility": 232,
-      "not_implemented": 749
+      "not_implemented": 748
     },
     "fully_implemented": false
   },
@@ -4035,9 +4035,9 @@
       "mechanics": "",
       "text": "Deal $3 damage. If you've played another copy of this, hit all enemies instead.",
       "text_sha256": "01c932d014daa81b7e48b16f291afd5c01286dea788ec5f6ba6dcb9de0e355e9",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_558",

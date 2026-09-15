@@ -130,6 +130,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_585",
     "CATA_203",
     "CATA_554",
+    "CATA_557",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -513,6 +514,18 @@ class DamageHero:
         game._damage_hero(
             _recipient(game, context, self.side), amount, context.card
         )
+
+
+@dataclass(frozen=True)
+class SylvanasTriumphDamage:
+    amount: int = 3
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.player.played_card_counts.get(context.card.card_id, 0) >= 2:
+            DamageHero(self.amount, "opponent").execute(game, context)
+            DamageBoard(self.amount, "opponent").execute(game, context)
+        else:
+            DamageHero(self.amount, "opponent").execute(game, context)
 
 
 @dataclass(frozen=True)
@@ -3560,6 +3573,10 @@ def build_rule_registry() -> RuleRegistry:
             "CATA_554", {Hook.SPELL: (SetEnemyHealthOneWithDragonRepeat(),)},
             RuleSource("upstream_adapted", rosetta, "CATA_554", "AGPL-3.0", ("test_standard_earthen_roar",)),
             TargetSpec(TargetKind.ENEMY_MINION),
+        ),
+        CardRule(
+            "CATA_557", {Hook.SPELL: (SylvanasTriumphDamage(),)},
+            RuleSource("upstream_adapted", rosetta, "CATA_557", "AGPL-3.0", ("test_standard_sylvanas_triumph_repeat",)),
         ),
         CardRule(
             "CORE_CS1_112", {Hook.SPELL: (DamageBoard(2), HealFriendlyCharacters(2))},
