@@ -150,6 +150,7 @@ ADDITIONAL_GENERATED_MINION_IDS = {
     "CORE_BT_201",  # Augmented Porcupine
     "CORE_CS2_033",  # Water Elemental
     "hexfrog",  # Hex transformation token
+    "EX1_160t",  # Power of the Wild Panther token
     "CORE_DRG_107",  # Violet Spellwing
     "CORE_SW_068",  # Mo'arg Forgefiend
     "CORE_TTN_866",  # Mythical Terror

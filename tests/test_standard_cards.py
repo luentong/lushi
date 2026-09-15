@@ -427,6 +427,20 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertTrue(transformed.taunt)
         self.assertEqual(target.entity_id, transformed.entity_id)
 
+    def test_standard_power_of_the_wild(self):
+        game = self.game()
+        friendly = self.add_board(game, "CORE_EX1_007", 0)
+        spell = self.add_hand(game, "CORE_EX1_160")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual("RULE_CHOICE", game.pending_choice["kind"])
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        self.assertEqual((2, 5), (friendly.attack, friendly.max_health))
+
+        spell = self.add_hand(game, "CORE_EX1_160")
+        game.step(Action("PLAY", spell.entity_id))
+        game.step(Action("RULE_CHOICE_PICK", 1))
+        self.assertTrue(any(card.card_id == "EX1_160t" for card in game.players[0].board))
+
     def test_powerlog_cards_and_triggers(self):
         game = self.game()
         game._equip_weapon(game.players[0], Weapon("EDR_416", "Shepherd's Crook", 3, 2))

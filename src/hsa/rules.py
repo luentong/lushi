@@ -121,6 +121,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_EX1_145",
     "CORE_EX1_619", "CORE_EX1_259",
     "CORE_EX1_246",
+    "CORE_EX1_160",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -1400,6 +1401,17 @@ class TransformActionTarget:
         game._event("transform", player=context.player.index,
                     source=context.card.card_id, target=target.entity_id,
                     replacement=self.card_id)
+
+
+@dataclass(frozen=True)
+class BuffAllFriendlyMinions:
+    attack: int
+    health: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for minion in context.player.board:
+            minion.attack_delta += self.attack
+            minion.health_delta += self.health
 
 
 @dataclass(frozen=True)
@@ -3471,6 +3483,13 @@ def build_rule_registry() -> RuleRegistry:
             "CORE_EX1_246", {Hook.SPELL: (TransformActionTarget("hexfrog"),)},
             RuleSource("upstream_adapted", rosetta, "EX1_246", "AGPL-3.0", ("test_standard_hex_transform",)),
             TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "CORE_EX1_160", {Hook.SPELL: (OfferEffectChoice((
+                ("buff_friendly_minions", (BuffAllFriendlyMinions(1, 1),)),
+                ("summon_panther", (Summon("EX1_160t"),)),
+            )),)},
+            RuleSource("upstream_adapted", rosetta, "EX1_160", "AGPL-3.0", ("test_standard_power_of_the_wild",)),
         ),
         CardRule(
             "CORE_EX1_129", {Hook.SPELL: (DamageBoard(1), Draw())},
