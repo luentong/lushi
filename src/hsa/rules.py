@@ -124,6 +124,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_EX1_160",
     "CORE_DS1_184",
     "CATA_491",
+    "CAP_801",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -670,6 +671,21 @@ class BuffActionTargetWithTaunt:
         target.attack_delta += self.attack
         target.health_delta += self.health
         target.taunt = True
+
+
+@dataclass(frozen=True)
+class BuffActionTargetWithRebornTaunt:
+    attack: int
+    health: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        target.attack_delta += self.attack
+        target.health_delta += self.health
+        target.taunt = True
+        target.reborn = True
 
 
 @dataclass(frozen=True)
@@ -3453,6 +3469,11 @@ def build_rule_registry() -> RuleRegistry:
                 DamageBoard(1), ResolveDeaths(),
             )},
             RuleSource("upstream_adapted", rosetta, "CATA_491", "AGPL-3.0", ("test_standard_eldritch_tentacles",)),
+        ),
+        CardRule(
+            "CAP_801", {Hook.SPELL: (BuffActionTargetWithRebornTaunt(2, 3),)},
+            RuleSource("upstream_adapted", rosetta, "CAP_801", "AGPL-3.0", ("test_standard_haunt",)),
+            TargetSpec(TargetKind.ANY_MINION),
         ),
         CardRule(
             "CORE_CS1_112", {Hook.SPELL: (DamageBoard(2), HealFriendlyCharacters(2))},

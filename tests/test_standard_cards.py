@@ -956,6 +956,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", spell.entity_id))
         self.assertEqual(6, target.damage)
 
+    def test_standard_haunt(self):
+        game = self.game()
+        target = self.add_board(game, "CAP_107t", 0)
+        spell = self.add_hand(game, "CAP_801")
+        game.step(Action("PLAY", spell.entity_id, 0, target.entity_id))
+        self.assertEqual((3, 4), (target.attack, target.max_health))
+        self.assertTrue(target.taunt)
+        self.assertTrue(target.reborn)
+
     def test_panther_mask_sets_stats_stealth_and_draws(self):
         game = self.game()
         target = self.add_board(game, "CORE_CS2_065", 1)

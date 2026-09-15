@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 203,
+      "declarative": 204,
       "legacy_compatibility": 339,
-      "not_implemented": 1619
+      "not_implemented": 1618
     },
     "collectible_implementation": {
-      "declarative": 179,
+      "declarative": 180,
       "legacy_compatibility": 234,
-      "not_implemented": 753
+      "not_implemented": 752
     },
     "fully_implemented": false
   },
@@ -915,9 +915,9 @@
       "mechanics": "",
       "text": "Give a minion +2/+3, Reborn, and Taunt.",
       "text_sha256": "e9149b130bfe0148f3d9861f1f59c46493a0256ebeaf8707a0db9569f1aa4b29",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_801e2",

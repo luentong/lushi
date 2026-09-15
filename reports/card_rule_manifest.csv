@@ -12,6 +12,7 @@ CAP_400t2t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CAP_404,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 CAP_405t4,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 CAP_800,legacy_compatibility,,local_legacy,,0,regression_suite_only
+CAP_801,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 CAP_802t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CAP_805e,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_111,legacy_compatibility,,local_legacy,,0,regression_suite_only
