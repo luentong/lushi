@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 207,
+      "declarative": 208,
       "legacy_compatibility": 337,
-      "not_implemented": 1617
+      "not_implemented": 1616
     },
     "collectible_implementation": {
-      "declarative": 183,
+      "declarative": 184,
       "legacy_compatibility": 232,
-      "not_implemented": 751
+      "not_implemented": 750
     },
     "fully_implemented": false
   },
@@ -2160,9 +2160,9 @@
       "mechanics": "TRADEABLE",
       "text": "Tradeable Destroy a Legendary minion.",
       "text_sha256": "07bcc3aa4592e931f1165be40bba9817c4b08191e0e99327db18fed1f4c3f18c",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_206",

@@ -128,6 +128,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_215",
     "CATA_582",
     "CATA_585",
+    "CATA_203",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -772,6 +773,12 @@ class DamageActionTargetThenAddToHandIfKilled:
         )
         killed = target.health <= 0
         game._resolve_deaths()
+        if killed:
+            game._draw(context.player)
+        game._event(
+            "damage_target_draw_if_killed", player=context.player.index,
+            source=context.card.card_id, target=target.entity_id, killed=killed,
+        )
         if killed:
             AddToHand(self.card_id).execute(game, context)
         game._event(
@@ -1684,12 +1691,18 @@ class DamageActionTargetThenDrawIfKilled:
         )
         killed = target.health <= 0
         game._resolve_deaths()
-        if killed:
-            game._draw(context.player)
-        game._event(
-            "damage_target_draw_if_killed", player=context.player.index,
-            source=context.card.card_id, target=target.entity_id, killed=killed,
-        )
+
+
+@dataclass(frozen=True)
+class DestroyLegendaryTarget:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        if target.definition.rarity != "LEGENDARY":
+            raise ValueError("target must be legendary")
+        target.damage = target.max_health
+        game._resolve_deaths()
 
 
 @dataclass(frozen=True)
@@ -3518,6 +3531,11 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CATA_585", {Hook.SPELL: (DamageDamagedTargetWithExcessReturn(8),)},
             RuleSource("upstream_adapted", rosetta, "CATA_585", "AGPL-3.0", ("test_standard_torch_excess_return",)),
+            TargetSpec(TargetKind.ENEMY_MINION),
+        ),
+        CardRule(
+            "CATA_203", {Hook.SPELL: (DestroyLegendaryTarget(),)},
+            RuleSource("upstream_adapted", rosetta, "CATA_203", "AGPL-3.0", ("test_standard_garona_last_stand",)),
             TargetSpec(TargetKind.ENEMY_MINION),
         ),
         CardRule(

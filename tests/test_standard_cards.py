@@ -990,6 +990,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertNotIn(target, game.players[1].board)
         self.assertTrue(any(card.card_id == "CATA_585" for card in game.players[0].hand))
 
+    def test_standard_garona_last_stand(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_EX1_110", 1)
+        self.assertEqual("LEGENDARY", target.definition.rarity)
+        spell = self.add_hand(game, "CATA_203")
+        game.step(Action("PLAY", spell.entity_id, 1, target.entity_id))
+        self.assertNotIn(target, game.players[1].board)
+
     def test_panther_mask_sets_stats_stealth_and_draws(self):
         game = self.game()
         target = self.add_board(game, "CORE_CS2_065", 1)
