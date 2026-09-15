@@ -127,6 +127,25 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             else {card.entity_id for card in deck_cards if card is not picked},
         )
 
+    def test_standard_basic_direct_spells(self):
+        game = self.game()
+        game.players[1].health = 20
+        strike = self.add_hand(game, "CORE_CS2_075")
+        game.step(Action("PLAY", strike.entity_id))
+        self.assertEqual(17, game.players[1].health)
+
+        game.players[0].deck = [
+            game._entity("GAME_005", started_in_deck=True) for _ in range(4)
+        ]
+        sprint = self.add_hand(game, "CORE_CS2_077")
+        game.step(Action("PLAY", sprint.entity_id))
+        self.assertEqual(4, len(game.players[0].hand))
+
+        game.players[0].health = 15
+        light = self.add_hand(game, "CORE_CS2_089")
+        game.step(Action("PLAY", light.entity_id))
+        self.assertEqual(23, game.players[0].health)
+
     def test_a1_draw_and_discard_tranche(self):
         game = self.game()
         game.players[0].deck = [

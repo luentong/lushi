@@ -123,6 +123,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_EX1_246",
     "CORE_EX1_160",
     "CORE_DS1_184",
+    "CORE_CS2_075", "CORE_CS2_077", "CORE_CS2_089",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -3495,6 +3496,18 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CORE_DS1_184", {Hook.SPELL: (OfferDeckCardDiscover(),)},
             RuleSource("upstream_adapted", rosetta, "DS1_184", "AGPL-3.0", ("test_standard_tracking_discover",)),
+        ),
+        CardRule(
+            "CORE_CS2_075", {Hook.SPELL: (DamageHero(3, "opponent"),)},
+            RuleSource("upstream_adapted", rosetta, "CS2_075", "AGPL-3.0", ("test_standard_basic_direct_spells",)),
+        ),
+        CardRule(
+            "CORE_CS2_077", {Hook.SPELL: (Draw(4),)},
+            RuleSource("upstream_adapted", rosetta, "CS2_077", "AGPL-3.0", ("test_standard_basic_direct_spells",)),
+        ),
+        CardRule(
+            "CORE_CS2_089", {Hook.SPELL: (HealHero(8),)},
+            RuleSource("upstream_adapted", rosetta, "CS2_089", "AGPL-3.0", ("test_standard_basic_direct_spells",)),
         ),
         CardRule(
             "CORE_EX1_129", {Hook.SPELL: (DamageBoard(1), Draw())},
