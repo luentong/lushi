@@ -118,6 +118,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074",
     "CORE_CS1_112", "CORE_WON_337",
     "CORE_BT_072",
+    "CORE_EX1_145",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -672,6 +673,14 @@ class Overload:
 
     def execute(self, game: Any, context: RuleContext) -> None:
         game._overload(context.player, self.amount)
+
+
+@dataclass(frozen=True)
+class DiscountNextSpell:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.next_spell_cost_reduction += self.amount
 
 
 @dataclass(frozen=True)
@@ -3382,6 +3391,10 @@ def build_rule_registry() -> RuleRegistry:
             "CORE_EX1_238", {Hook.SPELL: (DamageActionTarget(3), Overload(1))},
             RuleSource("upstream_adapted", rosetta, "EX1_238", "AGPL-3.0", ("test_standard_buff_overload_weapon",)),
             TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "CORE_EX1_145", {Hook.SPELL: (DiscountNextSpell(2),)},
+            RuleSource("upstream_adapted", rosetta, "EX1_145", "AGPL-3.0", ("test_standard_preparation_discount",)),
         ),
         CardRule(
             "CORE_CS2_074", {Hook.SPELL: (BuffWeaponAttack(2),)},

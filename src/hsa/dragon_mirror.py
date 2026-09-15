@@ -855,6 +855,7 @@ class Player:
     magmaw_entity: int | None = None
     overloaded_mana_this_game: int = 0
     overload_next_turn: int = 0
+    next_spell_cost_reduction: int = 0
     locked_mana: int = 0
     next_demon_free: bool = False
     next_beast_cost_reduction: int = 0
@@ -2213,6 +2214,8 @@ class DragonMirrorGame:
 
     def _effective_cost(self, player: Player, card: CardInstance) -> int:
         cost = card.cost
+        if card.definition.card_type == "SPELL":
+            cost -= player.next_spell_cost_reduction
         cost += self.rule_registry.cost_adjustment(self, player, card)
         if (
             card.definition.card_type == "MINION"
@@ -3358,6 +3361,8 @@ class DragonMirrorGame:
             )
         if card.has_race("BEAST") and player.next_beast_cost_reduction:
             player.next_beast_cost_reduction = 0
+        if card.definition.card_type == "SPELL" and player.next_spell_cost_reduction:
+            player.next_spell_cost_reduction = 0
         controller = (
             self.players[action.target_player]
             if card.card_id == "JAIL_455" and action.target_player is not None

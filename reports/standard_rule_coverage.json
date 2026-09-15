@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 195,
+      "declarative": 196,
       "legacy_compatibility": 339,
-      "not_implemented": 1627
+      "not_implemented": 1626
     },
     "collectible_implementation": {
-      "declarative": 171,
+      "declarative": 172,
       "legacy_compatibility": 234,
-      "not_implemented": 761
+      "not_implemented": 760
     },
     "fully_implemented": false
   },
@@ -7065,9 +7065,9 @@
       "mechanics": "",
       "text": "The next spell you cast this turn costs (2) less.",
       "text_sha256": "e8e0ba7922a28f516b69b5ec40b0bd35b611b9ac6fdf8ac2fed177f41b0b0666",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_EX1_154",

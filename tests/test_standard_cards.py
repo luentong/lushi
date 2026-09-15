@@ -390,6 +390,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(game.turn, enemy.frozen_turn)
         self.assertEqual(2, sum(card.card_id == "CORE_CS2_033" for card in game.players[0].board))
 
+    def test_standard_preparation_discount(self):
+        game = self.game()
+        game.players[0].mana = 3
+        prep = self.add_hand(game, "CORE_EX1_145")
+        bolt = self.add_hand(game, "CORE_EX1_238")
+        game.step(Action("PLAY", prep.entity_id))
+        self.assertEqual(2, game.players[0].next_spell_cost_reduction)
+        self.assertEqual(1, game._effective_cost(game.players[0], bolt))
+        game.step(Action("PLAY", bolt.entity_id, 1, None))
+        self.assertEqual(0, game.players[0].next_spell_cost_reduction)
+
     def test_powerlog_cards_and_triggers(self):
         game = self.game()
         game._equip_weapon(game.players[0], Weapon("EDR_416", "Shepherd's Crook", 3, 2))
