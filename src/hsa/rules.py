@@ -124,6 +124,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_EX1_160",
     "CORE_DS1_184",
     "CORE_CS2_075", "CORE_CS2_077", "CORE_CS2_089",
+    "CORE_CS2_013", "CORE_EX1_164",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -3508,6 +3509,18 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CORE_CS2_089", {Hook.SPELL: (HealHero(8),)},
             RuleSource("upstream_adapted", rosetta, "CS2_089", "AGPL-3.0", ("test_standard_basic_direct_spells",)),
+        ),
+        CardRule(
+            "CORE_CS2_013", {Hook.SPELL: (GainManaCrystals(1),)},
+            RuleSource("upstream_adapted", rosetta, "CS2_013", "AGPL-3.0", ("test_standard_mana_spells",)),
+        ),
+        CardRule(
+            "CORE_EX1_164",
+            {Hook.SPELL: (OfferEffectChoice((
+                ("gain_mana_crystals", (GainManaCrystals(2),)),
+                ("draw_three", (Draw(3),)),
+            )),)},
+            RuleSource("upstream_adapted", rosetta, "EX1_164", "AGPL-3.0", ("test_standard_mana_spells",)),
         ),
         CardRule(
             "CORE_EX1_129", {Hook.SPELL: (DamageBoard(1), Draw())},

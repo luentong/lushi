@@ -146,6 +146,25 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", light.entity_id))
         self.assertEqual(23, game.players[0].health)
 
+    def test_standard_mana_spells(self):
+        game = self.game()
+        game.players[0].max_mana = 5
+        game.players[0].mana = 5
+        growth = self.add_hand(game, "CORE_CS2_013")
+        game.step(Action("PLAY", growth.entity_id))
+        self.assertEqual((6, 4), (game.players[0].max_mana, game.players[0].mana))
+
+        game.players[0].max_mana = 8
+        game.players[0].mana = 8
+        game.players[0].deck = [
+            game._entity("GAME_005", started_in_deck=True) for _ in range(3)
+        ]
+        nourish = self.add_hand(game, "CORE_EX1_164")
+        game.step(Action("PLAY", nourish.entity_id))
+        self.assertEqual("RULE_CHOICE", game.pending_choice["kind"])
+        game.step(Action("RULE_CHOICE_PICK", 1))
+        self.assertEqual(3, len(game.players[0].hand))
+
     def test_a1_draw_and_discard_tranche(self):
         game = self.game()
         game.players[0].deck = [
