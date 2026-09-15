@@ -133,6 +133,8 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_557",
     "CATA_489",  # Arcane Flow (Shatter base card)
     "CATA_489t", "CATA_489t2",
+    "CATA_479", "CATA_479t", "CATA_479t2",
+    "CATA_820", "CATA_820t", "CATA_820t2",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -1921,6 +1923,25 @@ class BuffZone:
 
 
 @dataclass(frozen=True)
+class BuffFriendlyMinionsAndShield:
+    """Give friendly minions attack and Divine Shield."""
+
+    attack: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        affected: list[int] = []
+        for minion in context.player.board:
+            minion.attack_delta += self.attack
+            minion.divine_shield = True
+            minion.divine_shield_hits = max(1, minion.divine_shield_hits)
+            affected.append(minion.entity_id)
+        game._event(
+            "buff_friendly_minions_shield", player=context.player.index,
+            source=context.card.card_id, attack=self.attack, affected=affected,
+        )
+
+
+@dataclass(frozen=True)
 class AddCurrentSourceStats:
     attack_multiplier: int = 0
     health_multiplier: int = 0
@@ -3591,6 +3612,30 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CATA_489t2", {Hook.SPELL: (DamageHero(2, "opponent"), DamageBoard(2, "opponent"))},
             RuleSource("upstream_adapted", rosetta, "CATA_489t2", "AGPL-3.0", ("test_arcane_flow_halves_and_merged_spell_have_correct_effects",)),
+        ),
+        CardRule(
+            "CATA_479", {Hook.SPELL: (Summon("CATA_479t3", count=2), BuffFriendlyMinionsAndShield(1))},
+            RuleSource("upstream_adapted", rosetta, "CATA_479", "AGPL-3.0", ("test_shatter_flight_maneuvers",)),
+        ),
+        CardRule(
+            "CATA_479t", {Hook.SPELL: (Summon("CATA_479t3", count=2),)},
+            RuleSource("upstream_adapted", rosetta, "CATA_479t", "AGPL-3.0", ("test_shatter_flight_maneuvers",)),
+        ),
+        CardRule(
+            "CATA_479t2", {Hook.SPELL: (BuffFriendlyMinionsAndShield(1),)},
+            RuleSource("upstream_adapted", rosetta, "CATA_479t2", "AGPL-3.0", ("test_shatter_flight_maneuvers",)),
+        ),
+        CardRule(
+            "CATA_820", {Hook.SPELL: (DrawMatching(count=3, card_type="MINION"), BuffZone("hand", attack=2, health=2, card_types=("MINION",)))},
+            RuleSource("upstream_adapted", rosetta, "CATA_820", "AGPL-3.0", ("test_shatter_supply_run",)),
+        ),
+        CardRule(
+            "CATA_820t", {Hook.SPELL: (DrawMatching(count=3, card_type="MINION"),)},
+            RuleSource("upstream_adapted", rosetta, "CATA_820t", "AGPL-3.0", ("test_shatter_supply_run",)),
+        ),
+        CardRule(
+            "CATA_820t2", {Hook.SPELL: (BuffZone("hand", attack=2, health=2, card_types=("MINION",)),)},
+            RuleSource("upstream_adapted", rosetta, "CATA_820t2", "AGPL-3.0", ("test_shatter_supply_run",)),
         ),
         CardRule(
             "CORE_CS1_112", {Hook.SPELL: (DamageBoard(2), HealFriendlyCharacters(2))},

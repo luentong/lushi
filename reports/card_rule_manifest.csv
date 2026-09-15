@@ -61,6 +61,9 @@ CATA_470t1,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_476,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_476t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_478t,legacy_compatibility,,local_legacy,,0,regression_suite_only
+CATA_479,declarative,spell,upstream_adapted,,0,focused_test_and_regression
+CATA_479t,declarative,spell,upstream_adapted,,0,focused_test_and_regression
+CATA_479t2,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 CATA_479t3,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_484,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_485,declarative,spell,upstream_adapted,,0,focused_test_and_regression
@@ -96,6 +99,9 @@ CATA_615t,declarative,battlecry,local_spec,,0,focused_test_and_regression
 CATA_720,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_722,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_725,declarative,"battlecry,deathrattle",powerlog_verified,,0,focused_test_and_regression
+CATA_820,declarative,spell,upstream_adapted,,0,focused_test_and_regression
+CATA_820t,declarative,spell,upstream_adapted,,0,focused_test_and_regression
+CATA_820t2,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 CATA_898,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_999,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CORE_AT_037,declarative,spell,upstream_adapted,"RosettaStone,fireplace",19,focused_test_and_regression

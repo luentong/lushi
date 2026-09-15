@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 213,
+      "declarative": 219,
       "legacy_compatibility": 337,
-      "not_implemented": 1611
+      "not_implemented": 1605
     },
     "collectible_implementation": {
-      "declarative": 187,
+      "declarative": 189,
       "legacy_compatibility": 232,
-      "not_implemented": 747
+      "not_implemented": 745
     },
     "fully_implemented": false
   },
@@ -3105,9 +3105,9 @@
       "mechanics": "",
       "text": "Shatter. Summon two 4/2 Drakes. Give your minions +1 Attack and Divine Shield.",
       "text_sha256": "5608c3a53ac3b1e7dcfbb295b6afc6f60b5b3eb6f6d8b46b2d3b70bdf0c71e4d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_479e",
@@ -3135,9 +3135,9 @@
       "mechanics": "EVIL_GLOW",
       "text": "Shattered Summon two 4/2 Drakes.",
       "text_sha256": "dcf42cc9f1ca671438331ef78fefaac08e1d1232fb6e8f684146bdb1e5f369ec",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_479t2",
@@ -3150,9 +3150,9 @@
       "mechanics": "EVIL_GLOW",
       "text": "Shattered. Give your minions +1 Attack and Divine Shield.",
       "text_sha256": "7e4b40112db348000cb123e64355d04059773fbae61df0035eb9cb4a24251042",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_479t3",
@@ -4935,9 +4935,9 @@
       "mechanics": "",
       "text": "Shatter Draw 3 minions. Give minions in your hand +2/+2.",
       "text_sha256": "7a051d49a206040db2a5d540cdbfa1805c9c6e967c56591b4560136cf3f1b520",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_820e",
@@ -4965,9 +4965,9 @@
       "mechanics": "EVIL_GLOW",
       "text": "Shattered Draw 3 minions.",
       "text_sha256": "839dbc1483de37c3792e8a8663ed70cddb276faeab11560384f61e8f86a2a5f2",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_820t2",
@@ -4980,9 +4980,9 @@
       "mechanics": "EVIL_GLOW",
       "text": "Shattered Give minions in your hand +2/+2.",
       "text_sha256": "9c096938f9dd053507e00773e4365e014a48ad3979ccf26b6dd4938cd3080182",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_897",

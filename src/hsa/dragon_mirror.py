@@ -1554,7 +1554,7 @@ class DragonMirrorGame:
         self._receive_drawn_card(player, card)
 
     def _receive_drawn_card(self, player: Player, card: CardInstance) -> None:
-        if card.card_id == "CATA_489":
+        if card.card_id in {"CATA_479", "CATA_489", "CATA_820"}:
             self._split_shatter_card(player, card)
             self._after_card_draw(player, card)
             return
@@ -5141,7 +5141,7 @@ class DragonMirrorGame:
         elif gift == "sweet_dreams": card.attack_delta += 4; card.health_delta += 5
 
     def _add_generated(self, player: Player, card: CardInstance) -> str:
-        if card.card_id == "CATA_489":
+        if card.card_id in {"CATA_479", "CATA_489", "CATA_820"}:
             return "hand" if self._split_shatter_card(player, card) else "burned"
         if "sweet_dreams" in card.gifts:
             player.deck.append(card)
@@ -5163,12 +5163,20 @@ class DragonMirrorGame:
             self._event("shatter_burn", player=player.index, card=card.card_id,
                         halves=2)
             return False
+        shatter_halves = {
+            "CATA_489": ("CATA_489t", "CATA_489t2"),
+            "CATA_479": ("CATA_479t", "CATA_479t2"),
+            "CATA_820": ("CATA_820t", "CATA_820t2"),
+        }
+        half_ids = shatter_halves.get(card.card_id)
+        if half_ids is None:
+            raise UnsupportedGeneratedCard(f"Shatter card {card.card_id}")
         left = card.clone(self.next_entity_id)
         self.next_entity_id += 1
         right = card.clone(self.next_entity_id)
         self.next_entity_id += 1
-        left.definition = self.card_defs["CATA_489t"]
-        right.definition = self.card_defs["CATA_489t2"]
+        left.definition = self.card_defs[half_ids[0]]
+        right.definition = self.card_defs[half_ids[1]]
         left.shatter_origin = right.shatter_origin = card.card_id
         left.shatter_half, right.shatter_half = "left", "right"
         if available >= 2:

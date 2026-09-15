@@ -2078,6 +2078,28 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(10, len(game.players[0].hand))
         self.assertFalse(any(card.card_id.startswith("CATA_489t") for card in game.players[0].hand))
 
+    def test_shatter_flight_maneuvers(self):
+        game = self.game()
+        friendly = self.add_board(game, "CORE_LOOT_137", 0)
+        spell = self.add_hand(game, "CATA_479")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(2, sum(card.card_id == "CATA_479t3" for card in game.players[0].board))
+        self.assertEqual(1, friendly.attack_delta)
+        self.assertTrue(friendly.divine_shield)
+
+    def test_shatter_supply_run(self):
+        game = self.game()
+        held = self.add_hand(game, "CORE_LOOT_137")
+        game.players[0].deck = [
+            game._entity("CORE_LOOT_137", started_in_deck=True)
+            for _ in range(3)
+        ]
+        spell = self.add_hand(game, "CATA_820")
+        game.step(Action("PLAY", spell.entity_id))
+        drawn = [card for card in game.players[0].hand if card.card_id == "CORE_LOOT_137"]
+        self.assertEqual(4, len(drawn))
+        self.assertTrue(all(card.attack_delta == 2 and card.health_delta == 2 for card in drawn))
+
 
 if __name__ == "__main__":
     unittest.main()
