@@ -145,6 +145,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BAR_541",
     "CORE_BT_491",
     "CORE_BT_801",
+    "CORE_CATA_009",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -3839,6 +3840,11 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource("upstream_adapted", rosetta, "BT_801", "AGPL-3.0", ("test_eye_beam_outcast_lifesteal",)),
             targeting=TargetSpec(TargetKind.ENEMY_MINION),
             cost_modifier=CostIfOutcast(1),
+        ),
+        CardRule(
+            "CORE_CATA_009", {Hook.SPELL: (FreezeActionTarget(), OfferSpellDiscover())},
+            RuleSource("upstream_adapted", rosetta, "CATA_009", "AGPL-3.0", ("test_deaths_advance",)),
+            targeting=TargetSpec(TargetKind.ANY_CHARACTER),
         ),
         CardRule(
             "CATA_820", {Hook.SPELL: (DrawMatching(count=3, card_type="MINION"), BuffZone("hand", attack=2, health=2, card_types=("MINION",)))},

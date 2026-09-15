@@ -2208,6 +2208,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(3, enemy.damage)
         self.assertEqual(23, game.players[0].health)
 
+    def test_deaths_advance(self):
+        game = self.game()
+        enemy = self.add_board(game, "CORE_LOOT_137", 1)
+        spell = self.add_hand(game, "CORE_CATA_009")
+        game.step(Action("PLAY", spell.entity_id, 1, enemy.entity_id))
+        self.assertGreaterEqual(enemy.frozen_turn, game.turn)
+        self.assertIsNotNone(game.pending_choice)
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+
 
 if __name__ == "__main__":
     unittest.main()
