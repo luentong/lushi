@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 196,
+      "declarative": 198,
       "legacy_compatibility": 339,
-      "not_implemented": 1626
+      "not_implemented": 1624
     },
     "collectible_implementation": {
-      "declarative": 172,
+      "declarative": 174,
       "legacy_compatibility": 234,
-      "not_implemented": 760
+      "not_implemented": 758
     },
     "fully_implemented": false
   },
@@ -7245,9 +7245,9 @@
       "mechanics": "OVERLOAD",
       "text": "Deal $3 damage to all enemy minions. Overload: (1)",
       "text_sha256": "070b0d74a53813cabe3a1088f4ba7baf01cf13d1264e68734feb8eae9857982d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_EX1_278",
@@ -7590,9 +7590,9 @@
       "mechanics": "",
       "text": "Change the Health of ALL minions to 1.",
       "text_sha256": "4504a9f992be12b0b30d8b897e82bf4d0df1beadd00be42bdc23c40487147347",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_GIL_191t",

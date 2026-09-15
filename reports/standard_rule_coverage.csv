@@ -480,7 +480,7 @@ CORE_EX1_198,69617,Natalie Seline,CORE,PRIEST,MINION,True,BATTLECRY,Battlecry: D
 CORE_EX1_238,69625,Lightning Bolt,CORE,SHAMAN,SPELL,True,OVERLOAD,Deal $3 damage. Overload: (1),0a742b67ba7d6ed10b0b64877cd9abd2749a118eade6bd19a7645cdfe808c8bd,declarative,True,focused_or_regression_tests
 CORE_EX1_246,69551,Hex,CORE,SHAMAN,SPELL,True,,Transform a minion into a 0/1 Frog with Taunt.,1d94147bc8c40be6e111c0b5206e4aa3c0ee732fcff40b28b0d5597563df6796,not_implemented,False,missing
 CORE_EX1_250,69627,Earth Elemental,CORE,SHAMAN,MINION,True,"OVERLOAD,TAUNT",Taunt Overload: (2),16b4ecf38fd35cae14313139f7705ad2079ebe84ecdace3623c76e81b1a9807f,not_implemented,False,missing
-CORE_EX1_259,69629,Lightning Storm,CORE,SHAMAN,SPELL,True,OVERLOAD,Deal $3 damage to all enemy minions. Overload: (1),070b0d74a53813cabe3a1088f4ba7baf01cf13d1264e68734feb8eae9857982d,not_implemented,False,missing
+CORE_EX1_259,69629,Lightning Storm,CORE,SHAMAN,SPELL,True,OVERLOAD,Deal $3 damage to all enemy minions. Overload: (1),070b0d74a53813cabe3a1088f4ba7baf01cf13d1264e68734feb8eae9857982d,declarative,True,focused_or_regression_tests
 CORE_EX1_278,126895,Shiv,CORE,ROGUE,SPELL,True,,Deal $1 damage. Draw a card.,01cb10b38d4d8aa32845b4c32046c945fd3367db228936d3bcbef7ad3fd73157,declarative,True,focused_or_regression_tests
 CORE_EX1_287,69607,Counterspell,CORE,MAGE,SPELL,True,SECRET,"Secret: When your opponent casts a spell, Counter it.",fa4b6d3ac58be3da4f5a86b04d96bd82ea581f80a9401f7177b0434ca0e55a1b,not_implemented,False,missing
 CORE_EX1_289,69608,Ice Barrier,CORE,MAGE,SPELL,True,SECRET,"Secret: When your hero is attacked, gain 8 Armor.",a46d57a70faa4b30e72e0edc05bf697f7208d6bc772ca77e218f16484242d5da,not_implemented,False,missing
@@ -503,7 +503,7 @@ CORE_EX1_604,69645,Frothing Berserker,CORE,WARRIOR,MINION,True,TRIGGER_VISUAL,"W
 CORE_EX1_606,76302,Shield Block,CORE,WARRIOR,SPELL,True,,Gain 5 Armor. Draw a card.,a0b7ce874499dc40376ad4db97d215709ba6579d990327d696af1fd175db8e6f,declarative,True,focused_or_regression_tests
 CORE_EX1_610,69603,Explosive Trap,CORE,HUNTER,SPELL,True,SECRET,"Secret: When your hero is attacked, deal $2 damage to all enemies.",4355e3441af781ad9d7d9cdb977920a309373fd2ce9cb68417952c4de04e5b46,declarative,True,focused_or_regression_tests
 CORE_EX1_611,69604,Freezing Trap,CORE,HUNTER,SPELL,True,SECRET,"Secret: When an enemy minion attacks, return it to its owner's hand. It costs (2) more.",8cdf33404989879be87c07bf399a31d52ece2fe5e627bb285890f31768bcab60,not_implemented,False,missing
-CORE_EX1_619,69614,Equality,CORE,PALADIN,SPELL,True,,Change the Health of ALL minions to 1.,4504a9f992be12b0b30d8b897e82bf4d0df1beadd00be42bdc23c40487147347,not_implemented,False,missing
+CORE_EX1_619,69614,Equality,CORE,PALADIN,SPELL,True,,Change the Health of ALL minions to 1.,4504a9f992be12b0b30d8b897e82bf4d0df1beadd00be42bdc23c40487147347,declarative,True,focused_or_regression_tests
 CORE_GIL_191t,71812,Imp,CORE,WARLOCK,MINION,False,,,e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855,legacy_compatibility,True,focused_or_regression_tests
 CORE_GIL_531,130790,Witch's Apprentice,CORE,SHAMAN,MINION,True,"BATTLECRY,TAUNT",Taunt Battlecry: Add a random Shaman spell to your hand.,e396a580f5f4373ae95c69153f94bb66b5486db19a78ed3a096abeac5fbf2ff8,not_implemented,False,missing
 CORE_GIL_534,97343,Hench-Clan Thug,CORE,NEUTRAL,MINION,True,TRIGGER_VISUAL,"After your hero attacks, give this minion +1/+1.",1f72aed26cd0aa80ef4ef8aaa1ef7a9c83cd29252636d177aee3bfa69cf81bd3,not_implemented,False,missing

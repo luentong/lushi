@@ -401,6 +401,20 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", bolt.entity_id, 1, None))
         self.assertEqual(0, game.players[0].next_spell_cost_reduction)
 
+    def test_standard_equality_lightning_storm(self):
+        game = self.game()
+        first = self.add_board(game, "CORE_EX1_007", 0)
+        second = self.add_board(game, "CORE_EX1_007", 1)
+        equality = self.add_hand(game, "CORE_EX1_619")
+        game.step(Action("PLAY", equality.entity_id))
+        self.assertEqual((1, 1), (first.max_health, second.max_health))
+
+        enemy = self.add_board(game, "CORE_EX1_007", 1)
+        storm = self.add_hand(game, "CORE_EX1_259")
+        game.step(Action("PLAY", storm.entity_id))
+        self.assertEqual(3, enemy.damage)
+        self.assertEqual(1, game.players[0].overload_next_turn)
+
     def test_powerlog_cards_and_triggers(self):
         game = self.game()
         game._equip_weapon(game.players[0], Weapon("EDR_416", "Shepherd's Crook", 3, 2))

@@ -119,6 +119,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_CS1_112", "CORE_WON_337",
     "CORE_BT_072",
     "CORE_EX1_145",
+    "CORE_EX1_619", "CORE_EX1_259",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -1370,6 +1371,17 @@ class DestroyAllMinionsAndLocations:
         for player in game.players:
             player.locations.clear()
         game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class SetAllMinionHealth:
+    health: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for player in game.players:
+            for minion in player.board:
+                minion.health_delta += self.health - minion.max_health
+                minion.damage = min(minion.damage, max(0, minion.max_health - self.health))
 
 
 @dataclass(frozen=True)
@@ -3420,6 +3432,14 @@ def build_rule_registry() -> RuleRegistry:
                 "upstream_adapted", rosetta, "EX1_606", "AGPL-3.0",
                 ("test_standard_basic_damage_draw",),
             ),
+        ),
+        CardRule(
+            "CORE_EX1_619", {Hook.SPELL: (SetAllMinionHealth(1),)},
+            RuleSource("upstream_adapted", rosetta, "EX1_619", "AGPL-3.0", ("test_standard_equality_lightning_storm",)),
+        ),
+        CardRule(
+            "CORE_EX1_259", {Hook.SPELL: (DamageBoard(3), Overload(1))},
+            RuleSource("upstream_adapted", rosetta, "EX1_259", "AGPL-3.0", ("test_standard_equality_lightning_storm",)),
         ),
         CardRule(
             "CORE_GIL_622",
