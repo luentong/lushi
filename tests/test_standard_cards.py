@@ -2063,6 +2063,21 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(18, game.players[1].health)
         self.assertEqual(4, enemy.damage)
 
+    def test_arcane_flow_hand_limit_keeps_left_piece_only(self):
+        game = self.game()
+        game.players[0].hand = [game._entity("GAME_005") for _ in range(9)]
+        game._receive_drawn_card(game.players[0], game._entity("CATA_489"))
+        self.assertEqual(10, len(game.players[0].hand))
+        self.assertEqual("CATA_489t", game.players[0].hand[0].card_id)
+        self.assertEqual(9, sum(card.card_id == "GAME_005" for card in game.players[0].hand))
+
+    def test_arcane_flow_full_hand_burns_without_splitting(self):
+        game = self.game()
+        game.players[0].hand = [game._entity("GAME_005") for _ in range(10)]
+        game._receive_drawn_card(game.players[0], game._entity("CATA_489"))
+        self.assertEqual(10, len(game.players[0].hand))
+        self.assertFalse(any(card.card_id.startswith("CATA_489t") for card in game.players[0].hand))
+
 
 if __name__ == "__main__":
     unittest.main()

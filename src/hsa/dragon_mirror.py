@@ -5176,7 +5176,9 @@ class DragonMirrorGame:
             player.hand.append(right)
             burned = 0
         else:
-            player.hand.append(left)
+            # With one slot remaining, Hearthstone keeps the left-hand
+            # Shattered piece; the right-hand piece is burned.
+            player.hand.insert(0, left)
             burned = 1
         self._event("shatter_split", player=player.index, source=card.card_id,
                     halves=[left.entity_id, right.entity_id], burned=burned)
