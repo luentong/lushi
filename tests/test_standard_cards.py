@@ -1021,6 +1021,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", second.entity_id))
         self.assertEqual(24, game.players[1].health)
 
+    def test_standard_arcane_flow(self):
+        game = self.game()
+        target = self.add_board(game, "TLC_248", 1)
+        game.players[1].health = 30
+        spell = self.add_hand(game, "CATA_489")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(24, game.players[1].health)
+        self.assertEqual(2, target.damage)
+
     def test_panther_mask_sets_stats_stealth_and_draws(self):
         game = self.game()
         target = self.add_board(game, "CORE_CS2_065", 1)

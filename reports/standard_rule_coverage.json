@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 210,
+      "declarative": 211,
       "legacy_compatibility": 337,
-      "not_implemented": 1614
+      "not_implemented": 1613
     },
     "collectible_implementation": {
-      "declarative": 186,
+      "declarative": 187,
       "legacy_compatibility": 232,
-      "not_implemented": 748
+      "not_implemented": 747
     },
     "fully_implemented": false
   },
@@ -3360,9 +3360,9 @@
       "mechanics": "",
       "text": "Shatter Deal $4 damage. Deal $2 damage to all enemies.",
       "text_sha256": "416a170864c00d011d3a0d76145a1051d5f328fdaf9b612307f44ac8b111e196",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_489t",

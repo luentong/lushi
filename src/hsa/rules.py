@@ -131,6 +131,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_203",
     "CATA_554",
     "CATA_557",
+    "CATA_489",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -3577,6 +3578,13 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CATA_557", {Hook.SPELL: (SylvanasTriumphDamage(),)},
             RuleSource("upstream_adapted", rosetta, "CATA_557", "AGPL-3.0", ("test_standard_sylvanas_triumph_repeat",)),
+        ),
+        CardRule(
+            "CATA_489", {Hook.SPELL: (
+                DamageHero(4, "opponent"),
+                DamageHero(2, "opponent"), DamageBoard(2, "opponent"),
+            )},
+            RuleSource("upstream_adapted", rosetta, "CATA_489", "AGPL-3.0", ("test_standard_arcane_flow",)),
         ),
         CardRule(
             "CORE_CS1_112", {Hook.SPELL: (DamageBoard(2), HealFriendlyCharacters(2))},
