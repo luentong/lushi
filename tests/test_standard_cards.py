@@ -2177,6 +2177,27 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(1, len(game.players[0].hand))
         self.assertEqual("SPELL", game.players[0].hand[0].definition.card_type)
 
+    def test_spectral_sight_outcast(self):
+        game = self.game()
+        game.players[0].deck = [
+            game._entity("GAME_005", started_in_deck=True)
+            for _ in range(2)
+        ]
+        spell = self.add_hand(game, "CORE_BT_491")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(2, len(game.players[0].hand))
+
+        game = self.game()
+        game.players[0].deck = [
+            game._entity("GAME_005", started_in_deck=True)
+            for _ in range(2)
+        ]
+        self.add_hand(game, "GAME_005")
+        middle = self.add_hand(game, "CORE_BT_491")
+        self.add_hand(game, "GAME_005")
+        game.step(Action("PLAY", middle.entity_id))
+        self.assertEqual(3, len(game.players[0].hand))
+
 
 if __name__ == "__main__":
     unittest.main()

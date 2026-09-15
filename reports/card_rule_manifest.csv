@@ -130,6 +130,7 @@ CORE_BT_201,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",2,regres
 CORE_BT_292,declarative,spell,upstream_adapted,"RosettaStone,fireplace",9,focused_test_and_regression
 CORE_BT_351,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",11,regression_suite_only
 CORE_BT_480,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",5,regression_suite_only
+CORE_BT_491,declarative,spell,upstream_adapted,"RosettaStone,fireplace",5,focused_test_and_regression
 CORE_BT_493,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",3,regression_suite_only
 CORE_BT_510,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",3,regression_suite_only
 CORE_BT_701,legacy_compatibility,,local_legacy,RosettaStone,2,regression_suite_only

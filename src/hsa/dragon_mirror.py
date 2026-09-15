@@ -691,6 +691,7 @@ class CardInstance:
     shatter_origin: str | None = None
     shatter_half: str | None = None
     shatter_combined: bool = False
+    outcast_active: bool = False
     dynamic_spell_damage: int = 0
     spells_cast_while_held: int = 0
     illusion_fake: bool = False
@@ -3358,7 +3359,12 @@ class DragonMirrorGame:
         # Dynamic costs are evaluated while the card is still in hand.  This
         # matters for effects such as "costs (1) less for each card in your
         # hand", where the card itself is counted by the live client.
-        held = next(card for card in player.hand if card.entity_id == action.source)
+        held_index = next(
+            index for index, card in enumerate(player.hand)
+            if card.entity_id == action.source
+        )
+        held = player.hand[held_index]
+        held.outcast_active = held_index in {0, len(player.hand) - 1}
         effective_cost = self._effective_cost(player, held)
         card = self._pop_hand(player, action.source)
         # "While holding this" uses the card's displayed Cost.  Capture it

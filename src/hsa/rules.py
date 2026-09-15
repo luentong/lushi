@@ -143,6 +143,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BOT_451",
     "CORE_KAR_077",
     "CORE_BAR_541",
+    "CORE_BT_491",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -300,6 +301,17 @@ class Draw:
         player = _recipient(game, context, self.side)
         for _ in range(self.count):
             game._draw(player)
+
+
+@dataclass(frozen=True)
+class DrawIfOutcast:
+    count: int = 1
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if not getattr(context.card, "outcast_active", False):
+            return
+        for _ in range(self.count):
+            game._draw(context.player)
 
 
 @dataclass(frozen=True)
@@ -3784,6 +3796,10 @@ def build_rule_registry() -> RuleRegistry:
             "CORE_BAR_541", {Hook.SPELL: (DamageActionTarget(2), OfferSpellDiscover())},
             RuleSource("upstream_adapted", rosetta, "BAR_541", "AGPL-3.0", ("test_runed_orb",)),
             targeting=TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "CORE_BT_491", {Hook.SPELL: (Draw(), DrawIfOutcast())},
+            RuleSource("upstream_adapted", rosetta, "BT_491", "AGPL-3.0", ("test_spectral_sight_outcast",)),
         ),
         CardRule(
             "CATA_820", {Hook.SPELL: (DrawMatching(count=3, card_type="MINION"), BuffZone("hand", attack=2, health=2, card_types=("MINION",)))},
