@@ -97,6 +97,36 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", assassinate.entity_id, 1, enemy.entity_id))
         self.assertNotIn(enemy, game.players[1].board)
 
+    def test_standard_tracking_discover(self):
+        game = self.game()
+        deck_cards = [
+            game._entity("CORE_EX1_007", started_in_deck=True),
+            game._entity("CORE_CS2_033", started_in_deck=True),
+            game._entity("CORE_EX1_391", started_in_deck=True),
+        ]
+        game.players[0].deck = deck_cards[:]
+        tracking = self.add_hand(game, "CORE_DS1_184")
+
+        game.step(Action("PLAY", tracking.entity_id))
+
+        self.assertIsNotNone(game.pending_choice)
+        self.assertEqual("DECK_CARD_DISCOVER", game.pending_choice["kind"])
+        options = list(game.pending_choice["options"])
+        self.assertEqual(3, len(options))
+        picked = options[0]
+        game.step(Action("DISCOVER_PICK", picked.entity_id))
+
+        self.assertIsNone(game.pending_choice)
+        self.assertIn(picked, game.players[0].hand)
+        self.assertEqual(2, len(game.players[0].deck))
+        self.assertNotIn(picked, game.players[0].deck)
+        self.assertEqual(
+            {card.entity_id for card in game.players[0].deck},
+            {card.entity_id for card in deck_cards[1:]}
+            if picked is deck_cards[0]
+            else {card.entity_id for card in deck_cards if card is not picked},
+        )
+
     def test_a1_draw_and_discard_tranche(self):
         game = self.game()
         game.players[0].deck = [

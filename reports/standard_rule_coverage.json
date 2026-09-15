@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 200,
+      "declarative": 201,
       "legacy_compatibility": 339,
-      "not_implemented": 1622
+      "not_implemented": 1621
     },
     "collectible_implementation": {
-      "declarative": 176,
+      "declarative": 177,
       "legacy_compatibility": 234,
-      "not_implemented": 756
+      "not_implemented": 755
     },
     "fully_implemented": false
   },
@@ -6645,9 +6645,9 @@
       "mechanics": "DISCOVER",
       "text": "Discover a card from your deck.",
       "text_sha256": "84e4a1e792313de264a2c8806bdb9bffd922fe36c3f5ebed5c3b20eb758c6984",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CORE_DS1_185",

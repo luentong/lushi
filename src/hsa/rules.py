@@ -122,6 +122,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_EX1_619", "CORE_EX1_259",
     "CORE_EX1_246",
     "CORE_EX1_160",
+    "CORE_DS1_184",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -3490,6 +3491,10 @@ def build_rule_registry() -> RuleRegistry:
                 ("summon_panther", (Summon("EX1_160t"),)),
             )),)},
             RuleSource("upstream_adapted", rosetta, "EX1_160", "AGPL-3.0", ("test_standard_power_of_the_wild",)),
+        ),
+        CardRule(
+            "CORE_DS1_184", {Hook.SPELL: (OfferDeckCardDiscover(),)},
+            RuleSource("upstream_adapted", rosetta, "DS1_184", "AGPL-3.0", ("test_standard_tracking_discover",)),
         ),
         CardRule(
             "CORE_EX1_129", {Hook.SPELL: (DamageBoard(1), Draw())},
