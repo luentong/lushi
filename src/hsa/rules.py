@@ -127,6 +127,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CAP_801",
     "CATA_215",
     "CATA_582",
+    "CATA_585",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -659,6 +660,33 @@ class DamageActionTargetIfUndamaged:
         target = game._find_minion(context.action.target_player, context.action.target_entity)
         if target.damage == 0:
             game._damage_minion(context.action.target_player, target, self.amount, context.card)
+
+
+@dataclass(frozen=True)
+class DamageDamagedTargetWithExcessReturn:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        if target.damage <= 0:
+            raise ValueError("target must already be damaged")
+        remaining = max(0, target.health)
+        excess = max(0, self.amount - remaining)
+        game._damage_minion(
+            context.action.target_player, target,
+            game._spell_effect_amount(context.player, context.card, self.amount),
+            context.card,
+        )
+        game._resolve_deaths()
+        if excess and len(context.player.hand) < 10:
+            returned = context.card.clone(game.next_entity_id)
+            game.next_entity_id += 1
+            context.player.hand.append(returned)
+        game._event("damaged_target_excess_return", player=context.player.index,
+                    source=context.card.card_id, target=target.entity_id,
+                    excess=excess)
 
 
 @dataclass(frozen=True)
@@ -3486,6 +3514,11 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CATA_582", {Hook.SPELL: (DamageBoard(1), GainHeroAttack(3))},
             RuleSource("upstream_adapted", rosetta, "CATA_582", "AGPL-3.0", ("test_standard_searing_fissure",)),
+        ),
+        CardRule(
+            "CATA_585", {Hook.SPELL: (DamageDamagedTargetWithExcessReturn(8),)},
+            RuleSource("upstream_adapted", rosetta, "CATA_585", "AGPL-3.0", ("test_standard_torch_excess_return",)),
+            TargetSpec(TargetKind.ENEMY_MINION),
         ),
         CardRule(
             "CORE_CS1_112", {Hook.SPELL: (DamageBoard(2), HealFriendlyCharacters(2))},

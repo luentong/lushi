@@ -7,13 +7,13 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 206,
-      "legacy_compatibility": 338,
+      "declarative": 207,
+      "legacy_compatibility": 337,
       "not_implemented": 1617
     },
     "collectible_implementation": {
-      "declarative": 182,
-      "legacy_compatibility": 233,
+      "declarative": 183,
+      "legacy_compatibility": 232,
       "not_implemented": 751
     },
     "fully_implemented": false
@@ -4410,7 +4410,7 @@
       "mechanics": "ImmuneToSpellpower",
       "text": "Deal $8 damage to a damaged minion. Return this to hand with any excess damage.",
       "text_sha256": "026adc583842e6932e81336ffad9a282efe98d91774d9f8b7505b3a8eead457a",
-      "implementation": "legacy_compatibility",
+      "implementation": "declarative",
       "playable_ready": true,
       "verification": "focused_or_regression_tests"
     },
