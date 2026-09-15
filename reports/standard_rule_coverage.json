@@ -7,13 +7,13 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 205,
-      "legacy_compatibility": 339,
+      "declarative": 206,
+      "legacy_compatibility": 338,
       "not_implemented": 1617
     },
     "collectible_implementation": {
-      "declarative": 181,
-      "legacy_compatibility": 234,
+      "declarative": 182,
+      "legacy_compatibility": 233,
       "not_implemented": 751
     },
     "fully_implemented": false
@@ -4365,7 +4365,7 @@
       "mechanics": "",
       "text": "Deal $1 damage to all minions. Give your hero +3 Attack this turn.",
       "text_sha256": "670d4a99a7722e6cbc0d8c43ccc3bf5155c9a28aa25a6a94c8dcc12c517f71b3",
-      "implementation": "legacy_compatibility",
+      "implementation": "declarative",
       "playable_ready": true,
       "verification": "focused_or_regression_tests"
     },

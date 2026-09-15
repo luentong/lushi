@@ -973,6 +973,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertIn(target, game.players[1].hand)
         self.assertEqual(game.turn + 1, target.playable_after_turn)
 
+    def test_standard_searing_fissure(self):
+        game = self.game()
+        target = self.add_board(game, "TLC_248", 1)
+        spell = self.add_hand(game, "CATA_582")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(1, target.damage)
+        self.assertEqual(3, game.players[0].hero_attack_bonus)
+
     def test_panther_mask_sets_stats_stealth_and_draws(self):
         game = self.game()
         target = self.add_board(game, "CORE_CS2_065", 1)
