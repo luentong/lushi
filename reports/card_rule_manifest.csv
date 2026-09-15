@@ -55,6 +55,9 @@ CATA_210t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_215,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 CATA_302,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 CATA_303,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
+CATA_306,declarative,spell,upstream_adapted,,0,focused_test_and_regression
+CATA_306t1,declarative,spell,upstream_adapted,,0,focused_test_and_regression
+CATA_306t2,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 CATA_308,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 CATA_452t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_464,legacy_compatibility,,local_legacy,,0,regression_suite_only

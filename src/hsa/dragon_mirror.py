@@ -1555,7 +1555,7 @@ class DragonMirrorGame:
         self._receive_drawn_card(player, card)
 
     def _receive_drawn_card(self, player: Player, card: CardInstance) -> None:
-        if card.card_id in {"CATA_134", "CATA_479", "CATA_489", "CATA_820"}:
+        if card.card_id in {"CATA_134", "CATA_306", "CATA_479", "CATA_489", "CATA_820"}:
             self._split_shatter_card(player, card)
             self._after_card_draw(player, card)
             return
@@ -5142,7 +5142,7 @@ class DragonMirrorGame:
         elif gift == "sweet_dreams": card.attack_delta += 4; card.health_delta += 5
 
     def _add_generated(self, player: Player, card: CardInstance) -> str:
-        if card.card_id in {"CATA_134", "CATA_479", "CATA_489", "CATA_820"}:
+        if card.card_id in {"CATA_134", "CATA_306", "CATA_479", "CATA_489", "CATA_820"}:
             return "hand" if self._split_shatter_card(player, card) else "burned"
         if "sweet_dreams" in card.gifts:
             player.deck.append(card)
@@ -5166,6 +5166,7 @@ class DragonMirrorGame:
             return False
         shatter_halves = {
             "CATA_134": ("CATA_134t", "CATA_134t2"),
+            "CATA_306": ("CATA_306t1", "CATA_306t2"),
             "CATA_489": ("CATA_489t", "CATA_489t2"),
             "CATA_479": ("CATA_479t", "CATA_479t2"),
             "CATA_820": ("CATA_820t", "CATA_820t2"),

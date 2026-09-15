@@ -136,6 +136,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_479", "CATA_479t", "CATA_479t2",
     "CATA_820", "CATA_820t", "CATA_820t2",
     "CATA_134", "CATA_134t", "CATA_134t2",
+    "CATA_306", "CATA_306t1", "CATA_306t2",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -1960,6 +1961,53 @@ class GrantDeathrattleSummon:
 
 
 @dataclass(frozen=True)
+class BuffActionTargetElusive:
+    """Buff a friendly target and make it elusive to targeted spells."""
+
+    attack: int
+    health: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        target.attack_delta += self.attack
+        target.health_delta += self.health
+        target.elusive = True
+        game._event(
+            "buff_action_target_elusive", player=context.player.index,
+            source=context.card.card_id, target=target.entity_id,
+            attack=self.attack, health=self.health,
+        )
+
+
+@dataclass(frozen=True)
+class SummonActionTargetCopy:
+    """Summon a copy of the friendly target's current state."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        owner = game.players[context.action.target_player]
+        target = game._find_minion(owner.index, context.action.target_entity)
+        if len(owner.board) + len(owner.locations) >= 7:
+            return
+        copy = target.clone(game.next_entity_id)
+        game.next_entity_id += 1
+        copy.created_by = context.card.card_id
+        copy.damage = 0
+        copy.summoned_turn = game.turn
+        game._summon(owner, copy)
+        game._event(
+            "summon_action_target_copy", player=context.player.index,
+            source=context.card.card_id, target=target.entity_id,
+            copy=copy.entity_id,
+        )
+
+
+@dataclass(frozen=True)
 class AddCurrentSourceStats:
     attack_multiplier: int = 0
     health_multiplier: int = 0
@@ -3654,6 +3702,21 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CATA_134t2", {Hook.SPELL: (GrantDeathrattleSummon("CATA_134t3"),)},
             RuleSource("upstream_adapted", rosetta, "CATA_134t2", "AGPL-3.0", ("test_shatter_wildwood_circle",)),
+        ),
+        CardRule(
+            "CATA_306", {Hook.SPELL: (BuffActionTargetElusive(2, 3), SummonActionTargetCopy())},
+            RuleSource("upstream_adapted", rosetta, "CATA_306", "AGPL-3.0", ("test_shatter_schism",)),
+            targeting=TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "CATA_306t1", {Hook.SPELL: (BuffActionTargetElusive(2, 3),)},
+            RuleSource("upstream_adapted", rosetta, "CATA_306t1", "AGPL-3.0", ("test_shatter_schism",)),
+            targeting=TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "CATA_306t2", {Hook.SPELL: (SummonActionTargetCopy(),)},
+            RuleSource("upstream_adapted", rosetta, "CATA_306t2", "AGPL-3.0", ("test_shatter_schism",)),
+            targeting=TargetSpec(TargetKind.FRIENDLY_MINION),
         ),
         CardRule(
             "CATA_820", {Hook.SPELL: (DrawMatching(count=3, card_type="MINION"), BuffZone("hand", attack=2, health=2, card_types=("MINION",)))},

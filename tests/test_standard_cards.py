@@ -2111,6 +2111,20 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._resolve_deaths()
         self.assertEqual(3, sum(card.card_id == "CATA_134t3" for card in game.players[0].board))
 
+    def test_shatter_schism(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_LOOT_137", 0)
+        spell = self.add_hand(game, "CATA_306")
+        game.step(Action("PLAY", spell.entity_id, 0, target.entity_id))
+        self.assertEqual(2, target.attack_delta)
+        self.assertEqual(3, target.health_delta)
+        self.assertTrue(target.elusive)
+        copies = [card for card in game.players[0].board if card.entity_id != target.entity_id]
+        self.assertEqual(1, len(copies))
+        self.assertEqual(target.card_id, copies[0].card_id)
+        self.assertEqual(target.attack, copies[0].attack)
+        self.assertEqual(target.max_health, copies[0].max_health)
+
 
 if __name__ == "__main__":
     unittest.main()
