@@ -947,7 +947,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", spell.entity_id))
         self.assertEqual(0, game.players[0].mana)
         self.assertEqual(2, len(game.players[0].board))
-        self.assertTrue(all((m.attack, m.max_health) == (7, 8) for m in game.players[0].board))
+        self.assertTrue(all((m.attack, m.max_health) == (9, 10) for m in game.players[0].board))
 
     def test_panther_mask_sets_stats_stealth_and_draws(self):
         game = self.game()
