@@ -19,6 +19,9 @@ CATA_111,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_130,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_131,declarative,battlecry,powerlog_verified,,0,focused_test_and_regression
 CATA_132t,legacy_compatibility,,local_legacy,,0,regression_suite_only
+CATA_134,declarative,spell,upstream_adapted,,0,focused_test_and_regression
+CATA_134t,declarative,spell,upstream_adapted,,0,focused_test_and_regression
+CATA_134t2,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 CATA_134t3,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_135,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 CATA_135t,legacy_compatibility,,local_legacy,,0,regression_suite_only

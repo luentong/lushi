@@ -2100,6 +2100,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(4, len(drawn))
         self.assertTrue(all(card.attack_delta == 2 and card.health_delta == 2 for card in drawn))
 
+    def test_shatter_wildwood_circle(self):
+        game = self.game()
+        friendly = self.add_board(game, "CORE_LOOT_137", 0)
+        spell = self.add_hand(game, "CATA_134")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(2, sum(card.card_id == "CATA_134t3" for card in game.players[0].board))
+        self.assertEqual("CATA_134t3", friendly.deathrattle_summon_card_id)
+        friendly.damage = friendly.max_health
+        game._resolve_deaths()
+        self.assertEqual(3, sum(card.card_id == "CATA_134t3" for card in game.players[0].board))
+
 
 if __name__ == "__main__":
     unittest.main()

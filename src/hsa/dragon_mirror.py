@@ -700,6 +700,7 @@ class CardInstance:
     opponent_card_copy_played_while_held: bool = False
     copied_from_opponent: bool = False
     deathrattle_copy_card_id: str | None = None
+    deathrattle_summon_card_id: str | None = None
     temporary: bool = False
     return_control_to: int | None = None
     return_control_at_end_of_turn: int | None = None
@@ -1554,7 +1555,7 @@ class DragonMirrorGame:
         self._receive_drawn_card(player, card)
 
     def _receive_drawn_card(self, player: Player, card: CardInstance) -> None:
-        if card.card_id in {"CATA_479", "CATA_489", "CATA_820"}:
+        if card.card_id in {"CATA_134", "CATA_479", "CATA_489", "CATA_820"}:
             self._split_shatter_card(player, card)
             self._after_card_draw(player, card)
             return
@@ -5141,7 +5142,7 @@ class DragonMirrorGame:
         elif gift == "sweet_dreams": card.attack_delta += 4; card.health_delta += 5
 
     def _add_generated(self, player: Player, card: CardInstance) -> str:
-        if card.card_id in {"CATA_479", "CATA_489", "CATA_820"}:
+        if card.card_id in {"CATA_134", "CATA_479", "CATA_489", "CATA_820"}:
             return "hand" if self._split_shatter_card(player, card) else "burned"
         if "sweet_dreams" in card.gifts:
             player.deck.append(card)
@@ -5164,6 +5165,7 @@ class DragonMirrorGame:
                         halves=2)
             return False
         shatter_halves = {
+            "CATA_134": ("CATA_134t", "CATA_134t2"),
             "CATA_489": ("CATA_489t", "CATA_489t2"),
             "CATA_479": ("CATA_479t", "CATA_479t2"),
             "CATA_820": ("CATA_820t", "CATA_820t2"),
@@ -6291,6 +6293,18 @@ class DragonMirrorGame:
             Hook.DEATHRATTLE, minion.card_id, self,
             RuleContext(player=player, card=minion),
         )
+        if minion.deathrattle_summon_card_id and len(player.board) + len(player.locations) < 7:
+            token = self._entity(
+                minion.deathrattle_summon_card_id,
+                created_by=minion.card_id,
+            )
+            token.summoned_turn = self.turn
+            self._summon(player, token)
+            self._event(
+                "deathrattle_summon", player=player.index,
+                source=minion.entity_id, summoned=token.entity_id,
+                card=token.card_id,
+            )
         if minion.card_id in {
             "DINO_410", "DINO_410t2", "DINO_410t3", "DINO_410t4",
             "DINO_410t5",

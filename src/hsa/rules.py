@@ -135,6 +135,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_489t", "CATA_489t2",
     "CATA_479", "CATA_479t", "CATA_479t2",
     "CATA_820", "CATA_820t", "CATA_820t2",
+    "CATA_134", "CATA_134t", "CATA_134t2",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -1942,6 +1943,23 @@ class BuffFriendlyMinionsAndShield:
 
 
 @dataclass(frozen=True)
+class GrantDeathrattleSummon:
+    """Give friendly minions a simple summon-on-death effect."""
+
+    card_id: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        affected: list[int] = []
+        for minion in context.player.board:
+            minion.deathrattle_summon_card_id = self.card_id
+            affected.append(minion.entity_id)
+        game._event(
+            "grant_deathrattle_summon", player=context.player.index,
+            source=context.card.card_id, summon=self.card_id, affected=affected,
+        )
+
+
+@dataclass(frozen=True)
 class AddCurrentSourceStats:
     attack_multiplier: int = 0
     health_multiplier: int = 0
@@ -3624,6 +3642,18 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CATA_479t2", {Hook.SPELL: (BuffFriendlyMinionsAndShield(1),)},
             RuleSource("upstream_adapted", rosetta, "CATA_479t2", "AGPL-3.0", ("test_shatter_flight_maneuvers",)),
+        ),
+        CardRule(
+            "CATA_134", {Hook.SPELL: (Summon("CATA_134t3", count=2), GrantDeathrattleSummon("CATA_134t3"))},
+            RuleSource("upstream_adapted", rosetta, "CATA_134", "AGPL-3.0", ("test_shatter_wildwood_circle",)),
+        ),
+        CardRule(
+            "CATA_134t", {Hook.SPELL: (Summon("CATA_134t3", count=2),)},
+            RuleSource("upstream_adapted", rosetta, "CATA_134t", "AGPL-3.0", ("test_shatter_wildwood_circle",)),
+        ),
+        CardRule(
+            "CATA_134t2", {Hook.SPELL: (GrantDeathrattleSummon("CATA_134t3"),)},
+            RuleSource("upstream_adapted", rosetta, "CATA_134t2", "AGPL-3.0", ("test_shatter_wildwood_circle",)),
         ),
         CardRule(
             "CATA_820", {Hook.SPELL: (DrawMatching(count=3, card_type="MINION"), BuffZone("hand", attack=2, health=2, card_types=("MINION",)))},
