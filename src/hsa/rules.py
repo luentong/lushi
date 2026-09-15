@@ -144,6 +144,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_KAR_077",
     "CORE_BAR_541",
     "CORE_BT_491",
+    "CORE_BT_801",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -282,6 +283,22 @@ class Effect(Protocol):
 
 class CostModifier(Protocol):
     def adjustment(self, game: Any, player: Any, card: Any) -> int: ...
+
+
+@dataclass(frozen=True)
+class CostIfOutcast:
+    target_cost: int
+
+    def adjustment(self, game: Any, player: Any, card: Any) -> int:
+        active = getattr(card, "outcast_active", False)
+        if not active:
+            for index, held in enumerate(player.hand):
+                if held.entity_id == card.entity_id:
+                    active = index in {0, len(player.hand) - 1}
+                    break
+        if not active:
+            return 0
+        return self.target_cost - card.cost
 
 
 def _recipient(game: Any, context: RuleContext, side: str) -> Any:
@@ -595,6 +612,22 @@ class DamageActionTarget:
             context.player.index,
             (context.action.target_player, context.action.target_entity),
             amount,
+            source=context.card,
+        )
+
+
+@dataclass(frozen=True)
+class DamageActionTargetLifesteal:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        context.card.lifesteal = True
+        game._deal_to_target(
+            context.player.index,
+            (context.action.target_player, context.action.target_entity),
+            game._spell_effect_amount(context.player, context.card, self.amount),
             source=context.card,
         )
 
@@ -3800,6 +3833,12 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CORE_BT_491", {Hook.SPELL: (Draw(), DrawIfOutcast())},
             RuleSource("upstream_adapted", rosetta, "BT_491", "AGPL-3.0", ("test_spectral_sight_outcast",)),
+        ),
+        CardRule(
+            "CORE_BT_801", {Hook.SPELL: (DamageActionTargetLifesteal(3),)},
+            RuleSource("upstream_adapted", rosetta, "BT_801", "AGPL-3.0", ("test_eye_beam_outcast_lifesteal",)),
+            targeting=TargetSpec(TargetKind.ENEMY_MINION),
+            cost_modifier=CostIfOutcast(1),
         ),
         CardRule(
             "CATA_820", {Hook.SPELL: (DrawMatching(count=3, card_type="MINION"), BuffZone("hand", attack=2, health=2, card_types=("MINION",)))},

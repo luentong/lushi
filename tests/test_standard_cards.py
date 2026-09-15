@@ -2198,6 +2198,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", middle.entity_id))
         self.assertEqual(3, len(game.players[0].hand))
 
+    def test_eye_beam_outcast_lifesteal(self):
+        game = self.game()
+        game.players[0].health = 20
+        enemy = self.add_board(game, "CORE_LOOT_137", 1)
+        spell = self.add_hand(game, "CORE_BT_801")
+        self.assertEqual(1, game._effective_cost(game.players[0], spell))
+        game.step(Action("PLAY", spell.entity_id, 1, enemy.entity_id))
+        self.assertEqual(3, enemy.damage)
+        self.assertEqual(23, game.players[0].health)
+
 
 if __name__ == "__main__":
     unittest.main()
