@@ -178,6 +178,7 @@ CORE_DRG_107,declarative,deathrattle,upstream_adapted,"RosettaStone,fireplace",3
 CORE_DRG_256,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",3,regression_suite_only
 CORE_DS1_184,declarative,spell,upstream_adapted,"RosettaStone,fireplace",6,focused_test_and_regression
 CORE_DS1_185,declarative,spell,upstream_adapted,"RosettaStone,fireplace",6,focused_test_and_regression
+CORE_EDR_002,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 CORE_EDR_002e,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CORE_EDR_003,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CORE_EX1_002,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",4,regression_suite_only

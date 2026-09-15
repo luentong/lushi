@@ -2217,6 +2217,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertIsNotNone(game.pending_choice)
         self.assertEqual("DISCOVER", game.pending_choice["kind"])
 
+    def test_poison_breath(self):
+        game = self.game()
+        undead = self.add_board(game, "CAP_800", 0)
+        spell = self.add_hand(game, "CORE_EDR_002")
+        legal = game.legal_actions()
+        self.assertIn(Action("PLAY", spell.entity_id, 0, undead.entity_id), legal)
+        game.step(Action("PLAY", spell.entity_id, 0, undead.entity_id))
+        self.assertTrue(undead.poisonous)
+
 
 if __name__ == "__main__":
     unittest.main()

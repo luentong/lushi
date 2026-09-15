@@ -2860,6 +2860,12 @@ class DragonMirrorGame:
         ) else [(enemy.index, None)]
         if target_kind == TargetKind.FRIENDLY_MINION:
             return friendly_minions
+        if target_kind == TargetKind.FRIENDLY_UNDEAD:
+            return [
+                (player.index, minion.entity_id)
+                for minion in player.board
+                if minion.dormant_turns == 0 and minion.has_race("UNDEAD")
+            ]
         if target_kind == TargetKind.ENEMY_MINION:
             return enemy_minions
         if target_kind == TargetKind.ANY_MINION:

@@ -33,6 +33,7 @@ class TargetKind(StrEnum):
     ENEMY_MINION = "enemy_minion"
     ANY_CHARACTER = "any_character"
     FRIENDLY_CHARACTER = "friendly_character"
+    FRIENDLY_UNDEAD = "friendly_undead"
     ENEMY_CHARACTER = "enemy_character"
 
 
@@ -146,6 +147,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BT_491",
     "CORE_BT_801",
     "CORE_CATA_009",
+    "CORE_EDR_002",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -2046,6 +2048,23 @@ class BuffActionTargetElusive:
 
 
 @dataclass(frozen=True)
+class GrantPoisonousActionTarget:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        if not target.has_race("UNDEAD"):
+            raise ValueError("Poison Breath requires an Undead target")
+        target.poisonous = True
+        game._event(
+            "grant_poisonous", player=context.player.index,
+            source=context.card.card_id, target=target.entity_id,
+        )
+
+
+@dataclass(frozen=True)
 class SummonActionTargetCopy:
     """Summon a copy of the friendly target's current state."""
 
@@ -3845,6 +3864,11 @@ def build_rule_registry() -> RuleRegistry:
             "CORE_CATA_009", {Hook.SPELL: (FreezeActionTarget(), OfferSpellDiscover())},
             RuleSource("upstream_adapted", rosetta, "CATA_009", "AGPL-3.0", ("test_deaths_advance",)),
             targeting=TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "CORE_EDR_002", {Hook.SPELL: (GrantPoisonousActionTarget(),)},
+            RuleSource("upstream_adapted", rosetta, "EDR_002", "AGPL-3.0", ("test_poison_breath",)),
+            targeting=TargetSpec(TargetKind.FRIENDLY_UNDEAD),
         ),
         CardRule(
             "CATA_820", {Hook.SPELL: (DrawMatching(count=3, card_type="MINION"), BuffZone("hand", attack=2, health=2, card_types=("MINION",)))},
