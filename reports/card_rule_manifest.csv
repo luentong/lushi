@@ -226,6 +226,7 @@ CORE_ICC_038,legacy_compatibility,,local_legacy,RosettaStone,4,regression_suite_
 CORE_ICC_055,declarative,spell,upstream_adapted,"RosettaStone,fireplace",5,focused_test_and_regression
 CORE_KAR_061,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",3,regression_suite_only
 CORE_KAR_069,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",5,regression_suite_only
+CORE_KAR_077,declarative,spell,upstream_adapted,"RosettaStone,fireplace",10,focused_test_and_regression
 CORE_LOOT_013,declarative,battlecry,upstream_adapted,"RosettaStone,fireplace",2,focused_test_and_regression
 CORE_LOOT_101,declarative,spell,upstream_adapted,"RosettaStone,fireplace",5,focused_test_and_regression
 CORE_LOOT_137,legacy_compatibility,,local_legacy,RosettaStone,4,regression_suite_only

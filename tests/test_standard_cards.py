@@ -2151,6 +2151,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertTrue(all(card.rush for card in sparks))
         self.assertEqual(1, game.players[0].overload_next_turn)
 
+    def test_silvermoon_portal(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_LOOT_137", 0)
+        spell = self.add_hand(game, "CORE_KAR_077")
+        game.step(Action("PLAY", spell.entity_id, 0, target.entity_id))
+        self.assertEqual(2, target.attack_delta)
+        self.assertEqual(2, target.health_delta)
+        summoned = [card for card in game.players[0].board if card.entity_id != target.entity_id]
+        self.assertEqual(1, len(summoned))
+        self.assertEqual(2, summoned[0].definition.cost)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -141,6 +141,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_202",
     "TIME_101",
     "CORE_BOT_451",
+    "CORE_KAR_077",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -3762,6 +3763,11 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CORE_BOT_451", {Hook.SPELL: (Summon("BOT_102t", count=2), Overload(1))},
             RuleSource("upstream_adapted", rosetta, "BOT_451", "AGPL-3.0", ("test_voltaic_burst",)),
+        ),
+        CardRule(
+            "CORE_KAR_077", {Hook.SPELL: (BuffActionTarget(2, 2), SummonRandomExecutableMinion(cost=2))},
+            RuleSource("upstream_adapted", rosetta, "KAR_077", "AGPL-3.0", ("test_silvermoon_portal",)),
+            targeting=TargetSpec(TargetKind.FRIENDLY_MINION),
         ),
         CardRule(
             "CATA_820", {Hook.SPELL: (DrawMatching(count=3, card_type="MINION"), BuffZone("hand", attack=2, health=2, card_types=("MINION",)))},
