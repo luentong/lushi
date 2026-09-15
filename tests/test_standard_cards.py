@@ -998,6 +998,19 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", spell.entity_id, 1, target.entity_id))
         self.assertNotIn(target, game.players[1].board)
 
+    def test_standard_earthen_roar(self):
+        game = self.game()
+        first = self.add_board(game, "TLC_248", 1)
+        second = self.add_board(game, "CORE_LOOT_137", 1)
+        dragon = game._entity("CORE_LOOT_137")
+        game.players[0].hand.append(dragon)
+        spell = self.add_hand(game, "CATA_554")
+        game.step(Action("PLAY", spell.entity_id, 1, first.entity_id))
+        self.assertEqual(1, first.max_health)
+        self.assertEqual("EARTHEN_ROAR_PICK", game.pending_choice["kind"])
+        game.step(Action("EARTHEN_ROAR_PICK", second.entity_id))
+        self.assertEqual(1, second.max_health)
+
     def test_panther_mask_sets_stats_stealth_and_draws(self):
         game = self.game()
         target = self.add_board(game, "CORE_CS2_065", 1)

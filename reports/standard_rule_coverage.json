@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 208,
+      "declarative": 209,
       "legacy_compatibility": 337,
-      "not_implemented": 1616
+      "not_implemented": 1615
     },
     "collectible_implementation": {
-      "declarative": 184,
+      "declarative": 185,
       "legacy_compatibility": 232,
-      "not_implemented": 750
+      "not_implemented": 749
     },
     "fully_implemented": false
   },
@@ -3990,9 +3990,9 @@
       "mechanics": "",
       "text": "Set an enemy minion's Health to 1. If you're holding a Dragon, pick another.",
       "text_sha256": "7cf7f87df82025c06f19092c96a766835f439afa0353c366f30fb8d0e728e156",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_554e",

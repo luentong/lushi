@@ -129,6 +129,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_582",
     "CATA_585",
     "CATA_203",
+    "CATA_554",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -1645,6 +1646,23 @@ class SetActionTargetStats:
         target.health_delta += self.health - target.max_health
         if self.stealth:
             target.stealth = True
+
+
+@dataclass(frozen=True)
+class SetEnemyHealthOneWithDragonRepeat:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("enemy minion target is required")
+        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        target.health_delta += 1 - target.max_health
+        dragons = [card for card in context.player.hand if card.has_race("DRAGON")]
+        if dragons:
+            options = [m for m in game.players[1 - context.player.index].board if m.entity_id != target.entity_id]
+            if options:
+                game.pending_choice = {
+                    "kind": "EARTHEN_ROAR_PICK", "player": context.player.index,
+                    "options": options, "source_card_id": context.card.card_id,
+                }
 
 
 @dataclass(frozen=True)
@@ -3536,6 +3554,11 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CATA_203", {Hook.SPELL: (DestroyLegendaryTarget(),)},
             RuleSource("upstream_adapted", rosetta, "CATA_203", "AGPL-3.0", ("test_standard_garona_last_stand",)),
+            TargetSpec(TargetKind.ENEMY_MINION),
+        ),
+        CardRule(
+            "CATA_554", {Hook.SPELL: (SetEnemyHealthOneWithDragonRepeat(),)},
+            RuleSource("upstream_adapted", rosetta, "CATA_554", "AGPL-3.0", ("test_standard_earthen_roar",)),
             TargetSpec(TargetKind.ENEMY_MINION),
         ),
         CardRule(

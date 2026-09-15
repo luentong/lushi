@@ -2879,6 +2879,8 @@ class DragonMirrorGame:
                     Action("DISCOVER_PICK", option.entity_id)
                     for option in self.pending_choice["options"]
                 ]
+            if self.pending_choice["kind"] == "EARTHEN_ROAR_PICK":
+                return [Action("EARTHEN_ROAR_PICK", option.entity_id) for option in self.pending_choice["options"]]
             if self.pending_choice["kind"] == "REWIND":
                 return [Action("REWIND_KEEP"), Action("REWIND_RETRY")]
             if self.pending_choice["kind"] == "AMMUNITION":
@@ -3150,6 +3152,8 @@ class DragonMirrorGame:
             self._use_hero_power(action)
         elif action.kind == "DISCOVER_PICK":
             self._resolve_discover(action.source)
+        elif action.kind == "EARTHEN_ROAR_PICK":
+            self._resolve_earthen_roar_pick(action.source)
         elif action.kind == "REWIND_KEEP":
             self._resolve_rewind(False)
         elif action.kind == "REWIND_RETRY":
@@ -4972,6 +4976,7 @@ class DragonMirrorGame:
                 destroyed=[card.card_id for card in destroyed],
             )
             return
+
         if pending["kind"] == "DECK_CARD_DISCOVER":
             player.deck.remove(option)
             if pending["bottom_unchosen"]:
@@ -5073,6 +5078,13 @@ class DragonMirrorGame:
             )
         elif pending["after_pick"] == "summon_cannoneers":
             self._summon_cannoneers(player)
+
+    def _resolve_earthen_roar_pick(self, entity_id: int) -> None:
+        pending = self.pending_choice
+        target = next(m for m in pending["options"] if m.entity_id == entity_id)
+        target.health_delta += 1 - target.max_health
+        self.pending_choice = None
+        self._event("earthen_roar_second_pick", player=pending["player"], target=entity_id)
 
     def _summon_cannoneers(self, player: Player) -> None:
         for _ in range(2):
