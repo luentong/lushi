@@ -2134,6 +2134,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertIn(generated.card_id, {"CATA_134", "CATA_306", "CATA_479", "CATA_489", "CATA_820"})
         self.assertTrue(generated.shatter_combined)
 
+    def test_misplaced_pyromancer_shatter_trigger(self):
+        game = self.game()
+        pyromancer = self.add_board(game, "TIME_101", 0)
+        enemy = self.add_board(game, "CORE_LOOT_137", 1)
+        game._receive_drawn_card(game.players[0], game._entity("CATA_489"))
+        self.assertEqual(2, enemy.damage)
+        self.assertIn(pyromancer, game.players[0].board)
+
 
 if __name__ == "__main__":
     unittest.main()

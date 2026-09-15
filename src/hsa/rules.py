@@ -24,6 +24,7 @@ class Hook(StrEnum):
     HERO_POWER = "hero_power"
     START_TURN = "start_turn"
     END_TURN = "end_turn"
+    SHATTER = "shatter"
 
 
 class TargetKind(StrEnum):
@@ -138,6 +139,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_134", "CATA_134t", "CATA_134t2",
     "CATA_306", "CATA_306t1", "CATA_306t2",
     "CATA_202",
+    "TIME_101",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -3751,6 +3753,10 @@ def build_rule_registry() -> RuleRegistry:
                 "CATA_134", "CATA_306", "CATA_479", "CATA_489", "CATA_820",
             )),)},
             RuleSource("upstream_adapted", rosetta, "CATA_202", "AGPL-3.0", ("test_stolen_power_combined_shatter",)),
+        ),
+        CardRule(
+            "TIME_101", {Hook.SHATTER: (DamageBoard(2, "opponent"),)},
+            RuleSource("upstream_adapted", rosetta, "TIME_101", "AGPL-3.0", ("test_misplaced_pyromancer_shatter_trigger",)),
         ),
         CardRule(
             "CATA_820", {Hook.SPELL: (DrawMatching(count=3, card_type="MINION"), BuffZone("hand", attack=2, health=2, card_types=("MINION",)))},

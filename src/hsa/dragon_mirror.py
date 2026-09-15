@@ -5196,6 +5196,12 @@ class DragonMirrorGame:
             burned = 1
         self._event("shatter_split", player=player.index, source=card.card_id,
                     halves=[left.entity_id, right.entity_id], burned=burned)
+        for source in list(player.board):
+            if source.dormant_turns == 0 and not source.silenced:
+                self.rule_registry.dispatch(
+                    Hook.SHATTER, source.card_id, self,
+                    RuleContext(player=player, card=source),
+                )
         return True
 
     def _normalize_shattered_hand(self, player: Player) -> None:

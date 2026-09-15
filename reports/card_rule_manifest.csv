@@ -515,6 +515,7 @@ TIME_054,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TIME_056,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TIME_060,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TIME_063,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TIME_101,declarative,shatter,upstream_adapted,,0,focused_test_and_regression
 TIME_218,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 TIME_432,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 TIME_433,legacy_compatibility,,local_legacy,,0,regression_suite_only
