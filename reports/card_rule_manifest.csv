@@ -116,6 +116,7 @@ CORE_AT_037,declarative,spell,upstream_adapted,"RosettaStone,fireplace",19,focus
 CORE_AT_055,declarative,spell,upstream_adapted,"RosettaStone,fireplace",5,focused_test_and_regression
 CORE_AT_064,declarative,spell,upstream_adapted,"RosettaStone,fireplace",5,focused_test_and_regression
 CORE_AT_123,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",2,regression_suite_only
+CORE_BAR_541,declarative,spell,upstream_adapted,RosettaStone,2,focused_test_and_regression
 CORE_BAR_801,declarative,spell,upstream_adapted,RosettaStone,2,focused_test_and_regression
 CORE_BOT_222,declarative,spell,upstream_adapted,"RosettaStone,fireplace",2,focused_test_and_regression
 CORE_BOT_451,declarative,spell,upstream_adapted,"RosettaStone,fireplace",2,focused_test_and_regression

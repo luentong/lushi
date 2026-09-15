@@ -142,6 +142,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_101",
     "CORE_BOT_451",
     "CORE_KAR_077",
+    "CORE_BAR_541",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -427,6 +428,16 @@ class OfferSpellSchoolDiscover:
         game._offer_spell_school_discover(
             context.player, spell_school=self.spell_school,
             source_card_id=context.card.card_id, cost_delta=self.cost_delta,
+        )
+
+
+@dataclass(frozen=True)
+class OfferSpellDiscover:
+    """Offer three executable spells from the Standard runtime pool."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._offer_spell_discover(
+            context.player, source_card_id=context.card.card_id
         )
 
 
@@ -3768,6 +3779,11 @@ def build_rule_registry() -> RuleRegistry:
             "CORE_KAR_077", {Hook.SPELL: (BuffActionTarget(2, 2), SummonRandomExecutableMinion(cost=2))},
             RuleSource("upstream_adapted", rosetta, "KAR_077", "AGPL-3.0", ("test_silvermoon_portal",)),
             targeting=TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "CORE_BAR_541", {Hook.SPELL: (DamageActionTarget(2), OfferSpellDiscover())},
+            RuleSource("upstream_adapted", rosetta, "BAR_541", "AGPL-3.0", ("test_runed_orb",)),
+            targeting=TargetSpec(TargetKind.ANY_CHARACTER),
         ),
         CardRule(
             "CATA_820", {Hook.SPELL: (DrawMatching(count=3, card_type="MINION"), BuffZone("hand", attack=2, health=2, card_types=("MINION",)))},

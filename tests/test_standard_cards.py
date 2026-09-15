@@ -2162,6 +2162,21 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(1, len(summoned))
         self.assertEqual(2, summoned[0].definition.cost)
 
+    def test_runed_orb(self):
+        game = self.game()
+        enemy = self.add_board(game, "CORE_LOOT_137", 1)
+        spell = self.add_hand(game, "CORE_BAR_541")
+        game.step(Action("PLAY", spell.entity_id, 1, enemy.entity_id))
+        self.assertEqual(2, enemy.damage)
+        self.assertIsNotNone(game.pending_choice)
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        options = game.pending_choice["options"]
+        self.assertEqual(3, len(options))
+        self.assertTrue(all(card.definition.card_type == "SPELL" for card in options))
+        game.step(Action("DISCOVER_PICK", options[0].entity_id))
+        self.assertEqual(1, len(game.players[0].hand))
+        self.assertEqual("SPELL", game.players[0].hand[0].definition.card_type)
+
 
 if __name__ == "__main__":
     unittest.main()
