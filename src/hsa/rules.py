@@ -1865,6 +1865,29 @@ class Summon:
 
 
 @dataclass(frozen=True)
+class SummonAndSpendManaBuff:
+    card_id: str
+    count: int
+    attack_per_mana: int = 1
+    health_per_mana: int = 1
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        spent = max(0, player.mana)
+        player.mana = 0
+        for _ in range(self.count):
+            if len(player.board) + len(player.locations) >= 7:
+                break
+            minion = game._entity(self.card_id, created_by=context.card.card_id)
+            minion.summoned_turn = game.turn
+            minion.attack_delta += spent * self.attack_per_mana
+            minion.health_delta += spent * self.health_per_mana
+            game._summon(player, minion)
+        game._event("summon_spend_mana_buff", player=player.index,
+                    source=context.card.card_id, spent=spent, count=self.count)
+
+
+@dataclass(frozen=True)
 class SummonDormant:
     """Summon a minion that cannot act until its fixed dormant countdown ends."""
     card_id: str
@@ -3416,6 +3439,10 @@ def build_rule_registry() -> RuleRegistry:
             "CORE_CS2_009", {Hook.SPELL: (BuffActionTargetWithTaunt(2, 3),)},
             RuleSource("upstream_adapted", rosetta, "CS2_009", "AGPL-3.0", ("test_standard_buff_overload_weapon",)),
             TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "CATA_135", {Hook.SPELL: (SummonAndSpendManaBuff("CATA_135t", 2),)},
+            RuleSource("upstream_adapted", rosetta, "CATA_135", "AGPL-3.0", ("test_standard_mossbinding",)),
         ),
         CardRule(
             "CORE_CS1_112", {Hook.SPELL: (DamageBoard(2), HealFriendlyCharacters(2))},

@@ -259,6 +259,7 @@ ADDITIONAL_PLAYABLE_CARD_IDS = {
 # separate from the Rewind tranche: the generation audit relies on the latter
 # being exactly the Rewind cards, while this set will grow by school/pool.
 ADDITIONAL_PLAYABLE_SPELL_IDS = {
+    "CATA_135",  # Mossbinding
     "CATA_303",  # Purifying Breath
     "CORE_CS2_029",  # Fireball
     "CORE_CS2_032",  # Flamestrike
