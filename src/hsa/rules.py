@@ -149,6 +149,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_CATA_009",
     "CORE_EDR_002",
     "YOD_012", "YOD_012ts",
+    "CORE_BAR_311",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -733,6 +734,29 @@ class DamageRandomEnemyCharacters:
         game._event(
             "random_enemy_damage", player=context.player.index,
             source=context.card.card_id, amount=amount, targets=chosen,
+        )
+
+
+@dataclass(frozen=True)
+class DamageRandomSplitEnemyMinionsLifesteal:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.card.lifesteal = True
+        enemy = game.players[1 - context.player.index]
+        points = game._spell_effect_amount(context.player, context.card, self.amount)
+        targets: list[int] = []
+        for _ in range(points):
+            living = [minion for minion in enemy.board if minion.health > 0]
+            if not living:
+                break
+            target = game.rng.choice(living)
+            game._damage_minion(enemy.index, target, 1, context.card)
+            targets.append(target.entity_id)
+        game._resolve_deaths()
+        game._event(
+            "random_split_enemy_minion_damage", player=context.player.index,
+            source=context.card.card_id, amount=points, targets=targets,
         )
 
 
@@ -3903,6 +3927,10 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "YOD_012ts", {Hook.SPELL: (SummonWithTaunt("CS2_101t", count=2),)},
             RuleSource("upstream_adapted", rosetta, "YOD_012ts", "AGPL-3.0", ("test_air_raid",)),
+        ),
+        CardRule(
+            "CORE_BAR_311", {Hook.SPELL: (DamageRandomSplitEnemyMinionsLifesteal(4),)},
+            RuleSource("upstream_adapted", rosetta, "BAR_311", "AGPL-3.0", ("test_devouring_plague_random_lifesteal",)),
         ),
         CardRule(
             "CATA_820", {Hook.SPELL: (DrawMatching(count=3, card_type="MINION"), BuffZone("hand", attack=2, health=2, card_types=("MINION",)))},

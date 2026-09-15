@@ -2237,6 +2237,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", twin.entity_id))
         self.assertEqual(4, sum(card.card_id == "CS2_101t" for card in game.players[0].board))
 
+    def test_devouring_plague_random_lifesteal(self):
+        game = self.game()
+        game.players[0].health = 20
+        first = self.add_board(game, "TLC_248", 1)
+        second = self.add_board(game, "TLC_248", 1)
+        spell = self.add_hand(game, "CORE_BAR_311")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(24, game.players[0].health)
+        self.assertEqual(4, first.damage + second.damage)
+
 
 if __name__ == "__main__":
     unittest.main()
