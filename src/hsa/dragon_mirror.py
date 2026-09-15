@@ -689,6 +689,7 @@ class CardInstance:
     prepared: bool = False
     shatter_origin: str | None = None
     shatter_half: str | None = None
+    shatter_combined: bool = False
     dynamic_spell_damage: int = 0
     spells_cast_while_held: int = 0
     illusion_fake: bool = False
@@ -1555,7 +1556,8 @@ class DragonMirrorGame:
         self._receive_drawn_card(player, card)
 
     def _receive_drawn_card(self, player: Player, card: CardInstance) -> None:
-        if card.card_id in {"CATA_134", "CATA_306", "CATA_479", "CATA_489", "CATA_820"}:
+        if (card.card_id in {"CATA_134", "CATA_306", "CATA_479", "CATA_489", "CATA_820"}
+                and not card.shatter_combined):
             self._split_shatter_card(player, card)
             self._after_card_draw(player, card)
             return
@@ -5142,7 +5144,8 @@ class DragonMirrorGame:
         elif gift == "sweet_dreams": card.attack_delta += 4; card.health_delta += 5
 
     def _add_generated(self, player: Player, card: CardInstance) -> str:
-        if card.card_id in {"CATA_134", "CATA_306", "CATA_479", "CATA_489", "CATA_820"}:
+        if (card.card_id in {"CATA_134", "CATA_306", "CATA_479", "CATA_489", "CATA_820"}
+                and not card.shatter_combined):
             return "hand" if self._split_shatter_card(player, card) else "burned"
         if "sweet_dreams" in card.gifts:
             player.deck.append(card)

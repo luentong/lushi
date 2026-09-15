@@ -2125,6 +2125,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(target.attack, copies[0].attack)
         self.assertEqual(target.max_health, copies[0].max_health)
 
+    def test_stolen_power_combined_shatter(self):
+        game = self.game()
+        game.players[0].card_class = "ROGUE"
+        spell = self.add_hand(game, "CATA_202")
+        game.step(Action("PLAY", spell.entity_id))
+        generated = game.players[0].hand[-1]
+        self.assertIn(generated.card_id, {"CATA_134", "CATA_306", "CATA_479", "CATA_489", "CATA_820"})
+        self.assertTrue(generated.shatter_combined)
+
 
 if __name__ == "__main__":
     unittest.main()

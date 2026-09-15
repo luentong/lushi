@@ -137,6 +137,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_820", "CATA_820t", "CATA_820t2",
     "CATA_134", "CATA_134t", "CATA_134t2",
     "CATA_306", "CATA_306t1", "CATA_306t2",
+    "CATA_202",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -2008,6 +2009,33 @@ class SummonActionTargetCopy:
 
 
 @dataclass(frozen=True)
+class GenerateRandomCombinedShatter:
+    """Add a random supported Shatter card from another class, combined."""
+
+    card_ids: tuple[str, ...]
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = [
+            card_id for card_id in self.card_ids
+            if card_id in game.card_defs
+            and game.card_defs[card_id].card_class != context.player.card_class
+        ]
+        if not candidates:
+            candidates = list(self.card_ids)
+        if not candidates:
+            return
+        card_id = game.rng.choice(sorted(candidates))
+        card = game._entity(card_id, created_by=context.card.card_id)
+        card.shatter_combined = True
+        destination = game._add_generated(context.player, card)
+        game._event(
+            "combined_shatter_generated", player=context.player.index,
+            source=context.card.card_id, card=card_id, entity=card.entity_id,
+            destination=destination,
+        )
+
+
+@dataclass(frozen=True)
 class AddCurrentSourceStats:
     attack_multiplier: int = 0
     health_multiplier: int = 0
@@ -3717,6 +3745,12 @@ def build_rule_registry() -> RuleRegistry:
             "CATA_306t2", {Hook.SPELL: (SummonActionTargetCopy(),)},
             RuleSource("upstream_adapted", rosetta, "CATA_306t2", "AGPL-3.0", ("test_shatter_schism",)),
             targeting=TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "CATA_202", {Hook.SPELL: (GenerateRandomCombinedShatter((
+                "CATA_134", "CATA_306", "CATA_479", "CATA_489", "CATA_820",
+            )),)},
+            RuleSource("upstream_adapted", rosetta, "CATA_202", "AGPL-3.0", ("test_stolen_power_combined_shatter",)),
         ),
         CardRule(
             "CATA_820", {Hook.SPELL: (DrawMatching(count=3, card_type="MINION"), BuffZone("hand", attack=2, health=2, card_types=("MINION",)))},
