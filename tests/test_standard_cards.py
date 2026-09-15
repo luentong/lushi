@@ -2247,6 +2247,19 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(24, game.players[0].health)
         self.assertEqual(4, first.damage + second.damage)
 
+    def test_counterspell(self):
+        game = self.game()
+        counter = self.add_hand(game, "CORE_EX1_287")
+        game.step(Action("PLAY", counter.entity_id))
+        self.assertEqual(["CORE_EX1_287"], [secret.card_id for secret in game.players[0].secrets])
+        game.step(Action("END_TURN"))
+        coin = game._entity("GAME_005")
+        game.players[1].hand.append(coin)
+        before = game.players[1].mana
+        game.step(Action("PLAY", coin.entity_id))
+        self.assertEqual([], game.players[0].secrets)
+        self.assertEqual(before, game.players[1].mana)
+
 
 if __name__ == "__main__":
     unittest.main()

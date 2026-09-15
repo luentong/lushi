@@ -4189,6 +4189,19 @@ class DragonMirrorGame:
                     player.hand.append(copied)
 
     def _cast_spell(self, player: Player, card: CardInstance, action: Action) -> None:
+        opponent = self.players[1 - player.index]
+        counterspell = next(
+            (secret for secret in opponent.secrets
+             if secret.card_id == "CORE_EX1_287"),
+            None,
+        )
+        if counterspell is not None:
+            self._consume_secret(opponent, counterspell)
+            self._event(
+                "counterspell", player=opponent.index,
+                source=counterspell.entity_id, canceled=card.card_id,
+            )
+            return
         prior_fire = player.fire_spell_played
         spell_damage = self._spell_damage(player) + card.spell_damage_bonus
         if self.rule_registry.dispatch(

@@ -150,6 +150,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_EDR_002",
     "YOD_012", "YOD_012ts",
     "CORE_BAR_311",
+    "CORE_EX1_287",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -3931,6 +3932,10 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CORE_BAR_311", {Hook.SPELL: (DamageRandomSplitEnemyMinionsLifesteal(4),)},
             RuleSource("upstream_adapted", rosetta, "BAR_311", "AGPL-3.0", ("test_devouring_plague_random_lifesteal",)),
+        ),
+        CardRule(
+            "CORE_EX1_287", {Hook.SPELL: (ArmSecret(),)},
+            RuleSource("upstream_adapted", rosetta, "EX1_287", "AGPL-3.0", ("test_counterspell",)),
         ),
         CardRule(
             "CATA_820", {Hook.SPELL: (DrawMatching(count=3, card_type="MINION"), BuffZone("hand", attack=2, health=2, card_types=("MINION",)))},
