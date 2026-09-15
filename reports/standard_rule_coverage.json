@@ -7,14 +7,14 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 201,
+      "declarative": 203,
       "legacy_compatibility": 339,
-      "not_implemented": 1621
+      "not_implemented": 1619
     },
     "collectible_implementation": {
-      "declarative": 177,
+      "declarative": 179,
       "legacy_compatibility": 234,
-      "not_implemented": 755
+      "not_implemented": 753
     },
     "fully_implemented": false
   },
@@ -1275,9 +1275,9 @@
       "mechanics": "",
       "text": "Summon two 1/2 Golems. Spend all your Mana to give them +1/+1 for each Mana spent.",
       "text_sha256": "221e4354524a080be4e98b9feb45e7c51f32664b042db9ba42b7989a9810687b",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_135e",
@@ -3420,9 +3420,9 @@
       "mechanics": "ImmuneToSpellpower",
       "text": "Deal $3 damage to all minions. Repeat this with 1 less damage.",
       "text_sha256": "43a3cd6b2d946e4317367c0268b07c8312ec4f8df002f609bc39742a7250ae62",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CATA_492",

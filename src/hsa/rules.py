@@ -123,6 +123,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_EX1_246",
     "CORE_EX1_160",
     "CORE_DS1_184",
+    "CATA_491",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -3443,6 +3444,15 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CATA_135", {Hook.SPELL: (SummonAndSpendManaBuff("CATA_135t", 2),)},
             RuleSource("upstream_adapted", rosetta, "CATA_135", "AGPL-3.0", ("test_standard_mossbinding",)),
+        ),
+        CardRule(
+            "CATA_491",
+            {Hook.SPELL: (
+                DamageBoard(3), ResolveDeaths(),
+                DamageBoard(2), ResolveDeaths(),
+                DamageBoard(1), ResolveDeaths(),
+            )},
+            RuleSource("upstream_adapted", rosetta, "CATA_491", "AGPL-3.0", ("test_standard_eldritch_tentacles",)),
         ),
         CardRule(
             "CORE_CS1_112", {Hook.SPELL: (DamageBoard(2), HealFriendlyCharacters(2))},

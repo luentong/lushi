@@ -949,6 +949,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(2, len(game.players[0].board))
         self.assertTrue(all((m.attack, m.max_health) == (9, 10) for m in game.players[0].board))
 
+    def test_standard_eldritch_tentacles(self):
+        game = self.game()
+        target = self.add_board(game, "TLC_248", 1)
+        spell = self.add_hand(game, "CATA_491")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(6, target.damage)
+
     def test_panther_mask_sets_stats_stealth_and_draws(self):
         game = self.game()
         target = self.add_board(game, "CORE_CS2_065", 1)
