@@ -1,5 +1,6 @@
 ﻿card_id,implementation,hooks,source_kind,upstream_repositories,upstream_match_count,verification_status
 BAR_035t,legacy_compatibility,,local_legacy,RosettaStone,5,regression_suite_only
+BOT_102t,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",5,regression_suite_only
 CAP_004,declarative,deathrattle,local_spec,,0,focused_test_and_regression
 CAP_102,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 CAP_104,legacy_compatibility,,local_legacy,,0,regression_suite_only
@@ -117,6 +118,7 @@ CORE_AT_064,declarative,spell,upstream_adapted,"RosettaStone,fireplace",5,focuse
 CORE_AT_123,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",2,regression_suite_only
 CORE_BAR_801,declarative,spell,upstream_adapted,RosettaStone,2,focused_test_and_regression
 CORE_BOT_222,declarative,spell,upstream_adapted,"RosettaStone,fireplace",2,focused_test_and_regression
+CORE_BOT_451,declarative,spell,upstream_adapted,"RosettaStone,fireplace",2,focused_test_and_regression
 CORE_BRM_013,declarative,spell,upstream_adapted,"RosettaStone,fireplace",5,focused_test_and_regression
 CORE_BT_035,declarative,spell,upstream_adapted,"RosettaStone,fireplace",12,focused_test_and_regression
 CORE_BT_072,declarative,spell,upstream_adapted,"RosettaStone,fireplace",3,focused_test_and_regression

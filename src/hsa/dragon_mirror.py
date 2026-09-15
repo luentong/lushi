@@ -289,6 +289,7 @@ ADDITIONAL_PLAYABLE_SPELL_IDS = {
 }
 
 SPECIAL_TOKEN_IDS = {
+    "BOT_102t",  # Spark
     "CAP_107t",  # Cannoneer
     "CATA_155t",  # Onyxia's Wing
     "CATA_155t1",  # Onyxia's Wing

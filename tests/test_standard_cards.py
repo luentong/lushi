@@ -2142,6 +2142,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(2, enemy.damage)
         self.assertIn(pyromancer, game.players[0].board)
 
+    def test_voltaic_burst(self):
+        game = self.game()
+        spell = self.add_hand(game, "CORE_BOT_451")
+        game.step(Action("PLAY", spell.entity_id))
+        sparks = [card for card in game.players[0].board if card.card_id == "BOT_102t"]
+        self.assertEqual(2, len(sparks))
+        self.assertTrue(all(card.rush for card in sparks))
+        self.assertEqual(1, game.players[0].overload_next_turn)
+
 
 if __name__ == "__main__":
     unittest.main()
