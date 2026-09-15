@@ -620,5 +620,7 @@ TTN_950t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TTN_950t2,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TTN_960t5,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TTN_960t6,legacy_compatibility,,local_legacy,,0,regression_suite_only
+YOD_012,declarative,spell,upstream_adapted,"RosettaStone,fireplace",4,focused_test_and_regression
+YOD_012ts,declarative,spell,upstream_adapted,"RosettaStone,fireplace",3,focused_test_and_regression
 YOG_506t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 hexfrog,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",7,regression_suite_only

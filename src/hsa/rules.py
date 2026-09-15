@@ -148,6 +148,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BT_801",
     "CORE_CATA_009",
     "CORE_EDR_002",
+    "YOD_012", "YOD_012ts",
     "EDR_814",
     "CATA_485",
     "JAIL_441",
@@ -2153,6 +2154,31 @@ class Summon:
 
 
 @dataclass(frozen=True)
+class SummonWithTaunt:
+    card_id: str
+    count: int = 1
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        for _ in range(self.count):
+            if len(player.board) + len(player.locations) >= 7:
+                break
+            minion = game._entity(self.card_id, created_by=context.card.card_id)
+            minion.taunt = True
+            minion.summoned_turn = game.turn
+            game._summon(player, minion)
+
+
+@dataclass(frozen=True)
+class AddTwinspellCopy:
+    card_id: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        copy = game._entity(self.card_id, created_by=context.card.card_id)
+        game._add_generated(context.player, copy)
+
+
+@dataclass(frozen=True)
 class SummonAndSpendManaBuff:
     card_id: str
     count: int
@@ -3869,6 +3895,14 @@ def build_rule_registry() -> RuleRegistry:
             "CORE_EDR_002", {Hook.SPELL: (GrantPoisonousActionTarget(),)},
             RuleSource("upstream_adapted", rosetta, "EDR_002", "AGPL-3.0", ("test_poison_breath",)),
             targeting=TargetSpec(TargetKind.FRIENDLY_UNDEAD),
+        ),
+        CardRule(
+            "YOD_012", {Hook.SPELL: (SummonWithTaunt("CS2_101t", count=2), AddTwinspellCopy("YOD_012ts"))},
+            RuleSource("upstream_adapted", rosetta, "YOD_012", "AGPL-3.0", ("test_air_raid",)),
+        ),
+        CardRule(
+            "YOD_012ts", {Hook.SPELL: (SummonWithTaunt("CS2_101t", count=2),)},
+            RuleSource("upstream_adapted", rosetta, "YOD_012ts", "AGPL-3.0", ("test_air_raid",)),
         ),
         CardRule(
             "CATA_820", {Hook.SPELL: (DrawMatching(count=3, card_type="MINION"), BuffZone("hand", attack=2, health=2, card_types=("MINION",)))},

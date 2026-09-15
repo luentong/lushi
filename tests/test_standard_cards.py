@@ -2226,6 +2226,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", spell.entity_id, 0, undead.entity_id))
         self.assertTrue(undead.poisonous)
 
+    def test_air_raid(self):
+        game = self.game()
+        spell = self.add_hand(game, "YOD_012")
+        game.step(Action("PLAY", spell.entity_id))
+        recruits = [card for card in game.players[0].board if card.card_id == "CS2_101t"]
+        self.assertEqual(2, len(recruits))
+        self.assertTrue(all(card.taunt for card in recruits))
+        twin = next(card for card in game.players[0].hand if card.card_id == "YOD_012ts")
+        game.step(Action("PLAY", twin.entity_id))
+        self.assertEqual(4, sum(card.card_id == "CS2_101t" for card in game.players[0].board))
+
 
 if __name__ == "__main__":
     unittest.main()
