@@ -3012,6 +3012,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._apply_dark_gift(hidden_target, "well_rested")
         self.assertIn("well_rested", wallow.gifts)
 
+    def test_dark_gift_is_not_applied_twice(self):
+        game = self.game()
+        target = self.add_board(game, "EDR_810t", 0)
+        game._apply_dark_gift(target, "bundled_up")
+        first_health = target.max_health
+        game._apply_dark_gift(target, "bundled_up")
+        self.assertEqual(first_health, target.max_health)
+        self.assertEqual(1, target.gifts.count("bundled_up"))
+
     def test_raptor_herald_dark_gift_discover(self):
         game = self.game()
         herald = self.add_hand(game, "CORE_EDR_004")
