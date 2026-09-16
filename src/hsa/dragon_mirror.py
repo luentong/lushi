@@ -5237,6 +5237,34 @@ class DragonMirrorGame:
             and definition.card_type == "MINION"
             and getattr(definition, "rarity", "") == "LEGENDARY"
         )
+
+    def _offer_opponent_deck_minion_discover(
+        self, player: Player, *, source_card_id: str, dark_gift: bool = False,
+    ) -> None:
+        opponent = self.players[1 - player.index]
+        originals = [c for c in opponent.deck if c.definition.card_type == "MINION"]
+        self.rng.shuffle(originals)
+        options = []
+        for original in originals[:3]:
+            option = original.clone(self.next_entity_id)
+            self.next_entity_id += 1
+            option.created_by = source_card_id
+            if dark_gift:
+                eligible = sorted(self._eligible_dark_gifts(option))
+                if eligible:
+                    self._apply_dark_gift(option, self.rng.choice(eligible), owner=player)
+            options.append(option)
+        self.pending_choice = {
+            "kind": "DISCOVER", "player": player.index,
+            "pool": tuple(c.card_id for c in options), "dark_gift": dark_gift,
+            "repeats_left": 0, "after_pick": None,
+            "source_card_id": source_card_id, "options": options,
+        }
+        self._event(
+            "opponent_deck_minion_discover_offer", player=player.index,
+            source=source_card_id, dark_gift=dark_gift,
+            options=[{"entity": c.entity_id, "card": c.card_id, "gifts": list(c.gifts)} for c in options],
+        )
         self.rng.shuffle(candidates)
         options = [self._entity(i, created_by=source_card_id) for i in candidates[:3]]
         self.pending_choice = {
