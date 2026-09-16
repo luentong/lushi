@@ -704,7 +704,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         victim = self.add_board(game, "TLC_248", 0)
         survivor = self.add_board(game, "TLC_248", 0)
         base_attack, base_health = survivor.attack, survivor.max_health
-        victim.health = 0
+        victim.damage = victim.max_health
         game._resolve_deaths()
         self.assertEqual(base_attack + 3, survivor.attack)
         self.assertEqual(base_health + 2, survivor.max_health)
