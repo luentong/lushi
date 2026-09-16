@@ -852,6 +852,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("END_TURN"))
         self.assertNotIn(minion, game.players[0].board)
 
+    def test_defias_smuggler_battlecry(self):
+        game = self.game()
+        target = self.add_board(game, "TLC_248", 0)
+        base_attack = target.attack
+        smuggler = self.add_hand(game, "JAIL_998")
+        game.step(Action("PLAY", smuggler.entity_id, 0, target.entity_id))
+        self.assertEqual(base_attack + 2, target.attack)
+        self.assertTrue(target.rush)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

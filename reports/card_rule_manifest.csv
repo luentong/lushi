@@ -498,6 +498,7 @@ JAIL_912,declarative,deathrattle,powerlog_verified,,0,focused_test_and_regressio
 JAIL_941,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 JAIL_941t,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 JAIL_942,legacy_compatibility,,local_legacy,,0,regression_suite_only
+JAIL_998,declarative,battlecry,official_text_and_engine_verified,,0,focused_test_and_regression
 JAIL_COIN1,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 JAIL_EVENT_100t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 MEND_040,legacy_compatibility,,local_legacy,,0,regression_suite_only
