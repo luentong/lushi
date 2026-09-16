@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 641,
+    "supported_cards": 642,
     "declarative_rules": 259,
-    "legacy_special_case_rules": 4,
+    "legacy_special_case_rules": 5,
     "legacy_compatibility_rules": 378,
     "cards_with_upstream_match": 183
   },
@@ -19449,6 +19449,24 @@
       "metadata_source": "HearthstoneJSON build 251332",
       "upstream_matches": [],
       "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "JAIL_720",
+      "implementation": "legacy_special_case",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "official_text_and_engine_verified",
+        "reference": "HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_lotus_bookie_deathrattle_coin"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
     },
     {
       "card_id": "JAIL_732",

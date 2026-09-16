@@ -6615,6 +6615,14 @@ class DragonMirrorGame:
             Hook.DEATHRATTLE, minion.card_id, self,
             RuleContext(player=player, card=minion),
         )
+        if minion.card_id == "JAIL_720":
+            coin = self._entity("JAIL_COIN1", created_by=minion.card_id)
+            destination = self._add_generated(player, coin)
+            self._event(
+                "lotus_bookie_coin", player=player.index,
+                source=minion.entity_id, card=coin.card_id,
+                destination=destination,
+            )
         if minion.deathrattle_summon_card_id and len(player.board) + len(player.locations) < 7:
             token = self._entity(
                 minion.deathrattle_summon_card_id,

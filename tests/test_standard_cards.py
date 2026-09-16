@@ -803,6 +803,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual("DISCOVER", game.pending_choice["kind"])
         self.assertEqual(["TLC_248"], [c.card_id for c in game.pending_choice["options"]])
 
+    def test_lotus_bookie_deathrattle_coin(self):
+        game = self.game()
+        bookie = self.add_board(game, "JAIL_720", 0)
+        bookie.damage = bookie.max_health
+        game._resolve_deaths()
+        self.assertEqual(
+            1,
+            sum(card.card_id == "JAIL_COIN1" for card in game.players[0].hand),
+        )
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")
