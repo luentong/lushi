@@ -5554,7 +5554,7 @@ class DragonMirrorGame:
         elif gift == "rude_awakening": card.battlecry_twice = True
         elif gift == "living_nightmare": card.living_nightmare = True
         elif gift == "sweet_dreams": card.attack_delta += 4; card.health_delta += 5
-        if propagate and gift not in {"living_nightmare", "sweet_dreams"}:
+        if propagate:
             # Wallow copies gifts granted to friendly minions while hidden in
             # hand/deck.  Do not recurse when applying the copied gift.
             owner = owner or next((p for p in self.players if card in p.board), None)
