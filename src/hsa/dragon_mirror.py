@@ -5543,6 +5543,8 @@ class DragonMirrorGame:
     def _apply_dark_gift(self, card: CardInstance, gift: str, *, propagate: bool = True, owner: Player | None = None) -> None:
         if gift not in self._eligible_dark_gifts(card):
             raise ValueError(f"ineligible Dark Gift {gift} for {card.card_id}")
+        if gift in card.gifts:
+            return
         card.gifts.append(gift)
         if gift == "waking_terror": card.attack_delta += 3; card.lifesteal = True
         elif gift == "bundled_up": card.health_delta += 4; card.taunt = True
