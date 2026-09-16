@@ -782,6 +782,16 @@ class DamageRandomSplitEnemyMinionsLifesteal:
                 break
 
 
+            target = game.rng.choice(living)
+            game._damage_minion(enemy.index, target, 1, context.card)
+            targets.append(target.entity_id)
+        game._resolve_deaths()
+        game._event(
+            "random_split_enemy_minion_damage", player=context.player.index,
+            source=context.card.card_id, amount=points, targets=targets,
+        )
+
+
 @dataclass(frozen=True)
 class DrawZeroAttackMinion:
     def execute(self, game: Any, context: RuleContext) -> None:
@@ -790,14 +800,6 @@ class DrawZeroAttackMinion:
             lambda card: (
                 card.definition.card_type == "MINION" and card.attack == 0
             ),
-        )
-            target = game.rng.choice(living)
-            game._damage_minion(enemy.index, target, 1, context.card)
-            targets.append(target.entity_id)
-        game._resolve_deaths()
-        game._event(
-            "random_split_enemy_minion_damage", player=context.player.index,
-            source=context.card.card_id, amount=points, targets=targets,
         )
 
 
