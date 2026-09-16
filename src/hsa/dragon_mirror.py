@@ -3895,8 +3895,14 @@ class DragonMirrorGame:
             self._offer_deck_minion_discover(player, repeats=times)
             return
         if card.card_id == "FIR_924":
+            demon_pool = [
+                card_id for card_id, definition in self.card_defs.items()
+                if card_id in EXECUTABLE_CARD_IDS
+                and definition.card_type == "MINION"
+                and "DEMON" in definition.races
+            ]
             self._offer_discover(
-                player, SUPPORTED_VOID_SOUL_DEMON_IDS, dark_gift=True,
+                player, demon_pool, dark_gift=True,
                 repeats=times, after_pick="copy_each_discovered",
                 source_card_id=card.card_id,
             )
