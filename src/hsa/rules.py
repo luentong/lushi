@@ -126,7 +126,7 @@ STANDARD_DECLARATIVE_IDS = {
     "RLK_511",  # Harbinger of Winter
     "RLK_709",  # Remorseless Winter
     "EDR_843a", "EDR_843b", "EDR_843t1", "CAP_405t4",
-    "EDR_817", "CAP_102", "EDR_860", "FIR_921", "EDR_227", "EDR_264", "EDR_451", "EDR_518", "EDR_519", "EDR_800", "EDR_871", "EDR_845", "EDR_888", "EDR_102", "EDR_811", "FIR_900", "EDR_226", "EDR_231", "EDR_500", "END_000", "END_001", "END_003", "END_003p", "CORE_AT_003", "EDR_847p", "EDR_847pt2", "EDR_850p", "EDR_851p", "EDR_448p", "END_000p", "EDR_445p", "EDR_445pt3",
+    "EDR_817", "CAP_102", "EDR_860", "FIR_921", "EDR_227", "EDR_264", "EDR_451", "EDR_518", "EDR_519", "EDR_800", "EDR_871", "EDR_845", "EDR_888", "EDR_102", "EDR_811", "FIR_900", "EDR_488", "EDR_882", "FIR_920", "END_027", "EDR_226", "EDR_231", "EDR_500", "END_000", "END_001", "END_003", "END_003p", "CORE_AT_003", "EDR_847p", "EDR_847pt2", "EDR_850p", "EDR_851p", "EDR_448p", "END_000p", "EDR_445p", "EDR_445pt3",
     "TIME_023", "EDR_251", "JAIL_377", "EDR_231", "JAIL_866", "CORE_CATA_007",
     "CORE_EX1_154", "CATA_526", "TLC_231", "TLC_236", "EDR_226",
     "RLK_024", "CATA_156",
@@ -758,6 +758,7 @@ class OfferMinionDarkGiftDiscover:
     rarity: str | None = None
     race: str | None = None
     mechanic: str | None = None
+    mechanics: tuple[str, ...] = ()
     min_cost: int | None = None
     cost_delta: int = 0
     spend_corpses: int = 0
@@ -774,6 +775,7 @@ class OfferMinionDarkGiftDiscover:
             and (self.rarity is None or definition.rarity == self.rarity)
             and (self.race is None or self.race in definition.races)
             and (self.mechanic is None or self.mechanic in definition.mechanics)
+            and (not self.mechanics or any(m in definition.mechanics for m in self.mechanics))
             and (self.min_cost is None or definition.cost >= self.min_cost)
         ]
         game._offer_discover(
@@ -3505,6 +3507,30 @@ def build_rule_registry() -> RuleRegistry:
                 OfferMinionDarkGiftDiscover(race="UNDEAD", spend_corpses=2),
             )},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332", ("test_rite_of_atrocity_spends_corpses",)),
+        ),
+        CardRule(
+            "EDR_488", {Hook.SPELL: (
+                OfferMinionDarkGiftDiscover(mechanic="DEATHRATTLE"),
+            )},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332", ("test_avant_gardening_dark_gift_discover",)),
+        ),
+        CardRule(
+            "EDR_882", {Hook.SPELL: (
+                OfferMinionDarkGiftDiscover(race="DEMON", min_cost=5),
+            )},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332", ("test_jumpscare_dark_gift_discover",)),
+        ),
+        CardRule(
+            "FIR_920", {Hook.SPELL: (
+                OfferMinionDarkGiftDiscover(mechanics=("COMBO", "BATTLECRY", "STEALTH")),
+            )},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332", ("test_smoke_bomb_dark_gift_discover",)),
+        ),
+        CardRule(
+            "END_027", {Hook.SPELL: (
+                OfferMinionDarkGiftDiscover(race="DRAGON"),
+            )},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332", ("test_wings_of_eternity_dark_gift_discover",)),
         ),
         CardRule(
             "FIR_900", {Hook.SPELL: (
