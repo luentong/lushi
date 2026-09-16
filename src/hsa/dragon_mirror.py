@@ -6365,6 +6365,29 @@ class DragonMirrorGame:
                     )
             self.minions_died_this_turn += len(dead)
 
+            # Duplicate copies the first friendly corpse twice into hand.
+            for owner in self.players:
+                corpses = [minion for dead_owner, minion in dead if dead_owner is owner]
+                if not corpses:
+                    continue
+                for secret in list(owner.secrets):
+                    if secret.card_id != "FP1_018":
+                        continue
+                    self._consume_secret(owner, secret)
+                    added = 0
+                    for _ in range(2):
+                        if len(owner.hand) >= 10:
+                            break
+                        duplicate = corpses[0].clone(self.next_entity_id)
+                        self.next_entity_id += 1
+                        duplicate.created_by = secret.card_id
+                        owner.hand.append(duplicate)
+                        added += 1
+                    self._event(
+                        "duplicate", player=owner.index,
+                        source=secret.entity_id, added=added,
+                    )
+
             # Redemption returns the first friendly corpse from this death
             # batch before Deathrattles resolve. The revived copy keeps buffs
             # and keywords but enters with exactly one Health.

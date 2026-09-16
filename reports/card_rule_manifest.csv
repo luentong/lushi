@@ -430,6 +430,7 @@ FIR_954,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_
 FIR_956,legacy_compatibility,,local_legacy,,0,regression_suite_only
 FIR_958,legacy_compatibility,,local_legacy,,0,regression_suite_only
 FIR_959,legacy_compatibility,,local_legacy,,0,regression_suite_only
+FP1_018,declarative,spell,upstream_adapted,"RosettaStone,fireplace",3,focused_test_and_regression
 GAME_005,declarative,spell,upstream_adapted,"RosettaStone,fireplace",15,focused_test_and_regression
 JAIL_007,declarative,deathrattle,local_spec,,0,focused_test_and_regression
 JAIL_029,legacy_compatibility,,local_legacy,,0,regression_suite_only

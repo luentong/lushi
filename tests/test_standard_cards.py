@@ -736,6 +736,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(base_max_health, revived[0].max_health)
         self.assertFalse(game.players[0].secrets)
 
+    def test_duplicate(self):
+        game = self.game()
+        secret = self.add_hand(game, "FP1_018")
+        game.step(Action("PLAY", secret.entity_id))
+        victim = self.add_board(game, "TLC_248", 0)
+        victim.damage = victim.max_health
+        game._resolve_deaths()
+        copies = [card for card in game.players[0].hand if card.card_id == "TLC_248"]
+        self.assertEqual(2, len(copies))
+        self.assertFalse(game.players[0].secrets)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")
