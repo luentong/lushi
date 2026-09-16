@@ -4927,13 +4927,30 @@ class DragonMirrorGame:
             )
             return
         if dark_gift:
-            used_gifts: set[str] = set()
-            for option in options:
-                eligible = sorted(self._eligible_dark_gifts(option) - used_gifts)
-                if not eligible:
-                    eligible = sorted(self._eligible_dark_gifts(option))
-                gift = self.rng.choice(eligible)
-                used_gifts.add(gift)
+            # The three Discover choices are paired with distinct gifts when
+            # the candidate sets permit it.  Solve the tiny assignment problem
+            # instead of greedily falling back to a duplicate for an unlucky
+            # option ordering.
+            eligible_sets = [set(self._eligible_dark_gifts(option)) for option in options]
+            assignment: list[str] | None = None
+
+            def assign(index: int, used: set[str], picked: list[str]) -> bool:
+                nonlocal assignment
+                if index == len(eligible_sets):
+                    assignment = list(picked)
+                    return True
+                choices = sorted(eligible_sets[index] - used)
+                self.rng.shuffle(choices)
+                for gift in choices:
+                    if assign(index + 1, used | {gift}, picked + [gift]):
+                        return True
+                return False
+
+            if not assign(0, set(), []):
+                # A pathological/fully constrained pool can make uniqueness
+                # impossible; preserve playability by allowing a duplicate.
+                assignment = [self.rng.choice(sorted(gifts)) for gifts in eligible_sets]
+            for option, gift in zip(options, assignment):
                 self._apply_dark_gift(option, gift, owner=player)
         self.pending_choice = {
             "kind": "DISCOVER",
