@@ -126,7 +126,7 @@ STANDARD_DECLARATIVE_IDS = {
     "RLK_511",  # Harbinger of Winter
     "RLK_709",  # Remorseless Winter
     "EDR_843a", "EDR_843b", "EDR_843t1", "CAP_405t4",
-    "EDR_817", "CAP_102", "EDR_860", "FIR_921", "EDR_227", "EDR_264", "EDR_451", "EDR_518", "EDR_519", "EDR_847p", "EDR_847pt2", "EDR_850p", "EDR_851p", "EDR_448p", "END_000p", "EDR_445p", "EDR_445pt3",
+    "EDR_817", "CAP_102", "EDR_860", "FIR_921", "EDR_227", "EDR_264", "EDR_451", "EDR_518", "EDR_519", "EDR_800", "END_001", "END_003", "END_003p", "CORE_AT_003", "EDR_847p", "EDR_847pt2", "EDR_850p", "EDR_851p", "EDR_448p", "END_000p", "EDR_445p", "EDR_445pt3",
     "TIME_023", "EDR_251", "JAIL_377", "EDR_231", "JAIL_866", "CORE_CATA_007",
     "CORE_EX1_154", "CATA_526", "TLC_231", "TLC_236", "EDR_226",
     "RLK_024", "CATA_156",
@@ -2127,6 +2127,33 @@ class SetHeroPower:
         )
 
 
+IMBUE_HERO_POWER_BY_CLASS = {
+    "DRUID": "EDR_847p",
+    "HUNTER": "EDR_850p",
+    "MAGE": "EDR_851p",
+    "PALADIN": "EDR_445p",
+    "PRIEST": "EDR_449p",
+    "ROGUE": "END_000p",
+    "SHAMAN": "EDR_448p",
+    "DEATHKNIGHT": "END_003p",
+}
+
+
+@dataclass(frozen=True)
+class ImbueHeroPowerByClass:
+    """Apply the Imbue power belonging to the controller's current class."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        power_id = IMBUE_HERO_POWER_BY_CLASS.get(context.player.card_class)
+        if power_id is None or power_id not in game.card_defs:
+            game._event(
+                "hero_power_imbue_unavailable", player=context.player.index,
+                source=context.card.card_id, card_class=context.player.card_class,
+            )
+            return
+        SetHeroPower(power_id).execute(game, context)
+
+
 @dataclass(frozen=True)
 class TriggerHeroPowerFree:
     """Resolve the current hero power without spending mana or using it."""
@@ -3383,6 +3410,38 @@ def build_rule_registry() -> RuleRegistry:
                 "powerlog_verified",
                 "Power.log 23282dea + HearthstoneJSON 251332",
                 verification=("test_lunarwing_messenger_imbues_hero_power",),
+            ),
+        ),
+        CardRule(
+            "EDR_800", {Hook.BATTLECRY: (ImbueHeroPowerByClass(),)},
+            RuleSource(
+                "official_text_and_engine_pattern",
+                "HearthstoneJSON 251332; neutral Imbue resolves by controller class",
+                verification=("test_neutral_imbue_uses_controller_class",),
+            ),
+        ),
+        CardRule(
+            "END_001", {Hook.BATTLECRY: (ImbueHeroPowerByClass(),)},
+            RuleSource(
+                "official_text_and_engine_pattern",
+                "HearthstoneJSON 251332; neutral/dual-class Imbue resolves by controller class",
+                verification=("test_neutral_imbue_weapon_uses_controller_class",),
+            ),
+        ),
+        CardRule(
+            "END_003", {Hook.SPELL: (DrawMatching(card_type="MINION", race="UNDEAD"), ImbueHeroPowerByClass(), ImbueHeroPowerByClass())},
+            RuleSource(
+                "official_text_and_engine_pattern",
+                "HearthstoneJSON 251332; Finality draws an Undead and Imbues twice",
+                verification=("test_finality_draws_undead_and_imbues_twice",),
+            ),
+        ),
+        CardRule(
+            "END_003p", {},
+            RuleSource(
+                "official_text_and_engine_pattern",
+                "HearthstoneJSON 251332; passive first-Undead-per-turn trigger",
+                verification=("test_deathknight_imbue_first_undead_each_turn",),
             ),
         ),
         CardRule(

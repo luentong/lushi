@@ -2926,6 +2926,36 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertTrue(game.players[0].board)
         self.assertEqual("CORE_CS2_231", game.players[0].board[-1].card_id)
 
+    def test_neutral_imbue_uses_controller_class(self):
+        game = self.game()
+        game.players[0].card_class = "MAGE"
+        guardian = self.add_hand(game, "EDR_800")
+        game.step(Action("PLAY", guardian.entity_id))
+        self.assertEqual("EDR_851p", game.players[0].hero_power_id)
+
+    def test_neutral_imbue_weapon_uses_controller_class(self):
+        game = self.game()
+        game.players[0].card_class = "ROGUE"
+        weapon = self.add_hand(game, "END_001")
+        game.step(Action("PLAY", weapon.entity_id))
+        self.assertEqual("END_000p", game.players[0].hero_power_id)
+
+    def test_deathknight_imbue_first_undead_each_turn(self):
+        game = self.game()
+        game.players[0].card_class = "DEATHKNIGHT"
+        game.players[0].hero_power_id = "END_003p"
+        first = self.add_hand(game, "CORE_AT_003")
+        second = self.add_hand(game, "CORE_AT_003")
+        game.step(Action("PLAY", first.entity_id))
+        game.step(Action("PLAY", second.entity_id))
+        self.assertEqual(1, first.attack_delta)
+        self.assertEqual(0, second.attack_delta)
+        game.step(Action("END_TURN"))
+        game.step(Action("END_TURN"))
+        third = self.add_hand(game, "CORE_AT_003")
+        game.step(Action("PLAY", third.entity_id))
+        self.assertEqual(1, third.attack_delta)
+
 
 if __name__ == "__main__":
     unittest.main()

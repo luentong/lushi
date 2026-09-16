@@ -851,6 +851,7 @@ class Player:
     hero_power_id: str | None = None
     hero_power_imbues: int = 0
     imbued_hero_power_id: str | None = None
+    imbue_passive_triggered_this_turn: bool = False
     fire_spell_played: bool = False
     played_races_this_turn: set[str] = field(default_factory=set)
     played_races_last_turn: set[str] = field(default_factory=set)
@@ -2036,6 +2037,7 @@ class DragonMirrorGame:
         player.hero_attack_bonus = 0
         player.hero_attacks_this_turn = 0
         player.hero_power_used = False
+        player.imbue_passive_triggered_this_turn = False
         player.next_beast_cost_reduction = 0
         player.fire_spell_played = False
         player.cards_played_this_turn = 0
@@ -2815,6 +2817,8 @@ class DragonMirrorGame:
         return 1 if player.card_class == "DEMONHUNTER" else 2
 
     def _hero_power_actions(self, player: Player) -> list[Action]:
+        if player.hero_power_id == "END_003p":
+            return []
         if player.hero_power_id is not None:
             target_spec = self.rule_registry.targeting(player.hero_power_id)
             if target_spec is None:
@@ -3622,6 +3626,7 @@ class DragonMirrorGame:
                 controller.magmaw_entity = card.entity_id
                 self._summon_magmaw_bodies(controller)
             self._battlecry(controller, card, action)
+            self._trigger_imbue_passive(controller, card)
             if card in controller.board:
                 self._trigger_secrets_after_enemy_minion_play(controller, card)
             if card.living_nightmare and len(controller.board) + len(controller.locations) < 7:
@@ -3672,6 +3677,13 @@ class DragonMirrorGame:
             self._refresh_continuous(controller)
         elif card.definition.card_type == "LOCATION":
             player.locations.append(Location(card.entity_id, card.card_id, card.definition.health, 2))
+        elif card.definition.card_type == "WEAPON":
+            durability = getattr(card.definition, "durability", 0) or 2
+            self._equip_weapon(
+                player,
+                Weapon(card.card_id, card.definition.name, card.definition.attack, durability),
+            )
+            self._battlecry(player, card, action)
         elif card.definition.card_type == "HERO":
             self._play_hero_card(player, card)
         else:
@@ -3708,6 +3720,23 @@ class DragonMirrorGame:
                 player,
                 exclude_entity=card.entity_id if card.card_id == "TIME_063" else None,
             )
+
+    def _trigger_imbue_passive(self, player: Player, card: CardInstance) -> None:
+        """Resolve passive Imbue effects after a minion's Battlecry."""
+        if (
+            card.definition.card_type != "MINION"
+            or not card.has_race("UNDEAD")
+            or player.hero_power_id != "END_003p"
+            or player.imbue_passive_triggered_this_turn
+        ):
+            return
+        player.imbue_passive_triggered_this_turn = True
+        # Blessing of the Infinite grants attack only in the pinned print.
+        card.attack_delta += 1
+        self._event(
+            "imbue_first_undead", player=player.index,
+            card=card.card_id, entity=card.entity_id, attack=1,
+        )
 
     def _accelerate_timelords(
         self, player: Player, *, exclude_entity: int | None = None
