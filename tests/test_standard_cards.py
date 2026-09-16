@@ -861,6 +861,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(base_attack + 2, target.attack)
         self.assertTrue(target.rush)
 
+    def test_holy_eggbearer_draws_zero_attack(self):
+        game = self.game()
+        zero = game._entity("CORE_EX1_096", started_in_deck=True)
+        other = game._entity("TLC_248", started_in_deck=True)
+        game.players[0].deck = [other, zero]
+        bearer = self.add_hand(game, "DINO_411")
+        game.step(Action("PLAY", bearer.entity_id))
+        self.assertEqual("CORE_EX1_096", game.players[0].hand[-1].card_id)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")
