@@ -1727,6 +1727,16 @@ class HeraldRagnaros:
 
 
 @dataclass(frozen=True)
+class HeraldRagnarosCombo:
+    """Herald once, then deal the Combo damage to a random enemy character."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._herald_ragnaros(context.player, source=context.card.card_id)
+        if context.card.combo_active:
+            DamageRandomEnemyCharacters(3, 1).execute(game, context)
+
+
+@dataclass(frozen=True)
 class BuffSourceHealthPerHandCard:
     def execute(self, game: Any, context: RuleContext) -> None:
         context.card.health_delta += len(context.player.hand)
@@ -3421,7 +3431,7 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule(
-            "CATA_785", {Hook.SPELL: (HeraldRagnaros(),)},
+            "CATA_785", {Hook.SPELL: (HeraldRagnarosCombo(),)},
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_rite_of_twilight_herald",),
