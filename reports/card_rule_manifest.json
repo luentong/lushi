@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 640,
+    "supported_cards": 641,
     "declarative_rules": 259,
-    "legacy_special_case_rules": 3,
+    "legacy_special_case_rules": 4,
     "legacy_compatibility_rules": 378,
     "cards_with_upstream_match": 183
   },
@@ -20482,6 +20482,24 @@
       "metadata_source": "HearthstoneJSON build 251332",
       "upstream_matches": [],
       "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "TIME_039",
+      "implementation": "legacy_special_case",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "official_text_and_engine_verified",
+        "reference": "HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_deja_vu_discover_opponent_hand"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
     },
     {
       "card_id": "TIME_043",

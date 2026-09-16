@@ -4017,6 +4017,15 @@ class DragonMirrorGame:
             elif card.card_id == "JAIL_456":
                 if len(player.deck) >= 25:
                     self._draw(player)
+            elif card.card_id == "TIME_039":
+                opponent = self.players[1 - player.index]
+                if opponent.hand:
+                    self._offer_discover(
+                        player,
+                        [held.card_id for held in opponent.hand],
+                        False,
+                        source_card_id=card.card_id,
+                    )
             elif card.card_id == "JAIL_882":
                 copies = []
                 for held in list(player.deck):

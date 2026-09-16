@@ -793,6 +793,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual("CORE_AT_055", shadow.card_id)
         self.assertEqual(1, shadow.cost)
 
+    def test_deja_vu_discover_opponent_hand(self):
+        game = self.game()
+        spell = self.add_hand(game, "TIME_039")
+        opponent_card = game._entity("TLC_248")
+        game.players[1].hand.append(opponent_card)
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertIsNotNone(game.pending_choice)
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        self.assertEqual(["TLC_248"], [c.card_id for c in game.pending_choice["options"]])
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")
