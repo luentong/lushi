@@ -2941,6 +2941,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", weapon.entity_id))
         self.assertEqual("END_000p", game.players[0].hero_power_id)
 
+    def test_dual_class_imbue_weapon_selects_deathknight_power(self):
+        game = self.game()
+        game.players[0].card_class = "DEATHKNIGHT"
+        weapon = self.add_hand(game, "END_001")
+        game.step(Action("PLAY", weapon.entity_id))
+        self.assertEqual("END_003p", game.players[0].hero_power_id)
+
     def test_deathknight_imbue_first_undead_each_turn(self):
         game = self.game()
         game.players[0].card_class = "DEATHKNIGHT"
