@@ -117,7 +117,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BAR_801",
     "CORE_EX1_391", "CORE_EX1_606", "CORE_GIL_622",
     "CORE_CS2_072", "CORE_CS2_108", "CORE_EX1_309", "CORE_EX1_312",
-    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816",
+    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001",
     "CORE_CS1_112", "CORE_WON_337",
     "CORE_BT_072",
     "CORE_EX1_145",
@@ -475,6 +475,23 @@ class OfferSpellSchoolDiscover:
         game._offer_spell_school_discover(
             context.player, spell_school=self.spell_school,
             source_card_id=context.card.card_id, cost_delta=self.cost_delta,
+        )
+
+
+@dataclass(frozen=True)
+class OfferOutcastDiscover:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = [
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and ("OUTCAST" in definition.mechanics or "Outcast" in definition.text)
+        ]
+        game._offer_discover(
+            context.player, candidates, False,
+            source_card_id=context.card.card_id,
+        )
+        context.player.next_spell_cost_reduction = max(
+            context.player.next_spell_cost_reduction, 1
         )
 
 
@@ -3231,6 +3248,13 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_gravedawn_sunbloom_draws_two",),
+            ),
+        ),
+        CardRule(
+            "CORE_YOP_001", {Hook.SPELL: (OfferOutcastDiscover(),)},
+            RuleSource(
+                "upstream_adapted", rosetta, "YOP_001", "AGPL-3.0",
+                ("test_illidari_studies",),
             ),
         ),
         CardRule(

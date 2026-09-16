@@ -281,6 +281,7 @@ CORE_WON_337,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 CORE_WON_351,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CORE_WW_329,declarative,battlecry,upstream_adapted,,0,focused_test_and_regression
 CORE_YOD_026,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",5,regression_suite_only
+CORE_YOP_001,declarative,spell,upstream_adapted,RosettaStone,2,focused_test_and_regression
 CORE_YOP_034,legacy_compatibility,,local_legacy,RosettaStone,2,regression_suite_only
 CS3_002t,legacy_compatibility,,local_legacy,RosettaStone,3,regression_suite_only
 CS3_007,legacy_compatibility,,local_legacy,RosettaStone,2,regression_suite_only

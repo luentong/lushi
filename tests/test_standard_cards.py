@@ -832,6 +832,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", card.entity_id))
         self.assertEqual(2, len(game.players[0].hand))
 
+    def test_illidari_studies(self):
+        game = self.game()
+        studies = self.add_hand(game, "CORE_YOP_001")
+        game.step(Action("PLAY", studies.entity_id))
+        self.assertIsNotNone(game.pending_choice)
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        self.assertEqual(1, game.players[0].next_spell_cost_reduction)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

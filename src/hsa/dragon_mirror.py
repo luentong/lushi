@@ -980,6 +980,7 @@ class DragonMirrorGame:
                 + ", ".join(sorted(unsupported))
             )
         self.card_defs = self._load_defs(Path(cards_path))
+        self.executable_card_ids = EXECUTABLE_CARD_IDS
         self.rule_registry = build_rule_registry()
         missing = (
             EXECUTABLE_CARD_IDS | BASIC_AUXILIARY_IDS
