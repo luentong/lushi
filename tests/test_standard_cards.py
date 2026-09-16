@@ -958,6 +958,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(target.definition.attack + 3, target.attack)
         self.assertEqual(before - target.attack, enemy.health)
 
+    def test_si7_supplier_draws_after_surviving_attack(self):
+        game = self.game()
+        supplier = self.add_board(game, "CAP_003", 0)
+        filler = game._entity("TLC_248", started_in_deck=True)
+        game.players[0].deck = [filler]
+        game.step(Action("ATTACK", supplier.entity_id, 1, None))
+        self.assertIn(filler, game.players[0].hand)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

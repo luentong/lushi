@@ -4701,7 +4701,10 @@ class DragonMirrorGame:
         self, attacker_owner: int, attacker: CardInstance,
         *, attacked_minion: bool = False,
     ) -> None:
-        if attacker.card_id == "EDR_421" and not attacker.silenced:
+        if attacker.card_id == "CAP_003" and not attacker.silenced and attacker.health > 0 and attacker in self.players[attacker_owner].board:
+            self._draw(self.players[attacker_owner])
+            self._event("si7_supplier_draw", player=attacker_owner, entity=attacker.entity_id)
+        elif attacker.card_id == "EDR_421" and not attacker.silenced:
             attacker.omen_damage += 1
             self._event(
                 "omen_upgrade", player=attacker_owner,

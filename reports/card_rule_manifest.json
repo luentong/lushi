@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 660,
+    "supported_cards": 661,
     "declarative_rules": 273,
     "legacy_special_case_rules": 6,
-    "legacy_compatibility_rules": 381,
+    "legacy_compatibility_rules": 382,
     "cards_with_upstream_match": 184
   },
   "cards": [
@@ -155,6 +155,22 @@
       "metadata_source": "HearthstoneJSON build 251332",
       "upstream_matches": [],
       "verification_status": "focused_test_and_regression"
+    },
+    {
+      "card_id": "CAP_003",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
     },
     {
       "card_id": "CAP_004",
