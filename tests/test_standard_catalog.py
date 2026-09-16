@@ -44,6 +44,14 @@ class StandardCatalogTests(unittest.TestCase):
         self.assertEqual((1, 1), (card.attack, card.health))
         self.assertIn("At the end of your turn", card.text)
 
+    def test_read_only_lookup_interfaces_are_stable(self):
+        self.assertIs(self.catalog.get("CAP_107t"), self.catalog["CAP_107t"])
+        self.assertIsNone(self.catalog.get("UNKNOWN_CARD"))
+        ids = self.catalog.ids()
+        self.assertEqual(tuple(sorted(ids)), ids)
+        self.assertEqual(tuple(card.card_id for card in self.catalog),
+                         tuple(card.card_id for card in self.catalog.all()))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -9,6 +9,7 @@ silently treated as a vanilla body.
 from __future__ import annotations
 
 import json
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
@@ -106,11 +107,23 @@ class StandardCatalog:
     def __contains__(self, card_id: str) -> bool:
         return card_id in self._cards
 
+    def get(self, card_id: str) -> StandardCard | None:
+        """Return a card by id without raising for an unknown entity."""
+        return self._cards.get(card_id)
+
+    def ids(self) -> tuple[str, ...]:
+        """Return stable sorted card ids for audits and deterministic exports."""
+        return tuple(sorted(self._cards))
+
+    def __iter__(self) -> Iterator[StandardCard]:
+        """Iterate over cards in the same stable order as :meth:`all`."""
+        return iter(self.all())
+
     def __getitem__(self, card_id: str) -> StandardCard:
         return self._cards[card_id]
 
     def all(self) -> tuple[StandardCard, ...]:
-        return tuple(self._cards[card_id] for card_id in sorted(self._cards))
+        return tuple(self._cards[card_id] for card_id in self.ids())
 
     def collectible(self) -> tuple[StandardCard, ...]:
         return tuple(card for card in self.all() if card.collectible)
