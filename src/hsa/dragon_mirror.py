@@ -5550,7 +5550,14 @@ class DragonMirrorGame:
                 and not card.shatter_combined):
             return "hand" if self._split_shatter_card(player, card) else "burned"
         if "sweet_dreams" in card.gifts:
-            player.deck.append(card)
+            # Sweet Dreams returns the gifted minion to the deck.  Insert at
+            # a random position to model a shuffle instead of appending to the
+            # bottom, which would leak ordering information to search.
+            player.deck.insert(self.rng.randrange(len(player.deck) + 1), card)
+            self._event(
+                "dark_gift_shuffle_into_deck", player=player.index,
+                card=card.card_id, entity=card.entity_id, gift="sweet_dreams",
+            )
             return "deck"
         elif len(player.hand) < 10:
             player.hand.append(card)
