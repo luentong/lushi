@@ -785,6 +785,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertTrue(cats[0].stealth)
         self.assertFalse(game.players[0].secrets)
 
+    def test_shadow_of_demise_transform(self):
+        game = self.game()
+        shadow = self.add_hand(game, "CORE_RLK_567")
+        spell = self.add_hand(game, "CORE_AT_055")
+        game.step(Action("PLAY", spell.entity_id, 0, None))
+        self.assertEqual("CORE_AT_055", shadow.card_id)
+        self.assertEqual(1, shadow.cost)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

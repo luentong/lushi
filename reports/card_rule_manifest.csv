@@ -257,6 +257,7 @@ CORE_REV_946,legacy_compatibility,,local_legacy,RosettaStone,1,regression_suite_
 CORE_REV_990,legacy_compatibility,,local_legacy,RosettaStone,2,regression_suite_only
 CORE_RLK_063,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 CORE_RLK_121,legacy_compatibility,,local_legacy,,0,regression_suite_only
+CORE_RLK_567,legacy_special_case,,official_text_and_engine_verified,,0,focused_test_and_regression
 CORE_RLK_814,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CORE_SCH_717,legacy_compatibility,,local_legacy,RosettaStone,2,regression_suite_only
 CORE_SW_066,legacy_compatibility,,local_legacy,RosettaStone,2,regression_suite_only

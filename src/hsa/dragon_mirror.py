@@ -4511,6 +4511,16 @@ class DragonMirrorGame:
                 RuleContext(player=player, card=minion, payload={"spell": spell}),
             )
         for held in list(player.hand):
+            if held.card_id != "CORE_RLK_567":
+                continue
+            held.definition = spell.definition
+            held.cost_delta = 0
+            held.created_by = "CORE_RLK_567"
+            self._event(
+                "shadow_of_demise_transform", player=player.index,
+                entity=held.entity_id, copied=spell.card_id,
+            )
+        for held in list(player.hand):
             if held.card_id != "JAIL_801":
                 continue
             held.spells_cast_while_held += 1
