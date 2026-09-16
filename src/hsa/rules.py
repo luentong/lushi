@@ -118,6 +118,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BRM_013",  # Quick Shot
     "CORE_SW_442",  # Void Shard
     "CORE_SCH_512",  # Initiation
+    "CORE_LOOT_373",  # Healing Rain
     "CORE_EX1_302",  # Mortal Coil
     "CORE_EX1_007",  # Acolyte of Pain
     "CORE_RLK_121",  # Acolyte of Death
@@ -2088,6 +2089,7 @@ class SetHeroPower:
 
     def execute(self, game: Any, context: RuleContext) -> None:
         context.player.hero_power_id = self.card_id
+        context.player.imbued_hero_power_id = self.card_id
         context.player.hero_power_imbues += 1
         game._event(
             "hero_power_imbued", player=context.player.index,
@@ -3020,6 +3022,32 @@ class HealFriendlyCharacters:
         player.health = min(player.max_health, player.health + amount)
         for minion in player.board:
             minion.damage = max(0, minion.damage - amount)
+
+
+@dataclass(frozen=True)
+class HealRandomFriendlyCharacters:
+    """Distribute healing one point at a time across friendly characters."""
+
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        targets: list[tuple[str, Any]] = [("hero", player)]
+        targets.extend(("minion", minion) for minion in player.board)
+        for _ in range(max(0, self.amount)):
+            eligible = [target for target in targets
+                        if (target[1].health < target[1].max_health
+                            if target[0] == "hero"
+                            else target[1].damage > 0)]
+            if not eligible:
+                break
+            kind, target = game.rng.choice(eligible)
+            if kind == "hero":
+                target.health = min(target.max_health, target.health + 1)
+            else:
+                target.damage = max(0, target.damage - 1)
+        game._event("random_friendly_heal", player=player.index,
+                    source=context.card.card_id, amount=self.amount)
 
 
 @dataclass(frozen=True)
@@ -5242,5 +5270,9 @@ def build_rule_registry() -> RuleRegistry:
             "CORE_SCH_512", {Hook.SPELL: (DamageActionTargetThenSummonCopyIfKilled(4),)},
             RuleSource("upstream_adapted", rosetta, "SCH_512", "AGPL-3.0", ("test_initiation_summons_copy",)),
             TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "CORE_LOOT_373", {Hook.SPELL: (HealRandomFriendlyCharacters(12),)},
+            RuleSource("upstream_adapted", rosetta, "LOOT_373", "AGPL-3.0", ("test_healing_rain_random_split",)),
         ),
     ))

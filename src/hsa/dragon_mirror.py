@@ -850,6 +850,7 @@ class Player:
     hero_power_armor: int = 2
     hero_power_id: str | None = None
     hero_power_imbues: int = 0
+    imbued_hero_power_id: str | None = None
     fire_spell_played: bool = False
     played_races_this_turn: set[str] = field(default_factory=set)
     played_races_last_turn: set[str] = field(default_factory=set)
@@ -2848,6 +2849,7 @@ class DragonMirrorGame:
         self._spend_mana(player, self._hero_power_cost(player))
         player.hero_power_used = True
         if player.hero_power_id is not None:
+            imbued_power = player.imbued_hero_power_id
             card = CardInstance(-1, self.card_defs[player.hero_power_id])
             if not self.rule_registry.dispatch(
                 Hook.HERO_POWER, card.card_id, self,
@@ -2861,6 +2863,11 @@ class DragonMirrorGame:
                 target_player=action.target_player,
                 target_entity=action.target_entity,
             )
+            # Some Imbue cards temporarily transform the hero power while it
+            # is used.  Restore the imbued power afterward without resetting
+            # its cumulative progress.
+            if imbued_power is not None:
+                player.hero_power_id = imbued_power
             return
         card_class = player.card_class
         if card_class == "WARRIOR":

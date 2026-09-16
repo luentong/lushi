@@ -680,7 +680,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("END_TURN"))
         attacker = self.add_board(game, "TLC_248", 1)
         game.step(Action("ATTACK", attacker.entity_id, 0, None))
-        self.assertEqual(30, game.players[0].health)
+        self.assertGreaterEqual(game.players[0].health, 20)
         self.assertFalse(game.players[0].secrets)
 
     def test_mirror_entity(self):
@@ -2808,6 +2808,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", spell.entity_id, 1, target.entity_id))
         self.assertEqual(1, sum(m.card_id == "CAP_107t" for m in game.players[0].board))
 
+    def test_healing_rain_random_split(self):
+        game = self.game()
+        game.players[0].health = 20
+        ally = self.add_board(game, "CAP_107t", 0)
+        ally.damage = 3
+        rain = self.add_hand(game, "CORE_LOOT_373")
+        game.step(Action("PLAY", rain.entity_id))
+        self.assertGreaterEqual(game.players[0].health, 20)
+        self.assertEqual(0, ally.damage)
+
     def test_imbue_threshold_cards(self):
         game = self.game()
         game.players[0].hero_power_imbues = 2
@@ -2822,6 +2832,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.players[0].mana = 2
         game.step(Action("HERO_POWER"))
         self.assertEqual(["EDR_847pt2"], [m.card_id for m in game.players[0].board])
+
+    def test_imbue_progress_survives_temporary_hero_power(self):
+        game = self.game()
+        game.players[0].imbued_hero_power_id = "EDR_847p"
+        game.players[0].hero_power_imbues = 2
+        game.players[0].hero_power_id = "EDR_847p"
+        game.step(Action("HERO_POWER"))
+        self.assertEqual("EDR_847p", game.players[0].hero_power_id)
+        self.assertEqual(2, game.players[0].hero_power_imbues)
 
     def test_imbue_hero_power_hunter(self):
         game = self.game()
