@@ -117,7 +117,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BAR_801",
     "CORE_EX1_391", "CORE_EX1_606", "CORE_GIL_622",
     "CORE_CS2_072", "CORE_CS2_108", "CORE_EX1_309", "CORE_EX1_312",
-    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411", "CATA_201", "TLC_902", "TLC_630t", "TLC_903t", "TLC_522",
+    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411", "CATA_201", "TLC_902", "TLC_630t", "TLC_903t", "TLC_522", "CATA_785",
     "CORE_CS1_112", "CORE_WON_337",
     "CORE_BT_072",
     "CORE_EX1_145",
@@ -3396,6 +3396,13 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_opu_the_unseen_fan_of_knives",),
+            ),
+        ),
+        CardRule(
+            "CATA_785", {Hook.SPELL: (HeraldRagnaros(),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_rite_of_twilight_herald",),
             ),
         ),
         CardRule(

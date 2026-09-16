@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 652,
-    "declarative_rules": 268,
+    "supported_cards": 653,
+    "declarative_rules": 269,
     "legacy_special_case_rules": 6,
     "legacy_compatibility_rules": 378,
     "cards_with_upstream_match": 184
@@ -2247,6 +2247,30 @@
         "license": null,
         "verification": [
           "test_shadowsworn_disciple_heralds_and_heals_on_death"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
+      "card_id": "CATA_785",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "HeraldRagnaros"
+        ]
+      },
+      "rule_source": {
+        "kind": "official_text_and_engine_verified",
+        "reference": "HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_rite_of_twilight_herald"
         ]
       },
       "metadata_source": "HearthstoneJSON build 251332",

@@ -903,6 +903,12 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", opu.entity_id))
         self.assertEqual(enemy.max_health - 2, enemy.health)
 
+    def test_rite_of_twilight_herald(self):
+        game = self.game()
+        rite = self.add_hand(game, "CATA_785")
+        game.step(Action("PLAY", rite.entity_id))
+        self.assertTrue(any(card.card_id == "CATA_580t" for card in game.players[0].board))
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")
