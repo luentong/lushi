@@ -1037,6 +1037,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", spell.entity_id))
         self.assertEqual(drawn.definition.cost - 3, drawn.cost)
 
+    def test_leyline_nexus_extra_trigger_draws_twice(self):
+        game = self.game()
+        game.players[0].leyline_extra_triggers = 1
+        game.players[0].deck = [
+            game._entity("TLC_248", started_in_deck=True),
+            game._entity("TLC_248", started_in_deck=True),
+        ]
+        spell = self.add_hand(game, "MEND_504")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(2, sum(card.card_id == "TLC_248" for card in game.players[0].hand))
+
     def test_divination_sacrifices_wisp_and_draws(self):
         game = self.game()
         wisp = self.add_board(game, "CORE_CS2_231", 0)
@@ -1106,6 +1117,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         spell = self.add_hand(game, "MEND_502")
         game.step(Action("PLAY", spell.entity_id))
         self.assertEqual(7, game.players[0].board[0].definition.cost)
+
+    def test_crystallized_leyline_extra_trigger_summons_twice(self):
+        game = self.game()
+        game.players[0].leyline_extra_triggers = 1
+        spell = self.add_hand(game, "MEND_502")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(2, len(game.players[0].board))
 
     def test_surge_needle_adds_leyline_trigger(self):
         game = self.game()

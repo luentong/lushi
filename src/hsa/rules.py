@@ -379,12 +379,14 @@ class DrawAndDiscountDrawn:
     scale_with_leyline: bool = False
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        before = set(card.entity_id for card in context.player.hand)
-        game._draw(context.player)
-        drawn = [card for card in context.player.hand if card.entity_id not in before]
-        if drawn:
-            amount = self.amount + (context.player.leyline_upgrade if self.scale_with_leyline else 0)
-            drawn[-1].cost_delta -= amount
+        repeats = 1 + (context.player.leyline_extra_triggers if self.scale_with_leyline else 0)
+        amount = self.amount + (context.player.leyline_upgrade if self.scale_with_leyline else 0)
+        for _ in range(repeats):
+            before = set(card.entity_id for card in context.player.hand)
+            game._draw(context.player)
+            drawn = [card for card in context.player.hand if card.entity_id not in before]
+            if drawn:
+                drawn[-1].cost_delta -= amount
 
 
 @dataclass(frozen=True)
@@ -407,22 +409,24 @@ class DamageRandomEnemyMinionExcess:
     scale_with_leyline: bool = False
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        enemy = game.players[1 - context.player.index]
-        targets = [m for m in enemy.board if m.health > 0 and m.dormant_turns == 0]
-        if not targets:
-            return
-        target = game.rng.choice(targets)
-        before = max(0, target.health)
-        base = self.amount + (context.player.leyline_upgrade if self.scale_with_leyline else 0)
-        amount = game._spell_effect_amount(context.player, context.card, base)
-        game._damage_minion(enemy.index, target, amount, context.card)
-        excess = max(0, amount - before)
-        if excess:
-            game._damage_hero(enemy, excess, context.card)
-        game._resolve_deaths()
-        game._event("random_minion_excess_damage", player=context.player.index,
-                    source=context.card.card_id, target=target.entity_id,
-                    amount=amount, excess=excess)
+        repeats = 1 + (context.player.leyline_extra_triggers if self.scale_with_leyline else 0)
+        for _ in range(repeats):
+            enemy = game.players[1 - context.player.index]
+            targets = [m for m in enemy.board if m.health > 0 and m.dormant_turns == 0]
+            if not targets:
+                return
+            target = game.rng.choice(targets)
+            before = max(0, target.health)
+            base = self.amount + (context.player.leyline_upgrade if self.scale_with_leyline else 0)
+            amount = game._spell_effect_amount(context.player, context.card, base)
+            game._damage_minion(enemy.index, target, amount, context.card)
+            excess = max(0, amount - before)
+            if excess:
+                game._damage_hero(enemy, excess, context.card)
+            game._resolve_deaths()
+            game._event("random_minion_excess_damage", player=context.player.index,
+                        source=context.card.card_id, target=target.entity_id,
+                        amount=amount, excess=excess)
 
 
 @dataclass(frozen=True)
@@ -516,10 +520,11 @@ class GainArmorPerWisp:
 @dataclass(frozen=True)
 class SummonRandomLeylineMinion:
     def execute(self, game: Any, context: RuleContext) -> None:
-        game._summon_random_executable_minion(
-            context.player, source_card_id=context.card.card_id,
-            cost=max(0, 5 + context.player.leyline_upgrade),
-        )
+        for _ in range(1 + context.player.leyline_extra_triggers):
+            game._summon_random_executable_minion(
+                context.player, source_card_id=context.card.card_id,
+                cost=max(0, 5 + context.player.leyline_upgrade),
+            )
 
 
 @dataclass(frozen=True)
