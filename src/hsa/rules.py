@@ -126,7 +126,7 @@ STANDARD_DECLARATIVE_IDS = {
     "RLK_511",  # Harbinger of Winter
     "RLK_709",  # Remorseless Winter
     "EDR_843a", "EDR_843b", "EDR_843t1", "CAP_405t4",
-    "EDR_817", "CAP_102", "EDR_860", "FIR_921", "EDR_227", "EDR_264", "EDR_451", "EDR_518", "EDR_519", "EDR_800", "EDR_871", "EDR_226", "EDR_231", "EDR_500", "END_000", "END_001", "END_003", "END_003p", "CORE_AT_003", "EDR_847p", "EDR_847pt2", "EDR_850p", "EDR_851p", "EDR_448p", "END_000p", "EDR_445p", "EDR_445pt3",
+    "EDR_817", "CAP_102", "EDR_860", "FIR_921", "EDR_227", "EDR_264", "EDR_451", "EDR_518", "EDR_519", "EDR_800", "EDR_871", "EDR_845", "EDR_226", "EDR_231", "EDR_500", "END_000", "END_001", "END_003", "END_003p", "CORE_AT_003", "EDR_847p", "EDR_847pt2", "EDR_850p", "EDR_851p", "EDR_448p", "END_000p", "EDR_445p", "EDR_445pt3",
     "TIME_023", "EDR_251", "JAIL_377", "EDR_231", "JAIL_866", "CORE_CATA_007",
     "CORE_EX1_154", "CATA_526", "TLC_231", "TLC_236", "EDR_226",
     "RLK_024", "CATA_156",
@@ -2151,12 +2151,16 @@ IMBUE_HERO_POWER_BY_CLASS = {
 }
 
 
+def imbue_hero_power_id(card_class: str) -> str | None:
+    return IMBUE_HERO_POWER_BY_CLASS.get(card_class)
+
+
 @dataclass(frozen=True)
 class ImbueHeroPowerByClass:
     """Apply the Imbue power belonging to the controller's current class."""
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        power_id = IMBUE_HERO_POWER_BY_CLASS.get(context.player.card_class)
+        power_id = imbue_hero_power_id(context.player.card_class)
         if power_id is None or power_id not in game.card_defs:
             game._event(
                 "hero_power_imbue_unavailable", player=context.player.index,
@@ -3430,6 +3434,14 @@ def build_rule_registry() -> RuleRegistry:
                 "official_text_and_engine_pattern",
                 "HearthstoneJSON 251332; neutral Imbue resolves by controller class",
                 verification=("test_neutral_imbue_uses_controller_class",),
+            ),
+        ),
+        CardRule(
+            "EDR_845", {},
+            RuleSource(
+                "official_text_and_engine_pattern",
+                "HearthstoneJSON 251332; all-Nature deck Start of Game and 3-spell repeat",
+                verification=("test_hamuul_start_of_game_and_spell_threshold",),
             ),
         ),
         CardRule(

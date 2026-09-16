@@ -23,6 +23,7 @@ from .rules import (
     RuleContext,
     STANDARD_DECLARATIVE_IDS,
     TargetKind,
+    imbue_hero_power_id,
     build_rule_registry,
 )
 
@@ -852,6 +853,8 @@ class Player:
     hero_power_imbues: int = 0
     imbued_hero_power_id: str | None = None
     imbue_passive_triggered_this_turn: bool = False
+    hamuul_active: bool = False
+    hamuul_spells_cast: int = 0
     fire_spell_played: bool = False
     played_races_this_turn: set[str] = field(default_factory=set)
     played_races_last_turn: set[str] = field(default_factory=set)
@@ -1257,6 +1260,37 @@ class DragonMirrorGame:
         # Start-of-game happens after initial hands. Hogger duplicates every other
         # Legendary still represented by the deck list; here that is Warptooth.
         for player in self.players:
+            # Hamuul Runetotem: if every spell that started in the deck is
+            # Nature, Imbue once at game start and repeat after each three
+            # spells cast.  This is tracked as state rather than a one-off
+            # card branch so generated/copy spells do not reset the counter.
+            hamuul = next(
+                (c for c in player.hand + player.deck if c.card_id == "EDR_845"),
+                None,
+            )
+            deck_spells = [
+                c for c in player.deck
+                if c.definition.card_type == "SPELL" and c.started_in_deck
+            ]
+            if hamuul is not None and all(
+                getattr(c.definition, "spell_school", None) == "NATURE" for c in deck_spells
+            ):
+                player.hamuul_active = True
+                player.hamuul_spells_cast = 0
+                power_id = imbue_hero_power_id(player.card_class)
+                if power_id in self.card_defs:
+                    player.hero_power_id = power_id
+                    player.imbued_hero_power_id = power_id
+                    player.hero_power_imbues += 1
+                    self._event(
+                        "hero_power_imbued", player=player.index,
+                        source="EDR_845", hero_power=power_id,
+                        count=player.hero_power_imbues,
+                    )
+                self._event(
+                    "hamuul_start_of_game", player=player.index,
+                    active=True, spells=len(deck_spells),
+                )
             if any(c.card_id == "JAIL_384" for c in player.hand + player.deck):
                 player.deck.append(self._entity("JAIL_421"))
                 self.rng.shuffle(player.deck)
@@ -3700,6 +3734,23 @@ class DragonMirrorGame:
                     and minion.dormant_turns == 0
                 ]
             self._cast_spell(player, card, action)
+            if player.hamuul_active:
+                player.hamuul_spells_cast += 1
+                if player.hamuul_spells_cast % 3 == 0:
+                    power_id = imbue_hero_power_id(player.card_class)
+                    if power_id in self.card_defs:
+                        player.hero_power_id = power_id
+                        player.imbued_hero_power_id = power_id
+                        player.hero_power_imbues += 1
+                        self._event(
+                            "hero_power_imbued", player=player.index,
+                            source="EDR_845", hero_power=power_id,
+                            count=player.hero_power_imbues,
+                        )
+                    self._event(
+                        "hamuul_spell_threshold", player=player.index,
+                        spells=player.hamuul_spells_cast,
+                    )
             self._dispatch_after_spell_cast(player, card)
             self._trigger_secrets_after_enemy_spell_cast(player)
             recipient = self.players[1 - player.index]
