@@ -1063,6 +1063,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertNotIn(enemy, game.players[1].board)
         self.assertEqual(before - 3, game.players[1].health)
 
+    def test_ley_walker_discount_and_random_deathrattle(self):
+        game = self.game()
+        leyline = self.add_hand(game, "MEND_504")
+        walker = self.add_hand(game, "MEND_501")
+        game.step(Action("PLAY", walker.entity_id))
+        self.assertEqual(leyline.definition.cost - 1, leyline.cost)
+        walker = self.add_board(game, "MEND_501", 0)
+        walker.damage = walker.max_health
+        game._resolve_deaths()
+        self.assertTrue(any(card.card_id in {"MEND_500", "MEND_502", "MEND_504"}
+                            for card in game.players[0].hand))
+
     def test_leyline_manipulator_discounts_generated_cards(self):
         game = self.game()
         generated = game._entity("TLC_248", created_by="TEST")
