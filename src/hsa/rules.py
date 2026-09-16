@@ -123,7 +123,7 @@ STANDARD_DECLARATIVE_IDS = {
     "RLK_511",  # Harbinger of Winter
     "RLK_709",  # Remorseless Winter
     "EDR_843a", "EDR_843b", "EDR_843t1", "CAP_405t4",
-    "EDR_817", "CAP_102", "EDR_860", "FIR_921",
+    "EDR_817", "CAP_102", "EDR_860", "FIR_921", "EDR_847p", "EDR_847pt2",
     "TIME_023", "EDR_251", "JAIL_377", "EDR_231", "JAIL_866", "CORE_CATA_007",
     "CORE_EX1_154", "CATA_526", "TLC_231", "TLC_236", "EDR_226",
     "RLK_024", "CATA_156",
@@ -5103,6 +5103,10 @@ def build_rule_registry() -> RuleRegistry:
             {Hook.BATTLECRY: (IfHeroPowerImbued(2, (DamageActionTarget(4),)),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332", ("test_imbue_threshold_cards",)),
             TargetSpec(TargetKind.ANY_MINION, optional=True),
+        ),
+        CardRule(
+            "EDR_847p", {Hook.HERO_POWER: (Summon("EDR_847pt2"),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332", ("test_imbue_hero_power_druid",)),
         ),
         CardRule(
             "FIR_921",

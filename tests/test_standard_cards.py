@@ -2808,6 +2808,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", picker.entity_id))
         self.assertEqual(before + 2 - 1, len(game.players[0].hand))
 
+    def test_imbue_hero_power_druid(self):
+        game = self.game()
+        game.players[0].hero_power_id = "EDR_847p"
+        game.players[0].mana = 2
+        game.step(Action("HERO_POWER"))
+        self.assertEqual(["EDR_847pt2"], [m.card_id for m in game.players[0].board])
+
 
 if __name__ == "__main__":
     unittest.main()
