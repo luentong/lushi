@@ -722,6 +722,20 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(1, minion.health)
         self.assertFalse(game.players[0].secrets)
 
+    def test_redemption(self):
+        game = self.game()
+        secret = self.add_hand(game, "EX1_136")
+        game.step(Action("PLAY", secret.entity_id))
+        victim = self.add_board(game, "TLC_248", 0)
+        base_max_health = victim.max_health
+        victim.damage = victim.max_health
+        game._resolve_deaths()
+        revived = [card for card in game.players[0].board if card.card_id == "TLC_248"]
+        self.assertEqual(1, len(revived))
+        self.assertEqual(1, revived[0].health)
+        self.assertEqual(base_max_health, revived[0].max_health)
+        self.assertFalse(game.players[0].secrets)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

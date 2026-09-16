@@ -6365,6 +6365,32 @@ class DragonMirrorGame:
                     )
             self.minions_died_this_turn += len(dead)
 
+            # Redemption returns the first friendly corpse from this death
+            # batch before Deathrattles resolve. The revived copy keeps buffs
+            # and keywords but enters with exactly one Health.
+            for owner in self.players:
+                corpses = [minion for dead_owner, minion in dead if dead_owner is owner]
+                if not corpses:
+                    continue
+                for secret in list(owner.secrets):
+                    if secret.card_id != "EX1_136":
+                        continue
+                    self._consume_secret(owner, secret)
+                    if len(owner.board) + len(owner.locations) >= 7:
+                        self._event("redemption", player=owner.index, summoned=False)
+                        continue
+                    revived = corpses[0].clone(self.next_entity_id)
+                    self.next_entity_id += 1
+                    revived.damage = max(0, revived.max_health - 1)
+                    revived.summoned_turn = self.turn
+                    revived.created_by = secret.card_id
+                    self._summon(owner, revived)
+                    self._event(
+                        "redemption", player=owner.index,
+                        source=secret.entity_id, revived=revived.entity_id,
+                    )
+                    break
+
             # Paladin's Avenge resolves once per friendly death batch, before
             # deathrattles, choosing a random surviving friendly minion.
             for owner in self.players:
