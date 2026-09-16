@@ -117,7 +117,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BAR_801",
     "CORE_EX1_391", "CORE_EX1_606", "CORE_GIL_622",
     "CORE_CS2_072", "CORE_CS2_108", "CORE_EX1_309", "CORE_EX1_312",
-    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411", "CATA_201", "TLC_902", "TLC_630t", "TLC_903t", "TLC_522", "CATA_785", "EDR_840", "CATA_158",
+    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411", "CATA_201", "TLC_902", "TLC_630t", "TLC_903t", "TLC_522", "CATA_785", "EDR_840", "CATA_158", "EDR_523",
     "CORE_CS1_112", "CORE_WON_337",
     "CORE_BT_072",
     "CORE_EX1_145",
@@ -2491,6 +2491,15 @@ class ReturnActionTargetToOwnerHand:
 
 
 @dataclass(frozen=True)
+class ReturnFriendlyAndSummonSpider:
+    """Return the selected friendly minion, then summon a 4/4 Stealth spider."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        ReturnActionTargetToOwnerHand().execute(game, context)
+        Summon("EDR_523t").execute(game, context)
+
+
+@dataclass(frozen=True)
 class ReturnAllEnemyMinionsToHand:
     def execute(self, game: Any, context: RuleContext) -> None:
         enemy = game.players[1 - context.player.index]
@@ -3424,6 +3433,14 @@ def build_rule_registry() -> RuleRegistry:
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_grim_harvest_draws_and_summons_dreadseed",),
             ),
+        ),
+        CardRule(
+            "EDR_523", {Hook.SPELL: (ReturnFriendlyAndSummonSpider(),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_web_of_deception_returns_and_summons",),
+            ),
+            TargetSpec(TargetKind.FRIENDLY_MINION),
         ),
         CardRule(
             "CATA_158", {Hook.DEATHRATTLE: (HeraldRagnaros(),)},

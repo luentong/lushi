@@ -333,7 +333,7 @@ STANDARD_VANILLA_IDS = {
     "CORE_EX1_028", "CS3_038", "EDR_598", "FIR_901t", "JAIL_454t",
     "RLK_077t", "RLK_705t", "TLC_443t", "CATA_528t", "DINO_136t",
     "TLC_903t", "CATA_132t", "EDR_209t5", "CATA_551t", "EDR_850pe",
-    "TIME_006t1", "EDR_840t", "EDR_840t1", "EDR_840t2",
+    "TIME_006t1", "EDR_840t", "EDR_840t1", "EDR_840t2", "EDR_523t",
     "RLK_Prologue_RLK_705t", "EDR_100t6e", "CATA_476t", "EDR_100t6",
     "JAIL_887t3", "Story_09_StormwatcherPuzzle", "TLC_101t", "TLC_429t",
     "TLC_468t1", "TLC_468t2", "TIME_700t", "CAP_802t", "EDR_523t",

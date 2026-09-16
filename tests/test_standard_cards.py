@@ -928,6 +928,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertNotIn(follower, game.players[0].board)
         self.assertTrue(any(card.card_id == "CATA_580t" for card in game.players[0].board))
 
+    def test_web_of_deception_returns_and_summons(self):
+        game = self.game()
+        target = self.add_board(game, "TLC_248", 0)
+        spell = self.add_hand(game, "EDR_523")
+        game.step(Action("PLAY", spell.entity_id, 0, target.entity_id))
+        self.assertNotIn(target, game.players[0].board)
+        self.assertIn(target, game.players[0].hand)
+        self.assertTrue(any(card.card_id == "EDR_523t" for card in game.players[0].board))
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

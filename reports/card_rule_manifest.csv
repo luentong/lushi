@@ -363,6 +363,7 @@ EDR_492,declarative,battlecry,local_spec,,0,focused_test_and_regression
 EDR_492t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_493,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_521,legacy_compatibility,,local_legacy,,0,regression_suite_only
+EDR_523,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
 EDR_523t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_524,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_529,legacy_compatibility,,local_legacy,,0,regression_suite_only

@@ -37,10 +37,10 @@
     "unique_entities": 71,
     "rosetta_implemented_unique": 4,
     "rosetta_coverage_unique_pct": 5.63,
-    "project_runtime_supported_unique": 58,
-    "project_runtime_coverage_unique_pct": 81.69,
-    "project_deck_validated_unique": 58,
-    "project_deck_validated_unique_pct": 81.69
+    "project_runtime_supported_unique": 60,
+    "project_runtime_coverage_unique_pct": 84.51,
+    "project_deck_validated_unique": 60,
+    "project_deck_validated_unique_pct": 84.51
   },
   "summaries": [
     {
@@ -100,13 +100,13 @@
       "rosetta_implemented_unique": 2,
       "rosetta_implemented_copies": 4,
       "rosetta_coverage_unique_pct": 9.52,
-      "project_runtime_supported_unique": 10,
-      "project_runtime_supported_copies": 15,
-      "project_runtime_coverage_unique_pct": 47.62,
-      "project_deck_validated_unique": 10,
-      "project_deck_validated_copies": 15,
-      "project_deck_validated_unique_pct": 47.62,
-      "project_deck_validated_copies_pct": 50.0,
+      "project_runtime_supported_unique": 12,
+      "project_runtime_supported_copies": 18,
+      "project_runtime_coverage_unique_pct": 57.14,
+      "project_deck_validated_unique": 12,
+      "project_deck_validated_copies": 18,
+      "project_deck_validated_unique_pct": 57.14,
+      "project_deck_validated_copies_pct": 60.0,
       "deck_ready": false
     },
     {
@@ -704,8 +704,8 @@
       "set": "EMERALD_DREAM",
       "type": "SPELL",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
@@ -816,8 +816,8 @@
       "set": "CATACLYSM",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",

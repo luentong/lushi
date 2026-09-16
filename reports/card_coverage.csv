@@ -39,7 +39,7 @@ aggro_druid,快攻德,127932,JAIL_201,秘制配料,2,True,ESCAPEFROM_VIOLET_HOLD
 aggro_druid,快攻德,127946,JAIL_202,小蜘蛛,2,True,ESCAPEFROM_VIOLET_HOLD,MINION,False,True,True
 stealth_rogue,潜行贼,69623,CORE_EX1_145,伺机待发,2,True,CORE,SPELL,True,True,True
 stealth_rogue,潜行贼,69654,CORE_EX1_010,狼人渗透者,2,True,CORE,MINION,True,True,True
-stealth_rogue,潜行贼,114510,EDR_523,欺诈之网,1,True,EMERALD_DREAM,SPELL,False,False,False
+stealth_rogue,潜行贼,114510,EDR_523,欺诈之网,1,True,EMERALD_DREAM,SPELL,False,True,True
 stealth_rogue,潜行贼,117697,TLC_515,异教地图,2,True,THE_LOST_CITY,SPELL,False,True,True
 stealth_rogue,潜行贼,119532,TLC_522,潜踪大师奥普,1,True,THE_LOST_CITY,MINION,False,True,True
 stealth_rogue,潜行贼,119814,TIME_875,半兽人迦罗娜,1,True,TIME_TRAVEL,MINION,False,False,False
@@ -47,7 +47,7 @@ stealth_rogue,潜行贼,119815,TIME_875t,莱恩国王,1,False,TIME_TRAVEL,MINION
 stealth_rogue,潜行贼,119816,TIME_875t1,弑君者,1,False,TIME_TRAVEL,WEAPON,False,False,False
 stealth_rogue,潜行贼,122832,CATA_497,奥卓克希昂,1,True,CATACLYSM,MINION,False,True,True
 stealth_rogue,潜行贼,123315,CATA_215,眩晕,1,True,CATACLYSM,SPELL,False,True,True
-stealth_rogue,潜行贼,123549,CATA_158,癫狂的追随者,2,True,CATACLYSM,MINION,False,False,False
+stealth_rogue,潜行贼,123549,CATA_158,癫狂的追随者,2,True,CATACLYSM,MINION,False,True,True
 stealth_rogue,潜行贼,123605,CATA_785,暮光祭礼,2,True,CATACLYSM,SPELL,False,True,True
 stealth_rogue,潜行贼,125450,CATA_154,希奈丝特拉,1,True,CATACLYSM,MINION,False,False,False
 stealth_rogue,潜行贼,125467,CATA_190h,灭世者死亡之翼,1,True,CATACLYSM,HERO,False,True,True
