@@ -690,6 +690,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("END_TURN"))
         minion = game._entity("TLC_248")
         game.players[1].hand.append(minion)
+        game.players[1].mana = 20
         game.step(Action("PLAY", minion.entity_id))
         copies = [card for card in game.players[0].board if card.card_id == "TLC_248"]
         self.assertEqual(1, len(copies))
