@@ -2260,6 +2260,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual([], game.players[0].secrets)
         self.assertEqual(before, game.players[1].mana)
 
+    def test_ice_barrier(self):
+        game = self.game()
+        barrier = self.add_hand(game, "CORE_EX1_289")
+        game.step(Action("PLAY", barrier.entity_id))
+        game.step(Action("END_TURN"))
+        game.players[1].hero_attack_bonus = 1
+        game.step(Action("HERO_ATTACK", None, 0, None))
+        self.assertEqual(29, game.players[0].health)
+        self.assertEqual(8, game.players[0].armor)
+        self.assertEqual([], game.players[0].secrets)
+
 
 if __name__ == "__main__":
     unittest.main()

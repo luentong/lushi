@@ -1727,6 +1727,14 @@ class DragonMirrorGame:
     def _trigger_secrets_after_hero_attacked(self, defender: Player) -> None:
         """Resolve implemented secrets after combat damage reaches a hero."""
         for secret in list(defender.secrets):
+            if secret.card_id == "CORE_EX1_289":
+                self._consume_secret(defender, secret)
+                self._gain_armor(defender, 8)
+                self._event(
+                    "ice_barrier", player=defender.index,
+                    source=secret.entity_id, armor=8,
+                )
+                continue
             if secret.card_id != "CORE_EX1_610":
                 continue
             self._consume_secret(defender, secret)
