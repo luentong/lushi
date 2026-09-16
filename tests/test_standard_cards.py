@@ -2892,6 +2892,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual("EDR_445p", game.players[0].hero_power_id)
         self.assertEqual(1, game.players[0].hero_power_imbues)
 
+    def test_imbue_paladin_card_batch(self):
+        game = self.game()
+        game.players[0].card_class = "PALADIN"
+        card = self.add_hand(game, "EDR_264")
+        game.step(Action("PLAY", card.entity_id))
+        self.assertEqual("EDR_445p", game.players[0].hero_power_id)
+        self.assertTrue(game.players[0].board)
+        self.assertTrue(game.players[0].board[0].taunt)
+
 
 if __name__ == "__main__":
     unittest.main()
