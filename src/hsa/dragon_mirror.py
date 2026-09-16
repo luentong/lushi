@@ -5573,7 +5573,13 @@ class DragonMirrorGame:
         if propagate:
             # Wallow copies gifts granted to friendly minions while hidden in
             # hand/deck.  Do not recurse when applying the copied gift.
-            owner = owner or next((p for p in self.players if card in p.board), None)
+            owner = owner or next(
+                (
+                    p for p in self.players
+                    if card in p.board or card in p.hand or card in p.deck
+                ),
+                None,
+            )
             if owner is not None:
                 for hidden in owner.hand + owner.deck:
                     if hidden.card_id == "EDR_487" and gift not in hidden.gifts:
