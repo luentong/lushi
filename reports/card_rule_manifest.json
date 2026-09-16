@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 653,
-    "declarative_rules": 269,
+    "supported_cards": 658,
+    "declarative_rules": 271,
     "legacy_special_case_rules": 6,
-    "legacy_compatibility_rules": 378,
+    "legacy_compatibility_rules": 381,
     "cards_with_upstream_match": 184
   },
   "cards": [
@@ -913,6 +913,30 @@
         "license": "AGPL-3.0",
         "verification": [
           "test_batch_direct_damage_rules"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
+      "card_id": "CATA_158",
+      "implementation": "declarative",
+      "hooks": [
+        "deathrattle"
+      ],
+      "effects": {
+        "deathrattle": [
+          "HeraldRagnaros"
+        ]
+      },
+      "rule_source": {
+        "kind": "official_text_and_engine_verified",
+        "reference": "HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_maniacal_follower_deathrattle_herald"
         ]
       },
       "metadata_source": "HearthstoneJSON build 251332",
@@ -16897,6 +16921,79 @@
     },
     {
       "card_id": "EDR_818",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "EDR_840",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "Draw",
+          "SummonRandomDreadseed"
+        ]
+      },
+      "rule_source": {
+        "kind": "official_text_and_engine_verified",
+        "reference": "HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_grim_harvest_draws_and_summons_dreadseed"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
+      "card_id": "EDR_840t",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "EDR_840t1",
+      "implementation": "legacy_compatibility",
+      "hooks": [],
+      "effects": {},
+      "rule_source": {
+        "kind": "local_legacy",
+        "reference": "src/hsa/dragon_mirror.py",
+        "verification": [
+          "unittest regression suite"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "EDR_840t2",
       "implementation": "legacy_compatibility",
       "hooks": [],
       "effects": {},

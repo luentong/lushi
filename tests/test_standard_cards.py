@@ -909,6 +909,25 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", rite.entity_id))
         self.assertTrue(any(card.card_id == "CATA_580t" for card in game.players[0].board))
 
+    def test_grim_harvest_draws_and_summons_dreadseed(self):
+        game = self.game()
+        drawn = game._entity("TLC_248", started_in_deck=True)
+        game.players[0].deck = [drawn]
+        harvest = self.add_hand(game, "EDR_840")
+        game.step(Action("PLAY", harvest.entity_id))
+        self.assertIn(drawn, game.players[0].hand)
+        self.assertEqual(1, len(game.players[0].board))
+        self.assertIn(game.players[0].board[0].card_id, {"EDR_840t", "EDR_840t1", "EDR_840t2"})
+        self.assertGreater(game.players[0].board[0].dormant_turns, 0)
+
+    def test_maniacal_follower_deathrattle_herald(self):
+        game = self.game()
+        follower = self.add_board(game, "CATA_158", 0)
+        follower.damage = follower.max_health
+        game._resolve_deaths()
+        self.assertNotIn(follower, game.players[0].board)
+        self.assertTrue(any(card.card_id == "CATA_580t" for card in game.players[0].board))
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

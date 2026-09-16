@@ -41,6 +41,7 @@ CATA_155,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_155t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_155t1,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_156,declarative,spell,upstream_adapted,,0,focused_test_and_regression
+CATA_158,declarative,deathrattle,official_text_and_engine_verified,,0,focused_test_and_regression
 CATA_160,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_190h,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_190p,declarative,hero_power,powerlog_verified,,0,focused_test_and_regression
@@ -376,6 +377,10 @@ EDR_814,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 EDR_816,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_817,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 EDR_818,legacy_compatibility,,local_legacy,,0,regression_suite_only
+EDR_840,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
+EDR_840t,legacy_compatibility,,local_legacy,,0,regression_suite_only
+EDR_840t1,legacy_compatibility,,local_legacy,,0,regression_suite_only
+EDR_840t2,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_843a,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 EDR_843b,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 EDR_843t1,declarative,spell,upstream_adapted,,0,focused_test_and_regression
