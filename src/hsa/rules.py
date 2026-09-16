@@ -774,8 +774,19 @@ class OfferMinionDarkGiftDiscover:
             and definition.card_type == "MINION"
             and (self.rarity is None or definition.rarity == self.rarity)
             and (self.race is None or self.race in definition.races)
-            and (self.mechanic is None or self.mechanic in definition.mechanics)
-            and (not self.mechanics or any(m in definition.mechanics for m in self.mechanics))
+            and (
+                self.mechanic is None
+                or self.mechanic in definition.mechanics
+                or self.mechanic.casefold() in definition.text.casefold()
+            )
+            and (
+                not self.mechanics
+                or any(
+                    m in definition.mechanics
+                    or m.casefold() in definition.text.casefold()
+                    for m in self.mechanics
+                )
+            )
             and (self.min_cost is None or definition.cost >= self.min_cost)
         ]
         game._offer_discover(
