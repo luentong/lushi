@@ -2884,6 +2884,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(before + 2, len(game.players[0].deck))
         self.assertEqual(2, sum(c.card_id == "EDR_445pt3" for c in game.players[0].deck))
 
+    def test_imbue_minion_batch(self):
+        game = self.game()
+        game.players[0].card_class = "PALADIN"
+        drake = self.add_hand(game, "EDR_451")
+        game.step(Action("PLAY", drake.entity_id))
+        self.assertEqual("EDR_445p", game.players[0].hero_power_id)
+        self.assertEqual(1, game.players[0].hero_power_imbues)
+
 
 if __name__ == "__main__":
     unittest.main()
