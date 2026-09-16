@@ -2901,6 +2901,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertTrue(game.players[0].board)
         self.assertTrue(game.players[0].board[0].taunt)
 
+    def test_living_garden_imbue_discount(self):
+        game = self.game()
+        game.players[0].card_class = "SHAMAN"
+        held = self.add_hand(game, "CAP_107t")
+        garden = self.add_hand(game, "EDR_518")
+        game.step(Action("PLAY", garden.entity_id))
+        self.assertEqual("EDR_448p", game.players[0].hero_power_id)
+        self.assertEqual(held.definition.cost - 1, held.cost)
+
 
 if __name__ == "__main__":
     unittest.main()
