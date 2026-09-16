@@ -3013,6 +3013,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertTrue(game.pending_choice["options"])
         self.assertTrue(all(c.has_race("BEAST") and c.gifts for c in game.pending_choice["options"]))
 
+    def test_rude_awakening_repeats_battlecry_only(self):
+        game = self.game()
+        game.players[0].card_class = "MAGE"
+        rider = self.add_hand(game, "EDR_871")
+        game._apply_dark_gift(rider, "rude_awakening")
+        game.step(Action("PLAY", rider.entity_id))
+        self.assertEqual(2, sum(c.card_id == "CORE_CS2_231" for c in game.players[0].hand))
+        self.assertEqual(1, sum(m.card_id == "EDR_871" for m in game.players[0].board))
+
     def test_deathknight_imbue_first_undead_each_turn(self):
         game = self.game()
         game.players[0].card_class = "DEATHKNIGHT"
