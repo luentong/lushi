@@ -126,7 +126,7 @@ STANDARD_DECLARATIVE_IDS = {
     "RLK_511",  # Harbinger of Winter
     "RLK_709",  # Remorseless Winter
     "EDR_843a", "EDR_843b", "EDR_843t1", "CAP_405t4",
-    "EDR_817", "CAP_102", "EDR_860", "FIR_921", "EDR_227", "EDR_264", "EDR_451", "EDR_518", "EDR_519", "EDR_800", "EDR_871", "EDR_845", "EDR_888", "EDR_102", "EDR_811", "FIR_900", "EDR_488", "EDR_882", "FIR_920", "END_027", "FIR_901", "EDR_487", "EDR_654", "FIR_922", "EDR_528", "CORE_EDR_004", "EDR_456", "EDR_856", "FIR_924", "FIR_939", "FIR_956", "EDR_226", "EDR_231", "EDR_500", "END_000", "END_001", "END_003", "END_003p", "CORE_AT_003", "EDR_847p", "EDR_847pt2", "EDR_850p", "EDR_851p", "EDR_448p", "END_000p", "EDR_445p", "EDR_445pt3",
+    "EDR_817", "CAP_102", "EDR_860", "FIR_921", "EDR_227", "EDR_264", "EDR_451", "EDR_518", "EDR_519", "EDR_800", "EDR_871", "EDR_845", "EDR_888", "EDR_102", "EDR_811", "FIR_900", "EDR_488", "EDR_882", "FIR_920", "END_027", "FIR_901", "EDR_487", "EDR_654", "FIR_922", "EDR_528", "CORE_EDR_004", "CORE_EDR_004_2026", "EDR_456", "EDR_856", "FIR_924", "FIR_939", "FIR_956", "EDR_226", "EDR_231", "EDR_500", "END_000", "END_001", "END_003", "END_003p", "CORE_AT_003", "EDR_847p", "EDR_847pt2", "EDR_850p", "EDR_851p", "EDR_448p", "END_000p", "EDR_445p", "EDR_445pt3",
     "TIME_023", "EDR_251", "JAIL_377", "EDR_231", "JAIL_866", "CORE_CATA_007",
     "CORE_EX1_154", "CATA_526", "TLC_231", "TLC_236", "EDR_226",
     "RLK_024", "CATA_156",
@@ -3616,6 +3616,12 @@ def build_rule_registry() -> RuleRegistry:
                 OfferMinionDarkGiftDiscover(race="BEAST"),
             )},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332; Beast Dark Gift discover", ("test_raptor_herald_dark_gift_discover",)),
+        ),
+        CardRule(
+            "CORE_EDR_004_2026", {Hook.BATTLECRY: (
+                OfferMinionDarkGiftDiscover(race="BEAST"),
+            )},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332; versioned Raptor Herald entity", ("test_raptor_herald_dark_gift_discover",)),
         ),
         # These cards have additional engine-level resolution branches in
         # dragon_mirror.py; registering them here keeps the audit manifest
