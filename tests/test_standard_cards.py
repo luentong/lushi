@@ -2948,6 +2948,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", weapon.entity_id))
         self.assertEqual("END_003p", game.players[0].hero_power_id)
 
+    def test_all_imbue_metadata_cards_have_registered_rules(self):
+        game = self.game()
+        import json
+        with CARDS.open(encoding="utf-8") as handle:
+            cards = json.load(handle)
+        imbue_ids = {
+            card["id"] for card in cards
+            if "IMBUE" in card.get("referencedTags", [])
+        }
+        self.assertTrue(imbue_ids)
+        self.assertTrue(all(card_id in game.rule_registry for card_id in imbue_ids))
+
     def test_deathknight_imbue_first_undead_each_turn(self):
         game = self.game()
         game.players[0].card_class = "DEATHKNIGHT"
