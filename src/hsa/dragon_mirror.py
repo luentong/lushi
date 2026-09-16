@@ -5227,6 +5227,31 @@ class DragonMirrorGame:
                      for card in options],
         )
 
+    def _offer_legendary_wild_god_discover(
+        self, player: Player, *, source_card_id: str,
+        discount_if_imbued: bool = False,
+    ) -> None:
+        candidates = sorted(
+            card_id for card_id, definition in self.card_defs.items()
+            if card_id in EXECUTABLE_CARD_IDS
+            and definition.card_type == "MINION"
+            and getattr(definition, "rarity", "") == "LEGENDARY"
+        )
+        self.rng.shuffle(candidates)
+        options = [self._entity(i, created_by=source_card_id) for i in candidates[:3]]
+        self.pending_choice = {
+            "kind": "DISCOVER", "player": player.index,
+            "pool": tuple(candidates), "dark_gift": False,
+            "repeats_left": 0, "after_pick": None,
+            "source_card_id": source_card_id, "options": options,
+            "malorne_discount": discount_if_imbued,
+        }
+        self._event(
+            "legendary_wild_god_discover_offer", player=player.index,
+            source=source_card_id, discount_if_imbued=discount_if_imbued,
+            options=[{"entity": c.entity_id, "card": c.card_id} for c in options],
+        )
+
     def _offer_rune_discover(self, player: Player, *, rune: str, source_card_id: str) -> None:
         candidates = sorted(
             card_id for card_id, definition in self.card_defs.items()
@@ -5403,6 +5428,8 @@ class DragonMirrorGame:
                 destination=destination,
             )
             return
+        if pending.get("malorne_discount"):
+            option.cost_delta = 1 - option.definition.cost
         destination = self._add_generated(player, option)
         self._event(
             "discover_pick", player=player.index, card=option.card_id,

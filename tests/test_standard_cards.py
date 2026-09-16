@@ -2994,6 +2994,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             game.step(Action("PLAY", spell.entity_id))
         self.assertEqual(2, game.players[0].hero_power_imbues)
 
+    def test_malorne_discovers_legendary_and_discount(self):
+        game = self.game()
+        game.players[0].hero_power_imbues = 4
+        malorne = self.add_hand(game, "EDR_888")
+        game.step(Action("PLAY", malorne.entity_id))
+        self.assertIsNotNone(game.pending_choice)
+        option = game.pending_choice["options"][0]
+        game.step(Action("DISCOVER_PICK", option.entity_id))
+        self.assertTrue(any(c.card_id == option.card_id and c.cost == 1 for c in game.players[0].hand))
+
 
 if __name__ == "__main__":
     unittest.main()
