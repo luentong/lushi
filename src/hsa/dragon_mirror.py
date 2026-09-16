@@ -4659,6 +4659,7 @@ class DragonMirrorGame:
         if attacker.health <= 0 or defender.health <= 0:
             return
         attacker.attacks_this_turn += 1
+        was_stealthed = attacker.stealth
         attacker.stealth = False
         attacker_damage = attacker.attack
         defender_damage = defender.attack
@@ -4666,7 +4667,7 @@ class DragonMirrorGame:
         self._damage_minion(attacker_owner, attacker, defender_damage, defender)
         self._finja_kill(attacker_owner, attacker, defender)
         self._after_minion_attacked(defender_owner, defender)
-        self._after_minion_attack(attacker_owner, attacker, attacked_minion=True)
+        self._after_minion_attack(attacker_owner, attacker, attacked_minion=True, was_stealthed=was_stealthed)
         self._resolve_deaths()
 
     def _finja_kill(
@@ -4699,10 +4700,27 @@ class DragonMirrorGame:
 
     def _after_minion_attack(
         self, attacker_owner: int, attacker: CardInstance,
-        *, attacked_minion: bool = False,
+        *, attacked_minion: bool = False, was_stealthed: bool = False,
     ) -> None:
-        if attacker.card_id == "CAP_003" and not attacker.silenced and attacker.health > 0 and attacker in self.players[attacker_owner].board:
-            self._draw(self.players[attacker_owner])
+        player = self.players[attacker_owner]
+        if was_stealthed and not attacker.silenced:
+            for trigger in list(player.board):
+                if trigger.silenced or trigger.dormant_turns > 0:
+                    continue
+                if trigger.card_id == "CAP_000":
+                    attacker.attack_delta += 2
+                    attacker.health_delta += 2
+                    self._event("si7_slayer_buff", player=attacker_owner,
+                                source=trigger.entity_id, target=attacker.entity_id)
+                elif trigger.card_id == "CAP_005":
+                    candidates = [card for card in player.hand if card.entity_id != attacker.entity_id]
+                    if candidates:
+                        chosen = self.rng.choice(candidates)
+                        chosen.cost_delta -= 3
+                        self._event("mathias_shaw_discount", player=attacker_owner,
+                                    source=trigger.entity_id, target=chosen.entity_id, amount=3)
+        if attacker.card_id == "CAP_003" and not attacker.silenced and attacker.health > 0 and attacker in player.board:
+            self._draw(player)
             self._event("si7_supplier_draw", player=attacker_owner, entity=attacker.entity_id)
         elif attacker.card_id == "EDR_421" and not attacker.silenced:
             attacker.omen_damage += 1
@@ -5988,6 +6006,7 @@ class DragonMirrorGame:
     def _attack(self, action: Action) -> None:
         attacker = self._find_minion(self.current, action.source)
         attacker.attacks_this_turn += 1
+        was_stealthed = attacker.stealth
         attacker.stealth = False
         if self._trigger_freezing_trap(
             attacker, self.players[action.target_player]
@@ -6029,6 +6048,7 @@ class DragonMirrorGame:
         self._after_minion_attack(
             self.current, attacker,
             attacked_minion=target_entity is not None,
+            was_stealthed=was_stealthed,
         )
 
     def _hero_attack(self, action: Action) -> None:

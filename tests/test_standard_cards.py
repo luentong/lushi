@@ -966,6 +966,28 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("ATTACK", supplier.entity_id, 1, None))
         self.assertIn(filler, game.players[0].hand)
 
+    def test_si7_slayer_buffs_stealthed_attacker(self):
+        game = self.game()
+        slayer = self.add_board(game, "CAP_000", 0)
+        attacker = self.add_board(game, "CORE_EX1_010", 0)
+        attacker.stealth = True
+        enemy = self.add_board(game, "TLC_248", 1)
+        before = attacker.attack
+        before_health = attacker.max_health
+        game.step(Action("ATTACK", attacker.entity_id, 1, None))
+        self.assertEqual(before + 2, attacker.attack)
+        self.assertEqual(before_health + 2, attacker.max_health)
+
+    def test_mathias_shaw_discounts_random_hand_card(self):
+        game = self.game()
+        shaw = self.add_board(game, "CAP_005", 0)
+        attacker = self.add_board(game, "CORE_EX1_010", 0)
+        attacker.stealth = True
+        held = self.add_hand(game, "TLC_248")
+        before = held.cost
+        game.step(Action("ATTACK", attacker.entity_id, 1, None))
+        self.assertEqual(before - 3, held.cost)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")
