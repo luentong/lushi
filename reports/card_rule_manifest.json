@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 666,
-    "declarative_rules": 276,
+    "supported_cards": 667,
+    "declarative_rules": 277,
     "legacy_special_case_rules": 6,
     "legacy_compatibility_rules": 384,
     "cards_with_upstream_match": 185
@@ -20393,6 +20393,30 @@
       "metadata_source": "HearthstoneJSON build 251332",
       "upstream_matches": [],
       "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "MEND_504",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "DrawAndDiscountDrawn"
+        ]
+      },
+      "rule_source": {
+        "kind": "official_text_and_engine_verified",
+        "reference": "HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_leyline_nexus_discounts_drawn_card"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
     },
     {
       "card_id": "NEW_4183_Copy",

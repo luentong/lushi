@@ -1019,6 +1019,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._end_turn()
         self.assertIn(drawn, game.players[0].hand)
 
+    def test_leyline_nexus_discounts_drawn_card(self):
+        game = self.game()
+        drawn = game._entity("TLC_248", started_in_deck=True)
+        game.players[0].deck = [drawn]
+        spell = self.add_hand(game, "MEND_504")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertIn(drawn, game.players[0].hand)
+        self.assertEqual(drawn.definition.cost - 1, drawn.cost)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")
