@@ -1082,6 +1082,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(1, len(game.players[0].board))
         self.assertEqual(5, game.players[0].board[0].definition.cost)
 
+    def test_crystallized_leyline_reads_upgraded_level(self):
+        game = self.game()
+        game.players[0].leyline_level = 7
+        spell = self.add_hand(game, "MEND_502")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(7, game.players[0].board[0].definition.cost)
+
     def test_merry_moonkin_armor_scales_with_wisps(self):
         game = self.game()
         self.add_board(game, "EDR_940", 0)

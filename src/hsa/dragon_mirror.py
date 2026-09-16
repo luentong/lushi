@@ -846,6 +846,9 @@ class Player:
     hero_attacks_this_turn: int = 0
     hero_attacks_this_game: int = 0
     void_soul_level: int = 1
+    # Shared Leyline progression.  Crystallized Leyline reads this value;
+    # upgrade cards will increment it rather than carrying local constants.
+    leyline_level: int = 5
     hero_power_used: bool = False
     hero_power_cost_override: int | None = None
     hero_power_armor: int = 2

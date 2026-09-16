@@ -488,6 +488,15 @@ class GainArmorPerWisp:
 
 
 @dataclass(frozen=True)
+class SummonRandomLeylineMinion:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._summon_random_executable_minion(
+            context.player, source_card_id=context.card.card_id,
+            cost=max(0, context.player.leyline_level),
+        )
+
+
+@dataclass(frozen=True)
 class DrawBottom:
     count: int = 1
 
@@ -3709,7 +3718,7 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule(
-            "MEND_502", {Hook.SPELL: (SummonRandomExecutableMinion(cost=5),)},
+            "MEND_502", {Hook.SPELL: (SummonRandomLeylineMinion(),)},
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_crystallized_leyline_summons_five_cost",),
@@ -3720,6 +3729,15 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_merry_moonkin_armor_scales_with_wisps",),
+            ),
+        ),
+        CardRule(
+            "EDR_871", {Hook.BATTLECRY: (
+                AddToHand("CORE_CS2_231"), OfferImbueHeroPowerOptions(),
+            )},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_spirit_gatherer_gets_wisp_and_imbues",),
             ),
         ),
         CardRule(
