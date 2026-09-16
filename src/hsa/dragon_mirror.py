@@ -697,6 +697,7 @@ class CardInstance:
     illusion_fake: bool = False
     cant_attack_heroes_turn: int = -1
     dies_at_end_of_turn: bool = False
+    combo_active: bool = False
     mana_spent_while_held: int = 0
     minion_played_while_held: bool = False
     higher_cost_card_played_while_held: bool = False
@@ -3563,6 +3564,7 @@ class DragonMirrorGame:
         )
         player.cards_played_this_turn += 1
         player.played_card_counts[card.card_id] = player.played_card_counts.get(card.card_id, 0) + 1
+        card.combo_active = player.cards_played_this_turn > 1
         if not card.started_in_deck:
             player.generated_cards_played += 1
         if card.copied_from_opponent:

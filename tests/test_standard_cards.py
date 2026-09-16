@@ -894,6 +894,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(enemy.max_health - 1, enemy.health)
         self.assertEqual(before_hand, len(game.players[0].hand))
 
+    def test_opu_the_unseen_combo_casts_twice(self):
+        game = self.game()
+        first = self.add_hand(game, "JAIL_COIN1")
+        opu = self.add_hand(game, "TLC_522")
+        enemy = self.add_board(game, "TLC_248", 1)
+        game.step(Action("PLAY", first.entity_id))
+        game.step(Action("PLAY", opu.entity_id))
+        self.assertEqual(enemy.max_health - 2, enemy.health)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

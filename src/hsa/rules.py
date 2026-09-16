@@ -822,9 +822,11 @@ class DrawZeroAttackMinion:
 @dataclass(frozen=True)
 class CastFanOfKnives:
     def execute(self, game: Any, context: RuleContext) -> None:
-        DamageBoard(1).execute(game, context)
-        game._resolve_deaths()
-        Draw().execute(game, context)
+        repeats = 2 if context.card.card_id == "TLC_522" and getattr(context.card, "combo_active", False) else 1
+        for _ in range(repeats):
+            DamageBoard(1).execute(game, context)
+            game._resolve_deaths()
+            Draw().execute(game, context)
 
 
 @dataclass(frozen=True)
