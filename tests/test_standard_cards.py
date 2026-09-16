@@ -2983,6 +2983,22 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", matriarch.entity_id))
         self.assertEqual(2, sum(m.card_id == "FIR_901t" for m in game.players[0].board))
 
+    def test_overgrown_horror_discounts_dark_gifts(self):
+        game = self.game()
+        held = self.add_hand(game, "EDR_810t")
+        held.gifts.append("bundled_up")
+        horror = self.add_hand(game, "EDR_654")
+        game.step(Action("PLAY", horror.entity_id))
+        self.assertEqual(max(0, held.definition.cost - 2), held.cost)
+
+    def test_cindersword_buffs_with_dark_gift(self):
+        game = self.game()
+        held = self.add_hand(game, "EDR_810t")
+        held.gifts.append("bundled_up")
+        sword = self.add_hand(game, "FIR_922")
+        game.step(Action("PLAY", sword.entity_id))
+        self.assertEqual(4, game.players[0].weapon.attack)
+
     def test_deathknight_imbue_first_undead_each_turn(self):
         game = self.game()
         game.players[0].card_class = "DEATHKNIGHT"
