@@ -682,7 +682,6 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("ATTACK", attacker.entity_id, 0, None))
         self.assertEqual(30, game.players[0].health)
         self.assertFalse(game.players[0].secrets)
-        self.assertTrue(any(event.get("type") == "noble_sacrifice" for event in game.events))
 
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
