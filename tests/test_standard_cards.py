@@ -2975,6 +2975,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(0, game.players[0].corpses)
         self.assertTrue(game.pending_choice["options"])
 
+    def test_frostburn_matriarch_dark_gift_condition(self):
+        game = self.game()
+        held = self.add_hand(game, "EDR_810t")
+        held.gifts.append("bundled_up")
+        matriarch = self.add_hand(game, "FIR_901")
+        game.step(Action("PLAY", matriarch.entity_id))
+        self.assertEqual(2, sum(m.card_id == "FIR_901t" for m in game.players[0].board))
+
     def test_deathknight_imbue_first_undead_each_turn(self):
         game = self.game()
         game.players[0].card_class = "DEATHKNIGHT"
