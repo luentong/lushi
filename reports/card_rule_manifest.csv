@@ -310,6 +310,7 @@ DINO_410t4,legacy_compatibility,,local_legacy,,0,regression_suite_only
 DINO_410t5,legacy_compatibility,,local_legacy,,0,regression_suite_only
 DINO_413,legacy_compatibility,,local_legacy,,0,regression_suite_only
 DINO_416,legacy_compatibility,,local_legacy,,0,regression_suite_only
+DINO_417,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
 DINO_431,declarative,deathrattle,powerlog_verified,,0,focused_test_and_regression
 DINO_432,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 DREAM_01,legacy_compatibility,,local_legacy,RosettaStone,7,regression_suite_only

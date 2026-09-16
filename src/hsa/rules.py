@@ -117,7 +117,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BAR_801",
     "CORE_EX1_391", "CORE_EX1_606", "CORE_GIL_622",
     "CORE_CS2_072", "CORE_CS2_108", "CORE_EX1_309", "CORE_EX1_312",
-    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001",
+    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417",
     "CORE_CS1_112", "CORE_WON_337",
     "CORE_BT_072",
     "CORE_EX1_145",
@@ -856,6 +856,25 @@ class BuffActionTargetWithRebornTaunt:
         target.health_delta += self.health
         target.taunt = True
         target.reborn = True
+
+
+@dataclass(frozen=True)
+class BuffAllFriendlyMinionsRushSacrifice:
+    attack: int = 1
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        affected = []
+        for minion in context.player.board:
+            if minion.dormant_turns > 0 or minion.health <= 0:
+                continue
+            minion.attack_delta += self.attack
+            minion.rush = True
+            minion.dies_at_end_of_turn = True
+            affected.append(minion.entity_id)
+        game._event(
+            "soulrest_ceremony", player=context.player.index,
+            affected=affected,
+        )
 
 
 @dataclass(frozen=True)
@@ -3255,6 +3274,13 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "upstream_adapted", rosetta, "YOP_001", "AGPL-3.0",
                 ("test_illidari_studies",),
+            ),
+        ),
+        CardRule(
+            "DINO_417", {Hook.SPELL: (BuffAllFriendlyMinionsRushSacrifice(),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_soulrest_ceremony",),
             ),
         ),
         CardRule(

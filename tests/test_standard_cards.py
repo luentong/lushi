@@ -840,6 +840,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual("DISCOVER", game.pending_choice["kind"])
         self.assertEqual(1, game.players[0].next_spell_cost_reduction)
 
+    def test_soulrest_ceremony(self):
+        game = self.game()
+        minion = self.add_board(game, "TLC_248", 0)
+        base_attack = minion.attack
+        spell = self.add_hand(game, "DINO_417")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(base_attack + 1, minion.attack)
+        self.assertTrue(minion.rush)
+        self.assertTrue(minion.dies_at_end_of_turn)
+        game.step(Action("END_TURN"))
+        self.assertNotIn(minion, game.players[0].board)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")
