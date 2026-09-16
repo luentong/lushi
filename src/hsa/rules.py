@@ -3474,7 +3474,7 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule(
-            "END_000", {Hook.SPELL: (DamageHero(2, "opponent"), ImbueHeroPowerByClass())},
+            "END_000", {Hook.SPELL: (DamageHero(2, "opponent"), SetHeroPower("END_000p"))},
             RuleSource(
                 "official_text_and_engine_pattern",
                 "HearthstoneJSON 251332; Eventuality deals 2 and Imbues",
@@ -4126,7 +4126,7 @@ def build_rule_registry() -> RuleRegistry:
         ),
         CardRule(
             "EDR_871", {Hook.BATTLECRY: (
-                AddToHand("CORE_CS2_231"), ImbueHeroPowerByClass(),
+                AddToHand("CORE_CS2_231"), SetHeroPower("EDR_851p"),
             )},
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
@@ -5226,7 +5226,7 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource("upstream_adapted", rosetta, "JAIL_377", "AGPL-3.0", ("test_conditional_draw_tranche",)),
         ),
         CardRule(
-            "EDR_231", {Hook.SPELL: (HealActionTarget(4), Draw(), ImbueHeroPowerByClass())},
+            "EDR_231", {Hook.SPELL: (HealActionTarget(4), Draw(), SetHeroPower("EDR_448p"))},
             RuleSource("upstream_adapted", rosetta, "EDR_231", "AGPL-3.0", ("test_conditional_draw_tranche",)),
             TargetSpec(TargetKind.FRIENDLY_CHARACTER),
         ),
@@ -5263,7 +5263,7 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource("upstream_adapted", rosetta, "TLC_236", "AGPL-3.0", ("test_batch_conditional_and_costed_draw_cards",)),
         ),
         CardRule(
-            "EDR_226", {Hook.BATTLECRY: (DrawMatching(race="BEAST"), ImbueHeroPowerByClass())},
+            "EDR_226", {Hook.BATTLECRY: (DrawMatching(race="BEAST"), SetHeroPower("EDR_850p"))},
             RuleSource("upstream_adapted", rosetta, "EDR_226", "AGPL-3.0", ("test_batch_conditional_and_costed_draw_cards",)),
         ),
         CardRule(
