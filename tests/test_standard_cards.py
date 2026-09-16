@@ -1028,6 +1028,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertIn(drawn, game.players[0].hand)
         self.assertEqual(drawn.definition.cost - 1, drawn.cost)
 
+    def test_divination_sacrifices_wisp_and_draws(self):
+        game = self.game()
+        wisp = self.add_board(game, "CORE_CS2_231", 0)
+        game.players[0].deck = [game._entity("TLC_248", started_in_deck=True) for _ in range(3)]
+        spell = self.add_hand(game, "EDR_804")
+        game.step(Action("PLAY", spell.entity_id, 0, wisp.entity_id))
+        self.assertNotIn(wisp, game.players[0].board)
+        self.assertEqual(3, sum(card.card_id == "TLC_248" for card in game.players[0].hand))
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

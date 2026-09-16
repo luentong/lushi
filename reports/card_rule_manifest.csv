@@ -377,6 +377,7 @@ EDR_571,declarative,deathrattle,local_spec,,0,focused_test_and_regression
 EDR_572,declarative,deathrattle,local_spec,,0,focused_test_and_regression
 EDR_598,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_780,legacy_compatibility,,local_legacy,,0,regression_suite_only
+EDR_804,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
 EDR_810,declarative,battlecry,local_spec,,0,focused_test_and_regression
 EDR_810t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_813at,legacy_compatibility,,local_legacy,,0,regression_suite_only
