@@ -6356,6 +6356,29 @@ class DragonMirrorGame:
                     )
             self.minions_died_this_turn += len(dead)
 
+            # Paladin's Avenge resolves once per friendly death batch, before
+            # deathrattles, choosing a random surviving friendly minion.
+            for owner in self.players:
+                if not any(dead_owner is owner for dead_owner, _ in dead):
+                    continue
+                for secret in list(owner.secrets):
+                    if secret.card_id != "CORE_FP1_020":
+                        continue
+                    self._consume_secret(owner, secret)
+                    candidates = [
+                        minion for minion in owner.board
+                        if minion.dormant_turns == 0 and minion.health > 0
+                    ]
+                    if not candidates:
+                        continue
+                    target = self.rng.choice(candidates)
+                    target.attack_delta += 3
+                    target.health_delta += 2
+                    self._event(
+                        "avenge", player=owner.index,
+                        source=secret.entity_id, target=target.entity_id,
+                    )
+
             # Acolyte of Death observes the completed death batch. Each
             # friendly Undead death produces one draw before deathrattles.
             undead_deaths = {

@@ -696,6 +696,20 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(1, len(copies))
         self.assertFalse(game.players[1].secrets)
 
+    def test_avenge(self):
+        game = self.game()
+        secret = self.add_hand(game, "CORE_FP1_020")
+        game.step(Action("PLAY", secret.entity_id))
+        game.step(Action("END_TURN"))
+        victim = self.add_board(game, "TLC_248", 0)
+        survivor = self.add_board(game, "TLC_248", 0)
+        base_attack, base_health = survivor.attack, survivor.max_health
+        victim.health = 0
+        game._resolve_deaths()
+        self.assertEqual(base_attack + 3, survivor.attack)
+        self.assertEqual(base_health + 2, survivor.max_health)
+        self.assertFalse(game.players[0].secrets)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")
