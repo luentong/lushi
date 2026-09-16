@@ -849,6 +849,7 @@ class Player:
     hero_power_cost_override: int | None = None
     hero_power_armor: int = 2
     hero_power_id: str | None = None
+    hero_power_imbues: int = 0
     fire_spell_played: bool = False
     played_races_this_turn: set[str] = field(default_factory=set)
     played_races_last_turn: set[str] = field(default_factory=set)

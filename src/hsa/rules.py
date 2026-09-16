@@ -2009,9 +2009,11 @@ class SetHeroPower:
 
     def execute(self, game: Any, context: RuleContext) -> None:
         context.player.hero_power_id = self.card_id
+        context.player.hero_power_imbues += 1
         game._event(
             "hero_power_imbued", player=context.player.index,
             source=context.card.card_id, hero_power=self.card_id,
+            count=context.player.hero_power_imbues,
         )
 
 
