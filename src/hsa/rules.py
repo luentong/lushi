@@ -117,7 +117,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BAR_801",
     "CORE_EX1_391", "CORE_EX1_606", "CORE_GIL_622",
     "CORE_CS2_072", "CORE_CS2_108", "CORE_EX1_309", "CORE_EX1_312",
-    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411", "CATA_201", "TLC_902", "TLC_630t", "TLC_903t", "TLC_522", "CATA_785", "EDR_840", "CATA_158", "EDR_523", "CAP_001", "CAP_003", "CAP_000", "CAP_005", "CAP_002",
+    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411", "CATA_201", "TLC_902", "TLC_630t", "TLC_903t", "TLC_522", "CATA_785", "EDR_840", "CATA_158", "EDR_523", "CAP_001", "CAP_003", "CAP_000", "CAP_005", "CAP_002", "TIME_875t",
     "CORE_CS1_112", "CORE_WON_337",
     "CORE_BT_072",
     "CORE_EX1_145",
@@ -347,6 +347,23 @@ class DrawIfOutcast:
             return
         for _ in range(self.count):
             game._draw(context.player)
+
+
+@dataclass(frozen=True)
+class DrawThenShuffleSource:
+    """Draw a card, then shuffle the played source card back into its deck."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._draw(context.player)
+        card = context.card
+        if card in context.player.board:
+            context.player.board.remove(card)
+        card.damage = 0
+        card.attack_delta = card.health_delta = 0
+        card.playable_after_turn = -1
+        context.player.deck.insert(game.rng.randrange(len(context.player.deck) + 1), card)
+        game._event("shuffle_source_into_deck", player=context.player.index,
+                    source=card.entity_id, card=card.card_id)
 
 
 @dataclass(frozen=True)
@@ -3498,6 +3515,13 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_follow_the_footsteps_stealth_discover",),
+            ),
+        ),
+        CardRule(
+            "TIME_875t", {Hook.BATTLECRY: (DrawThenShuffleSource(),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_king_llane_draws_and_shuffles_back",),
             ),
         ),
         CardRule(

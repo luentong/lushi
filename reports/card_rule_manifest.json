@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 664,
-    "declarative_rules": 274,
+    "supported_cards": 665,
+    "declarative_rules": 275,
     "legacy_special_case_rules": 6,
     "legacy_compatibility_rules": 384,
     "cards_with_upstream_match": 184
@@ -21533,6 +21533,30 @@
       "metadata_source": "HearthstoneJSON build 251332",
       "upstream_matches": [],
       "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "TIME_875t",
+      "implementation": "declarative",
+      "hooks": [
+        "battlecry"
+      ],
+      "effects": {
+        "battlecry": [
+          "DrawThenShuffleSource"
+        ]
+      },
+      "rule_source": {
+        "kind": "official_text_and_engine_verified",
+        "reference": "HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_king_llane_draws_and_shuffles_back"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
     },
     {
       "card_id": "TIME_876",

@@ -1000,6 +1000,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             for option in game.pending_choice["options"]
         ))
 
+    def test_king_llane_draws_and_shuffles_back(self):
+        game = self.game()
+        drawn = game._entity("TLC_248", started_in_deck=True)
+        game.players[0].deck = [drawn]
+        king = self.add_hand(game, "TIME_875t")
+        game.step(Action("PLAY", king.entity_id))
+        self.assertIn(drawn, game.players[0].hand)
+        self.assertNotIn(king, game.players[0].board)
+        self.assertIn(king, game.players[0].deck)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")
