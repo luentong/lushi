@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 674,
-    "declarative_rules": 283,
+    "supported_cards": 675,
+    "declarative_rules": 285,
     "legacy_special_case_rules": 6,
-    "legacy_compatibility_rules": 385,
+    "legacy_compatibility_rules": 384,
     "cards_with_upstream_match": 188
   },
   "cards": [
@@ -17608,6 +17608,30 @@
       "verification_status": "regression_suite_only"
     },
     {
+      "card_id": "EDR_940",
+      "implementation": "declarative",
+      "hooks": [
+        "end_turn"
+      ],
+      "effects": {
+        "end_turn": [
+          "GainArmorPerWisp"
+        ]
+      },
+      "rule_source": {
+        "kind": "official_text_and_engine_verified",
+        "reference": "HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_merry_moonkin_armor_scales_with_wisps"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
       "card_id": "EDR_970",
       "implementation": "declarative",
       "hooks": [
@@ -20594,19 +20618,27 @@
     },
     {
       "card_id": "MEND_502",
-      "implementation": "legacy_compatibility",
-      "hooks": [],
-      "effects": {},
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "SummonRandomExecutableMinion"
+        ]
+      },
       "rule_source": {
-        "kind": "local_legacy",
-        "reference": "src/hsa/dragon_mirror.py",
+        "kind": "official_text_and_engine_verified",
+        "reference": "HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
         "verification": [
-          "unittest regression suite"
+          "test_crystallized_leyline_summons_five_cost"
         ]
       },
       "metadata_source": "HearthstoneJSON build 251332",
       "upstream_matches": [],
-      "verification_status": "regression_suite_only"
+      "verification_status": "focused_test_and_regression"
     },
     {
       "card_id": "MEND_504",

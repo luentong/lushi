@@ -410,6 +410,7 @@ EDR_856,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_889,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_891,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_892,legacy_compatibility,,local_legacy,,0,regression_suite_only
+EDR_940,declarative,end_turn,official_text_and_engine_verified,,0,focused_test_and_regression
 EDR_970,declarative,battlecry,powerlog_verified,,0,focused_test_and_regression
 EDR_971,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_999,legacy_compatibility,,local_legacy,,0,regression_suite_only
@@ -525,7 +526,7 @@ MEND_043,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 MEND_044e3,legacy_compatibility,,local_legacy,,0,regression_suite_only
 MEND_500,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
 MEND_501,declarative,"battlecry,deathrattle",official_text_and_engine_verified,,0,focused_test_and_regression
-MEND_502,legacy_compatibility,,local_legacy,,0,regression_suite_only
+MEND_502,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
 MEND_504,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
 NEW_4183_Copy,legacy_compatibility,,local_legacy,,0,regression_suite_only
 OG_195,declarative,spell,official_text_and_engine_verified,"RosettaStone,fireplace",14,focused_test_and_regression

@@ -1075,6 +1075,22 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertTrue(any(card.card_id in {"MEND_500", "MEND_502", "MEND_504"}
                             for card in game.players[0].hand))
 
+    def test_crystallized_leyline_summons_five_cost(self):
+        game = self.game()
+        spell = self.add_hand(game, "MEND_502")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(1, len(game.players[0].board))
+        self.assertEqual(5, game.players[0].board[0].definition.cost)
+
+    def test_merry_moonkin_armor_scales_with_wisps(self):
+        game = self.game()
+        self.add_board(game, "EDR_940", 0)
+        self.add_board(game, "CORE_CS2_231", 0)
+        self.add_board(game, "CORE_CS2_231", 0)
+        game.players[0].mana = 0
+        game._end_turn()
+        self.assertEqual(3, game.players[0].armor)
+
     def test_leyline_manipulator_discounts_generated_cards(self):
         game = self.game()
         generated = game._entity("TLC_248", created_by="TEST")

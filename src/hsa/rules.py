@@ -117,7 +117,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BAR_801",
     "CORE_EX1_391", "CORE_EX1_606", "CORE_GIL_622",
     "CORE_CS2_072", "CORE_CS2_108", "CORE_EX1_309", "CORE_EX1_312",
-    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411", "CATA_201", "TLC_902", "TLC_630t", "TLC_903t", "TLC_522", "CATA_785", "EDR_840", "CATA_158", "EDR_523", "CAP_001", "CAP_003", "CAP_000", "CAP_005", "CAP_002", "TIME_875t", "CORE_ULD_133", "MEND_504", "EDR_804", "GIL_553", "OG_195", "MEND_500", "LOOT_537", "MEND_501", "MEND_502",
+    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411", "CATA_201", "TLC_902", "TLC_630t", "TLC_903t", "TLC_522", "CATA_785", "EDR_840", "CATA_158", "EDR_523", "CAP_001", "CAP_003", "CAP_000", "CAP_005", "CAP_002", "TIME_875t", "CORE_ULD_133", "MEND_504", "EDR_804", "GIL_553", "OG_195", "MEND_500", "LOOT_537", "MEND_501", "MEND_502", "EDR_940",
     "CORE_CS1_112", "CORE_WON_337",
     "CORE_BT_072",
     "CORE_EX1_145",
@@ -476,6 +476,15 @@ class SummonWisps:
 class SummonWispsEqualHand:
     def execute(self, game: Any, context: RuleContext) -> None:
         SummonWisps(len(context.player.hand)).execute(game, context)
+
+
+@dataclass(frozen=True)
+class GainArmorPerWisp:
+    base: int = 1
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        wisps = sum(card.definition.name.casefold() == "wisp" for card in context.player.board)
+        GainArmor(self.base + wisps).execute(game, context)
 
 
 @dataclass(frozen=True)
@@ -3697,6 +3706,20 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_ley_walker_discount_and_random_deathrattle",),
+            ),
+        ),
+        CardRule(
+            "MEND_502", {Hook.SPELL: (SummonRandomExecutableMinion(cost=5),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_crystallized_leyline_summons_five_cost",),
+            ),
+        ),
+        CardRule(
+            "EDR_940", {Hook.END_TURN: (GainArmorPerWisp(),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_merry_moonkin_armor_scales_with_wisps",),
             ),
         ),
         CardRule(
