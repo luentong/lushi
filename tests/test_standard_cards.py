@@ -683,6 +683,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(30, game.players[0].health)
         self.assertFalse(game.players[0].secrets)
 
+    def test_mirror_entity(self):
+        game = self.game()
+        secret = self.add_hand(game, "CORE_EX1_294")
+        game.step(Action("PLAY", secret.entity_id))
+        game.step(Action("END_TURN"))
+        minion = game._entity("TLC_248")
+        game.players[1].hand.append(minion)
+        game.step(Action("PLAY", minion.entity_id))
+        copies = [card for card in game.players[0].board if card.card_id == "TLC_248"]
+        self.assertEqual(1, len(copies))
+        self.assertFalse(game.players[1].secrets)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

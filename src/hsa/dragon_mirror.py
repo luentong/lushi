@@ -1844,6 +1844,20 @@ class DragonMirrorGame:
         """Resolve implemented opponent-minion-play Secrets after Battlecry."""
         owner = self.players[1 - player.index]
         for secret in list(owner.secrets):
+            if secret.card_id == "CORE_EX1_294":
+                self._consume_secret(owner, secret)
+                if len(owner.board) + len(owner.locations) < 7:
+                    copy_card = minion.clone(self.next_entity_id)
+                    self.next_entity_id += 1
+                    copy_card.created_by = secret.card_id
+                    copy_card.summoned_turn = self.turn
+                    self._summon(owner, copy_card)
+                    self._event(
+                        "mirror_entity", player=owner.index,
+                        source=secret.entity_id, copied=minion.entity_id,
+                        summoned=copy_card.entity_id,
+                    )
+                continue
             if secret.card_id != "CORE_LOOT_101":
                 continue
             before = max(0, minion.health)
