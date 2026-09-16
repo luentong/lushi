@@ -879,6 +879,12 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertIn(enemy, game.players[1].hand)
         self.assertEqual(0, enemy.damage)
 
+    def test_infestation_generates_stingers(self):
+        game = self.game()
+        card = self.add_hand(game, "TLC_902")
+        game.step(Action("PLAY", card.entity_id))
+        self.assertEqual(2, sum(c.card_id == "TLC_630t" for c in game.players[0].hand))
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

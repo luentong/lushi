@@ -623,6 +623,7 @@ TLC_603,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_606,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_623,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_624,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TLC_630t,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
 TLC_631e,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_632,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
 TLC_632t,declarative,hero_power,official_text_and_engine_verified,,0,focused_test_and_regression
@@ -633,6 +634,7 @@ TLC_820,declarative,deathrattle,local_spec,,0,focused_test_and_regression
 TLC_823,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 TLC_831t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_888,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TLC_902,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
 TLC_903t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_COIN1,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 TTN_081t,legacy_compatibility,,local_legacy,,0,regression_suite_only

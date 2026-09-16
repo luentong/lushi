@@ -117,7 +117,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BAR_801",
     "CORE_EX1_391", "CORE_EX1_606", "CORE_GIL_622",
     "CORE_CS2_072", "CORE_CS2_108", "CORE_EX1_309", "CORE_EX1_312",
-    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411", "CATA_201",
+    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411", "CATA_201", "TLC_902", "TLC_630t", "TLC_903t",
     "CORE_CS1_112", "CORE_WON_337",
     "CORE_BT_072",
     "CORE_EX1_145",
@@ -600,6 +600,22 @@ class DamageHero:
         game._damage_hero(
             _recipient(game, context, self.side), amount, context.card
         )
+
+
+@dataclass(frozen=True)
+class AddCardCopiesToHand:
+    card_id: str
+    count: int = 1
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for _ in range(self.count):
+            card = game._entity(self.card_id, created_by=context.card.card_id)
+            destination = game._add_generated(context.player, card)
+            game._event(
+                "generated_to_hand", player=context.player.index,
+                card=card.card_id, entity=card.entity_id,
+                source=context.card.card_id, destination=destination,
+            )
 
 
 @dataclass(frozen=True)
@@ -3354,6 +3370,17 @@ def build_rule_registry() -> RuleRegistry:
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_twilight_mistress_returns_enemy_board",),
             ),
+        ),
+        CardRule(
+            "TLC_902", {Hook.SPELL: (AddCardCopiesToHand("TLC_630t", 2),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_infestation_generates_stingers",),
+            ),
+        ),
+        CardRule(
+            "TLC_630t", {Hook.SPELL: (DamageRandomEnemyCharacters(2, 1), Summon("TLC_903t"),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332"),
         ),
         CardRule(
             "EX1_379", {Hook.SPELL: (ArmSecret(),)},
