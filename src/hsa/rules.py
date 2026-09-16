@@ -117,7 +117,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BAR_801",
     "CORE_EX1_391", "CORE_EX1_606", "CORE_GIL_622",
     "CORE_CS2_072", "CORE_CS2_108", "CORE_EX1_309", "CORE_EX1_312",
-    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411", "CATA_201", "TLC_902", "TLC_630t", "TLC_903t", "TLC_522", "CATA_785", "EDR_840", "CATA_158", "EDR_523",
+    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411", "CATA_201", "TLC_902", "TLC_630t", "TLC_903t", "TLC_522", "CATA_785", "EDR_840", "CATA_158", "EDR_523", "CAP_001",
     "CORE_CS1_112", "CORE_WON_337",
     "CORE_BT_072",
     "CORE_EX1_145",
@@ -2092,6 +2092,21 @@ class BuffActionTarget:
 
 
 @dataclass(frozen=True)
+class SilentStrike:
+    """Give a minion +3 Attack; stealth targets also fire their attack damage."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("minion target is required")
+        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        target.attack_delta += 3
+        game._event("silent_strike_buff", player=context.player.index,
+                    target=target.entity_id, attack=3, stealth=target.stealth)
+        if target.stealth:
+            DamageRandomEnemyMinion(target.attack).execute(game, context)
+
+
+@dataclass(frozen=True)
 class BuffZone:
     zone: str
     attack: int = 0
@@ -3450,6 +3465,14 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_web_of_deception_returns_and_summons",),
+            ),
+            TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "CAP_001", {Hook.SPELL: (SilentStrike(),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_silent_strike_stealth_branch",),
             ),
             TargetSpec(TargetKind.FRIENDLY_MINION),
         ),

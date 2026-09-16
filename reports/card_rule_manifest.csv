@@ -1,6 +1,7 @@
 ﻿card_id,implementation,hooks,source_kind,upstream_repositories,upstream_match_count,verification_status
 BAR_035t,legacy_compatibility,,local_legacy,RosettaStone,5,regression_suite_only
 BOT_102t,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",5,regression_suite_only
+CAP_001,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
 CAP_004,declarative,deathrattle,local_spec,,0,focused_test_and_regression
 CAP_102,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 CAP_104,legacy_compatibility,,local_legacy,,0,regression_suite_only

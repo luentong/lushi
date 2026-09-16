@@ -947,6 +947,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertIn(target, game.players[0].hand)
         self.assertTrue(any(card.card_id == "EDR_523t" for card in game.players[0].board))
 
+    def test_silent_strike_stealth_branch(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_EX1_010", 0)
+        target.stealth = True
+        enemy = self.add_board(game, "TLC_248", 1)
+        spell = self.add_hand(game, "CAP_001")
+        before = enemy.health
+        game.step(Action("PLAY", spell.entity_id, 0, target.entity_id))
+        self.assertEqual(target.definition.attack + 3, target.attack)
+        self.assertEqual(before - target.attack, enemy.health)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

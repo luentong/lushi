@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 659,
-    "declarative_rules": 272,
+    "supported_cards": 660,
+    "declarative_rules": 273,
     "legacy_special_case_rules": 6,
     "legacy_compatibility_rules": 381,
     "cards_with_upstream_match": 184
@@ -131,6 +131,30 @@
         }
       ],
       "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "CAP_001",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "SilentStrike"
+        ]
+      },
+      "rule_source": {
+        "kind": "official_text_and_engine_verified",
+        "reference": "HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_silent_strike_stealth_branch"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
     },
     {
       "card_id": "CAP_004",
