@@ -909,14 +909,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", rite.entity_id))
         self.assertTrue(any(card.card_id == "CATA_580t" for card in game.players[0].board))
 
-    def test_rite_of_twilight_combo_deals_random_enemy_damage(self):
+    def test_rite_of_twilight_combo_deals_selected_enemy_damage(self):
         game = self.game()
         coin = self.add_hand(game, "JAIL_COIN1")
         rite = self.add_hand(game, "CATA_785")
         enemy = self.add_board(game, "TLC_248", 1)
         game.step(Action("PLAY", coin.entity_id))
         before = enemy.health
-        game.step(Action("PLAY", rite.entity_id))
+        game.step(Action("PLAY", rite.entity_id, 1, enemy.entity_id))
         self.assertEqual(before - 3, enemy.health)
 
     def test_grim_harvest_draws_and_summons_dreadseed(self):
