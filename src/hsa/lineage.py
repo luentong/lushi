@@ -6,7 +6,7 @@ import hashlib
 from pathlib import Path
 from typing import Any
 
-from .dragon_mirror import DRAGON_DECKSTRING, RULESET
+from .config import DRAGON_DECKSTRING, RULESET
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]

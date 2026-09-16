@@ -15,6 +15,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable
 
+from .config import DRAGON_DECKSTRING, RULESET
 from .rules import (
     DECLARATIVE_METADATA_ALIASES,
     DECLARATIVE_METADATA_IDS,
@@ -25,13 +26,6 @@ from .rules import (
     build_rule_registry,
 )
 
-
-DRAGON_DECKSTRING = (
-    "AAECAQcEzp4G4+YG69YHstgHDar8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5vCB5zCB6ngB/vgBwAA"
-)
-# Bump whenever executable rule semantics change. A source fingerprint is
-# recorded beside this label in generated training data and shadow reports.
-RULESET = "dragon-warrior-closed-v5"
 
 DIRECT_IDS = {
     "CORE_SW_066",
