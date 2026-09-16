@@ -123,7 +123,7 @@ STANDARD_DECLARATIVE_IDS = {
     "RLK_511",  # Harbinger of Winter
     "RLK_709",  # Remorseless Winter
     "EDR_843a", "EDR_843b", "EDR_843t1", "CAP_405t4",
-    "EDR_817", "CAP_102", "EDR_860", "FIR_921", "EDR_847p", "EDR_847pt2", "EDR_850p",
+    "EDR_817", "CAP_102", "EDR_860", "FIR_921", "EDR_847p", "EDR_847pt2", "EDR_850p", "EDR_851p",
     "TIME_023", "EDR_251", "JAIL_377", "EDR_231", "JAIL_866", "CORE_CATA_007",
     "CORE_EX1_154", "CATA_526", "TLC_231", "TLC_236", "EDR_226",
     "RLK_024", "CATA_156",
@@ -1008,6 +1008,23 @@ class DamageRandomEnemyCharacters:
             "random_enemy_damage", player=context.player.index,
             source=context.card.card_id, amount=amount, targets=chosen,
         )
+
+
+@dataclass(frozen=True)
+class DamageRandomSplitEnemyCharacters:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        targets = game._random_enemy_characters(context.player.index)
+        if not targets:
+            return
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
+        hits = [game.rng.choice(targets) for _ in range(amount)]
+        for target in hits:
+            game._deal_to_target(context.player.index, target, 1, context.card)
+        game._resolve_deaths()
+        game._event("random_split_enemy_damage", player=context.player.index,
+                    source=context.card.card_id, amount=amount, targets=hits)
 
 
 @dataclass(frozen=True)
@@ -5127,6 +5144,10 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "EDR_850p", {Hook.HERO_POWER: (BuffRandomBeastInHand(),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332", ("test_imbue_hero_power_hunter",)),
+        ),
+        CardRule(
+            "EDR_851p", {Hook.HERO_POWER: (SummonWisps(1), DamageRandomSplitEnemyCharacters(1),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332", ("test_imbue_hero_power_mage",)),
         ),
         CardRule(
             "FIR_921",
