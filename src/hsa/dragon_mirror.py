@@ -850,6 +850,7 @@ class Player:
     # upgrade cards will increment it rather than carrying local constants.
     leyline_level: int = 5
     leyline_upgrade: int = 0
+    leyline_extra_triggers: int = 0
     hero_power_used: bool = False
     hero_power_cost_override: int | None = None
     hero_power_armor: int = 2

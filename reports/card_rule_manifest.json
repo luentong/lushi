@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 676,
-    "declarative_rules": 286,
+    "supported_cards": 678,
+    "declarative_rules": 288,
     "legacy_special_case_rules": 6,
     "legacy_compatibility_rules": 384,
     "cards_with_upstream_match": 188
@@ -20666,6 +20666,30 @@
       "verification_status": "focused_test_and_regression"
     },
     {
+      "card_id": "MEND_503",
+      "implementation": "declarative",
+      "hooks": [
+        "battlecry"
+      ],
+      "effects": {
+        "battlecry": [
+          "AddLeylineExtraTrigger"
+        ]
+      },
+      "rule_source": {
+        "kind": "official_text_and_engine_verified",
+        "reference": "HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_surge_needle_adds_leyline_trigger"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
       "card_id": "MEND_504",
       "implementation": "declarative",
       "hooks": [
@@ -20683,6 +20707,30 @@
         "license": null,
         "verification": [
           "test_leyline_nexus_discounts_drawn_card"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
+      "card_id": "MEND_506",
+      "implementation": "declarative",
+      "hooks": [
+        "battlecry"
+      ],
+      "effects": {
+        "battlecry": [
+          "UpgradeLeylines"
+        ]
+      },
+      "rule_source": {
+        "kind": "official_text_and_engine_verified",
+        "reference": "HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_mystic_runesaber_upgrades_leylines"
         ]
       },
       "metadata_source": "HearthstoneJSON build 251332",

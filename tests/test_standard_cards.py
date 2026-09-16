@@ -1107,6 +1107,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", spell.entity_id))
         self.assertEqual(7, game.players[0].board[0].definition.cost)
 
+    def test_surge_needle_adds_leyline_trigger(self):
+        game = self.game()
+        needle = self.add_hand(game, "MEND_503")
+        game.step(Action("PLAY", needle.entity_id))
+        self.assertEqual(1, game.players[0].leyline_extra_triggers)
+
+    def test_mystic_runesaber_upgrades_leylines(self):
+        game = self.game()
+        saber = self.add_hand(game, "MEND_506")
+        game.step(Action("PLAY", saber.entity_id))
+        self.assertEqual(1, game.players[0].leyline_upgrade)
+
     def test_merry_moonkin_armor_scales_with_wisps(self):
         game = self.game()
         self.add_board(game, "EDR_940", 0)
