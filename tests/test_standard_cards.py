@@ -710,6 +710,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(base_health + 2, survivor.max_health)
         self.assertFalse(game.players[0].secrets)
 
+    def test_repentance(self):
+        game = self.game()
+        secret = self.add_hand(game, "EX1_379")
+        game.step(Action("PLAY", secret.entity_id))
+        game.step(Action("END_TURN"))
+        minion = game._entity("TLC_248")
+        game.players[1].hand.append(minion)
+        game.players[1].mana = 20
+        game.step(Action("PLAY", minion.entity_id))
+        self.assertEqual(1, minion.health)
+        self.assertFalse(game.players[0].secrets)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

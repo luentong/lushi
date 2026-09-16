@@ -1844,6 +1844,15 @@ class DragonMirrorGame:
         """Resolve implemented opponent-minion-play Secrets after Battlecry."""
         owner = self.players[1 - player.index]
         for secret in list(owner.secrets):
+            if secret.card_id == "EX1_379":
+                self._consume_secret(owner, secret)
+                minion.damage = max(0, minion.max_health - 1)
+                self._event(
+                    "repentance", player=owner.index,
+                    source=secret.entity_id, target=minion.entity_id,
+                )
+                self._resolve_deaths()
+                continue
             if secret.card_id == "CORE_EX1_294":
                 self._consume_secret(owner, secret)
                 if len(owner.board) + len(owner.locations) < 7:
