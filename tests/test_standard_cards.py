@@ -2978,6 +2978,22 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(28, game.players[1].health)
         self.assertEqual("END_000p", game.players[0].hero_power_id)
 
+    def test_hamuul_start_of_game_and_spell_threshold(self):
+        game = self.game()
+        game.players[0].card_class = "DRUID"
+        hamuul = self.add_hand(game, "EDR_845")
+        game.players[0].deck = [
+            game._entity("CORE_LOOT_373", started_in_deck=True)
+            for _ in range(3)
+        ]
+        game._start_of_game()
+        self.assertTrue(game.players[0].hamuul_active)
+        self.assertEqual("EDR_847p", game.players[0].hero_power_id)
+        for _ in range(3):
+            spell = self.add_hand(game, "CORE_LOOT_373")
+            game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(2, game.players[0].hero_power_imbues)
+
 
 if __name__ == "__main__":
     unittest.main()
