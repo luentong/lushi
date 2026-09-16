@@ -117,7 +117,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BAR_801",
     "CORE_EX1_391", "CORE_EX1_606", "CORE_GIL_622",
     "CORE_CS2_072", "CORE_CS2_108", "CORE_EX1_309", "CORE_EX1_312",
-    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411", "CATA_201", "TLC_902", "TLC_630t", "TLC_903t", "TLC_522", "CATA_785", "EDR_840", "CATA_158", "EDR_523", "CAP_001", "CAP_003", "CAP_000", "CAP_005",
+    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411", "CATA_201", "TLC_902", "TLC_630t", "TLC_903t", "TLC_522", "CATA_785", "EDR_840", "CATA_158", "EDR_523", "CAP_001", "CAP_003", "CAP_000", "CAP_005", "CAP_002",
     "CORE_CS1_112", "CORE_WON_337",
     "CORE_BT_072",
     "CORE_EX1_145",
@@ -502,6 +502,23 @@ class OfferSpellDiscover:
     def execute(self, game: Any, context: RuleContext) -> None:
         game._offer_spell_discover(
             context.player, source_card_id=context.card.card_id
+        )
+
+
+@dataclass(frozen=True)
+class OfferStealthDiscover:
+    """Offer three executable minions with Stealth in their printed text."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = [
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "MINION"
+            and ("STEALTH" in definition.mechanics or "Stealth" in definition.text)
+        ]
+        game._offer_discover(
+            context.player, candidates, False,
+            source_card_id=context.card.card_id,
         )
 
 
@@ -3475,6 +3492,13 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_silent_strike_stealth_branch",),
             ),
             TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "CAP_002", {Hook.SPELL: (OfferStealthDiscover(),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_follow_the_footsteps_stealth_discover",),
+            ),
         ),
         CardRule(
             "CATA_158", {Hook.DEATHRATTLE: (HeraldRagnaros(),)},

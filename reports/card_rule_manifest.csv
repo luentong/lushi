@@ -3,6 +3,7 @@ BAR_035t,legacy_compatibility,,local_legacy,RosettaStone,5,regression_suite_only
 BOT_102t,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",5,regression_suite_only
 CAP_000,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CAP_001,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
+CAP_002,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
 CAP_003,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CAP_004,declarative,deathrattle,local_spec,,0,focused_test_and_regression
 CAP_005,legacy_compatibility,,local_legacy,,0,regression_suite_only

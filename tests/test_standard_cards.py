@@ -988,6 +988,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("ATTACK", attacker.entity_id, 1, None))
         self.assertEqual(before - 3, held.cost)
 
+    def test_follow_the_footsteps_stealth_discover(self):
+        game = self.game()
+        spell = self.add_hand(game, "CAP_002")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertIsNotNone(game.pending_choice)
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        self.assertTrue(game.pending_choice["options"])
+        self.assertTrue(all(
+            "STEALTH" in option.definition.mechanics or "Stealth" in option.definition.text
+            for option in game.pending_choice["options"]
+        ))
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

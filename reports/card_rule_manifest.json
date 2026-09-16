@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 663,
-    "declarative_rules": 273,
+    "supported_cards": 664,
+    "declarative_rules": 274,
     "legacy_special_case_rules": 6,
     "legacy_compatibility_rules": 384,
     "cards_with_upstream_match": 184
@@ -166,6 +166,30 @@
         "license": null,
         "verification": [
           "test_silent_strike_stealth_branch"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
+    },
+    {
+      "card_id": "CAP_002",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "OfferStealthDiscover"
+        ]
+      },
+      "rule_source": {
+        "kind": "official_text_and_engine_verified",
+        "reference": "HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_follow_the_footsteps_stealth_discover"
         ]
       },
       "metadata_source": "HearthstoneJSON build 251332",
