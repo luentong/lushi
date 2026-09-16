@@ -407,6 +407,7 @@ EDR_850pe,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_851t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_852,declarative,battlecry,official_text_and_engine_pattern,,0,focused_test_and_regression
 EDR_856,legacy_compatibility,,local_legacy,,0,regression_suite_only
+EDR_871,declarative,battlecry,official_text_and_engine_verified,,0,focused_test_and_regression
 EDR_889,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_891,legacy_compatibility,,local_legacy,,0,regression_suite_only
 EDR_892,legacy_compatibility,,local_legacy,,0,regression_suite_only
