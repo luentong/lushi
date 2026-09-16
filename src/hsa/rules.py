@@ -123,7 +123,7 @@ STANDARD_DECLARATIVE_IDS = {
     "RLK_511",  # Harbinger of Winter
     "RLK_709",  # Remorseless Winter
     "EDR_843a", "EDR_843b", "EDR_843t1", "CAP_405t4",
-    "EDR_817", "CAP_102",
+    "EDR_817", "CAP_102", "EDR_860", "FIR_921",
     "TIME_023", "EDR_251", "JAIL_377", "EDR_231", "JAIL_866", "CORE_CATA_007",
     "CORE_EX1_154", "CATA_526", "TLC_231", "TLC_236", "EDR_226",
     "RLK_024", "CATA_156",
@@ -2267,6 +2267,19 @@ class IfSourceAttribute:
 
     def execute(self, game: Any, context: RuleContext) -> None:
         if getattr(context.card, self.attribute):
+            for effect in self.effects:
+                effect.execute(game, context)
+
+
+@dataclass(frozen=True)
+class IfHeroPowerImbued:
+    """Execute nested effects only after enough Imbue events."""
+
+    minimum: int
+    effects: tuple[Effect, ...]
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.player.hero_power_imbues >= self.minimum:
             for effect in self.effects:
                 effect.execute(game, context)
 
@@ -5084,6 +5097,17 @@ def build_rule_registry() -> RuleRegistry:
             # Choose One card.  Requiring a minion target keeps the destroy
             # branch legal; the summon branch simply ignores that target.
             TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "EDR_860",
+            {Hook.BATTLECRY: (IfHeroPowerImbued(2, (DamageActionTarget(4),)),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332", ("test_imbue_threshold_cards",)),
+            TargetSpec(TargetKind.ANY_MINION, optional=True),
+        ),
+        CardRule(
+            "FIR_921",
+            {Hook.BATTLECRY: (IfHeroPowerImbued(2, (Draw(2),)),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332", ("test_imbue_threshold_cards",)),
         ),
         CardRule(
             "CORE_SW_442",

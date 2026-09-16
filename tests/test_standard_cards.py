@@ -2800,6 +2800,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(26, game.players[1].health)
         self.assertEqual(24, game.players[0].health)
 
+    def test_imbue_threshold_cards(self):
+        game = self.game()
+        game.players[0].hero_power_imbues = 2
+        picker = self.add_hand(game, "FIR_921")
+        before = len(game.players[0].hand)
+        game.step(Action("PLAY", picker.entity_id))
+        self.assertEqual(before + 2 - 1, len(game.players[0].hand))
+
 
 if __name__ == "__main__":
     unittest.main()
