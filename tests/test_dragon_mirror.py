@@ -599,6 +599,17 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertEqual(6, player.armor)
         self.assertEqual(3, player.hero_attack_bonus)
 
+    def test_sweet_dreams_places_gifted_minion_on_top_of_deck(self):
+        game = self.game(89)
+        player = game.players[0]
+        gifted = self.add_hand(game, "CORE_NEW1_023")
+        gifted.gifts.append("sweet_dreams")
+        other = game._entity("GAME_005", started_in_deck=True)
+        player.deck = [other]
+        player.hand.remove(gifted)
+        self.assertEqual("deck", game._add_generated(player, gifted))
+        self.assertIs(player.deck[0], gifted)
+
         earthen = self.add_board(game, "CATA_999")
         peddler = self.add_board(game, "EDR_889")
         target = self.add_board(game, "CORE_NEW1_023")
