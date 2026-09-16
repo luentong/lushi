@@ -3008,6 +3008,9 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         target2 = self.add_board(game, "EDR_810t", 0)
         game._apply_dark_gift(target2, "sweet_dreams")
         self.assertIn("sweet_dreams", wallow.gifts)
+        hidden_target = self.add_hand(game, "EDR_810t")
+        game._apply_dark_gift(hidden_target, "well_rested")
+        self.assertIn("well_rested", wallow.gifts)
 
     def test_raptor_herald_dark_gift_discover(self):
         game = self.game()
