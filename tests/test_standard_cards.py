@@ -3006,6 +3006,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._apply_dark_gift(target, "bundled_up")
         self.assertIn("bundled_up", wallow.gifts)
 
+    def test_raptor_herald_dark_gift_discover(self):
+        game = self.game()
+        herald = self.add_hand(game, "CORE_EDR_004")
+        game.step(Action("PLAY", herald.entity_id))
+        self.assertTrue(game.pending_choice["options"])
+        self.assertTrue(all(c.has_race("BEAST") and c.gifts for c in game.pending_choice["options"]))
+
     def test_deathknight_imbue_first_undead_each_turn(self):
         game = self.game()
         game.players[0].card_class = "DEATHKNIGHT"
