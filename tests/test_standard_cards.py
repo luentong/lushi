@@ -3004,6 +3004,22 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("DISCOVER_PICK", option.entity_id))
         self.assertTrue(any(c.card_id == option.card_id and c.cost == 1 for c in game.players[0].hand))
 
+    def test_class_imbue_cards_use_their_controller_class(self):
+        hunter = self.game()
+        hunter.players[0].card_class = "HUNTER"
+        beast = hunter._entity("EDR_810t")
+        hunter.players[0].deck = [beast]
+        houndmaster = self.add_hand(hunter, "EDR_226")
+        hunter.step(Action("PLAY", houndmaster.entity_id))
+        self.assertEqual("EDR_850p", hunter.players[0].hero_power_id)
+
+        shaman = self.game()
+        shaman.players[0].card_class = "SHAMAN"
+        shaman.players[0].health = 20
+        aspect = self.add_hand(shaman, "EDR_231")
+        shaman.step(Action("PLAY", aspect.entity_id, 0, None))
+        self.assertEqual("EDR_448p", shaman.players[0].hero_power_id)
+
 
 if __name__ == "__main__":
     unittest.main()
