@@ -1054,6 +1054,27 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual({"summon_seven_wisps", "buff_friendly_minions"},
                          {label for label, _ in game.pending_choice["options"]})
 
+    def test_bursting_leyline_excess_damage(self):
+        game = self.game()
+        enemy = self.add_board(game, "CORE_CS2_231", 1)
+        spell = self.add_hand(game, "MEND_500")
+        before = game.players[1].health
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertNotIn(enemy, game.players[1].board)
+        self.assertEqual(before - 3, game.players[1].health)
+
+    def test_leyline_manipulator_discounts_generated_cards(self):
+        game = self.game()
+        generated = game._entity("TLC_248", created_by="TEST")
+        generated.started_in_deck = False
+        original = self.add_hand(game, "TLC_248")
+        original.started_in_deck = True
+        game.players[0].hand.append(generated)
+        manipulator = self.add_hand(game, "LOOT_537")
+        game.step(Action("PLAY", manipulator.entity_id))
+        self.assertEqual(original.definition.cost, original.cost)
+        self.assertEqual(generated.definition.cost - 2, generated.cost)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

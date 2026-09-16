@@ -117,7 +117,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BAR_801",
     "CORE_EX1_391", "CORE_EX1_606", "CORE_GIL_622",
     "CORE_CS2_072", "CORE_CS2_108", "CORE_EX1_309", "CORE_EX1_312",
-    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411", "CATA_201", "TLC_902", "TLC_630t", "TLC_903t", "TLC_522", "CATA_785", "EDR_840", "CATA_158", "EDR_523", "CAP_001", "CAP_003", "CAP_000", "CAP_005", "CAP_002", "TIME_875t", "CORE_ULD_133", "MEND_504", "EDR_804", "GIL_553", "OG_195",
+    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411", "CATA_201", "TLC_902", "TLC_630t", "TLC_903t", "TLC_522", "CATA_785", "EDR_840", "CATA_158", "EDR_523", "CAP_001", "CAP_003", "CAP_000", "CAP_005", "CAP_002", "TIME_875t", "CORE_ULD_133", "MEND_504", "EDR_804", "GIL_553", "OG_195", "MEND_500", "LOOT_537",
     "CORE_CS1_112", "CORE_WON_337",
     "CORE_BT_072",
     "CORE_EX1_145",
@@ -397,6 +397,44 @@ class DestroyFriendlyWispDraw:
         game._resolve_deaths()
         for _ in range(3):
             game._draw(context.player)
+
+
+@dataclass(frozen=True)
+class DamageRandomEnemyMinionExcess:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        targets = [m for m in enemy.board if m.health > 0 and m.dormant_turns == 0]
+        if not targets:
+            return
+        target = game.rng.choice(targets)
+        before = max(0, target.health)
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
+        game._damage_minion(enemy.index, target, amount, context.card)
+        excess = max(0, amount - before)
+        if excess:
+            game._damage_hero(enemy, excess, context.card)
+        game._resolve_deaths()
+        game._event("random_minion_excess_damage", player=context.player.index,
+                    source=context.card.card_id, target=target.entity_id,
+                    amount=amount, excess=excess)
+
+
+@dataclass(frozen=True)
+class DiscountCardsNotStartedInDeck:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        affected = []
+        for card in context.player.hand:
+            if card.started_in_deck:
+                continue
+            card.cost_delta -= self.amount
+            affected.append(card.entity_id)
+        game._event("leyline_manipulator_discount", player=context.player.index,
+                    source=context.card.card_id, amount=self.amount,
+                    affected=affected)
 
 
 @dataclass(frozen=True)
@@ -3608,6 +3646,20 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_wisps_of_old_gods_offers_choice",),
+            ),
+        ),
+        CardRule(
+            "MEND_500", {Hook.SPELL: (DamageRandomEnemyMinionExcess(4),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_bursting_leyline_excess_damage",),
+            ),
+        ),
+        CardRule(
+            "LOOT_537", {Hook.BATTLECRY: (DiscountCardsNotStartedInDeck(2),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_leyline_manipulator_discounts_generated_cards",),
             ),
         ),
         CardRule(

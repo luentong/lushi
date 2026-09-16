@@ -518,10 +518,12 @@ JAIL_942,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_998,declarative,battlecry,official_text_and_engine_verified,,0,focused_test_and_regression
 JAIL_COIN1,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 JAIL_EVENT_100t,legacy_compatibility,,local_legacy,,0,regression_suite_only
+LOOT_537,declarative,battlecry,official_text_and_engine_verified,"RosettaStone,fireplace",4,focused_test_and_regression
 MEND_040,legacy_compatibility,,local_legacy,,0,regression_suite_only
 MEND_042,declarative,spell,powerlog_verified,,0,focused_test_and_regression
 MEND_043,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 MEND_044e3,legacy_compatibility,,local_legacy,,0,regression_suite_only
+MEND_500,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
 MEND_504,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
 NEW_4183_Copy,legacy_compatibility,,local_legacy,,0,regression_suite_only
 OG_195,declarative,spell,official_text_and_engine_verified,"RosettaStone,fireplace",14,focused_test_and_regression
