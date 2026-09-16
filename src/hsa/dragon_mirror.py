@@ -4919,6 +4919,13 @@ class DragonMirrorGame:
             self._entity(card_id, created_by=source_card_id)
             for card_id in card_ids[:3]
         ]
+        if not options:
+            self.pending_choice = None
+            self._event(
+                "discover_unavailable", player=player.index,
+                source=source_card_id, dark_gift=dark_gift,
+            )
+            return
         if dark_gift:
             used_gifts: set[str] = set()
             for option in options:
@@ -5272,6 +5279,13 @@ class DragonMirrorGame:
                 if eligible:
                     self._apply_dark_gift(option, self.rng.choice(eligible), owner=player)
             options.append(option)
+        if not options:
+            self.pending_choice = None
+            self._event(
+                "discover_unavailable", player=player.index,
+                source=source_card_id, dark_gift=dark_gift,
+            )
+            return
         self.pending_choice = {
             "kind": "DISCOVER", "player": player.index,
             "pool": tuple(c.card_id for c in options), "dark_gift": dark_gift,
