@@ -5557,8 +5557,12 @@ class DragonMirrorGame:
     def _apply_dark_gift(self, card: CardInstance, gift: str, *, propagate: bool = True, owner: Player | None = None) -> None:
         if gift not in self._eligible_dark_gifts(card):
             raise ValueError(f"ineligible Dark Gift {gift} for {card.card_id}")
-        if gift in card.gifts:
-            return
+        # A Dark Gift is an enchantment event, not a set membership flag.
+        # Keyword gifts become ineligible after the first application because
+        # _eligible_dark_gifts observes the newly granted keyword.  Gifts
+        # without such a keyword restriction (for example Sweet Dreams and
+        # Living Nightmare) may be granted again by a later Discover.  Keep
+        # each application in the list so Wallow can copy every event.
         card.gifts.append(gift)
         if gift == "waking_terror": card.attack_delta += 3; card.lifesteal = True
         elif gift == "bundled_up": card.health_delta += 4; card.taunt = True
@@ -5582,7 +5586,7 @@ class DragonMirrorGame:
             )
             if owner is not None:
                 for hidden in owner.hand + owner.deck:
-                    if hidden.card_id == "EDR_487" and gift not in hidden.gifts:
+                    if hidden.card_id == "EDR_487":
                         self._apply_dark_gift(hidden, gift, propagate=False)
 
     def _add_generated(self, player: Player, card: CardInstance) -> str:

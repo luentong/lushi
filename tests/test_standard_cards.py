@@ -3002,7 +3002,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
     def test_wallow_copies_dark_gifts(self):
         game = self.game()
         wallow = self.add_hand(game, "EDR_487")
-        target = self.add_board(game, "EDR_810t", 0)
+        target = self.add_board(game, "CORE_NEW1_023", 0)
         game._apply_dark_gift(target, "bundled_up")
         self.assertIn("bundled_up", wallow.gifts)
         target2 = self.add_board(game, "EDR_810t", 0)
@@ -3012,14 +3012,22 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._apply_dark_gift(hidden_target, "well_rested")
         self.assertIn("well_rested", wallow.gifts)
 
-    def test_dark_gift_is_not_applied_twice(self):
+    def test_unrestricted_dark_gift_can_stack(self):
         game = self.game()
-        target = self.add_board(game, "EDR_810t", 0)
-        game._apply_dark_gift(target, "bundled_up")
+        # Sweet Dreams is universally eligible and changes max health.
+        target = self.add_board(game, "CORE_NEW1_023", 0)
+        game._apply_dark_gift(target, "sweet_dreams")
         first_health = target.max_health
-        game._apply_dark_gift(target, "bundled_up")
-        self.assertEqual(first_health, target.max_health)
-        self.assertEqual(1, target.gifts.count("bundled_up"))
+        game._apply_dark_gift(target, "sweet_dreams")
+        self.assertEqual(first_health + 5, target.max_health)
+        self.assertEqual(2, target.gifts.count("sweet_dreams"))
+
+    def test_wallow_self_gift_is_copied_and_stacks(self):
+        game = self.game()
+        wallow = self.add_hand(game, "EDR_487")
+        game._apply_dark_gift(wallow, "sweet_dreams")
+        self.assertEqual(2, wallow.gifts.count("sweet_dreams"))
+        self.assertEqual(10, wallow.health_delta)
 
     def test_raptor_herald_dark_gift_discover(self):
         game = self.game()
