@@ -4664,8 +4664,7 @@ class DragonMirrorGame:
         if attacker.health <= 0 or defender.health <= 0:
             return
         attacker.attacks_this_turn += 1
-        was_stealthed = attacker.stealth
-        attacker.stealth = False
+        was_stealthed = self._break_stealth_for_attack(attacker)
         attacker_damage = attacker.attack
         defender_damage = defender.attack
         self._damage_minion(defender_owner, defender, attacker_damage, attacker)
@@ -6008,11 +6007,17 @@ class DragonMirrorGame:
         if location.durability <= 0:
             player.locations.remove(location)
 
+    @staticmethod
+    def _break_stealth_for_attack(attacker: CardInstance) -> bool:
+        """Reveal an attacker and return whether it was stealthed."""
+        was_stealthed = attacker.stealth
+        attacker.stealth = False
+        return was_stealthed
+
     def _attack(self, action: Action) -> None:
         attacker = self._find_minion(self.current, action.source)
         attacker.attacks_this_turn += 1
-        was_stealthed = attacker.stealth
-        attacker.stealth = False
+        was_stealthed = self._break_stealth_for_attack(attacker)
         if self._trigger_freezing_trap(
             attacker, self.players[action.target_player]
         ):
@@ -6717,7 +6722,7 @@ class DragonMirrorGame:
                 self._deal_to_target(
                     player.index, self.rng.choice(targets), 1, source=minion
                 )
-                self._resolve_deaths()
+            self._resolve_deaths()
         elif minion.card_id == "TLC_401":
             targets = self._random_enemy_characters(player.index)
             for target in self.rng.sample(targets, min(3, len(targets))):
