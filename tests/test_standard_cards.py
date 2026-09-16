@@ -2815,6 +2815,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("HERO_POWER"))
         self.assertEqual(["EDR_847pt2"], [m.card_id for m in game.players[0].board])
 
+    def test_imbue_hero_power_hunter(self):
+        game = self.game()
+        game.players[0].hero_power_id = "EDR_850p"
+        beast = self.add_hand(game, "EDR_416t")
+        before = beast.cost
+        game.step(Action("HERO_POWER"))
+        self.assertEqual(before - 1, beast.cost)
+        self.assertEqual(1, beast.attack_delta)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -123,7 +123,7 @@ STANDARD_DECLARATIVE_IDS = {
     "RLK_511",  # Harbinger of Winter
     "RLK_709",  # Remorseless Winter
     "EDR_843a", "EDR_843b", "EDR_843t1", "CAP_405t4",
-    "EDR_817", "CAP_102", "EDR_860", "FIR_921", "EDR_847p", "EDR_847pt2",
+    "EDR_817", "CAP_102", "EDR_860", "FIR_921", "EDR_847p", "EDR_847pt2", "EDR_850p",
     "TIME_023", "EDR_251", "JAIL_377", "EDR_231", "JAIL_866", "CORE_CATA_007",
     "CORE_EX1_154", "CATA_526", "TLC_231", "TLC_236", "EDR_226",
     "RLK_024", "CATA_156",
@@ -351,6 +351,22 @@ class Draw:
         player = _recipient(game, context, self.side)
         for _ in range(self.count):
             game._draw(player)
+
+
+@dataclass(frozen=True)
+class BuffRandomBeastInHand:
+    """Give a random Beast in hand +1 Attack and reduce its cost by 1."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = [card for card in context.player.hand if card.has_race("BEAST")]
+        if not candidates:
+            return
+        card = game.rng.choice(candidates)
+        card.attack_delta += 1
+        card.cost_delta -= 1
+        game._event("imbue_beast_buff", player=context.player.index,
+                    source=context.card.card_id, target=card.entity_id,
+                    attack=1, cost_reduction=1)
 
 
 @dataclass(frozen=True)
@@ -5107,6 +5123,10 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "EDR_847p", {Hook.HERO_POWER: (Summon("EDR_847pt2"),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332", ("test_imbue_hero_power_druid",)),
+        ),
+        CardRule(
+            "EDR_850p", {Hook.HERO_POWER: (BuffRandomBeastInHand(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332", ("test_imbue_hero_power_hunter",)),
         ),
         CardRule(
             "FIR_921",
