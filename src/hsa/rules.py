@@ -117,7 +117,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BAR_801",
     "CORE_EX1_391", "CORE_EX1_606", "CORE_GIL_622",
     "CORE_CS2_072", "CORE_CS2_108", "CORE_EX1_309", "CORE_EX1_312",
-    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411", "CATA_201", "TLC_902", "TLC_630t", "TLC_903t", "TLC_522", "CATA_785", "EDR_840", "CATA_158", "EDR_523", "CAP_001", "CAP_003", "CAP_000", "CAP_005", "CAP_002", "TIME_875t", "CORE_ULD_133", "MEND_504", "EDR_804",
+    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411", "CATA_201", "TLC_902", "TLC_630t", "TLC_903t", "TLC_522", "CATA_785", "EDR_840", "CATA_158", "EDR_523", "CAP_001", "CAP_003", "CAP_000", "CAP_005", "CAP_002", "TIME_875t", "CORE_ULD_133", "MEND_504", "EDR_804", "GIL_553", "OG_195",
     "CORE_CS1_112", "CORE_WON_337",
     "CORE_BT_072",
     "CORE_EX1_145",
@@ -397,6 +397,20 @@ class DestroyFriendlyWispDraw:
         game._resolve_deaths()
         for _ in range(3):
             game._draw(context.player)
+
+
+@dataclass(frozen=True)
+class SummonWisps:
+    count: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        Summon("CORE_CS2_231", self.count).execute(game, context)
+
+
+@dataclass(frozen=True)
+class SummonWispsEqualHand:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        SummonWisps(len(context.player.hand)).execute(game, context)
 
 
 @dataclass(frozen=True)
@@ -3578,6 +3592,23 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_divination_sacrifices_wisp_and_draws",),
             ),
             TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "GIL_553", {Hook.SPELL: (SummonWispsEqualHand(),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_wispering_woods_summons_by_hand_size",),
+            ),
+        ),
+        CardRule(
+            "OG_195", {Hook.SPELL: (OfferEffectChoice((
+                ("summon_seven_wisps", (SummonWisps(7),)),
+                ("buff_friendly_minions", (BuffAllFriendlyMinions(2, 2),)),
+            )),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_wisps_of_old_gods_choice",),
+            ),
         ),
         CardRule(
             "CATA_158", {Hook.DEATHRATTLE: (HeraldRagnaros(),)},

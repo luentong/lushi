@@ -1037,6 +1037,23 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertNotIn(wisp, game.players[0].board)
         self.assertEqual(3, sum(card.card_id == "TLC_248" for card in game.players[0].hand))
 
+    def test_wispering_woods_summons_by_hand_size(self):
+        game = self.game()
+        self.add_hand(game, "TLC_248")
+        self.add_hand(game, "TLC_248")
+        spell = self.add_hand(game, "GIL_553")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(2, sum(card.card_id == "CORE_CS2_231" for card in game.players[0].board))
+
+    def test_wisps_of_old_gods_offers_choice(self):
+        game = self.game()
+        spell = self.add_hand(game, "OG_195")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertIsNotNone(game.pending_choice)
+        self.assertEqual("RULE_CHOICE", game.pending_choice["kind"])
+        self.assertEqual({"summon_seven_wisps", "buff_friendly_minions"},
+                         {label for label, _ in game.pending_choice["options"]})
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")
