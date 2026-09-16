@@ -4017,15 +4017,6 @@ class DragonMirrorGame:
             elif card.card_id == "JAIL_456":
                 if len(player.deck) >= 25:
                     self._draw(player)
-            elif card.card_id == "TIME_039":
-                opponent = self.players[1 - player.index]
-                if opponent.hand:
-                    self._offer_discover(
-                        player,
-                        [held.card_id for held in opponent.hand],
-                        False,
-                        source_card_id=card.card_id,
-                    )
             elif card.card_id == "JAIL_882":
                 copies = []
                 for held in list(player.deck):
@@ -4359,6 +4350,16 @@ class DragonMirrorGame:
                 source=counterspell.entity_id, canceled=card.card_id,
             )
             return
+        if card.card_id == "TIME_039":
+            opponent = self.players[1 - player.index]
+            if opponent.hand:
+                self._offer_discover(
+                    player,
+                    [held.card_id for held in opponent.hand],
+                    False,
+                    source_card_id=card.card_id,
+                )
+                return
         prior_fire = player.fire_spell_played
         spell_damage = self._spell_damage(player) + card.spell_damage_bonus
         if self.rule_registry.dispatch(
