@@ -2802,6 +2802,8 @@ class DragonMirrorGame:
         return amount
 
     def _hero_power_cost(self, player: Player) -> int:
+        if player.hero_power_cost_override is not None:
+            return player.hero_power_cost_override
         if player.hero_power_id is not None:
             return self.card_defs[player.hero_power_id].cost
         free = any(
@@ -2812,8 +2814,6 @@ class DragonMirrorGame:
         ) and len(player.hand) <= 3
         if free:
             return 0
-        if player.hero_power_cost_override is not None:
-            return player.hero_power_cost_override
         return 1 if player.card_class == "DEMONHUNTER" else 2
 
     def _hero_power_actions(self, player: Player) -> list[Action]:
@@ -2851,6 +2851,10 @@ class DragonMirrorGame:
     def _use_hero_power(self, action: Action) -> None:
         player = self.players[self.current]
         self._spend_mana(player, self._hero_power_cost(player))
+        # Effects such as Fleeing Treant make exactly the next Hero Power
+        # free; consume the override at resolution time.
+        if player.hero_power_cost_override is not None:
+            player.hero_power_cost_override = None
         player.hero_power_used = True
         if player.hero_power_id is not None:
             imbued_power = player.imbued_hero_power_id

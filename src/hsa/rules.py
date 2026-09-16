@@ -126,7 +126,7 @@ STANDARD_DECLARATIVE_IDS = {
     "RLK_511",  # Harbinger of Winter
     "RLK_709",  # Remorseless Winter
     "EDR_843a", "EDR_843b", "EDR_843t1", "CAP_405t4",
-    "EDR_817", "CAP_102", "EDR_860", "FIR_921", "EDR_227", "EDR_264", "EDR_451", "EDR_518", "EDR_519", "EDR_800", "END_001", "END_003", "END_003p", "CORE_AT_003", "EDR_847p", "EDR_847pt2", "EDR_850p", "EDR_851p", "EDR_448p", "END_000p", "EDR_445p", "EDR_445pt3",
+    "EDR_817", "CAP_102", "EDR_860", "FIR_921", "EDR_227", "EDR_264", "EDR_451", "EDR_518", "EDR_519", "EDR_800", "EDR_871", "EDR_226", "EDR_231", "EDR_500", "END_000", "END_001", "END_003", "END_003p", "CORE_AT_003", "EDR_847p", "EDR_847pt2", "EDR_850p", "EDR_851p", "EDR_448p", "END_000p", "EDR_445p", "EDR_445pt3",
     "TIME_023", "EDR_251", "JAIL_377", "EDR_231", "JAIL_866", "CORE_CATA_007",
     "CORE_EX1_154", "CATA_526", "TLC_231", "TLC_236", "EDR_226",
     "RLK_024", "CATA_156",
@@ -2127,6 +2127,18 @@ class SetHeroPower:
         )
 
 
+@dataclass(frozen=True)
+class SetHeroPowerCostOverride:
+    cost: int | None
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.hero_power_cost_override = self.cost
+        game._event(
+            "hero_power_cost_override", player=context.player.index,
+            source=context.card.card_id, cost=self.cost,
+        )
+
+
 IMBUE_HERO_POWER_BY_CLASS = {
     "DRUID": "EDR_847p",
     "HUNTER": "EDR_850p",
@@ -3421,6 +3433,24 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule(
+            "EDR_500", {Hook.BATTLECRY: (
+                ImbueHeroPowerByClass(), SetHeroPowerCostOverride(0),
+            )},
+            RuleSource(
+                "official_text_and_engine_pattern",
+                "HearthstoneJSON 251332; neutral Imbue and next Hero Power is free",
+                verification=("test_fleeing_treant_makes_next_power_free",),
+            ),
+        ),
+        CardRule(
+            "END_000", {Hook.SPELL: (DamageHero(2, "opponent"), ImbueHeroPowerByClass())},
+            RuleSource(
+                "official_text_and_engine_pattern",
+                "HearthstoneJSON 251332; Eventuality deals 2 and Imbues",
+                verification=("test_eventuality_damages_and_imbues",),
+            ),
+        ),
+        CardRule(
             "END_001", {Hook.BATTLECRY: (ImbueHeroPowerByClass(),)},
             RuleSource(
                 "official_text_and_engine_pattern",
@@ -4065,7 +4095,7 @@ def build_rule_registry() -> RuleRegistry:
         ),
         CardRule(
             "EDR_871", {Hook.BATTLECRY: (
-                AddToHand("CORE_CS2_231"), OfferImbueHeroPowerOptions(),
+                AddToHand("CORE_CS2_231"), ImbueHeroPowerByClass(),
             )},
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
@@ -5165,7 +5195,7 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource("upstream_adapted", rosetta, "JAIL_377", "AGPL-3.0", ("test_conditional_draw_tranche",)),
         ),
         CardRule(
-            "EDR_231", {Hook.SPELL: (HealActionTarget(4), Draw(), OfferImbueHeroPowerOptions())},
+            "EDR_231", {Hook.SPELL: (HealActionTarget(4), Draw(), ImbueHeroPowerByClass())},
             RuleSource("upstream_adapted", rosetta, "EDR_231", "AGPL-3.0", ("test_conditional_draw_tranche",)),
             TargetSpec(TargetKind.FRIENDLY_CHARACTER),
         ),
@@ -5202,7 +5232,7 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource("upstream_adapted", rosetta, "TLC_236", "AGPL-3.0", ("test_batch_conditional_and_costed_draw_cards",)),
         ),
         CardRule(
-            "EDR_226", {Hook.BATTLECRY: (DrawMatching(race="BEAST"), OfferImbueHeroPowerOptions())},
+            "EDR_226", {Hook.BATTLECRY: (DrawMatching(race="BEAST"), ImbueHeroPowerByClass())},
             RuleSource("upstream_adapted", rosetta, "EDR_226", "AGPL-3.0", ("test_batch_conditional_and_costed_draw_cards",)),
         ),
         CardRule(

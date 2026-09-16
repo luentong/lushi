@@ -1148,10 +1148,11 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_spirit_gatherer_gets_wisp_and_imbues(self):
         game = self.game()
+        game.players[0].card_class = "MAGE"
         gatherer = self.add_hand(game, "EDR_871")
         game.step(Action("PLAY", gatherer.entity_id))
         self.assertTrue(any(card.card_id == "CORE_CS2_231" for card in game.players[0].hand))
-        self.assertIsNotNone(game.pending_choice)
+        self.assertEqual("EDR_851p", game.players[0].hero_power_id)
 
     def test_leyline_manipulator_discounts_generated_cards(self):
         game = self.game()
@@ -2860,7 +2861,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_imbue_hero_power_mage(self):
         game = self.game()
-        game.players[0].hero_power_id = "EDR_851p"
+        game.players[0].hero_power_id = "END_000p"
         game.players[1].health = 30
         game.step(Action("HERO_POWER"))
         self.assertEqual(["CORE_CS2_231"], [m.card_id for m in game.players[0].board])
@@ -2955,6 +2956,27 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         third = self.add_hand(game, "CORE_AT_003")
         game.step(Action("PLAY", third.entity_id))
         self.assertEqual(1, third.attack_delta)
+
+    def test_fleeing_treant_makes_next_power_free(self):
+        game = self.game()
+        game.players[0].card_class = "MAGE"
+        game.players[0].mana = 5
+        treant = self.add_hand(game, "EDR_500")
+        game.step(Action("PLAY", treant.entity_id))
+        self.assertEqual(0, game.players[0].hero_power_cost_override)
+        game.players[0].hero_power_id = "END_000p"
+        game.players[0].mana = 0
+        game.step(Action("HERO_POWER"))
+        self.assertIsNone(game.players[0].hero_power_cost_override)
+
+    def test_eventuality_damages_and_imbues(self):
+        game = self.game()
+        game.players[0].card_class = "ROGUE"
+        spell = self.add_hand(game, "END_000")
+        game.players[0].mana = 5
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(28, game.players[1].health)
+        self.assertEqual("END_000p", game.players[0].hero_power_id)
 
 
 if __name__ == "__main__":
