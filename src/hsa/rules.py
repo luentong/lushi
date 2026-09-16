@@ -123,7 +123,7 @@ STANDARD_DECLARATIVE_IDS = {
     "RLK_511",  # Harbinger of Winter
     "RLK_709",  # Remorseless Winter
     "EDR_843a", "EDR_843b", "EDR_843t1", "CAP_405t4",
-    "EDR_817", "CAP_102", "EDR_860", "FIR_921", "EDR_847p", "EDR_847pt2", "EDR_850p", "EDR_851p",
+    "EDR_817", "CAP_102", "EDR_860", "FIR_921", "EDR_847p", "EDR_847pt2", "EDR_850p", "EDR_851p", "EDR_448p",
     "TIME_023", "EDR_251", "JAIL_377", "EDR_231", "JAIL_866", "CORE_CATA_007",
     "CORE_EX1_154", "CATA_526", "TLC_231", "TLC_236", "EDR_226",
     "RLK_024", "CATA_156",
@@ -538,6 +538,30 @@ class SummonWisps:
 class SummonWispsEqualHand:
     def execute(self, game: Any, context: RuleContext) -> None:
         SummonWisps(len(context.player.hand)).execute(game, context)
+
+
+@dataclass(frozen=True)
+class TransformFriendlyMinionRandom:
+    """Transform a random friendly minion into a random cheaper minion."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if not context.player.board:
+            return
+        target = game.rng.choice(context.player.board)
+        candidates = [
+            card_id for card_id in game.executable_card_ids
+            if card_id in game.card_defs
+            and game.card_defs[card_id].card_type == "MINION"
+            and game.card_defs[card_id].cost <= max(0, target.cost - 1)
+        ]
+        if not candidates:
+            return
+        replacement = game._entity(game.rng.choice(sorted(candidates)), created_by=context.card.card_id)
+        replacement.entity_id = target.entity_id
+        context.player.board[context.player.board.index(target)] = replacement
+        game._event("imbue_transform", player=context.player.index,
+                    source=context.card.card_id, target=target.entity_id,
+                    replacement=replacement.card_id)
 
 
 @dataclass(frozen=True)
@@ -5148,6 +5172,10 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "EDR_851p", {Hook.HERO_POWER: (SummonWisps(1), DamageRandomSplitEnemyCharacters(1),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332", ("test_imbue_hero_power_mage",)),
+        ),
+        CardRule(
+            "EDR_448p", {Hook.HERO_POWER: (TransformFriendlyMinionRandom(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332", ("test_imbue_hero_power_shaman",)),
         ),
         CardRule(
             "FIR_921",

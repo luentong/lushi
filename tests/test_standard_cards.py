@@ -2832,6 +2832,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(["CORE_CS2_231"], [m.card_id for m in game.players[0].board])
         self.assertEqual(29, game.players[1].health)
 
+    def test_imbue_hero_power_shaman(self):
+        game = self.game()
+        game.players[0].hero_power_id = "EDR_448p"
+        target = self.add_board(game, "CAP_107t", 0)
+        game.step(Action("HERO_POWER"))
+        self.assertNotEqual(target.entity_id, -1)
+        self.assertEqual(1, len(game.players[0].board))
+        self.assertLessEqual(game.players[0].board[0].cost, 0)
+
 
 if __name__ == "__main__":
     unittest.main()
