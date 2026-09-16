@@ -5430,6 +5430,8 @@ class DragonMirrorGame:
             return
         if pending.get("malorne_discount"):
             option.cost_delta = 1 - option.definition.cost
+        if pending.get("dark_gift_cost_delta"):
+            option.cost_delta += pending["dark_gift_cost_delta"]
         destination = self._add_generated(player, option)
         self._event(
             "discover_pick", player=player.index, card=option.card_id,

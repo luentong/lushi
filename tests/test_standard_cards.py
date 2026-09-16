@@ -2960,6 +2960,21 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertTrue(imbue_ids)
         self.assertTrue(all(card_id in game.rule_registry for card_id in imbue_ids))
 
+    def test_dark_gift_discover_tranches(self):
+        for card_id in ("EDR_102", "FIR_900"):
+            game = self.game()
+            card = self.add_hand(game, card_id)
+            game.step(Action("PLAY", card.entity_id))
+            self.assertEqual("DISCOVER", game.pending_choice["kind"])
+            self.assertTrue(all(c.gifts for c in game.pending_choice["options"]))
+
+        game = self.game()
+        game.players[0].corpses = 2
+        rite = self.add_hand(game, "EDR_811")
+        game.step(Action("PLAY", rite.entity_id))
+        self.assertEqual(0, game.players[0].corpses)
+        self.assertTrue(game.pending_choice["options"])
+
     def test_deathknight_imbue_first_undead_each_turn(self):
         game = self.game()
         game.players[0].card_class = "DEATHKNIGHT"
