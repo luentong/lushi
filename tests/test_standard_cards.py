@@ -2792,6 +2792,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(8, game.players[0].armor)
         self.assertEqual([], game.players[0].secrets)
 
+    def test_void_shard_lifesteal(self):
+        game = self.game()
+        game.players[0].health = 20
+        shard = self.add_hand(game, "CORE_SW_442")
+        game.step(Action("PLAY", shard.entity_id, 1, None))
+        self.assertEqual(26, game.players[1].health)
+        self.assertEqual(24, game.players[0].health)
+
 
 if __name__ == "__main__":
     unittest.main()

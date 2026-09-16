@@ -116,6 +116,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_EX1_096",  # Loot Hoarder
     "CORE_CFM_604",  # Greater Healing Potion
     "CORE_BRM_013",  # Quick Shot
+    "CORE_SW_442",  # Void Shard
     "CORE_EX1_302",  # Mortal Coil
     "CORE_EX1_007",  # Acolyte of Pain
     "CORE_RLK_121",  # Acolyte of Death
@@ -5081,5 +5082,14 @@ def build_rule_registry() -> RuleRegistry:
             # Choose One card.  Requiring a minion target keeps the destroy
             # branch legal; the summon branch simply ignores that target.
             TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "CORE_SW_442",
+            {Hook.SPELL: (DamageActionTargetLifesteal(4),)},
+            RuleSource(
+                "upstream_adapted", rosetta, "SW_442", "AGPL-3.0",
+                ("test_void_shard_lifesteal",),
+            ),
+            TargetSpec(TargetKind.ANY_CHARACTER),
         ),
     ))
