@@ -1028,6 +1028,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertIn(drawn, game.players[0].hand)
         self.assertEqual(drawn.definition.cost - 1, drawn.cost)
 
+    def test_leyline_nexus_upgrade_scales_discount(self):
+        game = self.game()
+        game.players[0].leyline_upgrade = 2
+        drawn = game._entity("TLC_248", started_in_deck=True)
+        game.players[0].deck = [drawn]
+        spell = self.add_hand(game, "MEND_504")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(drawn.definition.cost - 3, drawn.cost)
+
     def test_divination_sacrifices_wisp_and_draws(self):
         game = self.game()
         wisp = self.add_board(game, "CORE_CS2_231", 0)
@@ -1063,6 +1072,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertNotIn(enemy, game.players[1].board)
         self.assertEqual(before - 3, game.players[1].health)
 
+    def test_bursting_leyline_upgrade_scales_damage(self):
+        game = self.game()
+        game.players[0].leyline_upgrade = 2
+        enemy = self.add_board(game, "CORE_CS2_231", 1)
+        spell = self.add_hand(game, "MEND_500")
+        before = game.players[1].health
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(before - 5, game.players[1].health)
+
     def test_ley_walker_discount_and_random_deathrattle(self):
         game = self.game()
         leyline = self.add_hand(game, "MEND_504")
@@ -1084,7 +1102,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_crystallized_leyline_reads_upgraded_level(self):
         game = self.game()
-        game.players[0].leyline_level = 7
+        game.players[0].leyline_upgrade = 2
         spell = self.add_hand(game, "MEND_502")
         game.step(Action("PLAY", spell.entity_id))
         self.assertEqual(7, game.players[0].board[0].definition.cost)

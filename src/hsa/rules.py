@@ -376,13 +376,15 @@ class DrawIfUnspentMana:
 @dataclass(frozen=True)
 class DrawAndDiscountDrawn:
     amount: int = 1
+    scale_with_leyline: bool = False
 
     def execute(self, game: Any, context: RuleContext) -> None:
         before = set(card.entity_id for card in context.player.hand)
         game._draw(context.player)
         drawn = [card for card in context.player.hand if card.entity_id not in before]
         if drawn:
-            drawn[-1].cost_delta -= self.amount
+            amount = self.amount + (context.player.leyline_upgrade if self.scale_with_leyline else 0)
+            drawn[-1].cost_delta -= amount
 
 
 @dataclass(frozen=True)
@@ -402,6 +404,7 @@ class DestroyFriendlyWispDraw:
 @dataclass(frozen=True)
 class DamageRandomEnemyMinionExcess:
     amount: int
+    scale_with_leyline: bool = False
 
     def execute(self, game: Any, context: RuleContext) -> None:
         enemy = game.players[1 - context.player.index]
@@ -410,7 +413,8 @@ class DamageRandomEnemyMinionExcess:
             return
         target = game.rng.choice(targets)
         before = max(0, target.health)
-        amount = game._spell_effect_amount(context.player, context.card, self.amount)
+        base = self.amount + (context.player.leyline_upgrade if self.scale_with_leyline else 0)
+        amount = game._spell_effect_amount(context.player, context.card, base)
         game._damage_minion(enemy.index, target, amount, context.card)
         excess = max(0, amount - before)
         if excess:
@@ -492,7 +496,7 @@ class SummonRandomLeylineMinion:
     def execute(self, game: Any, context: RuleContext) -> None:
         game._summon_random_executable_minion(
             context.player, source_card_id=context.card.card_id,
-            cost=max(0, context.player.leyline_level),
+            cost=max(0, 5 + context.player.leyline_upgrade),
         )
 
 
@@ -3662,7 +3666,7 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule(
-            "MEND_504", {Hook.SPELL: (DrawAndDiscountDrawn(),)},
+            "MEND_504", {Hook.SPELL: (DrawAndDiscountDrawn(scale_with_leyline=True),)},
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_leyline_nexus_discounts_drawn_card",),
@@ -3694,7 +3698,7 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule(
-            "MEND_500", {Hook.SPELL: (DamageRandomEnemyMinionExcess(4),)},
+            "MEND_500", {Hook.SPELL: (DamageRandomEnemyMinionExcess(4, scale_with_leyline=True),)},
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_bursting_leyline_excess_damage",),
