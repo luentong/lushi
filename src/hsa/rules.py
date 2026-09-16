@@ -3607,7 +3607,7 @@ def build_rule_registry() -> RuleRegistry:
             )),)},
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
-                verification=("test_wisps_of_old_gods_choice",),
+                verification=("test_wisps_of_old_gods_offers_choice",),
             ),
         ),
         CardRule(

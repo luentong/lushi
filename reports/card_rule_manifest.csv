@@ -454,6 +454,7 @@ FIR_958,legacy_compatibility,,local_legacy,,0,regression_suite_only
 FIR_959,legacy_compatibility,,local_legacy,,0,regression_suite_only
 FP1_018,declarative,spell,upstream_adapted,"RosettaStone,fireplace",3,focused_test_and_regression
 GAME_005,declarative,spell,upstream_adapted,"RosettaStone,fireplace",15,focused_test_and_regression
+GIL_553,declarative,spell,official_text_and_engine_verified,"RosettaStone,fireplace",4,focused_test_and_regression
 JAIL_007,declarative,deathrattle,local_spec,,0,focused_test_and_regression
 JAIL_029,legacy_compatibility,,local_legacy,,0,regression_suite_only
 JAIL_200,legacy_compatibility,,local_legacy,,0,regression_suite_only
@@ -523,6 +524,7 @@ MEND_043,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 MEND_044e3,legacy_compatibility,,local_legacy,,0,regression_suite_only
 MEND_504,declarative,spell,official_text_and_engine_verified,,0,focused_test_and_regression
 NEW_4183_Copy,legacy_compatibility,,local_legacy,,0,regression_suite_only
+OG_195,declarative,spell,official_text_and_engine_verified,"RosettaStone,fireplace",14,focused_test_and_regression
 RLK_024,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 RLK_025,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 RLK_063t,legacy_compatibility,,local_legacy,,0,regression_suite_only
