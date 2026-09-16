@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 648,
-    "declarative_rules": 264,
+    "supported_cards": 649,
+    "declarative_rules": 265,
     "legacy_special_case_rules": 6,
     "legacy_compatibility_rules": 378,
     "cards_with_upstream_match": 184
@@ -1070,6 +1070,30 @@
       "metadata_source": "HearthstoneJSON build 251332",
       "upstream_matches": [],
       "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "CATA_201",
+      "implementation": "declarative",
+      "hooks": [
+        "battlecry"
+      ],
+      "effects": {
+        "battlecry": [
+          "ReturnAllEnemyMinionsToHand"
+        ]
+      },
+      "rule_source": {
+        "kind": "official_text_and_engine_verified",
+        "reference": "HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_twilight_mistress_returns_enemy_board"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [],
+      "verification_status": "focused_test_and_regression"
     },
     {
       "card_id": "CATA_202",

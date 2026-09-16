@@ -870,6 +870,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", bearer.entity_id))
         self.assertEqual("CORE_EX1_100", game.players[0].hand[-1].card_id)
 
+    def test_twilight_mistress_returns_enemy_board(self):
+        game = self.game()
+        enemy = self.add_board(game, "TLC_248", 1)
+        mistress = self.add_hand(game, "CATA_201")
+        game.step(Action("PLAY", mistress.entity_id))
+        self.assertFalse(game.players[1].board)
+        self.assertIn(enemy, game.players[1].hand)
+        self.assertEqual(0, enemy.damage)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

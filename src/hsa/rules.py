@@ -117,7 +117,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BAR_801",
     "CORE_EX1_391", "CORE_EX1_606", "CORE_GIL_622",
     "CORE_CS2_072", "CORE_CS2_108", "CORE_EX1_309", "CORE_EX1_312",
-    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411",
+    "CORE_CS2_009", "CORE_EX1_238", "CORE_CS2_074", "CORE_RLK_567", "TIME_039", "JAIL_720", "TLC_515", "TLC_816", "CORE_YOP_001", "DINO_417", "JAIL_998", "DINO_411", "CATA_201",
     "CORE_CS1_112", "CORE_WON_337",
     "CORE_BT_072",
     "CORE_EX1_145",
@@ -2452,6 +2452,31 @@ class ReturnActionTargetToOwnerHand:
 
 
 @dataclass(frozen=True)
+class ReturnAllEnemyMinionsToHand:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        returned = []
+        for target in list(enemy.board):
+            enemy.board.remove(target)
+            target.damage = 0
+            target.attack_delta = target.health_delta = 0
+            target.temporary_attack_modifiers.clear()
+            target.temporary_health_modifiers.clear()
+            target.playable_after_turn = game.turn + 1
+            destination = game._add_generated(enemy, target)
+            returned.append(target.entity_id)
+            game._event(
+                "return_to_hand", player=enemy.index,
+                entity=target.entity_id, card=target.card_id,
+                source=context.card.card_id, destination=destination,
+            )
+        game._event(
+            "twilight_mistress_bounce", player=context.player.index,
+            returned=returned,
+        )
+
+
+@dataclass(frozen=True)
 class NightmareBuffThenDestroy:
     """Classic Dream Nightmare: +5/+5, then destroy at caster's next turn."""
 
@@ -3321,6 +3346,13 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_holy_eggbearer_draws_zero_attack",),
+            ),
+        ),
+        CardRule(
+            "CATA_201", {Hook.BATTLECRY: (ReturnAllEnemyMinionsToHand(),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_twilight_mistress_returns_enemy_board",),
             ),
         ),
         CardRule(

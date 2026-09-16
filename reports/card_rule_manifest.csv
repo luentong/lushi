@@ -50,6 +50,7 @@ CATA_190t12,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_190t13,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_190t14,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CATA_200,legacy_compatibility,,local_legacy,,0,regression_suite_only
+CATA_201,declarative,battlecry,official_text_and_engine_verified,,0,focused_test_and_regression
 CATA_202,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 CATA_203,declarative,spell,upstream_adapted,,0,focused_test_and_regression
 CATA_210,legacy_compatibility,,local_legacy,,0,regression_suite_only
