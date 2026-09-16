@@ -37,10 +37,10 @@
     "unique_entities": 71,
     "rosetta_implemented_unique": 4,
     "rosetta_coverage_unique_pct": 5.63,
-    "project_runtime_supported_unique": 52,
-    "project_runtime_coverage_unique_pct": 73.24,
-    "project_deck_validated_unique": 52,
-    "project_deck_validated_unique_pct": 73.24
+    "project_runtime_supported_unique": 58,
+    "project_runtime_coverage_unique_pct": 81.69,
+    "project_deck_validated_unique": 58,
+    "project_deck_validated_unique_pct": 81.69
   },
   "summaries": [
     {
@@ -100,13 +100,13 @@
       "rosetta_implemented_unique": 2,
       "rosetta_implemented_copies": 4,
       "rosetta_coverage_unique_pct": 9.52,
-      "project_runtime_supported_unique": 4,
-      "project_runtime_supported_copies": 6,
-      "project_runtime_coverage_unique_pct": 19.05,
-      "project_deck_validated_unique": 4,
-      "project_deck_validated_copies": 6,
-      "project_deck_validated_unique_pct": 19.05,
-      "project_deck_validated_copies_pct": 20.0,
+      "project_runtime_supported_unique": 10,
+      "project_runtime_supported_copies": 15,
+      "project_runtime_coverage_unique_pct": 47.62,
+      "project_deck_validated_unique": 10,
+      "project_deck_validated_copies": 15,
+      "project_deck_validated_unique_pct": 47.62,
+      "project_deck_validated_copies_pct": 50.0,
       "deck_ready": false
     },
     {
@@ -676,8 +676,8 @@
       "set": "CORE",
       "type": "SPELL",
       "rosetta_implemented": true,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
@@ -718,8 +718,8 @@
       "set": "THE_LOST_CITY",
       "type": "SPELL",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
@@ -732,8 +732,8 @@
       "set": "THE_LOST_CITY",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
@@ -802,8 +802,8 @@
       "set": "CATACLYSM",
       "type": "SPELL",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
@@ -830,8 +830,8 @@
       "set": "CATACLYSM",
       "type": "SPELL",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
@@ -872,8 +872,8 @@
       "set": "CORE",
       "type": "SPELL",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
