@@ -1742,7 +1742,29 @@ class DragonMirrorGame:
             self._damage_hero(attacker, 2, secret)
             for minion in list(attacker.board):
                 self._damage_minion(attacker.index, minion, 2, secret)
-            self._resolve_deaths()
+        self._resolve_deaths()
+
+    def _trigger_freezing_trap(self, attacker: CardInstance, defender: Player) -> bool:
+        for secret in list(defender.secrets):
+            if secret.card_id != "CORE_EX1_611":
+                continue
+            self._consume_secret(defender, secret)
+            owner = self.players[self.current]
+            if attacker in owner.board:
+                owner.board.remove(attacker)
+            if len(owner.hand) < 10:
+                attacker.cost_delta += 2
+                owner.hand.append(attacker)
+                destination = "hand"
+            else:
+                destination = "burned"
+            self._event(
+                "freezing_trap", player=defender.index,
+                source=secret.entity_id, attacker=attacker.entity_id,
+                destination=destination,
+            )
+            return True
+        return False
 
     def _trigger_end_turn_secrets(self, ending_player: Player) -> None:
         """Resolve enemy Secrets whose condition is the active player's end step."""
@@ -5820,6 +5842,10 @@ class DragonMirrorGame:
         attacker = self._find_minion(self.current, action.source)
         attacker.attacks_this_turn += 1
         attacker.stealth = False
+        if self._trigger_freezing_trap(
+            attacker, self.players[action.target_player]
+        ):
+            return
         if action.target_entity is None:
             self._damage_hero(self.players[action.target_player], attacker.attack, attacker)
             self._trigger_secrets_after_hero_attacked(

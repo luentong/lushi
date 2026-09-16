@@ -644,6 +644,23 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertNotIn(attacker, game.players[0].board)
         self.assertFalse(game.players[1].secrets)
 
+    def test_freezing_trap(self):
+        game = self.game()
+        trap = self.add_hand(game, "CORE_EX1_611")
+        game.step(Action("PLAY", trap.entity_id))
+        game.step(Action("END_TURN"))
+        attacker = self.add_board(game, "TLC_248", 1)
+        before_health = game.players[0].health
+        game.step(Action("ATTACK", attacker.entity_id, 0, None))
+        self.assertEqual(before_health, game.players[0].health)
+        self.assertNotIn(attacker, game.players[1].board)
+        returned = next(
+            card for card in game.players[1].hand
+            if card.entity_id == attacker.entity_id
+        )
+        self.assertEqual(2, returned.cost_delta)
+        self.assertEqual([], game.players[0].secrets)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")
