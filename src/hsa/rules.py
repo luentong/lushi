@@ -3506,11 +3506,11 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule(
-            "EDR_852", {Hook.BATTLECRY: (SetHeroPower("EDR_449p"),)},
+            "EDR_852", {Hook.BATTLECRY: (ImbueHeroPowerByClass(),)},
             RuleSource(
                 "official_text_and_engine_pattern",
-                "HearthstoneJSON 251332; Priest Imbue maps to Blessing of the Moon",
-                verification=("test_bitterbloom_knight_imbues_priest_power",),
+                "HearthstoneJSON 251332; neutral Imbue resolves by controller class",
+                verification=("test_bitterbloom_knight_uses_controller_class",),
             ),
         ),
         CardRule(

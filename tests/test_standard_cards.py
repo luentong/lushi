@@ -1998,7 +1998,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual("EDR_449p", game.players[0].hero_power_id)
         self.assertTrue(any(x.kind == "HERO_POWER" for x in game.legal_actions()))
 
-    def test_bitterbloom_knight_imbues_priest_power(self):
+    def test_bitterbloom_knight_uses_controller_class(self):
         game = self.game()
         game.players[0].card_class = "PRIEST"
         knight = self.add_hand(game, "EDR_852")
