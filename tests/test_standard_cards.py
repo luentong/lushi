@@ -2910,6 +2910,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual("EDR_448p", game.players[0].hero_power_id)
         self.assertEqual(held.definition.cost - 1, held.cost)
 
+    def test_wisprider_triggers_imbued_power(self):
+        game = self.game()
+        game.players[0].card_class = "MAGE"
+        rider = self.add_hand(game, "EDR_519")
+        game.step(Action("PLAY", rider.entity_id))
+        self.assertEqual("EDR_851p", game.players[0].hero_power_id)
+        self.assertTrue(game.players[0].board)
+        self.assertEqual("CORE_CS2_231", game.players[0].board[-1].card_id)
+
 
 if __name__ == "__main__":
     unittest.main()

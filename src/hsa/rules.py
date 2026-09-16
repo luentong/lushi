@@ -125,7 +125,7 @@ STANDARD_DECLARATIVE_IDS = {
     "RLK_511",  # Harbinger of Winter
     "RLK_709",  # Remorseless Winter
     "EDR_843a", "EDR_843b", "EDR_843t1", "CAP_405t4",
-    "EDR_817", "CAP_102", "EDR_860", "FIR_921", "EDR_227", "EDR_264", "EDR_451", "EDR_518", "EDR_847p", "EDR_847pt2", "EDR_850p", "EDR_851p", "EDR_448p", "END_000p", "EDR_445p", "EDR_445pt3",
+    "EDR_817", "CAP_102", "EDR_860", "FIR_921", "EDR_227", "EDR_264", "EDR_451", "EDR_518", "EDR_519", "EDR_847p", "EDR_847pt2", "EDR_850p", "EDR_851p", "EDR_448p", "END_000p", "EDR_445p", "EDR_445pt3",
     "TIME_023", "EDR_251", "JAIL_377", "EDR_231", "JAIL_866", "CORE_CATA_007",
     "CORE_EX1_154", "CATA_526", "TLC_231", "TLC_236", "EDR_226",
     "RLK_024", "CATA_156",
@@ -2112,6 +2112,24 @@ class SetHeroPower:
             source=context.card.card_id, hero_power=self.card_id,
             count=context.player.hero_power_imbues,
         )
+
+
+@dataclass(frozen=True)
+class TriggerHeroPowerFree:
+    """Resolve the current hero power without spending mana or using it."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        hero_power_id = context.player.hero_power_id
+        if hero_power_id is None or hero_power_id not in game.card_defs:
+            return
+        card = game._entity(hero_power_id, created_by=context.card.card_id)
+        if not game.rule_registry.dispatch(
+            Hook.HERO_POWER, hero_power_id, game,
+            RuleContext(player=context.player, card=card),
+        ):
+            raise ValueError(f"hero power has no executable rule: {hero_power_id}")
+        game._event("hero_power_triggered_free", player=context.player.index,
+                    source=context.card.card_id, hero_power=hero_power_id)
 
 
 @dataclass(frozen=True)
@@ -5275,6 +5293,10 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "EDR_518", {Hook.BATTLECRY: (SetHeroPower("EDR_448p"), DiscountRandomHeldMinion())},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332", ("test_living_garden_imbue_discount",)),
+        ),
+        CardRule(
+            "EDR_519", {Hook.BATTLECRY: (SetHeroPower("EDR_851p"), TriggerHeroPowerFree())},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332", ("test_wisprider_triggers_imbued_power",)),
         ),
         CardRule(
             "EDR_264", {Hook.SPELL: (
