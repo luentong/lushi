@@ -771,6 +771,20 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(minion.max_health - 6, minion.health)
         self.assertFalse(game.players[0].secrets)
 
+    def test_cat_trick(self):
+        game = self.game()
+        secret = self.add_hand(game, "CORE_KAR_004")
+        game.step(Action("PLAY", secret.entity_id))
+        game.step(Action("END_TURN"))
+        spell = game._entity("JAIL_COIN1")
+        game.players[1].hand.append(spell)
+        game.players[1].mana = 20
+        game.step(Action("PLAY", spell.entity_id))
+        cats = [card for card in game.players[0].board if card.card_id == "KAR_004a"]
+        self.assertEqual(1, len(cats))
+        self.assertTrue(cats[0].stealth)
+        self.assertFalse(game.players[0].secrets)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

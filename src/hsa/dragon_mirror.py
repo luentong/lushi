@@ -1909,6 +1909,29 @@ class DragonMirrorGame:
                 dealt=dealt, excess=excess,
             )
 
+    def _trigger_secrets_after_enemy_spell_cast(self, player: Player) -> None:
+        owner = self.players[1 - player.index]
+        for secret in list(owner.secrets):
+            if secret.card_id != "CORE_KAR_004":
+                continue
+            self._consume_secret(owner, secret)
+            if len(owner.board) + len(owner.locations) >= 7:
+                self._event("cat_trick", player=owner.index, summoned=False)
+                continue
+            panther = self._instance_from_definition(
+                CardDef(
+                    "KAR_004a", "Cat in a Hat", "MINION", 3, 4, 2,
+                    "BEAST", ("STEALTH",), "HUNTER", ("BEAST",), "KARA",
+                ),
+                created_by=secret.card_id,
+            )
+            panther.summoned_turn = self.turn
+            self._summon(owner, panther)
+            self._event(
+                "cat_trick", player=owner.index,
+                source=secret.entity_id, summoned=panther.entity_id,
+            )
+
     def _start_turn(self, index: int) -> None:
         self.current = index
         self.turn += 1
@@ -3652,6 +3675,7 @@ class DragonMirrorGame:
                 ]
             self._cast_spell(player, card, action)
             self._dispatch_after_spell_cast(player, card)
+            self._trigger_secrets_after_enemy_spell_cast(player)
             recipient = self.players[1 - player.index]
             for lorewalker in lorewalkers:
                 copied = card.clone(self.next_entity_id)
