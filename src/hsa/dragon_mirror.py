@@ -1766,6 +1766,20 @@ class DragonMirrorGame:
             return True
         return False
 
+    def _trigger_vaporize(self, attacker: CardInstance, defender: Player) -> bool:
+        for secret in list(defender.secrets):
+            if secret.card_id != "EX1_594":
+                continue
+            self._consume_secret(defender, secret)
+            attacker.damage = attacker.max_health
+            self._resolve_deaths()
+            self._event(
+                "vaporize", player=defender.index,
+                source=secret.entity_id, attacker=attacker.entity_id,
+            )
+            return True
+        return False
+
     def _trigger_snake_trap(self, defender: Player) -> bool:
         for secret in list(defender.secrets):
             if secret.card_id != "CORE_EX1_554":
@@ -5914,6 +5928,10 @@ class DragonMirrorGame:
         attacker.attacks_this_turn += 1
         attacker.stealth = False
         if self._trigger_freezing_trap(
+            attacker, self.players[action.target_player]
+        ):
+            return
+        if action.target_entity is None and self._trigger_vaporize(
             attacker, self.players[action.target_player]
         ):
             return

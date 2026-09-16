@@ -747,6 +747,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(2, len(copies))
         self.assertFalse(game.players[0].secrets)
 
+    def test_vaporize(self):
+        game = self.game()
+        secret = self.add_hand(game, "EX1_594")
+        game.step(Action("PLAY", secret.entity_id))
+        game.step(Action("END_TURN"))
+        attacker = self.add_board(game, "TLC_248", 1)
+        before_health = game.players[0].health
+        game.step(Action("ATTACK", attacker.entity_id, 0, None))
+        self.assertEqual(before_health, game.players[0].health)
+        self.assertNotIn(attacker, game.players[1].board)
+        self.assertFalse(game.players[0].secrets)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")
