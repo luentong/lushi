@@ -2999,6 +2999,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", sword.entity_id))
         self.assertEqual(4, game.players[0].weapon.attack)
 
+    def test_wallow_copies_dark_gifts(self):
+        game = self.game()
+        wallow = self.add_hand(game, "EDR_487")
+        target = self.add_board(game, "EDR_810t", 0)
+        game._apply_dark_gift(target, "bundled_up")
+        self.assertIn("bundled_up", wallow.gifts)
+
     def test_deathknight_imbue_first_undead_each_turn(self):
         game = self.game()
         game.players[0].card_class = "DEATHKNIGHT"

@@ -4909,7 +4909,7 @@ class DragonMirrorGame:
                     eligible = sorted(self._eligible_dark_gifts(option))
                 gift = self.rng.choice(eligible)
                 used_gifts.add(gift)
-                self._apply_dark_gift(option, gift)
+                self._apply_dark_gift(option, gift, owner=player)
         self.pending_choice = {
             "kind": "DISCOVER",
             "player": player.index,
@@ -5003,7 +5003,7 @@ class DragonMirrorGame:
                 eligible = sorted(self._eligible_dark_gifts(option))
             gift = self.rng.choice(eligible)
             used_gifts.add(gift)
-            self._apply_dark_gift(option, gift)
+            self._apply_dark_gift(option, gift, owner=player)
             options.append(option)
             original_entities[option.entity_id] = original.entity_id
         self.pending_choice = {
@@ -5494,7 +5494,7 @@ class DragonMirrorGame:
             gifts.add("rude_awakening")
         return gifts
 
-    def _apply_dark_gift(self, card: CardInstance, gift: str) -> None:
+    def _apply_dark_gift(self, card: CardInstance, gift: str, *, propagate: bool = True, owner: Player | None = None) -> None:
         if gift not in self._eligible_dark_gifts(card):
             raise ValueError(f"ineligible Dark Gift {gift} for {card.card_id}")
         card.gifts.append(gift)
@@ -5508,6 +5508,14 @@ class DragonMirrorGame:
         elif gift == "rude_awakening": card.battlecry_twice = True
         elif gift == "living_nightmare": card.living_nightmare = True
         elif gift == "sweet_dreams": card.attack_delta += 4; card.health_delta += 5
+        if propagate and gift not in {"living_nightmare", "sweet_dreams"}:
+            # Wallow copies gifts granted to friendly minions while hidden in
+            # hand/deck.  Do not recurse when applying the copied gift.
+            owner = owner or next((p for p in self.players if card in p.board), None)
+            if owner is not None:
+                for hidden in owner.hand + owner.deck:
+                    if hidden.card_id == "EDR_487" and gift not in hidden.gifts:
+                        self._apply_dark_gift(hidden, gift, propagate=False)
 
     def _add_generated(self, player: Player, card: CardInstance) -> str:
         if (card.card_id in {"CATA_134", "CATA_306", "CATA_479", "CATA_489", "CATA_820"}
