@@ -43,6 +43,20 @@ class TargetSpec:
     optional: bool = False
 
 
+# Shared Leyline model.  Keeping the pool and progression helpers here makes
+# every Leyline rule use the same state contract and prevents drift between
+# individual card implementations.
+LEYLINE_CARD_IDS = frozenset(("MEND_500", "MEND_502", "MEND_504"))
+
+
+def _leyline_upgrade(player: Any) -> int:
+    return max(0, int(getattr(player, "leyline_upgrade", 0)))
+
+
+def _leyline_repeats(player: Any) -> int:
+    return 1 + max(0, int(getattr(player, "leyline_extra_triggers", 0)))
+
+
 # Base metadata for these generated entities comes from the pinned
 # HearthstoneJSON snapshot. Declaring the dependency here lets ordinary rules
 # refer only to card IDs instead of rebuilding CardDef objects in the engine.
@@ -379,8 +393,8 @@ class DrawAndDiscountDrawn:
     scale_with_leyline: bool = False
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        repeats = 1 + (context.player.leyline_extra_triggers if self.scale_with_leyline else 0)
-        amount = self.amount + (context.player.leyline_upgrade if self.scale_with_leyline else 0)
+        repeats = _leyline_repeats(context.player) if self.scale_with_leyline else 1
+        amount = self.amount + (_leyline_upgrade(context.player) if self.scale_with_leyline else 0)
         for _ in range(repeats):
             before = set(card.entity_id for card in context.player.hand)
             game._draw(context.player)
@@ -409,7 +423,7 @@ class DamageRandomEnemyMinionExcess:
     scale_with_leyline: bool = False
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        repeats = 1 + (context.player.leyline_extra_triggers if self.scale_with_leyline else 0)
+        repeats = _leyline_repeats(context.player) if self.scale_with_leyline else 1
         for _ in range(repeats):
             enemy = game.players[1 - context.player.index]
             targets = [m for m in enemy.board if m.health > 0 and m.dormant_turns == 0]
@@ -417,7 +431,7 @@ class DamageRandomEnemyMinionExcess:
                 return
             target = game.rng.choice(targets)
             before = max(0, target.health)
-            base = self.amount + (context.player.leyline_upgrade if self.scale_with_leyline else 0)
+            base = self.amount + (_leyline_upgrade(context.player) if self.scale_with_leyline else 0)
             amount = game._spell_effect_amount(context.player, context.card, base)
             game._damage_minion(enemy.index, target, amount, context.card)
             excess = max(0, amount - before)
@@ -450,10 +464,9 @@ class DiscountHeldLeylines:
     amount: int = 1
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        leyline_ids = {"MEND_500", "MEND_502", "MEND_504"}
         affected = []
         for card in context.player.hand:
-            if card.card_id in leyline_ids:
+            if card.card_id in LEYLINE_CARD_IDS:
                 card.cost_delta -= self.amount
                 affected.append(card.entity_id)
         game._event("ley_walker_discount", player=context.player.index,
@@ -464,7 +477,7 @@ class DiscountHeldLeylines:
 @dataclass(frozen=True)
 class AddRandomLeyline:
     def execute(self, game: Any, context: RuleContext) -> None:
-        card_id = game.rng.choice(("MEND_500", "MEND_502", "MEND_504"))
+        card_id = game.rng.choice(sorted(LEYLINE_CARD_IDS))
         card = game._entity(card_id, created_by=context.card.card_id)
         destination = game._add_generated(context.player, card)
         game._event("random_leyline_generated", player=context.player.index,
@@ -477,10 +490,10 @@ class UpgradeLeylines:
     amount: int = 1
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        context.player.leyline_upgrade += self.amount
+        context.player.leyline_upgrade = _leyline_upgrade(context.player) + max(0, self.amount)
         game._event("leyline_upgrade", player=context.player.index,
                     source=context.card.card_id, amount=self.amount,
-                    level=context.player.leyline_upgrade)
+                    level=_leyline_upgrade(context.player))
 
 
 @dataclass(frozen=True)
@@ -488,7 +501,9 @@ class AddLeylineExtraTrigger:
     amount: int = 1
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        context.player.leyline_extra_triggers += self.amount
+        context.player.leyline_extra_triggers = max(
+            0, int(getattr(context.player, "leyline_extra_triggers", 0))
+        ) + max(0, self.amount)
         game._event("leyline_extra_trigger", player=context.player.index,
                     source=context.card.card_id, amount=self.amount,
                     total=context.player.leyline_extra_triggers)
@@ -520,10 +535,10 @@ class GainArmorPerWisp:
 @dataclass(frozen=True)
 class SummonRandomLeylineMinion:
     def execute(self, game: Any, context: RuleContext) -> None:
-        for _ in range(1 + context.player.leyline_extra_triggers):
+        for _ in range(_leyline_repeats(context.player)):
             game._summon_random_executable_minion(
                 context.player, source_card_id=context.card.card_id,
-                cost=max(0, 5 + context.player.leyline_upgrade),
+                cost=max(0, 5 + _leyline_upgrade(context.player)),
             )
 
 
