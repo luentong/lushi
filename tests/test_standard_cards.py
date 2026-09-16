@@ -1098,6 +1098,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._end_turn()
         self.assertEqual(3, game.players[0].armor)
 
+    def test_spirit_gatherer_gets_wisp_and_imbues(self):
+        game = self.game()
+        gatherer = self.add_hand(game, "EDR_871")
+        game.step(Action("PLAY", gatherer.entity_id))
+        self.assertTrue(any(card.card_id == "CORE_CS2_231" for card in game.players[0].hand))
+        self.assertIsNotNone(game.pending_choice)
+
     def test_leyline_manipulator_discounts_generated_cards(self):
         game = self.game()
         generated = game._entity("TLC_248", created_by="TEST")

@@ -20624,7 +20624,7 @@
       ],
       "effects": {
         "spell": [
-          "SummonRandomExecutableMinion"
+          "SummonRandomLeylineMinion"
         ]
       },
       "rule_source": {
