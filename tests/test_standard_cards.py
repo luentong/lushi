@@ -2841,6 +2841,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(1, len(game.players[0].board))
         self.assertLessEqual(game.players[0].board[0].cost, 0)
 
+    def test_imbue_hero_power_rogue(self):
+        game = self.game()
+        game.players[0].card_class = "ROGUE"
+        game.players[0].hero_power_id = "END_000p"
+        before = len(game.players[0].hand)
+        game.step(Action("HERO_POWER"))
+        self.assertEqual(before + 1, len(game.players[0].hand))
+
 
 if __name__ == "__main__":
     unittest.main()
