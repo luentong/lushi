@@ -119,6 +119,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_SW_442",  # Void Shard
     "CORE_SCH_512",  # Initiation
     "CORE_LOOT_373",  # Healing Rain
+    "TLC_439",  # Wave of Tar
     "CORE_EX1_302",  # Mortal Coil
     "CORE_EX1_007",  # Acolyte of Pain
     "CORE_RLK_121",  # Acolyte of Death
@@ -1674,6 +1675,18 @@ class DamageAllEnemies:
         enemy = game.players[1 - context.player.index]
         amount = game._spell_effect_amount(context.player, context.card, self.amount)
         game._damage_hero(enemy, amount, context.card)
+        for minion in list(enemy.board):
+            game._damage_minion(enemy.index, minion, amount, context.card)
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class DamageEnemyMinions:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
         for minion in list(enemy.board):
             game._damage_minion(enemy.index, minion, amount, context.card)
         game._resolve_deaths()
@@ -5335,5 +5348,9 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CORE_LOOT_373", {Hook.SPELL: (HealRandomFriendlyCharacters(12),)},
             RuleSource("upstream_adapted", rosetta, "LOOT_373", "AGPL-3.0", ("test_healing_rain_random_split",)),
+        ),
+        CardRule(
+            "TLC_439", {Hook.SPELL: (DamageEnemyMinions(2), IncreaseOpponentMinionCostNextTurn(2))},
+            RuleSource("upstream_adapted", rosetta, "TLC_439", "AGPL-3.0", ("test_wave_of_tar",)),
         ),
     ))

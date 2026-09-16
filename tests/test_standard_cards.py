@@ -2818,6 +2818,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertGreaterEqual(game.players[0].health, 20)
         self.assertEqual(0, ally.damage)
 
+    def test_wave_of_tar(self):
+        game = self.game()
+        enemy = self.add_board(game, "CAP_107t", 1)
+        spell = self.add_hand(game, "TLC_439")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(2, enemy.damage)
+
     def test_imbue_threshold_cards(self):
         game = self.game()
         game.players[0].hero_power_imbues = 2
