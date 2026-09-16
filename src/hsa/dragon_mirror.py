@@ -4360,6 +4360,9 @@ class DragonMirrorGame:
                     source_card_id=card.card_id,
                 )
                 return
+        if card.card_id == "TLC_515":
+            self._offer_deck_card_discover(player, source_card_id=card.card_id)
+            return
         prior_fire = player.fire_spell_played
         spell_damage = self._spell_damage(player) + card.spell_damage_bonus
         if self.rule_registry.dispatch(

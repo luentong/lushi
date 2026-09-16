@@ -813,6 +813,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             sum(card.card_id == "JAIL_COIN1" for card in game.players[0].hand),
         )
 
+    def test_cultist_map_deck_discover(self):
+        game = self.game()
+        game.players[0].deck = [game._entity("TLC_248", started_in_deck=True)]
+        map_card = self.add_hand(game, "TLC_515")
+        game.step(Action("PLAY", map_card.entity_id))
+        self.assertIsNotNone(game.pending_choice)
+        self.assertEqual("DECK_CARD_DISCOVER", game.pending_choice["kind"])
+        self.assertEqual(["TLC_248"], [c.card_id for c in game.pending_choice["options"]])
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

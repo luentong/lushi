@@ -611,6 +611,7 @@ TLC_480,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_482,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_513t2,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_514,legacy_compatibility,,local_legacy,,0,regression_suite_only
+TLC_515,legacy_special_case,,official_text_and_engine_verified,,0,focused_test_and_regression
 TLC_519t,legacy_compatibility,,local_legacy,,0,regression_suite_only
 TLC_600,declarative,battlecry,local_spec,,0,focused_test_and_regression
 TLC_603,legacy_compatibility,,local_legacy,,0,regression_suite_only
