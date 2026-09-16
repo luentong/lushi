@@ -1790,6 +1790,30 @@ class DragonMirrorGame:
             return True
         return False
 
+    def _trigger_noble_sacrifice(self, defender: Player) -> CardInstance | None:
+        for secret in list(defender.secrets):
+            if secret.card_id != "CORE_EX1_130":
+                continue
+            self._consume_secret(defender, secret)
+            if len(defender.board) + len(defender.locations) >= 7:
+                self._event("noble_sacrifice", player=defender.index, summoned=False)
+                return None
+            token = self._instance_from_definition(
+                CardDef(
+                    "EX1_130a", "Defender", "MINION", 1, 2, 1,
+                    "DRAENEI", (), "PALADIN", ("DRAENEI",), "EXPERT1",
+                ),
+                created_by=secret.card_id,
+            )
+            token.summoned_turn = self.turn
+            self._summon(defender, token)
+            self._event(
+                "noble_sacrifice", player=defender.index,
+                source=secret.entity_id, summoned=token.entity_id,
+            )
+            return token
+        return None
+
     def _trigger_end_turn_secrets(self, ending_player: Player) -> None:
         """Resolve enemy Secrets whose condition is the active player's end step."""
         owner = self.players[1 - ending_player.index]
@@ -5871,14 +5895,20 @@ class DragonMirrorGame:
         ):
             return
         if action.target_entity is not None:
-            self._trigger_snake_trap(self.players[action.target_player])
-        if action.target_entity is None:
+            defender_player = self.players[action.target_player]
+            sacrifice = self._trigger_noble_sacrifice(defender_player)
+            target_entity = sacrifice.entity_id if sacrifice is not None else action.target_entity
+            self._trigger_snake_trap(defender_player)
+        else:
+            sacrifice = self._trigger_noble_sacrifice(self.players[action.target_player])
+            target_entity = sacrifice.entity_id if sacrifice is not None else None
+        if target_entity is None:
             self._damage_hero(self.players[action.target_player], attacker.attack, attacker)
             self._trigger_secrets_after_hero_attacked(
                 self.players[action.target_player]
             )
         else:
-            defender = self._find_minion(action.target_player, action.target_entity)
+            defender = self._find_minion(action.target_player, target_entity)
             self._damage_minion(action.target_player, defender, attacker.attack, attacker)
             self._damage_minion(self.current, attacker, defender.attack, defender)
             self._finja_kill(self.current, attacker, defender)
@@ -5895,7 +5925,7 @@ class DragonMirrorGame:
                         )
         self._after_minion_attack(
             self.current, attacker,
-            attacked_minion=action.target_entity is not None,
+            attacked_minion=target_entity is not None,
         )
 
     def _hero_attack(self, action: Action) -> None:
@@ -5904,7 +5934,11 @@ class DragonMirrorGame:
         attack_amount = player.attack
         player.hero_attacks_this_turn += 1
         player.hero_attacks_this_game += 1
-        if action.target_entity is None:
+        target_entity = action.target_entity
+        sacrifice = self._trigger_noble_sacrifice(self.players[action.target_player])
+        if sacrifice is not None:
+            target_entity = sacrifice.entity_id
+        if target_entity is None:
             enemy = self.players[action.target_player]
             before = enemy.health + enemy.armor
             self._damage_hero(self.players[action.target_player], player.attack)
@@ -5914,7 +5948,7 @@ class DragonMirrorGame:
             dealt = before - (enemy.health + enemy.armor)
             self._weapon_lifesteal(player, attacked_weapon, dealt)
         else:
-            defender = self._find_minion(action.target_player, action.target_entity)
+            defender = self._find_minion(action.target_player, target_entity)
             before = max(0, defender.health)
             self._damage_minion(action.target_player, defender, player.attack)
             if (

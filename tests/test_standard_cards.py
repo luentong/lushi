@@ -673,6 +673,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(3, len(snakes))
         self.assertNotIn("CORE_EX1_554", [card.card_id for card in game.players[0].secrets])
 
+    def test_noble_sacrifice(self):
+        game = self.game()
+        secret = self.add_hand(game, "CORE_EX1_130")
+        game.step(Action("PLAY", secret.entity_id))
+        game.step(Action("END_TURN"))
+        attacker = self.add_board(game, "TLC_248", 1)
+        game.step(Action("ATTACK", attacker.entity_id, 0, None))
+        self.assertEqual(30, game.players[0].health)
+        self.assertFalse(game.players[0].secrets)
+        self.assertTrue(any(event.get("type") == "noble_sacrifice" for event in game.events))
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")
