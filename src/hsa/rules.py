@@ -117,6 +117,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_CFM_604",  # Greater Healing Potion
     "CORE_BRM_013",  # Quick Shot
     "CORE_SW_442",  # Void Shard
+    "CORE_SCH_512",  # Initiation
     "CORE_EX1_302",  # Mortal Coil
     "CORE_EX1_007",  # Acolyte of Pain
     "CORE_RLK_121",  # Acolyte of Death
@@ -2218,6 +2219,27 @@ class DamageActionTargetThenDrawIfKilled:
         )
         killed = target.health <= 0
         game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class DamageActionTargetThenSummonCopyIfKilled:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        owner = game.players[context.action.target_player]
+        target = game._find_minion(owner.index, context.action.target_entity)
+        card_id = target.card_id
+        game._damage_minion(
+            owner.index, target,
+            game._spell_effect_amount(context.player, context.card, self.amount),
+            context.card,
+        )
+        killed = target.health <= 0
+        game._resolve_deaths()
+        if killed:
+            Summon(card_id).execute(game, context)
 
 
 @dataclass(frozen=True)
@@ -5215,5 +5237,10 @@ def build_rule_registry() -> RuleRegistry:
                 ("test_void_shard_lifesteal",),
             ),
             TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "CORE_SCH_512", {Hook.SPELL: (DamageActionTargetThenSummonCopyIfKilled(4),)},
+            RuleSource("upstream_adapted", rosetta, "SCH_512", "AGPL-3.0", ("test_initiation_summons_copy",)),
+            TargetSpec(TargetKind.ANY_MINION),
         ),
     ))

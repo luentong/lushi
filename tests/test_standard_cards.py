@@ -2800,6 +2800,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(26, game.players[1].health)
         self.assertEqual(24, game.players[0].health)
 
+    def test_initiation_summons_copy(self):
+        game = self.game()
+        target = self.add_board(game, "CAP_107t", 1)
+        target.health_delta = -3
+        spell = self.add_hand(game, "CORE_SCH_512")
+        game.step(Action("PLAY", spell.entity_id, 1, target.entity_id))
+        self.assertEqual(1, sum(m.card_id == "CAP_107t" for m in game.players[0].board))
+
     def test_imbue_threshold_cards(self):
         game = self.game()
         game.players[0].hero_power_imbues = 2
