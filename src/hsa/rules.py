@@ -2932,10 +2932,32 @@ class CardRule:
 
 
 class RuleRegistry:
+    """Indexed executable rules with a small read-only mapping interface.
+
+    The engine only needs dispatch helpers, while audits and tooling need to
+    inspect coverage.  Exposing these methods keeps callers from reaching
+    into the private ``_rules`` dictionary and gives us one place to enforce
+    registry invariants.
+    """
+
     def __init__(self, rules: tuple[CardRule, ...] = ()):
         self._rules: dict[str, CardRule] = {}
         for rule in rules:
             self.register(rule)
+
+    def __len__(self) -> int:
+        return len(self._rules)
+
+    def __contains__(self, card_id: str) -> bool:
+        return card_id in self._rules
+
+    def get(self, card_id: str) -> CardRule | None:
+        """Return a rule without exposing the mutable backing dictionary."""
+        return self._rules.get(card_id)
+
+    def all_rules(self) -> tuple[CardRule, ...]:
+        """Return rules in stable card-id order for audits and reports."""
+        return tuple(self._rules[card_id] for card_id in sorted(self._rules))
 
     def register(self, rule: CardRule) -> None:
         if rule.card_id in self._rules:
@@ -2945,7 +2967,7 @@ class RuleRegistry:
     def dispatch(
         self, hook: Hook, card_id: str, game: Any, context: RuleContext
     ) -> bool:
-        rule = self._rules.get(card_id)
+        rule = self.get(card_id)
         if rule is None or hook not in rule.hooks:
             return False
         for effect in rule.hooks[hook]:
@@ -2953,23 +2975,23 @@ class RuleRegistry:
         return True
 
     def targeting(self, card_id: str) -> TargetSpec | None:
-        rule = self._rules.get(card_id)
+        rule = self.get(card_id)
         return None if rule is None else rule.targeting
 
     def has_hook(self, hook: Hook, card_id: str) -> bool:
-        rule = self._rules.get(card_id)
+        rule = self.get(card_id)
         return rule is not None and hook in rule.hooks
 
     def cost_adjustment(self, game: Any, player: Any, card: Any) -> int:
-        rule = self._rules.get(card.card_id)
+        rule = self.get(card.card_id)
         if rule is None or rule.cost_modifier is None:
             return 0
         return rule.cost_modifier.adjustment(game, player, card)
 
     def manifest(self) -> list[dict[str, Any]]:
         rows = []
-        for card_id in sorted(self._rules):
-            rule = self._rules[card_id]
+        for rule in self.all_rules():
+            card_id = rule.card_id
             rows.append({
                 "card_id": card_id,
                 "hooks": sorted(hook.value for hook in rule.hooks),
