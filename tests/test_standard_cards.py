@@ -1010,6 +1010,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertNotIn(king, game.players[0].board)
         self.assertIn(king, game.players[0].deck)
 
+    def test_crystal_merchant_draws_with_unspent_mana(self):
+        game = self.game()
+        merchant = self.add_board(game, "CORE_ULD_133", 0)
+        drawn = game._entity("TLC_248", started_in_deck=True)
+        game.players[0].deck = [drawn]
+        game.players[0].mana = 1
+        game._end_turn()
+        self.assertIn(drawn, game.players[0].hand)
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

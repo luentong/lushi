@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 665,
-    "declarative_rules": 275,
+    "supported_cards": 666,
+    "declarative_rules": 276,
     "legacy_special_case_rules": 6,
     "legacy_compatibility_rules": 384,
-    "cards_with_upstream_match": 184
+    "cards_with_upstream_match": 185
   },
   "cards": [
     {
@@ -13966,6 +13966,58 @@
       "metadata_source": "HearthstoneJSON build 251332",
       "upstream_matches": [],
       "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "CORE_ULD_133",
+      "implementation": "declarative",
+      "hooks": [
+        "end_turn"
+      ],
+      "effects": {
+        "end_turn": [
+          "DrawIfUnspentMana"
+        ]
+      },
+      "rule_source": {
+        "kind": "official_text_and_engine_verified",
+        "reference": "HearthstoneJSON 251332",
+        "upstream_card_id": null,
+        "license": null,
+        "verification": [
+          "test_crystal_merchant_draws_with_unspent_mana"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "ULD_133",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/UldumCardsGen.cpp",
+          "line": 209
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "ULD_133",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/UldumCardsGen.cpp",
+          "line": 221
+        },
+        {
+          "repository": "fireplace",
+          "commit": "47a2572a000db66645bb74a425a090d51f1004fa",
+          "license": "AGPL-3.0",
+          "matched_id": "ULD_133",
+          "match_kind": "historical_alias",
+          "path": "fireplace/cards/uldum/druid.py",
+          "line": 8
+        }
+      ],
+      "verification_status": "focused_test_and_regression"
     },
     {
       "card_id": "CORE_ULD_165",

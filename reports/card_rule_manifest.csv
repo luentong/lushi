@@ -276,6 +276,7 @@ CORE_SW_439,legacy_compatibility,,local_legacy,RosettaStone,9,regression_suite_o
 CORE_TRL_307,declarative,spell,upstream_adapted,"RosettaStone,fireplace",5,focused_test_and_regression
 CORE_TTN_843,legacy_compatibility,,local_legacy,,0,regression_suite_only
 CORE_TTN_866,legacy_compatibility,,local_legacy,,0,regression_suite_only
+CORE_ULD_133,declarative,end_turn,official_text_and_engine_verified,"RosettaStone,fireplace",3,focused_test_and_regression
 CORE_ULD_165,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",3,regression_suite_only
 CORE_ULD_191,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",12,regression_suite_only
 CORE_ULD_723,legacy_compatibility,,local_legacy,RosettaStone,2,regression_suite_only
