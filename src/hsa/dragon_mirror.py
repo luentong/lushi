@@ -3886,8 +3886,14 @@ class DragonMirrorGame:
             )
             return
         if card.card_id == "EDR_456" and self._holding_dragon(player):
+            dragon_pool = [
+                card_id for card_id, definition in self.card_defs.items()
+                if card_id in EXECUTABLE_CARD_IDS
+                and definition.card_type == "MINION"
+                and "DRAGON" in definition.races
+            ]
             self._offer_discover(
-                player, DRAGON_IDS, dark_gift=True, repeats=times,
+                player, dragon_pool, dark_gift=True, repeats=times,
                 source_card_id=card.card_id,
             )
             return
@@ -4497,8 +4503,14 @@ class DragonMirrorGame:
                 player.index, (action.target_player, action.target_entity),
                 2 + spell_damage,
             )
+            warrior_pool = [
+                card_id for card_id, definition in self.card_defs.items()
+                if card_id in EXECUTABLE_CARD_IDS
+                and definition.card_type == "MINION"
+                and definition.card_class == "WARRIOR"
+            ]
             self._offer_discover(
-                player, WARRIOR_MINION_IDS, dark_gift=True,
+                player, warrior_pool, dark_gift=True,
                 source_card_id=card.card_id,
             )
         elif card.card_id == "CATA_582":
