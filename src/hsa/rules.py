@@ -194,6 +194,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_CS2_032",
     "CORE_EX1_610",
     "CORE_EX1_611",
+    "CORE_EX1_554",
     "CORE_LOOT_101",
     "CAP_404",
     "CORE_CS2_004",
@@ -3158,6 +3159,13 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "upstream_adapted", rosetta, "EX1_611", "AGPL-3.0",
                 ("test_freezing_trap",),
+            ),
+        ),
+        CardRule(
+            "CORE_EX1_554", {Hook.SPELL: (ArmSecret(),)},
+            RuleSource(
+                "upstream_adapted", rosetta, "EX1_554", "AGPL-3.0",
+                ("test_snake_trap",),
             ),
         ),
         CardRule(

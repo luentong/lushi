@@ -1766,6 +1766,30 @@ class DragonMirrorGame:
             return True
         return False
 
+    def _trigger_snake_trap(self, defender: Player) -> bool:
+        for secret in list(defender.secrets):
+            if secret.card_id != "CORE_EX1_554":
+                continue
+            self._consume_secret(defender, secret)
+            summoned = 0
+            while len(defender.board) + len(defender.locations) < 7 and summoned < 3:
+                snake = self._instance_from_definition(
+                    CardDef(
+                        "EX1_554t", "Snake", "MINION", 1, 1, 1,
+                        "BEAST", (), "HUNTER", ("BEAST",), "EXPERT1",
+                    ),
+                    created_by=secret.card_id,
+                )
+                snake.summoned_turn = self.turn
+                self._summon(defender, snake)
+                summoned += 1
+            self._event(
+                "snake_trap", player=defender.index,
+                source=secret.entity_id, summoned=summoned,
+            )
+            return True
+        return False
+
     def _trigger_end_turn_secrets(self, ending_player: Player) -> None:
         """Resolve enemy Secrets whose condition is the active player's end step."""
         owner = self.players[1 - ending_player.index]
@@ -5846,6 +5870,8 @@ class DragonMirrorGame:
             attacker, self.players[action.target_player]
         ):
             return
+        if action.target_entity is not None:
+            self._trigger_snake_trap(self.players[action.target_player])
         if action.target_entity is None:
             self._damage_hero(self.players[action.target_player], attacker.attack, attacker)
             self._trigger_secrets_after_hero_attacked(

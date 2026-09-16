@@ -220,6 +220,7 @@ CORE_EX1_414,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",13,regr
 CORE_EX1_506a,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",9,regression_suite_only
 CORE_EX1_507,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",13,regression_suite_only
 CORE_EX1_509,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",12,regression_suite_only
+CORE_EX1_554,declarative,spell,upstream_adapted,"RosettaStone,fireplace",11,focused_test_and_regression
 CORE_EX1_604,legacy_compatibility,,local_legacy,"RosettaStone,fireplace",12,regression_suite_only
 CORE_EX1_606,declarative,spell,upstream_adapted,"RosettaStone,fireplace",6,focused_test_and_regression
 CORE_EX1_610,declarative,spell,official_text_and_engine_verified,"RosettaStone,fireplace",5,focused_test_and_regression

@@ -661,6 +661,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(2, returned.cost_delta)
         self.assertEqual([], game.players[0].secrets)
 
+    def test_snake_trap(self):
+        game = self.game()
+        trap = self.add_hand(game, "CORE_EX1_554")
+        game.step(Action("PLAY", trap.entity_id))
+        game.step(Action("END_TURN"))
+        defender = self.add_board(game, "TLC_248", 0)
+        attacker = self.add_board(game, "TLC_248", 1)
+        game.step(Action("ATTACK", attacker.entity_id, 0, defender.entity_id))
+        snakes = [card for card in game.players[0].board if card.card_id == "EX1_554t"]
+        self.assertEqual(3, len(snakes))
+        self.assertNotIn("CORE_EX1_554", [card.card_id for card in game.players[0].secrets])
+
     def test_flames_of_infinity_kills_highest_health_minion_at_enemy_end(self):
         game = self.game()
         secret = game._entity("END_024")

@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
   "summary": {
-    "supported_cards": 629,
-    "declarative_rules": 249,
+    "supported_cards": 630,
+    "declarative_rules": 250,
     "legacy_special_case_rules": 2,
     "legacy_compatibility_rules": 378,
-    "cards_with_upstream_match": 173
+    "cards_with_upstream_match": 174
   },
   "cards": [
     {
@@ -10641,6 +10641,130 @@
         }
       ],
       "verification_status": "regression_suite_only"
+    },
+    {
+      "card_id": "CORE_EX1_554",
+      "implementation": "declarative",
+      "hooks": [
+        "spell"
+      ],
+      "effects": {
+        "spell": [
+          "ArmSecret"
+        ]
+      },
+      "rule_source": {
+        "kind": "upstream_adapted",
+        "reference": "vendor/RosettaStone@e10749b5f0c08d3a6135bce317cb11d1738846ad",
+        "upstream_card_id": "EX1_554",
+        "license": "AGPL-3.0",
+        "verification": [
+          "test_snake_trap"
+        ]
+      },
+      "metadata_source": "HearthstoneJSON build 251332",
+      "upstream_matches": [
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "CORE_EX1_554",
+          "match_kind": "exact",
+          "path": "Sources/Rosetta/PlayMode/CardSets/CoreCardsGen.cpp",
+          "line": 449
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "EX1_554",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/CoreCardsGen.cpp",
+          "line": 465
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "CORE_EX1_554",
+          "match_kind": "exact",
+          "path": "Sources/Rosetta/PlayMode/CardSets/CoreCardsGen.cpp",
+          "line": 466
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "EX1_554",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/Expert1CardsGen.cpp",
+          "line": 1048
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "EX1_554",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/Expert1CardsGen.cpp",
+          "line": 1066
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "EX1_554",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/Expert1CardsGen.cpp",
+          "line": 1067
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "EX1_554",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/Expert1CardsGen.cpp",
+          "line": 1233
+        },
+        {
+          "repository": "RosettaStone",
+          "commit": "e10749b5f0c08d3a6135bce317cb11d1738846ad",
+          "license": "AGPL-3.0",
+          "matched_id": "EX1_554",
+          "match_kind": "historical_alias",
+          "path": "Sources/Rosetta/PlayMode/CardSets/Expert1CardsGen.cpp",
+          "line": 1238
+        },
+        {
+          "repository": "fireplace",
+          "commit": "47a2572a000db66645bb74a425a090d51f1004fa",
+          "license": "AGPL-3.0",
+          "matched_id": "EX1_554",
+          "match_kind": "historical_alias",
+          "path": "fireplace/cards/classic/hunter.py",
+          "line": 185
+        },
+        {
+          "repository": "fireplace",
+          "commit": "47a2572a000db66645bb74a425a090d51f1004fa",
+          "license": "AGPL-3.0",
+          "matched_id": "EX1_554",
+          "match_kind": "historical_alias",
+          "path": "fireplace/cards/classic/hunter.py",
+          "line": 189
+        },
+        {
+          "repository": "fireplace",
+          "commit": "47a2572a000db66645bb74a425a090d51f1004fa",
+          "license": "AGPL-3.0",
+          "matched_id": "EX1_554",
+          "match_kind": "historical_alias",
+          "path": "fireplace/cards/debug/all.py",
+          "line": 102
+        }
+      ],
+      "verification_status": "focused_test_and_regression"
     },
     {
       "card_id": "CORE_EX1_604",
