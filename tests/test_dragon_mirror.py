@@ -396,6 +396,17 @@ class DragonMirrorRulesTests(unittest.TestCase):
         game.step(Action("REWIND_RETRY"))
         self.assertEqual(3, game.players[0].overload_next_turn)
 
+    def test_time_machine_deathrattle_adds_rewind_card(self):
+        game = self.game(290)
+        machine = self.add_board(game, "TIME_035", 0)
+        game._damage_minion(0, machine, machine.health)
+        game._resolve_deaths()
+        generated = [
+            card for card in game.players[0].hand if card.created_by == "TIME_035"
+        ]
+        self.assertEqual(1, len(generated))
+        self.assertIn(generated[0].card_id, ADDITIONAL_PLAYABLE_CARD_IDS)
+
     def test_generated_weapon_passives_and_deathrattle(self):
         game = self.game(29)
         player = game.players[0]
