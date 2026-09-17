@@ -88,7 +88,13 @@ class MCTSPolicy:
                 node = self._select_child(node, root_player)
             if not node.state.finished and node.untried:
                 action = node.untried.pop(0)
-                child_state = node.state.branch(action)
+                try:
+                    child_state = node.state.branch(action)
+                except ValueError:
+                    # The action generator intentionally stays broad, while
+                    # card rules may reject a target at resolution time.
+                    # Discard that branch and spend this iteration elsewhere.
+                    continue
                 node = _Node(
                     child_state,
                     parent=node,
@@ -102,6 +108,8 @@ class MCTSPolicy:
                 node.visits += 1
                 node.value_sum += value
                 node = node.parent
+        if not root.children:
+            return legal[0]
         best = max(
             root.children,
             key=lambda child: (child.visits, child.mean_value, child.action.key()),
@@ -145,7 +153,14 @@ class MCTSPolicy:
         for _ in range(self.rollout_depth):
             if rollout.finished:
                 break
-            rollout.step(self.rollout_policy.choose(rollout))
+            try:
+                rollout.step(self.rollout_policy.choose(rollout))
+            except ValueError:
+                # Some card-specific predicates are stricter than the broad
+                # action generator (for example, a spell requiring a damaged
+                # target).  Treat an invalid sampled branch as a truncated
+                # rollout instead of aborting the entire search.
+                break
         return evaluate_state(rollout, root_player)
 
 
@@ -573,7 +588,10 @@ class InformationSetMCTSPolicy:
                 for _ in range(self.rollout_depth):
                     if rollout.finished:
                         break
-                    rollout.step(self.rollout_policy.choose(rollout))
+                    try:
+                        rollout.step(self.rollout_policy.choose(rollout))
+                    except ValueError:
+                        break
                 value = evaluate_state(rollout, root_player)
             for visited in path:
                 visited.visits += 1
