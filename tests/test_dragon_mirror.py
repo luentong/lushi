@@ -432,6 +432,13 @@ class DragonMirrorRulesTests(unittest.TestCase):
             card = game._entity(card_id)
             self.assertEqual(card_id, card.card_id)
 
+    def test_murozond_generates_fabled_minion_from_dynamic_pool(self):
+        game = self.game(278)
+        card = self.add_hand(game, "TOT_332")
+        self.play(game, card)
+        event = next(e for e in game.events if e["kind"] == "fabled_minion_generated")
+        self.assertFalse(event["bundled_cards_resolved"])
+
     def test_generated_weapon_passives_and_deathrattle(self):
         game = self.game(29)
         player = game.players[0]

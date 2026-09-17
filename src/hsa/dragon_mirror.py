@@ -256,6 +256,7 @@ ADDITIONAL_PLAYABLE_CARD_IDS = {
     "TOT_056",  # Wildlands Adventurer
     "TIME_033",  # Druid of Regrowth
     "END_036",  # Morchie
+    "TOT_332",  # Murozond
     "TIME_433",  # Cease to Exist
     "TIME_441",  # Aeon Rend
     "TIME_610",  # Shadows of Yesterday
@@ -3928,6 +3929,25 @@ class DragonMirrorGame:
                 player, sorted(ADDITIONAL_PLAYABLE_CARD_IDS),
                 dark_gift=False, source_card_id=card.card_id,
             )
+            return
+        if card.card_id == "TOT_332":
+            fabled_pool = [
+                card_id for card_id, definition in self.card_defs.items()
+                if card_id in EXECUTABLE_CARD_IDS
+                and definition.card_type == "MINION"
+                and "FABLED" in definition.text.upper()
+            ]
+            if fabled_pool:
+                generated = self._entity(
+                    self.rng.choice(sorted(fabled_pool)), created_by=card.card_id
+                )
+                destination = self._add_generated(player, generated)
+                self._event(
+                    "fabled_minion_generated", player=player.index,
+                    source=card.entity_id, card=generated.card_id,
+                    destination=destination,
+                    bundled_cards_resolved=False,
+                )
             return
         if card.card_id == "TIME_003":
             self._offer_rewind(
