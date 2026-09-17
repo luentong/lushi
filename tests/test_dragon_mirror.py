@@ -357,6 +357,16 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertEqual(base_attack + 1, restored.attack)
         self.assertEqual(base_health + 2, restored.max_health)
 
+    def test_additional_rewind_cards_open_and_resolve(self):
+        for card_id in ("TIME_000", "TIME_002", "TIME_018"):
+            game = self.game(200 + len(card_id))
+            card = self.add_hand(game, card_id)
+            self.play(game, card)
+            self.assertIsNotNone(game.pending_choice, card_id)
+            self.assertEqual("REWIND", game.pending_choice["kind"])
+            game.step(Action("REWIND_KEEP"))
+            self.assertIsNone(game.pending_choice)
+
     def test_generated_weapon_passives_and_deathrattle(self):
         game = self.game(29)
         player = game.players[0]

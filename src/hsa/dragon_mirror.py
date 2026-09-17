@@ -244,8 +244,13 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
 # Closed Rewind cards whose random outcomes can be played from hand without
 # opening another generated-card pool.
 ADDITIONAL_PLAYABLE_CARD_IDS = {
+    "TIME_000",  # Semi-Stable Portal
     "TIME_001",  # Chrono Daggers
+    "TIME_002",  # Aeon Wizard
     "TIME_008",  # Bygone Doomspeaker
+    "TIME_014",  # Instant Multiverse
+    "TIME_018",  # Mend the Timeline
+    "TIME_035",  # Time Machine
     "TIME_433",  # Cease to Exist
     "TIME_441",  # Aeon Rend
     "TIME_610",  # Shadows of Yesterday
@@ -3870,6 +3875,11 @@ class DragonMirrorGame:
                 player, "stadium_weapons", remaining_battlecries=times - 1
             )
             return
+        if card.card_id == "TIME_002":
+            self._offer_rewind(
+                player, "aeon_wizard", remaining_battlecries=times - 1
+            )
+            return
         if card.card_id == "TIME_003":
             self._offer_rewind(
                 player, "portal_vanguard", remaining_battlecries=times - 1
@@ -4498,6 +4508,14 @@ class DragonMirrorGame:
             self._offer_rewind(player, "aeon_rend")
         elif card.card_id == "TIME_610":
             self._offer_rewind(player, "shadows_of_yesterday")
+        elif card.card_id == "TIME_000":
+            self._offer_rewind(player, "semi_stable_portal")
+        elif card.card_id == "TIME_002":
+            self._offer_rewind(player, "aeon_wizard")
+        elif card.card_id == "TIME_014":
+            self._offer_rewind(player, "instant_multiverse")
+        elif card.card_id == "TIME_018":
+            self._offer_rewind(player, "mend_the_timeline")
         elif card.card_id == "FIR_939":
             self._deal_to_target(
                 player.index, (action.target_player, action.target_entity),
@@ -6139,6 +6157,74 @@ class DragonMirrorGame:
                 self._summon(player, shade)
                 summoned.append({"entity": shade.entity_id, "effects": effects})
             return summoned
+        if effect == "semi_stable_portal":
+            candidates = [
+                card_id for card_id, definition in self.card_defs.items()
+                if card_id in EXECUTABLE_CARD_IDS
+                and definition.card_type == "MINION"
+            ]
+            if not candidates:
+                return None
+            generated = self._entity(self.rng.choice(sorted(candidates)), created_by="TIME_000")
+            generated.cost_delta -= 3
+            destination = self._add_generated(player, generated)
+            return {"card": generated.card_id, "entity": generated.entity_id,
+                    "destination": destination, "cost_delta": -3}
+        if effect == "aeon_wizard":
+            candidates = [
+                card_id for card_id, definition in self.card_defs.items()
+                if card_id in EXECUTABLE_CARD_IDS
+                and definition.card_type == "SPELL"
+                and definition.card_class == player.card_class
+            ]
+            generated = []
+            for _ in range(2):
+                if not candidates:
+                    break
+                card = self._entity(self.rng.choice(sorted(candidates)), created_by="TIME_002")
+                destination = self._add_generated(player, card)
+                generated.append({"card": card.card_id, "entity": card.entity_id,
+                                  "destination": destination})
+            return generated
+        if effect == "instant_multiverse":
+            remaining = 12
+            summoned = []
+            while remaining > 0 and len(player.board) + len(player.locations) < 7:
+                candidates = [
+                    card_id for card_id, definition in self.card_defs.items()
+                    if card_id in EXECUTABLE_CARD_IDS
+                    and definition.card_type == "MINION"
+                    and 1 <= definition.cost <= remaining
+                ]
+                if not candidates:
+                    break
+                chosen = self.rng.choice(candidates)
+                cost = self.card_defs[chosen].cost
+                summoned_card = self._entity(chosen, created_by="TIME_014")
+                summoned_card.summoned_turn = self.turn
+                self._summon(player, summoned_card)
+                summoned.append({"card": chosen, "cost": cost})
+                remaining -= cost
+            return summoned
+        if effect == "mend_the_timeline":
+            candidates = [
+                card_id for card_id, definition in self.card_defs.items()
+                if card_id in EXECUTABLE_CARD_IDS
+                and definition.card_type == "SPELL"
+                and definition.spell_school == "HOLY"
+            ]
+            generated = []
+            total_cost = 0
+            for _ in range(2):
+                if not candidates:
+                    break
+                card = self._entity(self.rng.choice(sorted(candidates)), created_by="TIME_018")
+                total_cost += card.definition.cost
+                destination = self._add_generated(player, card)
+                generated.append({"card": card.card_id, "entity": card.entity_id,
+                                  "destination": destination})
+            player.health = min(player.max_health, player.health + total_cost)
+            return {"cards": generated, "healed": total_cost}
         raise ValueError(f"unknown Rewind effect: {effect}")
 
     def _resolve_rewind(self, retry: bool) -> None:
@@ -6885,6 +6971,16 @@ class DragonMirrorGame:
                 source=minion.entity_id, card=coin.card_id,
                 destination=destination,
             )
+        if minion.card_id == "TIME_035":
+            rewind_pool = sorted(ADDITIONAL_PLAYABLE_CARD_IDS)
+            if rewind_pool:
+                card = self._entity(self.rng.choice(rewind_pool), created_by=minion.card_id)
+                destination = self._add_generated(player, card)
+                self._event(
+                    "rewind_card_generated", player=player.index,
+                    source=minion.entity_id, card=card.card_id,
+                    destination=destination,
+                )
         if minion.deathrattle_summon_card_id and len(player.board) + len(player.locations) < 7:
             token = self._entity(
                 minion.deathrattle_summon_card_id,
