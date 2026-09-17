@@ -138,6 +138,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_005t6", "TIME_005t7", "TIME_005t8", "TIME_005t9",
     "TIME_006t1", "TIME_870t", "TIME_873t",
     "TIME_713t",
+    "TLC_366", "TLC_903",
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "CS2_tk1",
@@ -364,6 +365,15 @@ class CostIfOutcast:
         if not active:
             return 0
         return self.target_cost - card.cost
+
+
+@dataclass(frozen=True)
+class CostIfKindred:
+    amount: int
+
+    def adjustment(self, game: Any, player: Any, card: Any) -> int:
+        races = set(card.definition.races)
+        return -self.amount if races & player.played_races_last_turn else 0
 
 
 @dataclass(frozen=True)
@@ -3339,6 +3349,18 @@ class AzureOathstone:
 
 
 @dataclass(frozen=True)
+class KindredHeroAttack:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        races = set(context.card.definition.races)
+        if races & context.player.played_races_last_turn:
+            context.player.hero_attack_bonus += self.amount
+            game._event("kindred_hero_attack", player=context.player.index,
+                        source=context.card.card_id, amount=self.amount)
+
+
+@dataclass(frozen=True)
 class TimelessChestDeathrattle:
     """Fill the opponent's hand with Coins, respecting the hand cap."""
 
@@ -4326,6 +4348,10 @@ def build_rule_registry() -> RuleRegistry:
         CardRule("TIME_870t", {}, RuleSource("official_text", "HearthstoneJSON 251332")),
         CardRule("TIME_873t", {}, RuleSource("official_text", "HearthstoneJSON 251332")),
         CardRule("TIME_713t", {Hook.DEATHRATTLE: (TimelessChestDeathrattle(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TLC_366", {}, RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+                 cost_modifier=CostIfKindred(2)),
+        CardRule("TLC_903", {Hook.BATTLECRY: (KindredHeroAttack(5),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule(
             "TIME_850", {Hook.DEATHRATTLE: (SummonBloodFighterFromHandThenAttack(),)},
