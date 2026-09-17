@@ -426,6 +426,15 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertIsNotNone(game.pending_choice)
         self.assertEqual("REWIND", game.pending_choice["kind"])
 
+    def test_morchie_handles_three_clocksworth_rewinds(self):
+        game = self.game(281)
+        self.add_board(game, "END_036", 0)
+        card = self.add_hand(game, "TIME_038")
+        self.play(game, card)
+        self.assertIsNone(game.pending_choice)
+        both = [event for event in game.events if event["kind"] == "rewind_both_outcomes"]
+        self.assertEqual(3, len(both))
+
     def test_all_closed_rewind_cards_are_instantiable(self):
         game = self.game(277)
         for card_id in sorted(ADDITIONAL_PLAYABLE_CARD_IDS):
