@@ -873,7 +873,7 @@ class OfferRaptorHeraldDiscover:
 
     def execute(self, game: Any, context: RuleContext) -> None:
         OfferMinionDarkGiftDiscover(race="BEAST").execute(game, context)
-        if game.pending_choice is not None and game._kindred_active(context.player, context.card):
+        if game.pending_choice is not None and game._kindred_repeats(context.player, context.card):
             game.pending_choice["dark_gift_cost_delta"] = -1
 
 
@@ -1948,7 +1948,7 @@ class HotSpringGliderBattlecry:
     """Discount the next Murloc; Kindred also grants this minion Divine Shield."""
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        kindred = game._kindred_active(context.player, context.card)
+        kindred = bool(game._kindred_repeats(context.player, context.card))
         context.player.next_murloc_cost_reduction += 1
         if kindred:
             context.card.divine_shield = True
@@ -3492,8 +3492,7 @@ class KindredHeroAttack:
     amount: int
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        races = set(context.card.definition.races)
-        if races & context.player.played_races_last_turn:
+        if game._kindred_repeats(context.player, context.card):
             context.player.hero_attack_bonus += self.amount
             game._event("kindred_hero_attack", player=context.player.index,
                         source=context.card.card_id, amount=self.amount)
@@ -3507,7 +3506,8 @@ class CryosleepKindred:
         target = (context.action.target_player, context.action.target_entity)
         game._deal_to_target(context.player.index, target, 4, source=context.card)
         Draw().execute(game, context)
-        if game._kindred_active(context.player, context.card):
+        repeats = game._kindred_repeats(context.player, context.card)
+        for _ in range(repeats):
             Draw().execute(game, context)
 
 
@@ -3519,7 +3519,8 @@ class CausticFumesKindred:
         target = game._find_minion(context.action.target_player, context.action.target_entity)
         target.damage = target.max_health
         game._resolve_deaths()
-        if game._kindred_active(context.player, context.card):
+        repeats = game._kindred_repeats(context.player, context.card)
+        for _ in range(repeats):
             DamageAllMinions(2).execute(game, context)
             game._resolve_deaths()
 
@@ -3531,18 +3532,20 @@ class ConjuredBookkeeperDeathrattle:
             context.player,
             lambda card: card.definition.card_type == "SPELL",
         )
-        if not game._kindred_active(context.player, context.card):
+        repeats = game._kindred_repeats(context.player, context.card)
+        if not repeats:
             return
-        if len(context.player.board) + len(context.player.locations) >= 7:
-            return
-        copy = context.card.clone(game.next_entity_id)
-        game.next_entity_id += 1
-        copy.damage = 0
-        copy.summoned_turn = game.turn
-        copy.created_by = context.card.card_id
-        game._summon(context.player, copy)
-        game._event("conjured_bookkeeper_copy", player=context.player.index,
-                    source=context.card.card_id, entity=copy.entity_id)
+        for _ in range(repeats):
+            if len(context.player.board) + len(context.player.locations) >= 7:
+                break
+            copy = context.card.clone(game.next_entity_id)
+            game.next_entity_id += 1
+            copy.damage = 0
+            copy.summoned_turn = game.turn
+            copy.created_by = context.card.card_id
+            game._summon(context.player, copy)
+            game._event("conjured_bookkeeper_copy", player=context.player.index,
+                        source=context.card.card_id, entity=copy.entity_id)
 
 
 @dataclass(frozen=True)
