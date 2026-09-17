@@ -4565,9 +4565,9 @@ class DragonMirrorGame:
                     if minion.played_turn == self.turn - 1:
                         minion.damage = minion.max_health
                 self._resolve_deaths()
-            elif card.card_id == "TLC_243" and self._kindred_active(player, card):
+            elif card.card_id == "TLC_243" and self._kindred_repeats(player, card):
                 card.immune = True
-            elif card.card_id == "DINO_404" and self._kindred_active(player, card):
+            elif card.card_id == "DINO_404" and self._kindred_repeats(player, card):
                 for other in player.board:
                     if other.entity_id != card.entity_id:
                         other.rush = True
@@ -4577,25 +4577,27 @@ class DragonMirrorGame:
                     minion for minion in enemy.board
                     if minion.dormant_turns == 0
                 ]
+                kindred = bool(self._kindred_repeats(player, card))
                 for target in self.rng.sample(targets, min(2, len(targets))):
                     self._damage_minion(enemy.index, target, 2, card)
-                    if self._kindred_active(player, card):
+                    if kindred:
                         target.frozen_turn = self.turn
                         self._event(
                             "freeze", player=enemy.index,
                             entity=target.entity_id, source=card.card_id,
                         )
                 self._resolve_deaths()
-            elif card.card_id == "DINO_138" and self._kindred_active(player, card):
+            elif card.card_id == "DINO_138" and (repeats := self._kindred_repeats(player, card)):
                 enemy = self.players[1 - player.index]
                 targets = [m for m in enemy.board if m.dormant_turns == 0]
                 edge_targets = targets[:1] + targets[-1:]
-                seen: set[int] = set()
-                for target in edge_targets:
-                    if target.entity_id in seen:
-                        continue
-                    seen.add(target.entity_id)
-                    self._damage_minion(enemy.index, target, 6, card)
+                for _ in range(repeats):
+                    seen: set[int] = set()
+                    for target in edge_targets:
+                        if target.entity_id in seen:
+                            continue
+                        seen.add(target.entity_id)
+                        self._damage_minion(enemy.index, target, 6, card)
                 self._resolve_deaths()
             elif card.card_id == "TLC_432":
                 drawn = self._draw_matching(
@@ -4605,25 +4607,23 @@ class DragonMirrorGame:
                         and "DEATHRATTLE" in held.definition.mechanics
                     ),
                 )
-                if (
-                    drawn is not None
-                    and self._kindred_active(player, card)
-                ):
+                if drawn is not None and self._kindred_repeats(player, card):
                     drawn.cost_delta -= drawn.cost
             elif card.card_id == "TLC_463":
                 # Razidir discards from its controller normally; Kindred
                 # redirects the random discard to the opponent's hand.
-                recipient = self.players[1 - player.index] if self._kindred_active(player, card) else player
+                recipient = self.players[1 - player.index] if self._kindred_repeats(player, card) else player
                 if recipient.hand:
                     discarded = self.rng.choice(recipient.hand)
                     recipient.hand.remove(discarded)
                     self._event("discard", player=recipient.index,
                                 card=discarded.card_id, entity=discarded.entity_id,
                                 source=card.card_id)
-            elif card.card_id == "TLC_825" and self._kindred_active(player, card):
+            elif card.card_id == "TLC_825" and (repeats := self._kindred_repeats(player, card)):
                 if action.target_player is not None and action.target_entity is not None:
                     target = self._find_minion(action.target_player, action.target_entity)
-                    self._damage_minion(action.target_player, target, card.attack, card)
+                    for _ in range(repeats):
+                        self._damage_minion(action.target_player, target, card.attack, card)
                     self._resolve_deaths()
             elif card.card_id == "TLC_829":
                 if action.target_player is not None and action.target_entity is not None:
@@ -4631,7 +4631,7 @@ class DragonMirrorGame:
                     attack, health = target.attack, target.max_health
                     target.damage = target.max_health
                     self._resolve_deaths()
-                    if self._kindred_active(player, card):
+                    if self._kindred_repeats(player, card):
                         card.attack_delta += attack - card.definition.attack
                         card.health_delta += health - card.definition.health
                         self._event("ravenous_devilsaur_gain_stats", player=player.index,
@@ -4643,7 +4643,8 @@ class DragonMirrorGame:
                     cinder = self._entity("TLC_249", created_by=card.card_id)
                     cinder.summoned_turn = self.turn
                     self._summon(player, cinder)
-                if self._kindred_active(player, card):
+                repeats = self._kindred_repeats(player, card)
+                for _ in range(repeats):
                     for cinder in list(player.board):
                         if cinder.card_id == "TLC_249" and not cinder.silenced:
                             self._deathrattle(player, cinder)
@@ -4666,11 +4667,9 @@ class DragonMirrorGame:
                 drawn = self._draw_matching(
                     player, lambda held: held.definition.spell_school == "FIRE"
                 )
-                if (
-                    drawn is not None
-                    and self._kindred_active(player, card)
-                ):
-                    drawn.spell_damage_bonus += 2
+                repeats = self._kindred_repeats(player, card)
+                if drawn is not None and repeats:
+                    drawn.spell_damage_bonus += 2 * repeats
             elif card.card_id == "FIR_951":
                 options = [amount for amount in (10, 20, 30) if amount <= player.corpses]
                 if options:
