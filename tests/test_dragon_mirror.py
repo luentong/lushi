@@ -426,6 +426,16 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertIsNotNone(game.pending_choice)
         self.assertEqual("REWIND", game.pending_choice["kind"])
 
+    def test_random_spell_target_pool_respects_faction_and_dormant(self):
+        game = self.game(283)
+        enemy_minion = self.add_board(game, "CORE_NEW1_023", 1)
+        enemy_dormant = self.add_board(game, "EDR_840t", 1)
+        enemy_dormant.dormant_turns = 2
+        spell = CardInstance(-1, CardDef("X", "X", "SPELL", 1, text="Deal damage to a random enemy."))
+        targets = game._random_spell_target_candidates(0, spell)
+        self.assertTrue(all(owner == 1 for owner, _, _ in targets))
+        self.assertNotIn(enemy_dormant.entity_id, [entity for _, entity, _ in targets])
+
     def test_morchie_handles_three_clocksworth_rewinds(self):
         game = self.game(281)
         self.add_board(game, "END_036", 0)
