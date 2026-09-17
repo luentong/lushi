@@ -6479,15 +6479,14 @@ class DragonMirrorGame:
                 summoned.append({"card": card_id, "entity": minion.entity_id})
             return summoned
         if effect == "druid_of_regrowth":
-            # Cast only targetless Nature spells through the normal spell
-            # dispatcher. Targeted spells are left out rather than inventing a
-            # target, and are reported for follow-up pool completion.
+            # Prefer targetless Nature spells, then resolve targeted spells
+            # through the same faction/priority-aware candidate pool.  The
+            # normal spell dispatcher remains the final legality authority.
             candidates = [
                 card_id for card_id, definition in self.card_defs.items()
                 if card_id in EXECUTABLE_CARD_IDS
                 and definition.card_type == "SPELL"
                 and definition.spell_school == "NATURE"
-                and not any(word in definition.text.casefold() for word in ("target", "enemy", "friendly"))
             ]
             cast = []
             for _ in range(2):
@@ -6498,9 +6497,6 @@ class DragonMirrorGame:
                     self._cast_spell(player, spell, Action("PLAY", spell.entity_id))
                     cast.append({"card": spell.card_id, "entity": spell.entity_id})
                 except ValueError as exc:
-                    # Common targeted damage spells can safely default to the
-                    # opposing hero.  Other target requirements remain
-                    # explicit unavailable outcomes rather than guessed plays.
                     targeted = self._random_spell_target_candidates(player.index, spell)
                     for target_player, target_entity, target_name in targeted:
                         try:
