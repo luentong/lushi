@@ -582,6 +582,23 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertGreaterEqual(game.turn, before + 2)
         self.assertFalse(game.players[0].skip_next_turn)
 
+    def test_lady_azshara_choice_empowers_one_location(self):
+        game = self.game(296)
+        player = game.players[0]
+        player.locations.append(Location(9001, "TIME_211t2", 3, cooldown=0))
+        player.locations.append(Location(9002, "TIME_211t1", 3, cooldown=0))
+        player.hand.append(game._entity("TIME_211t1"))
+        player.deck.append(game._entity("TIME_211t1t", started_in_deck=True))
+        game.players[1].hand.append(game._entity("TIME_211t1"))
+        card = self.add_hand(game, "TIME_211")
+        self.play(game, card)
+        self.assertEqual("RULE_CHOICE", game.pending_choice["kind"])
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        self.assertEqual(["TIME_211t2t"], [location.card_id for location in player.locations])
+        self.assertFalse(any(card.card_id.startswith("TIME_211t1") for card in player.hand + player.deck))
+        self.assertTrue(any(card.card_id == "TIME_211t1" for card in game.players[1].hand))
+        self.assertEqual(["Empower Zin-Azshari"], [event["option"] for event in game.events if event["kind"] == "rule_choice_pick"])
+
     def test_morchie_handles_three_clocksworth_rewinds(self):
         game = self.game(281)
         self.add_board(game, "END_036", 0)

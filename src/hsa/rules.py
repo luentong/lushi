@@ -120,6 +120,9 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_209",  # Muradin, High King (Fabled)
     "TIME_875",  # Garona Halforcen (Fabled)
     "TIME_009",  # Gelbin of Tomorrow (Fabled)
+    "TIME_211",  # Lady Azshara (Fabled)
+    "TIME_211a", "TIME_211b", "TIME_211t1", "TIME_211t1t",
+    "TIME_211t2", "TIME_211t2t",
     "END_037",  # Endtime Murozond
     "CORE_EX1_096",  # Loot Hoarder
     "CORE_CFM_604",  # Greater Healing Potion
@@ -3098,6 +3101,52 @@ class EndtimeMurozondBattlecry:
 
 
 @dataclass(frozen=True)
+class EmpowerAzsharaLocation:
+    """Apply Lady Azshara's mutually-exclusive location empowerment."""
+
+    selected: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        kept = "TIME_211t2" if self.selected == "zin" else "TIME_211t1"
+        empowered = "TIME_211t2t" if self.selected == "zin" else "TIME_211t1t"
+        opposite = {"TIME_211t1", "TIME_211t1t"} if self.selected == "zin" else {
+            "TIME_211t2", "TIME_211t2t"
+        }
+        destroyed: list[int] = []
+        upgraded: list[int] = []
+        for location in list(player.locations):
+            if location.card_id in opposite:
+                player.locations.remove(location)
+                destroyed.append(location.entity_id)
+            elif location.card_id == kept:
+                location.card_id = empowered
+                upgraded.append(location.entity_id)
+        # The opposing empowerment is destroyed regardless of zone.  This is
+        # intentionally broader than removing a location from the battlefield:
+        # copies waiting in hand or deck are also destroyed by the card text.
+        for zone_name in ("hand", "deck"):
+            zone = getattr(player, zone_name)
+            survivors = []
+            for card in zone:
+                if card.card_id in opposite:
+                    destroyed.append(card.entity_id)
+                    game._event(
+                        "azshara_destroyed", player=player.index,
+                        source=context.card.card_id, card=card.card_id,
+                        entity=card.entity_id, zone=zone_name,
+                    )
+                else:
+                    survivors.append(card)
+            setattr(player, zone_name, survivors)
+        game._event(
+            "azshara_empowerment", player=player.index,
+            source=context.card.card_id, selected=self.selected,
+            upgraded=upgraded, destroyed=destroyed,
+        )
+
+
+@dataclass(frozen=True)
 class DestroyHeldCardAndHalveEnemyHealth:
     card_id: str
 
@@ -3767,6 +3816,18 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_pattern", "HearthstoneJSON 251332",
                 verification=("test_endtime_murozond_fills_heals_and_skips_turn",),
+            ),
+        ),
+        CardRule(
+            "TIME_211", {Hook.BATTLECRY: (
+                OfferEffectChoice(options=(
+                    ("Empower Zin-Azshari", (EmpowerAzsharaLocation("zin"),)),
+                    ("Empower the Well of Eternity", (EmpowerAzsharaLocation("well"),)),
+                )),
+            )},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_lady_azshara_choice_empowers_one_location",),
             ),
         ),
         CardRule(
