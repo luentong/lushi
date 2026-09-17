@@ -147,6 +147,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TLC_519", "TLC_519t",  # Ambush Predators
     "TLC_815", "TLC_816",  # Gravedawn spells
     "TLC_454",  # Scalehide Kodo
+    "TLC_463", "TLC_482", "TLC_825", "TLC_829",
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "CS2_tk1",
@@ -381,7 +382,10 @@ class CostIfKindred:
 
     def adjustment(self, game: Any, player: Any, card: Any) -> int:
         races = set(card.definition.races)
-        return -self.amount if races & player.played_races_last_turn else 0
+        active = bool(races & player.played_races_last_turn) if races else bool(
+            player.played_races_last_turn
+        )
+        return -self.amount if active else 0
 
 
 @dataclass(frozen=True)
@@ -2161,7 +2165,7 @@ class DrawMinionsByCosts:
     def execute(self, game: Any, context: RuleContext) -> None:
         player = context.player
         races = set(player.played_races_last_turn)
-        kindred = bool(races & set(context.card.definition.races))
+        kindred = bool(races & set(context.card.definition.races)) if context.card.definition.races else bool(races)
         for cost in self.costs:
             drawn = game._draw_matching(
                 player,

@@ -2554,7 +2554,12 @@ class DragonMirrorGame:
     @staticmethod
     def _kindred_active(player: Player, card: CardInstance) -> bool:
         """Whether a card's tribe was played during the previous turn."""
-        return bool(set(card.definition.races) & player.played_races_last_turn)
+        races = set(card.definition.races)
+        # Race-less spells use the generic Kindred condition: any friendly
+        # minion tribe played during the previous turn activates them.
+        return bool(races & player.played_races_last_turn) if races else bool(
+            player.played_races_last_turn
+        )
 
     def _overload(self, player: Player, amount: int) -> None:
         if amount <= 0:
@@ -4596,6 +4601,32 @@ class DragonMirrorGame:
                     and self._kindred_active(player, card)
                 ):
                     drawn.cost_delta -= drawn.cost
+            elif card.card_id == "TLC_463":
+                # Razidir discards from its controller normally; Kindred
+                # redirects the random discard to the opponent's hand.
+                recipient = self.players[1 - player.index] if self._kindred_active(player, card) else player
+                if recipient.hand:
+                    discarded = self.rng.choice(recipient.hand)
+                    recipient.hand.remove(discarded)
+                    self._event("discard", player=recipient.index,
+                                card=discarded.card_id, entity=discarded.entity_id,
+                                source=card.card_id)
+            elif card.card_id == "TLC_825" and self._kindred_active(player, card):
+                if action.target_player is not None and action.target_entity is not None:
+                    target = self._find_minion(action.target_player, action.target_entity)
+                    self._damage_minion(action.target_player, target, card.attack, card)
+                    self._resolve_deaths()
+            elif card.card_id == "TLC_829":
+                if action.target_player is not None and action.target_entity is not None:
+                    target = self._find_minion(action.target_player, action.target_entity)
+                    attack, health = target.attack, target.max_health
+                    target.damage = target.max_health
+                    self._resolve_deaths()
+                    if self._kindred_active(player, card):
+                        card.attack_delta += attack - card.definition.attack
+                        card.health_delta += health - card.definition.health
+                        self._event("ravenous_devilsaur_gain_stats", player=player.index,
+                                    source=card.card_id, attack=attack, health=health)
             elif card.card_id == "TLC_482":
                 for _ in range(2):
                     if len(player.board) + len(player.locations) >= 7:
