@@ -732,6 +732,7 @@ class CardInstance:
     deathrattle_summon_card_id: str | None = None
     high_kings_hammer_claimed: bool = False
     temporary: bool = False
+    spell_casts_twice: bool = False
     return_control_to: int | None = None
     return_control_at_end_of_turn: int | None = None
     cant_attack_turn: int = -1
@@ -3861,6 +3862,8 @@ class DragonMirrorGame:
                     and minion.dormant_turns == 0
                 ]
             self._cast_spell(player, card, action)
+            if card.spell_casts_twice and self.pending_choice is None:
+                self._cast_spell(player, card, action)
             if player.hamuul_active:
                 player.hamuul_spells_cast += 1
                 if player.hamuul_spells_cast % 3 == 0:

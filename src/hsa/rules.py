@@ -3210,6 +3210,8 @@ class SummonCopyOfFriendlyTarget:
 class FillHandRandomTemporarySpells:
     """Fill the controller's hand with random temporary spells."""
 
+    doubled: bool = False
+
     def execute(self, game: Any, context: RuleContext) -> None:
         candidates = [
             card_id for card_id in game.executable_card_ids
@@ -3220,6 +3222,7 @@ class FillHandRandomTemporarySpells:
         while len(context.player.hand) < 10 and candidates:
             card = game._entity(game.rng.choice(sorted(candidates)), created_by=context.card.card_id)
             card.temporary = True
+            card.spell_casts_twice = self.doubled
             context.player.hand.append(card)
             added.append(card.card_id)
         game._event(
@@ -4032,7 +4035,7 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource("official_text", "HearthstoneJSON 251332", verification=("test_well_fills_hand_with_temporary_spells",)),
         ),
         CardRule(
-            "TIME_211t1t", {Hook.LOCATION: (FillHandRandomTemporarySpells(),)},
+            "TIME_211t1t", {Hook.LOCATION: (FillHandRandomTemporarySpells(True),)},
             RuleSource("official_text", "HearthstoneJSON 251332", verification=("test_well_fills_hand_with_temporary_spells",)),
         ),
         CardRule(

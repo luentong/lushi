@@ -658,6 +658,15 @@ class DragonMirrorRulesTests(unittest.TestCase):
         game._end_turn()
         self.assertFalse(any(card.temporary for card in player.hand))
 
+    def test_empowered_well_marks_generated_spells_to_cast_twice(self):
+        game = self.game(304)
+        player = game.players[0]
+        location = Location(9102, "TIME_211t1t", 3, cooldown=0)
+        player.locations.append(location)
+        game.step(Action("LOCATION", location.entity_id))
+        self.assertTrue(player.hand)
+        self.assertTrue(all(card.spell_casts_twice for card in player.hand))
+
     def test_timethief_rafaam_requires_other_fabled_cards(self):
         from hsa.dragon_mirror import FABLED_MINION_IDS
         game = self.game(299)
