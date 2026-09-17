@@ -117,6 +117,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_GVG_114",  # Sneed's Old Shredder
     "TIME_609",  # Ranger General Sylvanas (Fabled)
     "TIME_850",  # Lo'Gosh, Blood Fighter (Fabled)
+    "TIME_209",  # Muradin, High King (Fabled)
     "CORE_EX1_096",  # Loot Hoarder
     "CORE_CFM_604",  # Greater Healing Potion
     "CORE_BRM_013",  # Quick Shot
@@ -3023,6 +3024,15 @@ class SummonBloodFighterFromHandThenAttack:
 
 
 @dataclass(frozen=True)
+class EquipHighKingsHammer:
+    """Muradin's Fabled Battlecry: equip the High King's Hammer."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        from .dragon_mirror import Weapon
+        game._equip_weapon(context.player, Weapon("TIME_209t", "High King's Hammer", 3, 4))
+
+
+@dataclass(frozen=True)
 class AddToHand:
     card_id: str
     count: int = 1
@@ -3659,6 +3669,14 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_pattern", "HearthstoneJSON 251332",
                 verification=("test_logosh_summons_blood_fighter_and_attacks",),
+            ),
+        ),
+        CardRule(
+            "TIME_209",
+            {Hook.BATTLECRY: (EquipHighKingsHammer(),), Hook.DEATHRATTLE: (AddToHand("TIME_209t"),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_muradin_equips_and_returns_hammer",),
             ),
         ),
         CardRule(
