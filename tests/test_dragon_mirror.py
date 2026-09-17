@@ -123,6 +123,7 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.play(game, card)
         self.assertEqual("DISCOVER", game.pending_choice["kind"])
         self.assertTrue(all(option.card_id in ADDITIONAL_PLAYABLE_CARD_IDS for option in game.pending_choice["options"]))
+
         self.assertEqual(1, game.turn)
         self.assertEqual(0, game.current)
         self.assertEqual((4, 5), tuple(len(p.hand) for p in game.players))
@@ -406,6 +407,15 @@ class DragonMirrorRulesTests(unittest.TestCase):
         ]
         self.assertEqual(1, len(generated))
         self.assertIn(generated[0].card_id, ADDITIONAL_PLAYABLE_CARD_IDS)
+
+    def test_morchie_keeps_both_rewind_outcomes_without_prompt(self):
+        game = self.game(275)
+        self.add_board(game, "END_036", 0)
+        card = self.add_hand(game, "TIME_001")
+        self.play(game, card)
+        self.assertIsNone(game.pending_choice)
+        both = [event for event in game.events if event["kind"] == "rewind_both_outcomes"]
+        self.assertEqual(1, len(both))
 
     def test_generated_weapon_passives_and_deathrattle(self):
         game = self.game(29)

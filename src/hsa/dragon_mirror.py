@@ -6100,6 +6100,24 @@ class DragonMirrorGame:
         """
         before_players = copy.deepcopy(self.players)
         outcome = self._run_rewind_effect(player, effect)
+        morchie_active = any(
+            minion.card_id == "END_036" and not minion.silenced
+            for minion in player.board
+        )
+        if morchie_active:
+            # Morchie removes the keep/retry prompt: both potential outcomes
+            # are retained.  Re-run from the first outcome so additive effects
+            # (damage, summons, draws) accumulate naturally.
+            second = self._run_rewind_effect(player, effect)
+            self._event(
+                "rewind_both_outcomes", player=player.index,
+                effect=effect, first=outcome, second=second,
+            )
+            if remaining_battlecries:
+                self._offer_rewind(
+                    player, effect, remaining_battlecries=remaining_battlecries - 1
+                )
+            return
         self.pending_choice = {
             "kind": "REWIND",
             "player": player.index,
