@@ -32,6 +32,7 @@ from hsa.dragon_mirror import (
     SUPPORTED_IDS,
     Weapon,
 )
+from hsa.rules import Hook, RuleContext
 
 
 CARDS = ROOT / "cards.251332.enUS.json"
@@ -574,6 +575,19 @@ class DragonMirrorRulesTests(unittest.TestCase):
         card = self.add_hand(game, "TIME_009")
         self.play(game, card)
         self.assertTrue({m.card_id for m in game.players[0].board} >= {"AURA_TEST_1", "AURA_TEST_2"})
+
+    def test_gelbin_aura_expires_after_three_ticks(self):
+        game = self.game(315)
+        player = game.players[0]
+        aura = game._entity("TIME_009t1")
+        target = self.add_board(game, "CORE_CS2_065", 0)
+        target.damage = 2
+        game._summon(player, aura)
+        for _ in range(3):
+            game.rule_registry.dispatch(Hook.END_TURN, aura.card_id, game,
+                                        RuleContext(player=player, card=aura))
+        self.assertNotIn(aura, player.board)
+        self.assertEqual(0, target.damage)
 
     def test_endtime_murozond_fills_heals_and_skips_turn(self):
         game = self.game(295)
