@@ -3036,6 +3036,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._apply_dark_gift(target, "sweet_dreams")
         self.assertEqual([], wallow.gifts)
 
+    def test_persisting_horror_reborns_full_health_with_gifts(self):
+        game = self.game()
+        target = self.add_board(game, "EDR_810t", 0)
+        game._apply_dark_gift(target, "persisting_horror")
+        game._apply_dark_gift(target, "sweet_dreams")
+        game._damage_minion(0, target, target.health)
+        game._resolve_deaths()
+        reborn = next(card for card in game.players[0].board if card.card_id == "EDR_810t")
+        self.assertEqual(reborn.max_health, reborn.health)
+        self.assertIn("persisting_horror", reborn.gifts)
+        self.assertIn("sweet_dreams", reborn.gifts)
+
     def test_raptor_herald_dark_gift_discover(self):
         game = self.game()
         herald = self.add_hand(game, "CORE_EDR_004")

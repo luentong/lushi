@@ -6819,8 +6819,13 @@ class DragonMirrorGame:
                     reborn = minion.clone(self.next_entity_id)
                     self.next_entity_id += 1
                     reborn.reborn = False
+                    # Persisting Horror's Dark Gift explicitly reborns with
+                    # full health and all enchantments; ordinary Reborn keeps
+                    # the engine's standard one-health behavior.
                     reborn.damage = (
-                        0 if minion.card_id == "CAP_800"
+                        0
+                        if minion.card_id == "CAP_800"
+                        or "persisting_horror" in minion.gifts
                         else reborn.max_health - 1
                     )
                     reborn.summoned_turn = self.turn
