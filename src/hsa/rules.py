@@ -154,6 +154,7 @@ STANDARD_DECLARATIVE_IDS = {
     "DINO_138", "DINO_404", "DINO_413",
     "TLC_102", "TLC_223", "TLC_243", "TLC_432", "TLC_600",
     "CORE_GIL_836",
+    "JAIL_460",
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "CS2_tk1",
@@ -895,6 +896,25 @@ class OfferBattlecryMinionDiscover:
         if game.pending_choice is not None:
             for option in game.pending_choice["options"]:
                 option.cost_delta -= 1
+
+
+@dataclass(frozen=True)
+class AddRandomWeapon:
+    """Add one random executable Standard weapon to the controller's hand."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        pool = [
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "WEAPON"
+        ]
+        if not pool:
+            return
+        card = game._entity(game.rng.choice(sorted(pool)), created_by=context.card.card_id)
+        destination = game._add_generated(context.player, card)
+        game._event("random_weapon_added", player=context.player.index,
+                    source=context.card.card_id, card=card.card_id,
+                    destination=destination)
 
 
 @dataclass(frozen=True)
@@ -4817,6 +4837,10 @@ def build_rule_registry() -> RuleRegistry:
         ),
         CardRule(
             "CORE_GIL_836", {Hook.SPELL: (OfferBattlecryMinionDiscover(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+        ),
+        CardRule(
+            "JAIL_460", {Hook.DEATHRATTLE: (AddRandomWeapon(),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
         ),
         CardRule(
