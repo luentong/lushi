@@ -589,6 +589,7 @@ class TransformFriendlyMinionRandom:
         if not context.player.board:
             return
         target = game.rng.choice(context.player.board)
+        requested_cost = self.cost + int(getattr(context.card, "boon_summon_cost_bonus", 0))
         candidates = [
             card_id for card_id in game.executable_card_ids
             if card_id in game.card_defs
@@ -3609,7 +3610,7 @@ class SummonRandomMinionWithCost:
             card_id for card_id in game.executable_card_ids
             if card_id in game.card_defs
             and game.card_defs[card_id].card_type == "MINION"
-            and game.card_defs[card_id].cost == self.cost
+            and game.card_defs[card_id].cost == requested_cost
         ]
         if not candidates:
             return
@@ -3628,7 +3629,7 @@ class SummonRandomMinionWithCost:
         game._event(
             "random_cost_minion_summoned", player=context.player.index,
             source=context.card.card_id, card=minion.card_id,
-            entity=minion.entity_id, cost=self.cost,
+            entity=minion.entity_id, cost=requested_cost,
         )
 @dataclass(frozen=True)
 class AddShaladrassilDreamCards:
