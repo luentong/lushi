@@ -6180,6 +6180,11 @@ class DragonMirrorGame:
         self.rng.shuffle(shuffled)
         options = [self._entity(card_id, created_by="TIME_EVENT_999")
                    for card_id in shuffled[:3]]
+        if not options:
+            self.pending_choice = None
+            self._event("rewind_discover_unavailable", player=player.index,
+                        source="TIME_EVENT_999", class_only=class_only)
+            return
         self.pending_choice = {
             "kind": "REWIND_DISCOVER", "player": player.index,
             "before_players": copy.deepcopy(self.players) if before_players is None else before_players,
