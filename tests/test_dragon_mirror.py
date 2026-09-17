@@ -417,6 +417,15 @@ class DragonMirrorRulesTests(unittest.TestCase):
         both = [event for event in game.events if event["kind"] == "rewind_both_outcomes"]
         self.assertEqual(1, len(both))
 
+    def test_silenced_morchie_restores_normal_rewind_prompt(self):
+        game = self.game(276)
+        morchie = self.add_board(game, "END_036", 0)
+        morchie.silenced = True
+        card = self.add_hand(game, "TIME_001")
+        self.play(game, card)
+        self.assertIsNotNone(game.pending_choice)
+        self.assertEqual("REWIND", game.pending_choice["kind"])
+
     def test_generated_weapon_passives_and_deathrattle(self):
         game = self.game(29)
         player = game.players[0]
