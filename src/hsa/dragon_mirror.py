@@ -503,6 +503,14 @@ DISCOVER_BANNED_IDS = {
     "CATA_150", "CATA_160", "CATA_497", "CATA_722", "TIME_850",
 }
 
+# Fabled is a standalone keyword in Taverns of Time.  It is not equivalent
+# to Legendary rarity: some Fabled cards can have any rarity, and Legendary
+# cards without the keyword must never enter this pool.
+FABLED_MINION_IDS = frozenset({
+    "TIME_005", "TIME_009", "TIME_020", "TIME_209", "TIME_211",
+    "TIME_609", "TIME_619", "TIME_850", "TIME_852", "TIME_875", "TIME_890",
+})
+
 DRAGON_IDS = {
     "TLC_600", "TIME_034", "END_033", "CATA_556",
     *GENERATED_DRAGON_IDS,
@@ -4006,9 +4014,8 @@ class DragonMirrorGame:
         if card.card_id == "TOT_332":
             fabled_pool = [
                 card_id for card_id, definition in self.card_defs.items()
-                if card_id in EXECUTABLE_CARD_IDS
+                if card_id in FABLED_MINION_IDS
                 and definition.card_type == "MINION"
-                and "FABLED" in definition.text.upper()
             ]
             if fabled_pool:
                 generated = self._entity(
