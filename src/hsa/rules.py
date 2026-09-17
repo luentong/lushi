@@ -5872,6 +5872,7 @@ def build_rule_registry() -> RuleRegistry:
                 "local_spec", local,
                 verification=("test_windpeak_wyrm_battlecry_and_coin_spell_rules",),
             ),
+            cost_modifier=CostIfKindred(3),
         ),
         CardRule(
             "CORE_UNG_084", {Hook.BATTLECRY: (DamageActionTarget(3),)},
