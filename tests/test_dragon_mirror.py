@@ -623,6 +623,20 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertTrue(drawn.rush)
         self.assertIn("speed", drawn.gifts)
 
+    def test_talanji_resurrects_dead_bwonsamdi_and_applies_boon(self):
+        game = self.game(301)
+        player = game.players[0]
+        dead = game._entity("TIME_619t")
+        player.dead_minions.append(dead)
+        talanji = self.add_hand(game, "TIME_619")
+        self.play(game, talanji)
+        self.assertEqual("RULE_CHOICE", game.pending_choice["kind"])
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        summoned = next(card for card in player.board if card.card_id == "TIME_619t")
+        self.assertTrue(summoned.taunt)
+        self.assertIn("power", summoned.gifts)
+        self.assertFalse(any(card.card_id == "TIME_619t" for card in player.dead_minions))
+
     def test_timethief_rafaam_requires_other_fabled_cards(self):
         from hsa.dragon_mirror import FABLED_MINION_IDS
         game = self.game(299)
