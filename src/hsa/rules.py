@@ -3029,7 +3029,37 @@ class EquipHighKingsHammer:
 
     def execute(self, game: Any, context: RuleContext) -> None:
         from .dragon_mirror import Weapon
+        deck_card = next((card for card in context.player.deck if card.card_id == "TIME_209t"), None)
+        if deck_card is None:
+            return
+        context.player.deck.remove(deck_card)
         game._equip_weapon(context.player, Weapon("TIME_209t", "High King's Hammer", 3, 4))
+        context.card.high_kings_hammer_claimed = True
+
+
+@dataclass(frozen=True)
+class ReturnHammerIfClaimed:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.card.high_kings_hammer_claimed and len(context.player.hand) < 10:
+            game._add_generated(context.player, game._entity("TIME_209t", created_by=context.card.card_id))
+
+
+@dataclass(frozen=True)
+class DestroyHeldCardAndHalveEnemyHealth:
+    card_id: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        held = next((card for card in enemy.hand if card.card_id == self.card_id), None)
+        if held is None:
+            return
+        enemy.hand.remove(held)
+        enemy.health = max(1, enemy.health // 2)
+        game._event(
+            "destroy_held_card_halve_health", player=context.player.index,
+            source=context.card.card_id, target_card=self.card_id,
+            target_player=enemy.index,
+        )
 
 
 @dataclass(frozen=True)
@@ -3673,7 +3703,7 @@ def build_rule_registry() -> RuleRegistry:
         ),
         CardRule(
             "TIME_209",
-            {Hook.BATTLECRY: (EquipHighKingsHammer(),), Hook.DEATHRATTLE: (AddToHand("TIME_209t"),)},
+            {Hook.BATTLECRY: (EquipHighKingsHammer(),), Hook.DEATHRATTLE: (ReturnHammerIfClaimed(),)},
             RuleSource(
                 "official_text_and_engine_pattern", "HearthstoneJSON 251332",
                 verification=("test_muradin_equips_and_returns_hammer",),

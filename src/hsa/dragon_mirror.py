@@ -724,6 +724,7 @@ class CardInstance:
     copied_from_opponent: bool = False
     deathrattle_copy_card_id: str | None = None
     deathrattle_summon_card_id: str | None = None
+    high_kings_hammer_claimed: bool = False
     temporary: bool = False
     return_control_to: int | None = None
     return_control_at_end_of_turn: int | None = None

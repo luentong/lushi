@@ -514,6 +514,7 @@ class DragonMirrorRulesTests(unittest.TestCase):
 
     def test_muradin_equips_and_returns_hammer(self):
         game = self.game(290)
+        game.players[0].deck.append(game._entity("TIME_209t", started_in_deck=True))
         card = self.add_hand(game, "TIME_209")
         self.play(game, card)
         self.assertIsNotNone(game.players[0].weapon)
@@ -522,6 +523,16 @@ class DragonMirrorRulesTests(unittest.TestCase):
         game._damage_minion(0, muradin, muradin.health)
         game._resolve_deaths()
         self.assertTrue(any(c.card_id == "TIME_209t" for c in game.players[0].hand))
+
+    def test_muradin_without_deck_hammer_does_not_equip_or_return(self):
+        game = self.game(291)
+        card = self.add_hand(game, "TIME_209")
+        self.play(game, card)
+        self.assertIsNone(game.players[0].weapon)
+        muradin = game.players[0].board[0]
+        game._damage_minion(0, muradin, muradin.health)
+        game._resolve_deaths()
+        self.assertFalse(any(c.card_id == "TIME_209t" for c in game.players[0].hand))
 
     def test_morchie_handles_three_clocksworth_rewinds(self):
         game = self.game(281)
