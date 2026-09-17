@@ -6085,6 +6085,22 @@ class DragonMirrorGame:
             token.rush = True
             token.summoned_turn = self.turn
             self._summon(player, token)
+        elif weapon.card_id == "TIME_875t1":
+            for owner in self.players:
+                candidates = [
+                    card for card in owner.deck
+                    if card.definition.card_type == "MINION"
+                    and card.definition.rarity == "LEGENDARY"
+                ]
+                if not candidates:
+                    continue
+                drawn = self.rng.choice(candidates)
+                owner.deck.remove(drawn)
+                destination = "hand" if len(owner.hand) < 10 else "burned"
+                if destination == "hand":
+                    owner.hand.append(drawn)
+                self._event("kingslayers_draw", player=owner.index,
+                            card=drawn.card_id, destination=destination)
         elif weapon.card_id == "JAIL_458" and weapon.ammunition is not None:
             self._fire_tiny_pal_ammunition(player, weapon, attacked)
         self._dispatch_after_hero_attack(
