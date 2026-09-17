@@ -4225,6 +4225,10 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_lady_azshara_choice_empowers_one_location",),
             ),
         ),
+        CardRule("TIME_211a", {Hook.SPELL: (EmpowerAzsharaLocation("zin"),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TIME_211b", {Hook.SPELL: (EmpowerAzsharaLocation("well"),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule(
             "TIME_619", {Hook.BATTLECRY: (TalanjiBattlecry(),)},
             RuleSource(
