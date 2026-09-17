@@ -2547,6 +2547,11 @@ class DragonMirrorGame:
             cost = 0
         return max(0, cost)
 
+    @staticmethod
+    def _kindred_active(player: Player, card: CardInstance) -> bool:
+        """Whether a card's tribe was played during the previous turn."""
+        return bool(set(card.definition.races) & player.played_races_last_turn)
+
     def _overload(self, player: Player, amount: int) -> None:
         if amount <= 0:
             return
@@ -4540,13 +4545,9 @@ class DragonMirrorGame:
                     if minion.played_turn == self.turn - 1:
                         minion.damage = minion.max_health
                 self._resolve_deaths()
-            elif card.card_id == "TLC_243" and (
-                set(card.definition.races) & player.played_races_last_turn
-            ):
+            elif card.card_id == "TLC_243" and self._kindred_active(player, card):
                 card.immune = True
-            elif card.card_id == "DINO_404" and (
-                set(card.definition.races) & player.played_races_last_turn
-            ):
+            elif card.card_id == "DINO_404" and self._kindred_active(player, card):
                 for other in player.board:
                     if other.entity_id != card.entity_id:
                         other.rush = True
@@ -4558,16 +4559,14 @@ class DragonMirrorGame:
                 ]
                 for target in self.rng.sample(targets, min(2, len(targets))):
                     self._damage_minion(enemy.index, target, 2, card)
-                    if set(card.definition.races) & player.played_races_last_turn:
+                    if self._kindred_active(player, card):
                         target.frozen_turn = self.turn
                         self._event(
                             "freeze", player=enemy.index,
                             entity=target.entity_id, source=card.card_id,
                         )
                 self._resolve_deaths()
-            elif card.card_id == "DINO_138" and (
-                set(card.definition.races) & player.played_races_last_turn
-            ):
+            elif card.card_id == "DINO_138" and self._kindred_active(player, card):
                 enemy = self.players[1 - player.index]
                 targets = [m for m in enemy.board if m.dormant_turns == 0]
                 edge_targets = targets[:1] + targets[-1:]
@@ -4588,7 +4587,7 @@ class DragonMirrorGame:
                 )
                 if (
                     drawn is not None
-                    and set(card.definition.races) & player.played_races_last_turn
+                    and self._kindred_active(player, card)
                 ):
                     drawn.cost_delta -= drawn.cost
             elif card.card_id == "TLC_482":
@@ -4598,7 +4597,7 @@ class DragonMirrorGame:
                     cinder = self._entity("TLC_249", created_by=card.card_id)
                     cinder.summoned_turn = self.turn
                     self._summon(player, cinder)
-                if set(card.definition.races) & player.played_races_last_turn:
+                if self._kindred_active(player, card):
                     for cinder in list(player.board):
                         if cinder.card_id == "TLC_249" and not cinder.silenced:
                             self._deathrattle(player, cinder)
@@ -4623,7 +4622,7 @@ class DragonMirrorGame:
                 )
                 if (
                     drawn is not None
-                    and set(card.definition.races) & player.played_races_last_turn
+                    and self._kindred_active(player, card)
                 ):
                     drawn.spell_damage_bonus += 2
             elif card.card_id == "FIR_951":
