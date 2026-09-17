@@ -3758,6 +3758,9 @@ class DragonMirrorGame:
         )
         player.cards_played_this_turn += 1
         player.played_card_counts[card.card_id] = player.played_card_counts.get(card.card_id, 0) + 1
+        if getattr(player, "rafaam_next_discount", False) and "rafaam" in card.definition.name.casefold():
+            player.rafaam_next_discount = False
+            self._event("rafaam_discount_consumed", player=player.index, card=card.card_id)
         card.combo_active = player.cards_played_this_turn > 1
         if not card.started_in_deck:
             player.generated_cards_played += 1

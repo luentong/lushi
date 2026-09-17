@@ -130,6 +130,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_020t2t", "TIME_020t3t", "TIME_020t4t", "TIME_020t5t",
     "TIME_005",  # Timethief Rafaam (Fabled+)
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
+    "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "END_037",  # Endtime Murozond
     "CORE_EX1_096",  # Loot Hoarder
     "CORE_CFM_604",  # Greater Healing Potion
@@ -353,6 +354,21 @@ class CostIfOutcast:
         if not active:
             return 0
         return self.target_cost - card.cost
+
+
+@dataclass(frozen=True)
+class RafaamCostDiscount:
+    """Dynamic discount for Giant Rafaam or the next Rafaam effect."""
+    mode: str
+
+    def adjustment(self, game: Any, player: Any, card: Any) -> int:
+        if self.mode == "giant":
+            count = sum(v for k, v in player.played_card_counts.items() if "TIME_005" in k)
+            return -min(card.cost, count)
+        if self.mode == "next":
+            if getattr(player, "rafaam_next_discount", False) and "rafaam" in card.definition.name.casefold():
+                return -min(card.cost, 3)
+        return 0
 
 
 def _recipient(game: Any, context: RuleContext, side: str) -> Any:
@@ -3385,6 +3401,9 @@ class RafaamTokenBattlecry:
                         card.health_delta += 2
                         affected += 1
             game._event("rafaam_token_buff", player=player.index, source=card_id, affected=affected)
+        elif card_id == "TIME_005t3":
+            pool = [card.card_id for card in player.deck if rafaams(card)]
+            game._offer_discover(player, pool, False, source_card_id=card_id)
         elif card_id == "TIME_005t4":
             amount = 5 * (2 if any(rafaams(card) and card is not context.card for card in player.hand) else 1)
             game._gain_armor(player, amount)
@@ -3406,6 +3425,9 @@ class RafaamTokenBattlecry:
                         damaged += 1
             game._resolve_deaths()
             game._event("rafaam_token_calamitous_damage", player=player.index, source=card_id, damaged=damaged)
+        elif card_id == "TIME_005t8":
+            player.rafaam_next_discount = True
+            game._event("rafaam_token_discount", player=player.index, source=card_id, amount=3)
 
 
 @dataclass(frozen=True)
@@ -4171,11 +4193,18 @@ def build_rule_registry() -> RuleRegistry:
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule("TIME_005t2", {Hook.BATTLECRY: (RafaamTokenBattlecry(),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TIME_005t3", {Hook.BATTLECRY: (RafaamTokenBattlecry(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule("TIME_005t4", {Hook.BATTLECRY: (RafaamTokenBattlecry(),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule("TIME_005t5", {Hook.BATTLECRY: (RafaamTokenBattlecry(),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule("TIME_005t6", {Hook.BATTLECRY: (RafaamTokenBattlecry(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TIME_005t7", {},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+                 cost_modifier=RafaamCostDiscount("giant")),
+        CardRule("TIME_005t8", {Hook.BATTLECRY: (RafaamTokenBattlecry(),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule(
             "TIME_609t1", {Hook.BATTLECRY: (AlleriaDiscoverSpell(),)},
