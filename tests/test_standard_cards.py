@@ -3029,6 +3029,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(2, wallow.gifts.count("sweet_dreams"))
         self.assertEqual(10, wallow.health_delta)
 
+    def test_played_wallow_does_not_receive_future_gifts(self):
+        game = self.game()
+        wallow = self.add_board(game, "EDR_487", 0)
+        target = self.add_board(game, "CORE_NEW1_023", 0)
+        game._apply_dark_gift(target, "sweet_dreams")
+        self.assertEqual([], wallow.gifts)
+
     def test_raptor_herald_dark_gift_discover(self):
         game = self.game()
         herald = self.add_hand(game, "CORE_EDR_004")
