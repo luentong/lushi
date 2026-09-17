@@ -255,6 +255,7 @@ ADDITIONAL_PLAYABLE_CARD_IDS = {
     "TIME_038",  # Mister Clocksworth
     "TOT_056",  # Wildlands Adventurer
     "TIME_033",  # Druid of Regrowth
+    "END_036",  # Morchie
     "TIME_433",  # Cease to Exist
     "TIME_441",  # Aeon Rend
     "TIME_610",  # Shadows of Yesterday
@@ -3921,6 +3922,12 @@ class DragonMirrorGame:
                     source=card.entity_id, card=generated.card_id,
                     destination=destination,
                 )
+            return
+        if card.card_id == "END_036":
+            self._offer_discover(
+                player, sorted(ADDITIONAL_PLAYABLE_CARD_IDS),
+                dark_gift=False, source_card_id=card.card_id,
+            )
             return
         if card.card_id == "TIME_003":
             self._offer_rewind(

@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from hsa.dragon_mirror import (
+    ADDITIONAL_PLAYABLE_CARD_IDS,
     ADDITIONAL_GENERATED_MINION_IDS,
     Action,
     BASIC_AUXILIARY_IDS,
@@ -117,6 +118,11 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertEqual("TIME_TRAVEL", pool_event["expansion"])
         self.assertGreater(pool_event["total_cards"], pool_event["executable_cards"])
         self.assertTrue(any(e["kind"] == "rewind_taverns_card" for e in game.events))
+        game = self.game(270)
+        card = self.add_hand(game, "END_036")
+        self.play(game, card)
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        self.assertTrue(all(option.card_id in ADDITIONAL_PLAYABLE_CARD_IDS for option in game.pending_choice["options"]))
         self.assertEqual(1, game.turn)
         self.assertEqual(0, game.current)
         self.assertEqual((4, 5), tuple(len(p.hand) for p in game.players))
