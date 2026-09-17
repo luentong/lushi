@@ -120,9 +120,9 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_850",  # Lo'Gosh, Blood Fighter (Fabled)
     "TIME_850t", "TIME_850t1",
     "TIME_209",  # Muradin, High King (Fabled)
-    "TIME_209t2",
+    "TIME_209t", "TIME_209t2",
     "TIME_875",  # Garona Halforcen (Fabled)
-    "TIME_009",  # Gelbin of Tomorrow (Fabled)
+    "TIME_875t1", "TIME_009",  # Gelbin of Tomorrow (Fabled)
     "TIME_009t1", "TIME_009t2",
     "TIME_211",  # Lady Azshara (Fabled)
     "TIME_211a", "TIME_211b", "TIME_211t1", "TIME_211t1t",
@@ -4295,6 +4295,8 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_muradin_equips_and_returns_hammer",),
             ),
         ),
+        CardRule("TIME_209t", {},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule(
             "END_037", {Hook.BATTLECRY: (EndtimeMurozondBattlecry(),)},
             RuleSource(
@@ -5094,6 +5096,8 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_garona_destroys_king_llane_and_halves_health",),
             ),
         ),
+        CardRule("TIME_875t1", {},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule(
             "TIME_009", {Hook.BATTLECRY: (SummonAurasFromDeck(),)},
             RuleSource(
