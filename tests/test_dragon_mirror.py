@@ -647,6 +647,17 @@ class DragonMirrorRulesTests(unittest.TestCase):
         copies = [m for m in player.board if m.card_id == target.card_id]
         self.assertEqual(2, len(copies))
 
+    def test_well_fills_hand_with_temporary_spells(self):
+        game = self.game(303)
+        player = game.players[0]
+        location = Location(9101, "TIME_211t1", 3, cooldown=0)
+        player.locations.append(location)
+        game.step(Action("LOCATION", location.entity_id))
+        self.assertTrue(player.hand)
+        self.assertTrue(all(card.temporary for card in player.hand))
+        game._end_turn()
+        self.assertFalse(any(card.temporary for card in player.hand))
+
     def test_timethief_rafaam_requires_other_fabled_cards(self):
         from hsa.dragon_mirror import FABLED_MINION_IDS
         game = self.game(299)

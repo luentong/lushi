@@ -3177,6 +3177,58 @@ class ApplyBwonsamdiBoon:
 
 
 @dataclass(frozen=True)
+class SummonCopyOfFriendlyTarget:
+    doubled: bool = False
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player != context.player.index:
+            raise ValueError("friendly minion target is required")
+        if context.action.target_entity is None:
+            raise ValueError("friendly minion target is required")
+        if len(context.player.board) + len(context.player.locations) >= 7:
+            return
+        target = game._find_minion(context.player.index, context.action.target_entity)
+        copy = game._instance_from_definition(target.definition, created_by=context.card.card_id)
+        copy.attack_delta = target.attack_delta
+        copy.health_delta = target.health_delta
+        copy.taunt = target.taunt
+        copy.rush = target.rush
+        copy.lifesteal = target.lifesteal
+        if self.doubled:
+            copy.attack_delta += target.attack
+            copy.health_delta += target.max_health
+        copy.summoned_turn = game.turn
+        game._summon(context.player, copy)
+        game._event(
+            "zin_azshari_copy_summoned", player=context.player.index,
+            source=context.card.card_id, target=target.entity_id,
+            entity=copy.entity_id, doubled=self.doubled,
+        )
+
+
+@dataclass(frozen=True)
+class FillHandRandomTemporarySpells:
+    """Fill the controller's hand with random temporary spells."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = [
+            card_id for card_id in game.executable_card_ids
+            if card_id in game.card_defs
+            and game.card_defs[card_id].card_type == "SPELL"
+        ]
+        added: list[str] = []
+        while len(context.player.hand) < 10 and candidates:
+            card = game._entity(game.rng.choice(sorted(candidates)), created_by=context.card.card_id)
+            card.temporary = True
+            context.player.hand.append(card)
+            added.append(card.card_id)
+        game._event(
+            "well_of_eternity_fill", player=context.player.index,
+            source=context.card.card_id, cards=added, temporary=True,
+        )
+
+
+@dataclass(frozen=True)
 class TalanjiBattlecry:
     """Draw or resurrect Bwonsamdi, then offer one of three Boons."""
 
@@ -3964,6 +4016,24 @@ def build_rule_registry() -> RuleRegistry:
                 "official_text_and_engine_pattern", "HearthstoneJSON 251332",
                 verification=("test_bwonsamdi_deathrattle_summons_random_four_cost",),
             ),
+        ),
+        CardRule(
+            "TIME_211t2", {Hook.LOCATION: (SummonCopyOfFriendlyTarget(False),)},
+            RuleSource("official_text", "HearthstoneJSON 251332", verification=("test_zin_azshari_copies_friendly_minion",)),
+            TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "TIME_211t2t", {Hook.LOCATION: (SummonCopyOfFriendlyTarget(True),)},
+            RuleSource("official_text", "HearthstoneJSON 251332", verification=("test_zin_azshari_copies_friendly_minion",)),
+            TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "TIME_211t1", {Hook.LOCATION: (FillHandRandomTemporarySpells(),)},
+            RuleSource("official_text", "HearthstoneJSON 251332", verification=("test_well_fills_hand_with_temporary_spells",)),
+        ),
+        CardRule(
+            "TIME_211t1t", {Hook.LOCATION: (FillHandRandomTemporarySpells(),)},
+            RuleSource("official_text", "HearthstoneJSON 251332", verification=("test_well_fills_hand_with_temporary_spells",)),
         ),
         CardRule(
             "EDR_800", {Hook.BATTLECRY: (ImbueHeroPowerByClass(),)},
