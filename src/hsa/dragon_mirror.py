@@ -925,6 +925,9 @@ class Player:
     next_beast_cost_reduction: int = 0
     next_murloc_cost_reduction: int = 0
     kindred_triggers_twice: int = 0
+    map_followup_options: list[str] = field(default_factory=list)
+    map_followup_entity: int | None = None
+    map_followup_turn: int = -1
     hero_divine_shield: bool = False
     hero_divine_shield_hits: int = 0
     hero_divine_shield_toreth: bool = False
@@ -960,6 +963,7 @@ class Player:
         result.played_races_last_turn = set(self.played_races_last_turn)
         result.damaged_characters_this_turn = set(self.damaged_characters_this_turn)
         result.played_card_counts = dict(self.played_card_counts)
+        result.map_followup_options = list(self.map_followup_options)
         return result
 
     @property
@@ -2140,6 +2144,10 @@ class DragonMirrorGame:
         player.imbue_passive_triggered_this_turn = False
         player.next_beast_cost_reduction = 0
         player.next_murloc_cost_reduction = 0
+        if player.map_followup_turn != self.turn:
+            player.map_followup_options.clear()
+            player.map_followup_entity = None
+            player.map_followup_turn = -1
         player.fire_spell_played = False
         player.cards_played_this_turn = 0
         player.dragons_played_this_turn = 0
@@ -3968,6 +3976,19 @@ class DragonMirrorGame:
                         "generated_burned", player=recipient.index,
                         card=copied.card_id, source=lorewalker.card_id,
                     )
+        if (
+            player.map_followup_entity == card.entity_id
+            and player.map_followup_turn == self.turn
+            and player.map_followup_options
+            and self.pending_choice is None
+        ):
+            options = list(player.map_followup_options)
+            player.map_followup_options.clear()
+            player.map_followup_entity = None
+            player.map_followup_turn = -1
+            self._offer_discover(player, options, dark_gift=False, source_card_id=card.card_id)
+            self._event("map_followup_offer", player=player.index,
+                        source=card.card_id, options=options)
         if card.definition.card_set == "TIME_TRAVEL":
             self._accelerate_timelords(
                 player,
@@ -5815,6 +5836,13 @@ class DragonMirrorGame:
         if pending.get("dark_gift_cost_delta"):
             option.cost_delta += pending["dark_gift_cost_delta"]
         destination = self._add_generated(player, option)
+        if pending.get("map_followup") and destination == "hand":
+            player.map_followup_options = [
+                other.card_id for other in pending["options"]
+                if other.card_id != option.card_id
+            ]
+            player.map_followup_entity = option.entity_id
+            player.map_followup_turn = self.turn
         self._event(
             "discover_pick", player=player.index, card=option.card_id,
             gifts=list(option.gifts), entity=option.entity_id,

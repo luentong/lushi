@@ -747,6 +747,7 @@ class DrawMatching:
 class OfferDeckCardDiscover:
     temporary: bool = False
     bottom_unchosen: bool = False
+    map_followup: bool = False
 
     def execute(self, game: Any, context: RuleContext) -> None:
         game._offer_deck_card_discover(
@@ -802,6 +803,8 @@ class OfferOutcastDiscover:
             context.player, candidates, False,
             source_card_id=context.card.card_id,
         )
+        if self.map_followup and game.pending_choice is not None:
+            game.pending_choice["map_followup"] = True
         context.player.next_spell_cost_reduction = max(
             context.player.next_spell_cost_reduction, 1
         )
@@ -893,7 +896,7 @@ class OfferBattlecryMinionDiscover:
             and definition.card_type == "MINION"
             and "BATTLECRY" in definition.mechanics
         ]
-        game._offer_discover(context.player, pool, source_card_id=context.card.card_id)
+        game._offer_discover(context.player, pool, dark_gift=False, source_card_id=context.card.card_id)
         if game.pending_choice is not None:
             for option in game.pending_choice["options"]:
                 option.cost_delta -= 1
@@ -945,7 +948,9 @@ class MapDiscover:
             if self.unplayed_race and set(definition.races) & played:
                 continue
             pool.append(card_id)
-        game._offer_discover(context.player, pool, source_card_id=context.card.card_id)
+        game._offer_discover(context.player, pool, dark_gift=False, source_card_id=context.card.card_id)
+        if game.pending_choice is not None:
+            game.pending_choice["map_followup"] = True
 
 
 @dataclass(frozen=True)
@@ -4880,7 +4885,7 @@ def build_rule_registry() -> RuleRegistry:
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule("TLC_464", {Hook.SPELL: (MapDiscover(unplayed_race=True),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
-        CardRule("TLC_515", {Hook.SPELL: (OfferDeckCardDiscover(),)},
+        CardRule("TLC_515", {Hook.SPELL: (OfferDeckCardDiscover(map_followup=True),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule("TLC_824", {Hook.SPELL: (MapDiscover(odd_attack_beast=True),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
