@@ -2208,10 +2208,7 @@ class DragonMirrorGame:
                         )
             elif minion.card_id == "DINO_132" and not minion.silenced:
                 enemy = self.players[1 - player.index]
-                candidates = [
-                    target for target in enemy.board
-                    if target.dormant_turns == 0
-                ]
+                candidates = self._random_enemy_minions(player.index)
                 if candidates:
                     self._damage_minion(
                         enemy.index, self.rng.choice(candidates), 5, minion
@@ -2253,7 +2250,7 @@ class DragonMirrorGame:
                     )
             elif minion.card_id == "EDR_453" and not minion.silenced:
                 enemy = self.players[1 - player.index]
-                targets = [m for m in enemy.board if m.dormant_turns == 0]
+                targets = self._random_enemy_minions(player.index)
                 if targets:
                     target = self.rng.choice(targets)
                     excess = (
@@ -3560,9 +3557,7 @@ class DragonMirrorGame:
                 self._summon(player, minion)
             return
         if card_id == "CATA_190t11":
-            candidates = [
-                minion for minion in enemy.board if minion.dormant_turns == 0
-            ]
+            candidates = self._random_enemy_minions(player.index)
             if candidates:
                 highest_health = max(minion.health for minion in candidates)
                 target = self.rng.choice([
@@ -4570,7 +4565,7 @@ class DragonMirrorGame:
                     )
             elif card.card_id == "END_034":
                 enemy = self.players[1 - player.index]
-                minions = [m for m in enemy.board if m.dormant_turns == 0]
+                minions = self._random_enemy_minions(player.index)
                 if minions:
                     destroyed_minion = self.rng.choice(minions)
                     destroyed_minion.damage = destroyed_minion.max_health
@@ -6848,10 +6843,7 @@ class DragonMirrorGame:
             basher.attack_delta += 2
             basher.health_delta += 2
             enemy = self.players[1 - player.index]
-            targets = [
-                minion for minion in enemy.board
-                if minion.dormant_turns == 0
-            ]
+            targets = self._random_enemy_minions(player.index)
             if targets:
                 self._forced_minion_attack(
                     player.index, basher, enemy.index,
@@ -7442,10 +7434,7 @@ class DragonMirrorGame:
                 self._summon(player, tank)
         elif minion.card_id == "TIME_603":
             enemy = self.players[1 - player.index]
-            targets = [
-                m for m in enemy.board
-                if m.health > 0 and m.dormant_turns == 0
-            ]
+            targets = self._random_enemy_minions(player.index)
             if targets:
                 target = self.rng.choice(targets)
                 target.damage = target.max_health
