@@ -125,6 +125,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_211t2", "TIME_211t2t",
     "TIME_619", "TIME_619t2", "TIME_619t3", "TIME_619t4", "TIME_619t5",
     "TIME_619t",
+    "TIME_005",  # Timethief Rafaam (Fabled+)
     "END_037",  # Endtime Murozond
     "CORE_EX1_096",  # Loot Hoarder
     "CORE_CFM_604",  # Greater Healing Potion
@@ -3207,6 +3208,30 @@ class TalanjiBattlecry:
 
 
 @dataclass(frozen=True)
+class TimethiefRafaamBattlecry:
+    """Destroy the enemy hero after the other Fabled minions were played."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        from .dragon_mirror import FABLED_MINION_IDS
+
+        required = set(FABLED_MINION_IDS) - {context.card.card_id}
+        played = context.player.played_card_counts
+        if required and not all(played.get(card_id, 0) > 0 for card_id in required):
+            game._event(
+                "rafaam_not_ready", player=context.player.index,
+                source=context.card.card_id,
+                remaining=sorted(card_id for card_id in required if not played.get(card_id, 0)),
+            )
+            return
+        enemy = game.players[1 - context.player.index]
+        enemy.health = 0
+        game._event(
+            "rafaam_destroy_enemy_hero", player=context.player.index,
+            source=context.card.card_id, target_player=enemy.index,
+        )
+
+
+@dataclass(frozen=True)
 class DestroyHeldCardAndHalveEnemyHealth:
     card_id: str
 
@@ -3924,6 +3949,13 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_pattern", "HearthstoneJSON 251332",
                 verification=("test_talanji_draws_or_resurrects_bwonsamdi_and_offers_boon",),
+            ),
+        ),
+        CardRule(
+            "TIME_005", {Hook.BATTLECRY: (TimethiefRafaamBattlecry(),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_timethief_rafaam_requires_other_fabled_cards",),
             ),
         ),
         CardRule(

@@ -623,6 +623,19 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertTrue(drawn.rush)
         self.assertIn("speed", drawn.gifts)
 
+    def test_timethief_rafaam_requires_other_fabled_cards(self):
+        from hsa.dragon_mirror import FABLED_MINION_IDS
+        game = self.game(299)
+        rafaam = self.add_hand(game, "TIME_005")
+        self.play(game, rafaam)
+        self.assertEqual(30, game.players[1].health)
+        game = self.game(300)
+        for card_id in FABLED_MINION_IDS - {"TIME_005"}:
+            game.players[0].played_card_counts[card_id] = 1
+        rafaam = self.add_hand(game, "TIME_005")
+        self.play(game, rafaam)
+        self.assertEqual(0, game.players[1].health)
+
     def test_morchie_handles_three_clocksworth_rewinds(self):
         game = self.game(281)
         self.add_board(game, "END_036", 0)
