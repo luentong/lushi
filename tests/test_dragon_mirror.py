@@ -684,6 +684,28 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.play(game, rafaam)
         self.assertEqual(0, game.players[1].health)
 
+    def test_rafaam_derived_tokens_execute_core_effects(self):
+        game = self.game(313)
+        player = game.players[0]
+        player.deck.append(game._entity("TIME_005", started_in_deck=True))
+        token = self.add_hand(game, "TIME_005t1")
+        self.play(game, token)
+        self.assertTrue(any(card.card_id == "TIME_005" for card in player.hand))
+
+        player.hand.clear()
+        green = self.add_hand(game, "TIME_005t2")
+        other = game._entity("TIME_005", started_in_deck=True)
+        player.hand.append(other)
+        self.play(game, green)
+        self.assertEqual(2, other.attack_delta)
+        self.assertEqual(2, other.health_delta)
+
+        player.hand.clear()
+        chief = self.add_hand(game, "TIME_005t4")
+        player.hand.append(game._entity("TIME_005", started_in_deck=True))
+        self.play(game, chief)
+        self.assertEqual(10, player.armor)
+
     def test_vereesa_buffs_deck_minions_and_repeats(self):
         game = self.game(305)
         player = game.players[0]

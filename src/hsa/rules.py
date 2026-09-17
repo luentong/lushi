@@ -129,6 +129,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_020t1", "TIME_020t2", "TIME_020t3", "TIME_020t4", "TIME_020t5",
     "TIME_020t2t", "TIME_020t3t", "TIME_020t4t", "TIME_020t5t",
     "TIME_005",  # Timethief Rafaam (Fabled+)
+    "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "END_037",  # Endtime Murozond
     "CORE_EX1_096",  # Loot Hoarder
     "CORE_CFM_604",  # Greater Healing Potion
@@ -3361,6 +3362,53 @@ class TimethiefRafaamBattlecry:
 
 
 @dataclass(frozen=True)
+class RafaamTokenBattlecry:
+    """Shared executable effects for Timethief Rafaam's derived minions."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        card_id = context.card.card_id
+        rafaams = lambda card: "rafaam" in card.definition.name.casefold()
+        if card_id == "TIME_005t1":
+            candidates = [card for card in player.deck if rafaams(card)]
+            if candidates and len(player.hand) < 10:
+                drawn = game.rng.choice(candidates)
+                player.deck.remove(drawn)
+                player.hand.append(drawn)
+                game._event("rafaam_token_draw", player=player.index, source=card_id, card=drawn.card_id)
+        elif card_id == "TIME_005t2":
+            affected = 0
+            for zone in (player.hand, player.board):
+                for card in zone:
+                    if card is not context.card and rafaams(card):
+                        card.attack_delta += 2
+                        card.health_delta += 2
+                        affected += 1
+            game._event("rafaam_token_buff", player=player.index, source=card_id, affected=affected)
+        elif card_id == "TIME_005t4":
+            amount = 5 * (2 if any(rafaams(card) and card is not context.card for card in player.hand) else 1)
+            game._gain_armor(player, amount)
+            game._event("rafaam_token_armor", player=player.index, source=card_id, amount=amount)
+        elif card_id == "TIME_005t5":
+            if any(rafaams(card) and card is not context.card for card in player.hand) and len(player.board) + len(player.locations) < 7:
+                copy = context.card.clone(game.next_entity_id)
+                game.next_entity_id += 1
+                copy.created_by = card_id
+                copy.summoned_turn = game.turn
+                game._summon(player, copy)
+                game._event("rafaam_token_copy", player=player.index, source=card_id, card=copy.card_id)
+        elif card_id == "TIME_005t6":
+            damaged = 0
+            for owner in game.players:
+                for minion in owner.board:
+                    if not rafaams(minion):
+                        game._damage_minion(owner.index, minion, 6)
+                        damaged += 1
+            game._resolve_deaths()
+            game._event("rafaam_token_calamitous_damage", player=player.index, source=card_id, damaged=damaged)
+
+
+@dataclass(frozen=True)
 class AlleriaDiscoverSpell:
     def execute(self, game: Any, context: RuleContext) -> None:
         pool = [
@@ -4119,6 +4167,16 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_timethief_rafaam_requires_other_fabled_cards",),
             ),
         ),
+        CardRule("TIME_005t1", {Hook.BATTLECRY: (RafaamTokenBattlecry(),), Hook.DEATHRATTLE: (RafaamTokenBattlecry(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TIME_005t2", {Hook.BATTLECRY: (RafaamTokenBattlecry(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TIME_005t4", {Hook.BATTLECRY: (RafaamTokenBattlecry(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TIME_005t5", {Hook.BATTLECRY: (RafaamTokenBattlecry(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TIME_005t6", {Hook.BATTLECRY: (RafaamTokenBattlecry(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule(
             "TIME_609t1", {Hook.BATTLECRY: (AlleriaDiscoverSpell(),)},
             RuleSource("official_text", "HearthstoneJSON 251332", verification=("test_alleria_discovers_and_repeats",)),
