@@ -6460,6 +6460,7 @@ class DragonMirrorGame:
                                     for m in self.players[1 - player.index].board)
                     targeted.extend((player.index, m.entity_id, "friendly_minion")
                                     for m in player.board)
+                    self.rng.shuffle(targeted)
                     for target_player, target_entity, target_name in targeted:
                         try:
                             self._cast_spell(
