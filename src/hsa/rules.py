@@ -123,6 +123,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_209t2",
     "TIME_875",  # Garona Halforcen (Fabled)
     "TIME_009",  # Gelbin of Tomorrow (Fabled)
+    "TIME_009t1", "TIME_009t2",
     "TIME_211",  # Lady Azshara (Fabled)
     "TIME_211a", "TIME_211b", "TIME_211t1", "TIME_211t1t",
     "TIME_211t2", "TIME_211t2t",
@@ -3277,6 +3278,35 @@ class AvatarForm:
         game._event("avatar_form", player=context.player.index, target=target.entity_id)
 
 
+@dataclass(frozen=True)
+class GelbinAuraEndTurn:
+    """Resolve one turn of Gelbin's temporary Aura and expire it after 3 turns."""
+    kind: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        aura = context.card
+        remaining = int(getattr(aura, "aura_remaining_turns", 3))
+        if self.kind == "heal":
+            context.player.health = min(context.player.max_health, context.player.health + 4)
+            for minion in context.player.board:
+                if minion is not aura and minion.health > 0:
+                    minion.damage = max(0, minion.damage - 4)
+        else:
+            candidates = [m for m in context.player.board if m is not aura and m.health > 0]
+            if candidates:
+                target = game.rng.choice(candidates)
+                target.attack_delta += 4
+                target.health_delta += 4
+                target.divine_shield = True
+        remaining -= 1
+        aura.aura_remaining_turns = remaining
+        game._event("gelbin_aura_tick", player=context.player.index,
+                    source=aura.card_id, remaining=max(0, remaining))
+        if remaining <= 0 and aura in context.player.board:
+            context.player.board.remove(aura)
+            game._event("gelbin_aura_expired", player=context.player.index, source=aura.card_id)
+
+
 
 
 @dataclass(frozen=True)
@@ -5066,6 +5096,10 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_gelbin_pulls_distinct_auras_from_deck",),
             ),
         ),
+        CardRule("TIME_009t1", {Hook.END_TURN: (GelbinAuraEndTurn("heal"),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TIME_009t2", {Hook.END_TURN: (GelbinAuraEndTurn("buff"),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule(
             "CORE_ULD_133", {Hook.END_TURN: (DrawIfUnspentMana(),)},
             RuleSource(

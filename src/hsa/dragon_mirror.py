@@ -1526,6 +1526,8 @@ class DragonMirrorGame:
             player.board.append(minion)
         else:
             player.board.insert(position, minion)
+        if minion.card_id in {"TIME_009t1", "TIME_009t2"}:
+            minion.aura_remaining_turns = 3
         if minion.has_race("MURLOC"):
             for tidecaller in tidecallers:
                 tidecaller.attack_delta += 1
