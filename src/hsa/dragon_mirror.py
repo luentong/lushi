@@ -3816,6 +3816,8 @@ class DragonMirrorGame:
             if card.card_id == "TIME_063":
                 card.dormant_turns = 5
             self._summon(controller, card)
+            if card.card_id == "TLC_107" and self._kindred_repeats(controller, card):
+                card.rush = True
             self._update_mirrex_trackers(self.players[1 - player.index], card)
             if "DEATHRATTLE" in card.definition.mechanics and any(
                 minion.entity_id != card.entity_id
@@ -6788,6 +6790,14 @@ class DragonMirrorGame:
         attacker = self._find_minion(self.current, action.source)
         attacker.attacks_this_turn += 1
         was_stealthed = self._break_stealth_for_attack(attacker)
+        if attacker.card_id == "TLC_107" and not attacker.silenced:
+            # Stormbrewer hits the declared target before normal combat.
+            if action.target_entity is None:
+                self._damage_hero(self.players[action.target_player], 3, attacker)
+            else:
+                target = self._find_minion(action.target_player, action.target_entity)
+                self._damage_minion(action.target_player, target, 3, attacker)
+                self._resolve_deaths()
         if self._trigger_freezing_trap(
             attacker, self.players[action.target_player]
         ):
@@ -7434,6 +7444,20 @@ class DragonMirrorGame:
                 source=minion.entity_id, card=coin.card_id,
                 destination=destination,
             )
+        if minion.card_id == "END_015" and self._kindred_repeats(player, minion):
+            candidates = [
+                card_id for card_id in self.executable_card_ids
+                if card_id in self.card_defs
+                and self.card_defs[card_id].card_type == "MINION"
+                and "DEATHRATTLE" in self.card_defs[card_id].mechanics
+            ]
+            if candidates:
+                card = self._entity(self.rng.choice(sorted(candidates)), created_by=minion.card_id)
+                card.cost_delta -= 2
+                destination = self._add_generated(player, card)
+                self._event("triennium_rex_kindred", player=player.index,
+                            source=minion.entity_id, card=card.card_id,
+                            destination=destination)
         if minion.card_id == "TIME_035":
             rewind_pool = sorted(ADDITIONAL_PLAYABLE_CARD_IDS)
             if rewind_pool:
