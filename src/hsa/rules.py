@@ -136,6 +136,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_005",  # Timethief Rafaam (Fabled+)
     "TIME_005t1", "TIME_005t2", "TIME_005t3", "TIME_005t4", "TIME_005t5",
     "TIME_005t6", "TIME_005t7", "TIME_005t8", "TIME_005t9",
+    "TIME_006t1", "TIME_870t", "TIME_873t",
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "CS2_tk1",
@@ -4305,6 +4306,9 @@ def build_rule_registry() -> RuleRegistry:
         CardRule("TIME_852t1", {}, RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule("TIME_852t3", {Hook.SPELL: (AzureOathstone(),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TIME_006t1", {}, RuleSource("official_text", "HearthstoneJSON 251332")),
+        CardRule("TIME_870t", {}, RuleSource("official_text", "HearthstoneJSON 251332")),
+        CardRule("TIME_873t", {}, RuleSource("official_text", "HearthstoneJSON 251332")),
         CardRule(
             "TIME_850", {Hook.DEATHRATTLE: (SummonBloodFighterFromHandThenAttack(),)},
             RuleSource(
