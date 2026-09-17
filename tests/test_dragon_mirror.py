@@ -439,6 +439,17 @@ class DragonMirrorRulesTests(unittest.TestCase):
         event = next(e for e in game.events if e["kind"] == "fabled_minion_generated")
         self.assertFalse(event["bundled_cards_resolved"])
 
+    def test_sands_of_time_nested_rewind_discover(self):
+        game = self.game(279)
+        card = self.add_hand(game, "TIME_EVENT_999")
+        self.play(game, card)
+        self.assertEqual("REWIND_DISCOVER", game.pending_choice["kind"])
+        game.step(Action("REWIND_RETRY"))
+        self.assertEqual("REWIND_DISCOVER", game.pending_choice["kind"])
+        option = game.pending_choice["options"][0]
+        game.step(Action("DISCOVER_PICK", option.entity_id))
+        self.assertIsNone(game.pending_choice)
+
     def test_generated_weapon_passives_and_deathrattle(self):
         game = self.game(29)
         player = game.players[0]

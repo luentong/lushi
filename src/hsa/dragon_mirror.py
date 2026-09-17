@@ -257,6 +257,7 @@ ADDITIONAL_PLAYABLE_CARD_IDS = {
     "TIME_033",  # Druid of Regrowth
     "END_036",  # Morchie
     "TOT_332",  # Murozond
+    "TIME_EVENT_999",  # Sands of Time
     "TIME_433",  # Cease to Exist
     "TIME_441",  # Aeon Rend
     "TIME_610",  # Shadows of Yesterday
@@ -3111,6 +3112,12 @@ class DragonMirrorGame:
                 return [Action("EARTHEN_ROAR_PICK", option.entity_id) for option in self.pending_choice["options"]]
             if self.pending_choice["kind"] == "REWIND":
                 return [Action("REWIND_KEEP"), Action("REWIND_RETRY")]
+            if self.pending_choice["kind"] == "REWIND_DISCOVER":
+                return [
+                    *(Action("DISCOVER_PICK", option.entity_id)
+                      for option in self.pending_choice["options"]),
+                    Action("REWIND_RETRY"),
+                ]
             if self.pending_choice["kind"] == "AMMUNITION":
                 return [
                     Action("AMMUNITION_PICK", option)
@@ -3379,13 +3386,19 @@ class DragonMirrorGame:
         elif action.kind == "HERO_POWER":
             self._use_hero_power(action)
         elif action.kind == "DISCOVER_PICK":
-            self._resolve_discover(action.source)
+            if self.pending_choice and self.pending_choice["kind"] == "REWIND_DISCOVER":
+                self._resolve_rewind_discover(action)
+            else:
+                self._resolve_discover(action.source)
         elif action.kind == "EARTHEN_ROAR_PICK":
             self._resolve_earthen_roar_pick(action.source)
         elif action.kind == "REWIND_KEEP":
             self._resolve_rewind(False)
         elif action.kind == "REWIND_RETRY":
-            self._resolve_rewind(True)
+            if self.pending_choice and self.pending_choice["kind"] == "REWIND_DISCOVER":
+                self._resolve_rewind_discover(action)
+            else:
+                self._resolve_rewind(True)
         elif action.kind == "AMMUNITION_PICK":
             self._resolve_ammunition(action.source)
         elif action.kind == "CORPSE_SPEND":
@@ -4587,6 +4600,8 @@ class DragonMirrorGame:
             self._offer_rewind(player, "mend_the_timeline")
         elif card.card_id == "TIME_602":
             self._offer_rewind(player, "wormhole")
+        elif card.card_id == "TIME_EVENT_999":
+            self._offer_rewind_discover(player)
         elif card.card_id == "FIR_939":
             self._deal_to_target(
                 player.index, (action.target_player, action.target_entity),
@@ -6153,6 +6168,40 @@ class DragonMirrorGame:
             restorable=True,
             outcome=outcome,
         )
+
+    def _offer_rewind_discover(self, player: Player) -> None:
+        pool = [
+            card_id for card_id, definition in self.card_defs.items()
+            if card_id in EXECUTABLE_CARD_IDS and definition.card_type == "SPELL"
+        ]
+        shuffled = sorted(pool)
+        self.rng.shuffle(shuffled)
+        options = [self._entity(card_id, created_by="TIME_EVENT_999")
+                   for card_id in shuffled[:3]]
+        self.pending_choice = {
+            "kind": "REWIND_DISCOVER", "player": player.index,
+            "before_players": copy.deepcopy(self.players),
+            "pool": tuple(sorted(pool)), "options": options,
+        }
+        self._event("rewind_discover_offer", player=player.index,
+                    options=[c.card_id for c in options])
+
+    def _resolve_rewind_discover(self, action: Action) -> None:
+        pending = self.pending_choice
+        if pending is None or pending["kind"] != "REWIND_DISCOVER":
+            raise ValueError("no Rewind Discover is pending")
+        if action.kind == "REWIND_RETRY":
+            self.players = copy.deepcopy(pending["before_players"])
+            self.pending_choice = None
+            self._offer_rewind_discover(self.players[pending["player"]])
+            return
+        option = next((c for c in pending["options"] if c.entity_id == action.source), None)
+        if option is None:
+            raise ValueError("invalid Rewind Discover option")
+        player = self.players[pending["player"]]
+        self.pending_choice = None
+        self._add_generated(player, option)
+        self._event("rewind_discover_pick", player=player.index, card=option.card_id)
 
     def _run_rewind_effect(self, player: Player, effect: str) -> Any:
         if effect == "stadium_weapons":
