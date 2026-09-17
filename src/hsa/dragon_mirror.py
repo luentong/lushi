@@ -2797,6 +2797,36 @@ class DragonMirrorGame:
             if minion.dormant_turns == 0
         ]
 
+    def _random_spell_target_candidates(
+        self, player_index: int, spell: CardInstance
+    ) -> list[tuple[int, int | None, str]]:
+        """Return a randomized, text-constrained target pool for a spell.
+
+        The spell resolver still performs the final legality check.  This
+        helper only applies the broad faction constraint from card text and
+        randomizes candidates uniformly before that check.
+        """
+        text = spell.definition.text.casefold()
+        enemy_only = "enemy" in text and "friendly" not in text
+        friendly_only = "friendly" in text and "enemy" not in text
+        candidates: list[tuple[int, int | None, str]] = []
+        if not friendly_only:
+            candidates.append((1 - player_index, None, "enemy_hero"))
+            candidates.extend(
+                (1 - player_index, minion.entity_id, "enemy_minion")
+                for minion in self.players[1 - player_index].board
+                if minion.dormant_turns == 0
+            )
+        if not enemy_only:
+            candidates.append((player_index, None, "friendly_hero"))
+            candidates.extend(
+                (player_index, minion.entity_id, "friendly_minion")
+                for minion in self.players[player_index].board
+                if minion.dormant_turns == 0
+            )
+        self.rng.shuffle(candidates)
+        return candidates
+
     def _has_taunt(self, owner_index: int, minion: CardInstance) -> bool:
         if minion.taunt:
             return True
@@ -6452,19 +6482,7 @@ class DragonMirrorGame:
                     # Common targeted damage spells can safely default to the
                     # opposing hero.  Other target requirements remain
                     # explicit unavailable outcomes rather than guessed plays.
-                    text = spell.definition.text.casefold()
-                    enemy_only = "enemy" in text and "friendly" not in text
-                    friendly_only = "friendly" in text and "enemy" not in text
-                    targeted = []
-                    if not friendly_only:
-                        targeted.append((1 - player.index, None, "enemy_hero"))
-                        targeted.extend((1 - player.index, m.entity_id, "enemy_minion")
-                                        for m in self.players[1 - player.index].board)
-                    if not enemy_only:
-                        targeted.append((player.index, None, "friendly_hero"))
-                        targeted.extend((player.index, m.entity_id, "friendly_minion")
-                                        for m in player.board)
-                    self.rng.shuffle(targeted)
+                    targeted = self._random_spell_target_candidates(player.index, spell)
                     for target_player, target_entity, target_name in targeted:
                         try:
                             self._cast_spell(
