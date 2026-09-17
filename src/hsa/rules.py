@@ -116,6 +116,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_EX1_189",  # Brightwing
     "CORE_GVG_114",  # Sneed's Old Shredder
     "TIME_609",  # Ranger General Sylvanas (Fabled)
+    "TIME_609t1", "TIME_609t2",
     "TIME_850",  # Lo'Gosh, Blood Fighter (Fabled)
     "TIME_209",  # Muradin, High King (Fabled)
     "TIME_875",  # Garona Halforcen (Fabled)
@@ -3287,6 +3288,31 @@ class TimethiefRafaamBattlecry:
 
 
 @dataclass(frozen=True)
+class AlleriaDiscoverSpell:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        pool = [
+            card_id for card_id in game.executable_card_ids
+            if card_id in game.card_defs and game.card_defs[card_id].card_type == "SPELL"
+        ]
+        repeats = 1 + context.player.played_card_counts.get("TIME_609", 0) + context.player.played_card_counts.get("TIME_609t2", 0)
+        game._offer_discover(context.player, pool, False, repeats=repeats, source_card_id=context.card.card_id)
+
+
+@dataclass(frozen=True)
+class VereesaBuffDeckMinions:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        repeats = 1 + context.player.played_card_counts.get("TIME_609", 0) + context.player.played_card_counts.get("TIME_609t1", 0)
+        affected = 0
+        for card in context.player.deck:
+            if card.definition.card_type != "MINION":
+                continue
+            card.attack_delta += repeats
+            card.health_delta += repeats
+            affected += 1
+        game._event("vereesa_deck_buff", player=context.player.index, repeats=repeats, affected=affected)
+
+
+@dataclass(frozen=True)
 class DestroyHeldCardAndHalveEnemyHealth:
     card_id: str
 
@@ -4019,6 +4045,14 @@ def build_rule_registry() -> RuleRegistry:
                 "official_text_and_engine_pattern", "HearthstoneJSON 251332",
                 verification=("test_timethief_rafaam_requires_other_fabled_cards",),
             ),
+        ),
+        CardRule(
+            "TIME_609t1", {Hook.BATTLECRY: (AlleriaDiscoverSpell(),)},
+            RuleSource("official_text", "HearthstoneJSON 251332", verification=("test_alleria_discovers_and_repeats",)),
+        ),
+        CardRule(
+            "TIME_609t2", {Hook.BATTLECRY: (VereesaBuffDeckMinions(),)},
+            RuleSource("official_text", "HearthstoneJSON 251332", verification=("test_vereesa_buffs_deck_minions_and_repeats",)),
         ),
         CardRule(
             "TIME_619t", {Hook.DEATHRATTLE: (SummonRandomMinionWithCost(4),)},

@@ -239,6 +239,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "TIME_619t",  # Bwonsamdi token
     "TIME_005",  # Timethief Rafaam
     "TIME_603",  # Ticking Timebomb
+    "TIME_609t1", "TIME_609t2",  # Sylvanas sister tokens
     "TLC_228",  # Bralma Searstone
     "TLC_241",  # Ido of the Threshfleet
     "TLC_110",  # City Chief Esho

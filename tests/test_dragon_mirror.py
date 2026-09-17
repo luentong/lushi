@@ -684,6 +684,17 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.play(game, rafaam)
         self.assertEqual(0, game.players[1].health)
 
+    def test_vereesa_buffs_deck_minions_and_repeats(self):
+        game = self.game(305)
+        player = game.players[0]
+        deck_card = game._entity("CORE_CS2_065", started_in_deck=True)
+        player.deck.append(deck_card)
+        player.played_card_counts["TIME_609"] = 1
+        token = self.add_hand(game, "TIME_609t2")
+        self.play(game, token)
+        self.assertEqual(2, deck_card.attack_delta)
+        self.assertEqual(2, deck_card.health_delta)
+
     def test_morchie_handles_three_clocksworth_rewinds(self):
         game = self.game(281)
         self.add_board(game, "END_036", 0)
