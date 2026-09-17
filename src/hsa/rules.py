@@ -151,6 +151,8 @@ STANDARD_DECLARATIVE_IDS = {
     "TLC_251", "TLC_251e",
     "TLC_107", "END_015",
     "DINO_435",
+    "DINO_138", "DINO_404", "DINO_413",
+    "TLC_102", "TLC_223", "TLC_243", "TLC_432", "TLC_600",
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "CS2_tk1",
