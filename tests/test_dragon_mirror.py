@@ -15,6 +15,7 @@ from hsa.dragon_mirror import (
     BASIC_AUXILIARY_IDS,
     BONUS_EFFECTS,
     CardDef,
+    CardInstance,
     DIRECT_IDS,
     DISCOVER_BANNED_IDS,
     DRAGON_IDS,
