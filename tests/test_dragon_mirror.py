@@ -437,6 +437,36 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertTrue(all(owner == 1 for owner, _, _ in targets))
         self.assertNotIn(enemy_dormant.entity_id, [entity for _, entity, _ in targets])
 
+    def test_random_spell_target_pool_supports_unrestricted_and_priority(self):
+        game = self.game(284)
+        enemy_minion = self.add_board(game, "CORE_NEW1_023", 1)
+        friendly_minion = self.add_board(game, "CORE_NEW1_023", 0)
+
+        unrestricted = CardInstance(
+            -1, CardDef("X1", "X1", "SPELL", 1, text="Deal damage to a random character.")
+        )
+        targets = game._random_spell_target_candidates(0, unrestricted)
+        self.assertEqual({0, 1}, {owner for owner, _, _ in targets})
+
+        enemy_priority = CardInstance(
+            -1,
+            CardDef(
+                "X2", "X2", "SPELL", 1,
+                text="Deal damage to a random enemy or friendly character; prefer enemy targets first.",
+            ),
+        )
+        targets = game._random_spell_target_candidates(0, enemy_priority)
+        owners = [owner for owner, _, _ in targets]
+        self.assertEqual([1, 1, 0, 0], owners)
+        self.assertIn(enemy_minion.entity_id, [entity for _, entity, _ in targets])
+        self.assertIn(friendly_minion.entity_id, [entity for _, entity, _ in targets])
+
+        friendly_only = CardInstance(
+            -1, CardDef("X3", "X3", "SPELL", 1, text="Restore health to a random friendly character.")
+        )
+        targets = game._random_spell_target_candidates(0, friendly_only)
+        self.assertTrue(all(owner == 0 for owner, _, _ in targets))
+
     def test_morchie_handles_three_clocksworth_rewinds(self):
         game = self.game(281)
         self.add_board(game, "END_036", 0)

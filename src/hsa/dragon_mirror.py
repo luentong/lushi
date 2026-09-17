@@ -2809,21 +2809,40 @@ class DragonMirrorGame:
         text = spell.definition.text.casefold()
         enemy_only = "enemy" in text and "friendly" not in text
         friendly_only = "friendly" in text and "enemy" not in text
-        candidates: list[tuple[int, int | None, str]] = []
+        enemy_priority = any(
+            token in text
+            for token in ("prefer enemy", "enemy first", "prioritize enemy", "enemy targets first")
+        )
+        friendly_priority = any(
+            token in text
+            for token in ("prefer friendly", "friendly first", "prioritize friendly", "friendly targets first")
+        )
+        enemy_candidates: list[tuple[int, int | None, str]] = []
+        friendly_candidates: list[tuple[int, int | None, str]] = []
         if not friendly_only:
-            candidates.append((1 - player_index, None, "enemy_hero"))
-            candidates.extend(
+            enemy_candidates.append((1 - player_index, None, "enemy_hero"))
+            enemy_candidates.extend(
                 (1 - player_index, minion.entity_id, "enemy_minion")
                 for minion in self.players[1 - player_index].board
                 if minion.dormant_turns == 0
             )
         if not enemy_only:
-            candidates.append((player_index, None, "friendly_hero"))
-            candidates.extend(
+            friendly_candidates.append((player_index, None, "friendly_hero"))
+            friendly_candidates.extend(
                 (player_index, minion.entity_id, "friendly_minion")
                 for minion in self.players[player_index].board
                 if minion.dormant_turns == 0
             )
+        # Shuffle each faction independently.  Priority means “try this
+        # faction first, then fall back to the other faction if it has no
+        # legal target”; it must not be undone by a final global shuffle.
+        self.rng.shuffle(enemy_candidates)
+        self.rng.shuffle(friendly_candidates)
+        if enemy_priority and enemy_candidates and friendly_candidates:
+            return enemy_candidates + friendly_candidates
+        if friendly_priority and enemy_candidates and friendly_candidates:
+            return friendly_candidates + enemy_candidates
+        candidates = enemy_candidates + friendly_candidates
         self.rng.shuffle(candidates)
         return candidates
 
