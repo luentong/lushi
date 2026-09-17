@@ -3270,6 +3270,7 @@ class AvatarForm:
             return
         if context.action.target_entity is None:
             context.player.avatar_form_hero_pending = True
+            context.player.hero_attack_bonus += 2
             game._event("avatar_form", player=context.player.index, target="hero")
             return
         target = game._find_minion(context.player.index, context.action.target_entity)
