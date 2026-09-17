@@ -4040,6 +4040,45 @@ class DragonMirrorGame:
 
     def _battlecry(self, player: Player, card: CardInstance, action: Action) -> None:
         times = 2 if card.battlecry_twice else 1
+        if card.card_id in {"CORE_LOE_079", "LOE_079"}:
+            # Elise's map is a real deck card and is shuffled immediately;
+            # this is intentionally not a hand generation shortcut.
+            map_card = self._entity("LOE_019t", created_by=card.card_id)
+            player.deck.insert(self.rng.randrange(len(player.deck) + 1), map_card)
+            self._event(
+                "elise_map_shuffled", player=player.index,
+                source=card.card_id, card=map_card.card_id,
+                entity=map_card.entity_id,
+            )
+            return
+        if card.card_id == "LOE_019t2":
+            # Golden Monkey preserves zone sizes while replacing each card
+            # with a random executable Legendary minion.  The played Monkey
+            # itself remains on board and is therefore not reinserted.
+            pool = [
+                card_id for card_id, definition in self.card_defs.items()
+                if card_id in EXECUTABLE_CARD_IDS
+                and definition.card_type == "MINION"
+                and definition.rarity == "LEGENDARY"
+                and card_id != "LOE_019t2"
+            ]
+            if pool:
+                hand_count, deck_count = len(player.hand), len(player.deck)
+                player.hand = [
+                    self._entity(self.rng.choice(pool), created_by=card.card_id)
+                    for _ in range(hand_count)
+                ]
+                player.deck = [
+                    self._entity(self.rng.choice(pool), started_in_deck=True,
+                                 created_by=card.card_id)
+                    for _ in range(deck_count)
+                ]
+                self._event(
+                    "golden_monkey_replace", player=player.index,
+                    source=card.card_id, hand_count=hand_count,
+                    deck_count=deck_count, pool_size=len(pool),
+                )
+            return
         if card.card_id == "JAIL_430":
             # This Battlecry is distinct from the card's pre-game deck rebuild:
             # draw repeatedly only after Azalina itself has occupied a board
@@ -4784,6 +4823,18 @@ class DragonMirrorGame:
             Hook.SPELL, card.card_id, self,
             RuleContext(player=player, card=card, action=action),
         ):
+            return
+        if card.card_id == "LOE_019t":
+            # The map shuffles the Monkey first, then draws.  In particular,
+            # the draw can burn the card if the hand was already full.
+            monkey = self._entity("LOE_019t2", created_by=card.card_id)
+            player.deck.insert(self.rng.randrange(len(player.deck) + 1), monkey)
+            self._event(
+                "golden_monkey_shuffled", player=player.index,
+                source=card.card_id, card=monkey.card_id,
+                entity=monkey.entity_id,
+            )
+            self._draw(player)
             return
         if card.card_id == "JAIL_200":
             # Sanitized Power.log observed 3 prior hero attacks producing two
