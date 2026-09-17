@@ -3226,6 +3226,19 @@ class ApplyBwonsamdiBoon:
 
 
 @dataclass(frozen=True)
+class ApplyBwonsamdiBoonSpell:
+    """Resolve a generated Boon spell onto the controller's Bwonsamdi."""
+    boon: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        target = next((m for m in context.player.board if m.card_id == "TIME_619t"), None)
+        if target is None:
+            return
+        ApplyBwonsamdiBoon(target.entity_id, self.boon).execute(game, context)
+        target.boon_summon_cost_bonus = getattr(target, "boon_summon_cost_bonus", 0) + 2
+
+
+@dataclass(frozen=True)
 class SummonCopyOfFriendlyTarget:
     doubled: bool = False
 
@@ -4277,6 +4290,12 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_bwonsamdi_deathrattle_summons_random_four_cost",),
             ),
         ),
+        CardRule("TIME_619t3", {Hook.SPELL: (ApplyBwonsamdiBoonSpell("power"),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TIME_619t4", {Hook.SPELL: (ApplyBwonsamdiBoonSpell("longevity"),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TIME_619t5", {Hook.SPELL: (ApplyBwonsamdiBoonSpell("speed"),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule(
             "TIME_020t2", {Hook.SPELL: (SummonOpponentArgusDemon(),)},
             RuleSource("official_text", "HearthstoneJSON 251332", verification=("test_first_portal_summons_opponent_demon",)),
