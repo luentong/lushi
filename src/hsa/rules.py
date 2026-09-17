@@ -4276,6 +4276,8 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_ranger_general_sylvanas_hits_all_enemies",),
             ),
         ),
+        CardRule("TIME_020", {}, RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TIME_852", {}, RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule(
             "TIME_850", {Hook.DEATHRATTLE: (SummonBloodFighterFromHandThenAttack(),)},
             RuleSource(
@@ -4356,6 +4358,7 @@ def build_rule_registry() -> RuleRegistry:
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule("TIME_005t9", {Hook.BATTLECRY: (ArchmageRafaamBattlecry(),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TIME_005t9t", {}, RuleSource("official_text", "HearthstoneJSON 251332")),
         CardRule(
             "TIME_609t1", {Hook.BATTLECRY: (AlleriaDiscoverSpell(),)},
             RuleSource("official_text", "HearthstoneJSON 251332", verification=("test_alleria_discovers_and_repeats",)),
