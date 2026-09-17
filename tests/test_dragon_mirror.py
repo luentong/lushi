@@ -499,6 +499,19 @@ class DragonMirrorRulesTests(unittest.TestCase):
         event = next(e for e in game.events if e["kind"] == "all_enemy_damage")
         self.assertEqual(3, event["repeats"])
 
+    def test_logosh_summons_blood_fighter_and_attacks(self):
+        game = self.game(289)
+        fighter = self.add_hand(game, "TIME_850t")
+        self.add_board(game, "TIME_850", 0)
+        self.add_board(game, "CORE_NEW1_023", 1)
+        logosh = game.players[0].board[0]
+        game._damage_minion(0, logosh, logosh.health)
+        game._resolve_deaths()
+        self.assertNotIn(fighter, game.players[0].hand)
+        event = next(e for e in game.events if e["kind"] == "blood_fighter_summoned")
+        summoned = next(m for m in game.players[0].board if m.entity_id == event["entity"])
+        self.assertEqual(5, summoned.attack_delta)
+
     def test_morchie_handles_three_clocksworth_rewinds(self):
         game = self.game(281)
         self.add_board(game, "END_036", 0)

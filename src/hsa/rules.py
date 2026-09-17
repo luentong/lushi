@@ -116,6 +116,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_EX1_189",  # Brightwing
     "CORE_GVG_114",  # Sneed's Old Shredder
     "TIME_609",  # Ranger General Sylvanas (Fabled)
+    "TIME_850",  # Lo'Gosh, Blood Fighter (Fabled)
     "CORE_EX1_096",  # Loot Hoarder
     "CORE_CFM_604",  # Greater Healing Potion
     "CORE_BRM_013",  # Quick Shot
@@ -2987,6 +2988,41 @@ class SummonStatsByHandThenAttackRandomEnemyMinion:
 
 
 @dataclass(frozen=True)
+class SummonBloodFighterFromHandThenAttack:
+    """Summon a Blood Fighter from hand, buff it, then attack randomly."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        candidates = [
+            card for card in player.hand
+            if "blood fighter" in card.definition.name.casefold()
+        ]
+        if not candidates or len(player.board) + len(player.locations) >= 7:
+            return
+        summoned = game.rng.choice(candidates)
+        player.hand.remove(summoned)
+        summoned.attack_delta += 5
+        summoned.health_delta += 5
+        summoned.summoned_turn = game.turn
+        game._summon(player, summoned)
+        targets = game._random_enemy_characters(player.index)
+        if targets:
+            target_player, target_entity = game.rng.choice(targets)
+            if target_entity is not None:
+                game._forced_minion_attack(
+                    player.index, summoned, target_player,
+                    game._find_minion(target_player, target_entity),
+                )
+            else:
+                game._damage_hero(game.players[target_player], summoned.attack, summoned)
+        game._event(
+            "blood_fighter_summoned", player=player.index,
+            source=context.card.card_id, card=summoned.card_id,
+            entity=summoned.entity_id,
+        )
+
+
+@dataclass(frozen=True)
 class AddToHand:
     card_id: str
     count: int = 1
@@ -3616,6 +3652,13 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_pattern", "HearthstoneJSON 251332",
                 verification=("test_ranger_general_sylvanas_hits_all_enemies",),
+            ),
+        ),
+        CardRule(
+            "TIME_850", {Hook.DEATHRATTLE: (SummonBloodFighterFromHandThenAttack(),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_logosh_summons_blood_fighter_and_attacks",),
             ),
         ),
         CardRule(

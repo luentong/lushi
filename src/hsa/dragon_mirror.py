@@ -230,6 +230,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "TIME_060",  # Quantum Destabilizer
     "TIME_606",  # Quel'dorei Fletcher
     "TIME_852",  # Azure Queen Sindragosa
+    "TIME_850",  # Lo'Gosh, Blood Fighter
     "TIME_603",  # Ticking Timebomb
     "TLC_228",  # Bralma Searstone
     "TLC_241",  # Ido of the Threshfleet
@@ -361,6 +362,7 @@ STANDARD_VANILLA_IDS = {
     "TIME_053", "TIME_434t", "TIME_443t", "TIME_443t2", "TIME_610t2",
     "TIME_873t", "TLC_230t", "TLC_237t", "TLC_240t", "TLC_240t2",
     "TLC_240t3", "TLC_248", "TLC_831t",
+    "TIME_850t", "TIME_850t1",
     # Core vanilla minions used as stable fixtures and valid neutral pool
     # members for the declarative draw rules.
     "CORE_CS2_231", "CORE_CS2_120", "CORE_GVG_044", "CORE_CS2_182",
