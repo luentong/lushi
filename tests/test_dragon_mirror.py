@@ -480,6 +480,15 @@ class DragonMirrorRulesTests(unittest.TestCase):
         game._resolve_deaths()
         self.assertTrue(any(m.created_by == "CORE_GVG_114" for m in game.players[0].board))
 
+    def test_ranger_general_sylvanas_hits_all_enemies(self):
+        game = self.game(287)
+        self.add_board(game, "CORE_NEW1_023", 1)
+        card = self.add_hand(game, "TIME_609")
+        self.play(game, card)
+        self.assertEqual(28, game.players[1].health)
+        event = next(e for e in game.events if e["kind"] == "all_enemy_damage")
+        self.assertEqual(2, len(event["targets"]))
+
     def test_morchie_handles_three_clocksworth_rewinds(self):
         game = self.game(281)
         self.add_board(game, "END_036", 0)

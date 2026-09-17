@@ -115,6 +115,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_CS2_053",  # Far Sight
     "CORE_EX1_189",  # Brightwing
     "CORE_GVG_114",  # Sneed's Old Shredder
+    "TIME_609",  # Ranger General Sylvanas (Fabled)
     "CORE_EX1_096",  # Loot Hoarder
     "CORE_CFM_604",  # Greater Healing Potion
     "CORE_BRM_013",  # Quick Shot
@@ -1121,6 +1122,24 @@ class DamageRandomEnemyCharacters:
         game._event(
             "random_enemy_damage", player=context.player.index,
             source=context.card.card_id, amount=amount, targets=chosen,
+        )
+
+
+@dataclass(frozen=True)
+class DamageAllEnemyCharacters:
+    """Deal fixed damage to the opposing hero and all awake minions."""
+
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        targets = game._random_enemy_characters(context.player.index)
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
+        for target in targets:
+            game._deal_to_target(context.player.index, target, amount, context.card)
+        game._resolve_deaths()
+        game._event(
+            "all_enemy_damage", player=context.player.index,
+            source=context.card.card_id, amount=amount, targets=targets,
         )
 
 
@@ -3581,6 +3600,13 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_pattern", "HearthstoneJSON 251332",
                 verification=("test_sneed_summons_random_legendary",),
+            ),
+        ),
+        CardRule(
+            "TIME_609", {Hook.BATTLECRY: (DamageAllEnemyCharacters(2),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_ranger_general_sylvanas_hits_all_enemies",),
             ),
         ),
         CardRule(
