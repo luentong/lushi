@@ -1767,9 +1767,10 @@ class DamageRandomEnemyMinionsThenDrawPerKill:
         enemy = game.players[1 - context.player.index]
         killed = 0
         for _ in range(self.count):
-            if not enemy.board:
+            available = [m for m in enemy.board if m.dormant_turns == 0]
+            if not available:
                 break
-            target = game.rng.choice(list(enemy.board))
+            target = game.rng.choice(available)
             game._damage_minion(enemy.index, target, self.amount, context.card)
             if target.health <= 0:
                 killed += 1

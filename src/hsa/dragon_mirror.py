@@ -7430,7 +7430,10 @@ class DragonMirrorGame:
                 self._summon(player, tank)
         elif minion.card_id == "TIME_603":
             enemy = self.players[1 - player.index]
-            targets = [m for m in enemy.board if m.health > 0]
+            targets = [
+                m for m in enemy.board
+                if m.health > 0 and m.dormant_turns == 0
+            ]
             if targets:
                 target = self.rng.choice(targets)
                 target.damage = target.max_health
