@@ -358,7 +358,7 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertEqual(base_health + 2, restored.max_health)
 
     def test_additional_rewind_cards_open_and_resolve(self):
-        for card_id in ("TIME_000", "TIME_002", "TIME_018"):
+        for card_id in ("TIME_000", "TIME_002", "TIME_018", "TIME_602"):
             game = self.game(200 + len(card_id))
             card = self.add_hand(game, card_id)
             self.play(game, card)

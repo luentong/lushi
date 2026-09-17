@@ -251,6 +251,7 @@ ADDITIONAL_PLAYABLE_CARD_IDS = {
     "TIME_014",  # Instant Multiverse
     "TIME_018",  # Mend the Timeline
     "TIME_035",  # Time Machine
+    "TIME_602",  # Wormhole
     "TIME_433",  # Cease to Exist
     "TIME_441",  # Aeon Rend
     "TIME_610",  # Shadows of Yesterday
@@ -4516,6 +4517,8 @@ class DragonMirrorGame:
             self._offer_rewind(player, "instant_multiverse")
         elif card.card_id == "TIME_018":
             self._offer_rewind(player, "mend_the_timeline")
+        elif card.card_id == "TIME_602":
+            self._offer_rewind(player, "wormhole")
         elif card.card_id == "FIR_939":
             self._deal_to_target(
                 player.index, (action.target_player, action.target_entity),
@@ -6225,6 +6228,31 @@ class DragonMirrorGame:
                                   "destination": destination})
             player.health = min(player.max_health, player.health + total_cost)
             return {"cards": generated, "healed": total_cost}
+        if effect == "wormhole":
+            candidates = [
+                card_id for card_id, definition in self.card_defs.items()
+                if card_id in EXECUTABLE_CARD_IDS
+                and definition.card_type == "MINION"
+                and definition.cost == 3
+                and "BEAST" in definition.races
+            ]
+            if not candidates or len(player.board) + len(player.locations) >= 7:
+                return None
+            summoned = self._entity(self.rng.choice(sorted(candidates)), created_by="TIME_602")
+            summoned.summoned_turn = self.turn
+            self._summon(player, summoned)
+            enemies = self._random_enemy_characters(player.index)
+            target = self.rng.choice(enemies) if enemies else None
+            if target is not None:
+                if target[1] is None:
+                    self._damage_hero(self.players[target[0]], summoned.attack, summoned)
+                else:
+                    defender = self._find_minion(target[0], target[1])
+                    self._damage_minion(target[0], defender, summoned.attack, summoned)
+                    self._damage_minion(player.index, summoned, defender.attack, defender)
+                    self._resolve_deaths()
+            return {"card": summoned.card_id, "entity": summoned.entity_id,
+                    "target": target}
         raise ValueError(f"unknown Rewind effect: {effect}")
 
     def _resolve_rewind(self, retry: bool) -> None:
