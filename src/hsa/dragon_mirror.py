@@ -892,6 +892,7 @@ class Player:
     # resolves before start-of-turn draws/mana refresh.
     skip_next_turn: bool = False
     broxigar_return_used: bool = False
+    broxigar_removed_from_game: bool = False
     imbued_hero_power_id: str | None = None
     imbue_passive_triggered_this_turn: bool = False
     hamuul_active: bool = False
@@ -1301,6 +1302,17 @@ class DragonMirrorGame:
         # Start-of-game happens after initial hands. Hogger duplicates every other
         # Legendary still represented by the deck list; here that is Warptooth.
         for player in self.players:
+            # Broxigar's Fabled Start of Game text removes him until the Argus
+            # portal chain completes. Keep the flag on Player so cloned search
+            # states preserve the one-time return condition.
+            for zone_name in ("hand", "deck"):
+                zone = getattr(player, zone_name)
+                removed = next((card for card in zone if card.card_id == "TIME_020"), None)
+                if removed is not None:
+                    zone.remove(removed)
+                    player.broxigar_removed_from_game = True
+                    self._event("broxigar_disappear", player=player.index, zone=zone_name, entity=removed.entity_id)
+                    break
             # Hamuul Runetotem: if every spell that started in the deck is
             # Nature, Imbue once at game start and repeat after each three
             # spells cast.  This is tracked as state rather than a one-off

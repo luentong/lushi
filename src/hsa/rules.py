@@ -3260,6 +3260,9 @@ class ArgusPortalDeathrattle:
     def execute(self, game: Any, context: RuleContext) -> None:
         recipient = game.players[1 - context.player.index]
         if self.return_broxigar:
+            if not recipient.broxigar_removed_from_game:
+                game._event("argus_broxigar_return_skipped", player=recipient.index, source=context.card.card_id, reason="broxigar_not_removed")
+                return
             if recipient.broxigar_return_used:
                 game._event("argus_broxigar_return_skipped", player=recipient.index, source=context.card.card_id, reason="once_per_game")
                 return

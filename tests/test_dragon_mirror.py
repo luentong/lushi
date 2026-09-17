@@ -731,6 +731,7 @@ class DragonMirrorRulesTests(unittest.TestCase):
 
     def test_final_argus_demon_returns_broxigar_only_once(self):
         game = self.game(309)
+        game.players[0].broxigar_removed_from_game = True
         first = self.add_board(game, "TIME_020t5t", 1)
         game._damage_minion(1, first, first.health)
         game._resolve_deaths()
@@ -740,6 +741,14 @@ class DragonMirrorRulesTests(unittest.TestCase):
         game._damage_minion(1, second, second.health)
         game._resolve_deaths()
         self.assertEqual(0, sum(card.card_id == "TIME_020" for card in game.players[0].hand))
+
+    def test_broxigar_start_of_game_disappears(self):
+        game = self.game(310)
+        card = game._entity("TIME_020", started_in_deck=True)
+        game.players[0].hand.append(card)
+        game._start_of_game()
+        self.assertFalse(any(c.card_id == "TIME_020" for c in game.players[0].hand + game.players[0].deck))
+        self.assertTrue(game.players[0].broxigar_removed_from_game)
     def test_morchie_handles_three_clocksworth_rewinds(self):
         game = self.game(281)
         self.add_board(game, "END_036", 0)
