@@ -706,6 +706,11 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.play(game, chief)
         self.assertEqual(10, player.armor)
 
+        enemy = self.add_board(game, "CORE_CS2_065", 1)
+        archmage = self.add_hand(game, "TIME_005t9")
+        self.play(game, archmage)
+        self.assertEqual("CS2_tk1", game.players[1].board[0].card_id)
+
     def test_vereesa_buffs_deck_minions_and_repeats(self):
         game = self.game(305)
         player = game.players[0]

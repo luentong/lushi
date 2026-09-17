@@ -129,8 +129,11 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_020t1", "TIME_020t2", "TIME_020t3", "TIME_020t4", "TIME_020t5",
     "TIME_020t2t", "TIME_020t3t", "TIME_020t4t", "TIME_020t5t",
     "TIME_005",  # Timethief Rafaam (Fabled+)
+    "TIME_005t1", "TIME_005t2", "TIME_005t3", "TIME_005t4", "TIME_005t5",
+    "TIME_005t6", "TIME_005t7", "TIME_005t8", "TIME_005t9",
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
+    "CS2_tk1",
     "END_037",  # Endtime Murozond
     "CORE_EX1_096",  # Loot Hoarder
     "CORE_CFM_604",  # Greater Healing Potion
@@ -3431,6 +3434,23 @@ class RafaamTokenBattlecry:
 
 
 @dataclass(frozen=True)
+class ArchmageRafaamBattlecry:
+    """Transform every non-Rafaam minion into a vanilla 1/1 Sheep."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        transformed = 0
+        for owner in game.players:
+            for index, target in list(enumerate(owner.board)):
+                if "rafaam" in target.definition.name.casefold():
+                    continue
+                sheep = game._entity("CS2_tk1", created_by=context.card.card_id)
+                sheep.entity_id = target.entity_id
+                owner.board[index] = sheep
+                transformed += 1
+        game._event("rafaam_archmage_transform", player=context.player.index, transformed=transformed)
+
+
+@dataclass(frozen=True)
 class AlleriaDiscoverSpell:
     def execute(self, game: Any, context: RuleContext) -> None:
         pool = [
@@ -4205,6 +4225,8 @@ def build_rule_registry() -> RuleRegistry:
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
                  cost_modifier=RafaamCostDiscount("giant")),
         CardRule("TIME_005t8", {Hook.BATTLECRY: (RafaamTokenBattlecry(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TIME_005t9", {Hook.BATTLECRY: (ArchmageRafaamBattlecry(),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule(
             "TIME_609t1", {Hook.BATTLECRY: (AlleriaDiscoverSpell(),)},
