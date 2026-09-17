@@ -140,6 +140,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_713t",
     "TLC_366", "TLC_903",
     "TLC_440",
+    "TLC_447",
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "CS2_tk1",
@@ -3374,6 +3375,19 @@ class CryosleepKindred:
 
 
 @dataclass(frozen=True)
+class CausticFumesKindred:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None or context.action.target_entity is None:
+            return
+        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        target.damage = target.max_health
+        game._resolve_deaths()
+        if game._kindred_active(context.player, context.card):
+            DamageAllMinions(2).execute(game, context)
+            game._resolve_deaths()
+
+
+@dataclass(frozen=True)
 class TimelessChestDeathrattle:
     """Fill the opponent's hand with Coins, respecting the hand cap."""
 
@@ -4369,6 +4383,9 @@ def build_rule_registry() -> RuleRegistry:
         CardRule("TLC_440", {Hook.SPELL: (CryosleepKindred(),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
                  targeting=TargetSpec(TargetKind.ANY_CHARACTER)),
+        CardRule("TLC_447", {Hook.SPELL: (CausticFumesKindred(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+                 targeting=TargetSpec(TargetKind.ENEMY_MINION)),
         CardRule(
             "TIME_850", {Hook.DEATHRATTLE: (SummonBloodFighterFromHandThenAttack(),)},
             RuleSource(
