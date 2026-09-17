@@ -235,6 +235,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "TIME_875",  # Garona Halforcen
     "TIME_009",  # Gelbin of Tomorrow
     "END_037",  # Endtime Murozond
+    "TIME_619",  # Talanji of the Graves
     "TIME_619t",  # Bwonsamdi token
     "TIME_603",  # Ticking Timebomb
     "TLC_228",  # Bralma Searstone

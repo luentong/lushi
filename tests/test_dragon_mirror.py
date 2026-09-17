@@ -610,6 +610,19 @@ class DragonMirrorRulesTests(unittest.TestCase):
         summoned = next(m for m in game.players[0].board if m.entity_id == event["entity"])
         self.assertEqual(4, summoned.definition.cost)
 
+    def test_talanji_draws_or_resurrects_bwonsamdi_and_offers_boon(self):
+        game = self.game(298)
+        player = game.players[0]
+        token = game._entity("TIME_619t", started_in_deck=True)
+        player.deck.append(token)
+        talanji = self.add_hand(game, "TIME_619")
+        self.play(game, talanji)
+        self.assertEqual("RULE_CHOICE", game.pending_choice["kind"])
+        drawn = next(card for card in player.hand if card.card_id == "TIME_619t")
+        game.step(Action("RULE_CHOICE_PICK", 2))
+        self.assertTrue(drawn.rush)
+        self.assertIn("speed", drawn.gifts)
+
     def test_morchie_handles_three_clocksworth_rewinds(self):
         game = self.game(281)
         self.add_board(game, "END_036", 0)

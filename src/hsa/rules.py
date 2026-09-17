@@ -123,6 +123,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_211",  # Lady Azshara (Fabled)
     "TIME_211a", "TIME_211b", "TIME_211t1", "TIME_211t1t",
     "TIME_211t2", "TIME_211t2t",
+    "TIME_619", "TIME_619t2", "TIME_619t3", "TIME_619t4", "TIME_619t5",
     "TIME_619t",
     "END_037",  # Endtime Murozond
     "CORE_EX1_096",  # Loot Hoarder
@@ -3148,6 +3149,64 @@ class EmpowerAzsharaLocation:
 
 
 @dataclass(frozen=True)
+class ApplyBwonsamdiBoon:
+    entity_id: int
+    boon: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        target = next(
+            (card for card in context.player.hand + context.player.board
+             if card.entity_id == self.entity_id),
+            None,
+        )
+        if target is None:
+            return
+        if self.boon == "power":
+            target.taunt = True
+        elif self.boon == "longevity":
+            target.lifesteal = True
+        elif self.boon == "speed":
+            target.rush = True
+        if self.boon not in target.gifts:
+            target.gifts.append(self.boon)
+        game._event(
+            "bwonsamdi_boon", player=context.player.index,
+            source=context.card.card_id, entity=target.entity_id, boon=self.boon,
+        )
+
+
+@dataclass(frozen=True)
+class TalanjiBattlecry:
+    """Draw or resurrect Bwonsamdi, then offer one of three Boons."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        target = next((card for card in player.deck if card.card_id == "TIME_619t"), None)
+        if target is not None and len(player.hand) < 10:
+            player.deck.remove(target)
+            player.hand.append(target)
+            game._event("talanji_draw_bwonsamdi", player=player.index, entity=target.entity_id)
+        else:
+            dead = next((card for card in reversed(player.dead_minions) if card.card_id == "TIME_619t"), None)
+            if dead is None or len(player.board) + len(player.locations) >= 7:
+                return
+            player.dead_minions.remove(dead)
+            target = game._instance_from_definition(dead.definition, created_by=context.card.card_id)
+            target.summoned_turn = game.turn
+            game._summon(player, target)
+            game._event("talanji_resurrect_bwonsamdi", player=player.index, entity=target.entity_id)
+        game.pending_choice = {
+            "kind": "RULE_CHOICE", "player": player.index, "card": context.card,
+            "action": context.action, "options": (
+                ("Boon of Power", (ApplyBwonsamdiBoon(target.entity_id, "power"),)),
+                ("Boon of Longevity", (ApplyBwonsamdiBoon(target.entity_id, "longevity"),)),
+                ("Boon of Speed", (ApplyBwonsamdiBoon(target.entity_id, "speed"),)),
+            ),
+        }
+        game._event("talanji_boon_choice", player=player.index, entity=target.entity_id)
+
+
+@dataclass(frozen=True)
 class DestroyHeldCardAndHalveEnemyHealth:
     card_id: str
 
@@ -3858,6 +3917,13 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_pattern", "HearthstoneJSON 251332",
                 verification=("test_lady_azshara_choice_empowers_one_location",),
+            ),
+        ),
+        CardRule(
+            "TIME_619", {Hook.BATTLECRY: (TalanjiBattlecry(),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_talanji_draws_or_resurrects_bwonsamdi_and_offers_boon",),
             ),
         ),
         CardRule(
