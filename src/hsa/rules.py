@@ -141,6 +141,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TLC_366", "TLC_903",
     "TLC_440",
     "TLC_447",
+    "TLC_226",
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "CS2_tk1",
@@ -3388,6 +3389,27 @@ class CausticFumesKindred:
 
 
 @dataclass(frozen=True)
+class ConjuredBookkeeperDeathrattle:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._draw_matching(
+            context.player,
+            lambda card: card.definition.card_type == "SPELL",
+        )
+        if not game._kindred_active(context.player, context.card):
+            return
+        if len(context.player.board) + len(context.player.locations) >= 7:
+            return
+        copy = context.card.clone(game.next_entity_id)
+        game.next_entity_id += 1
+        copy.damage = 0
+        copy.summoned_turn = game.turn
+        copy.created_by = context.card.card_id
+        game._summon(context.player, copy)
+        game._event("conjured_bookkeeper_copy", player=context.player.index,
+                    source=context.card.card_id, entity=copy.entity_id)
+
+
+@dataclass(frozen=True)
 class TimelessChestDeathrattle:
     """Fill the opponent's hand with Coins, respecting the hand cap."""
 
@@ -4386,6 +4408,8 @@ def build_rule_registry() -> RuleRegistry:
         CardRule("TLC_447", {Hook.SPELL: (CausticFumesKindred(),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
                  targeting=TargetSpec(TargetKind.ENEMY_MINION)),
+        CardRule("TLC_226", {Hook.DEATHRATTLE: (ConjuredBookkeeperDeathrattle(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule(
             "TIME_850", {Hook.DEATHRATTLE: (SummonBloodFighterFromHandThenAttack(),)},
             RuleSource(
