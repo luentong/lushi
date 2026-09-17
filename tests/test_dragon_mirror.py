@@ -366,6 +366,15 @@ class DragonMirrorRulesTests(unittest.TestCase):
             self.assertEqual("REWIND", game.pending_choice["kind"])
             game.step(Action("REWIND_KEEP"))
             self.assertIsNone(game.pending_choice)
+        game = self.game(250)
+        card = self.add_hand(game, "TIME_038")
+        self.play(game, card)
+        self.assertEqual("REWIND", game.pending_choice["kind"])
+        for _ in range(3):
+            game.step(Action("REWIND_KEEP"))
+            if _ < 2:
+                self.assertIsNotNone(game.pending_choice)
+        self.assertIsNone(game.pending_choice)
 
     def test_generated_weapon_passives_and_deathrattle(self):
         game = self.game(29)

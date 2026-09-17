@@ -252,6 +252,7 @@ ADDITIONAL_PLAYABLE_CARD_IDS = {
     "TIME_018",  # Mend the Timeline
     "TIME_035",  # Time Machine
     "TIME_602",  # Wormhole
+    "TIME_038",  # Mister Clocksworth
     "TIME_433",  # Cease to Exist
     "TIME_441",  # Aeon Rend
     "TIME_610",  # Shadows of Yesterday
@@ -3881,6 +3882,11 @@ class DragonMirrorGame:
                 player, "aeon_wizard", remaining_battlecries=times - 1
             )
             return
+        if card.card_id == "TIME_038":
+            self._offer_rewind(
+                player, "mister_clocksworth", remaining_battlecries=2
+            )
+            return
         if card.card_id == "TIME_003":
             self._offer_rewind(
                 player, "portal_vanguard", remaining_battlecries=times - 1
@@ -6253,6 +6259,23 @@ class DragonMirrorGame:
                     self._resolve_deaths()
             return {"card": summoned.card_id, "entity": summoned.entity_id,
                     "target": target}
+        if effect == "mister_clocksworth":
+            candidates = [
+                card_id for card_id, definition in self.card_defs.items()
+                if card_id in EXECUTABLE_CARD_IDS
+                and definition.card_type == "MINION"
+                and definition.rarity == "LEGENDARY"
+            ]
+            summoned = []
+            for _ in range(2):
+                if len(player.board) + len(player.locations) >= 7 or not candidates:
+                    break
+                card_id = self.rng.choice(sorted(candidates))
+                minion = self._entity(card_id, created_by="TIME_038")
+                minion.summoned_turn = self.turn
+                self._summon(player, minion)
+                summoned.append({"card": card_id, "entity": minion.entity_id})
+            return summoned
         raise ValueError(f"unknown Rewind effect: {effect}")
 
     def _resolve_rewind(self, retry: bool) -> None:
