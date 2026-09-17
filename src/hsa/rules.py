@@ -137,6 +137,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_005t1", "TIME_005t2", "TIME_005t3", "TIME_005t4", "TIME_005t5",
     "TIME_005t6", "TIME_005t7", "TIME_005t8", "TIME_005t9",
     "TIME_006t1", "TIME_870t", "TIME_873t",
+    "TIME_713t",
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "CS2_tk1",
@@ -3337,6 +3338,21 @@ class AzureOathstone:
         game._event("azure_oathstone_summon", player=player.index, summoned=summoned)
 
 
+@dataclass(frozen=True)
+class TimelessChestDeathrattle:
+    """Fill the opponent's hand with Coins, respecting the hand cap."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        opponent = game.players[1 - context.player.index]
+        added = 0
+        while len(opponent.hand) < 10:
+            coin = game._entity("GAME_005", created_by=context.card.card_id)
+            opponent.hand.append(coin)
+            added += 1
+        game._event("timeless_chest_coins", player=opponent.index,
+                    source=context.card.card_id, added=added)
+
+
 
 
 @dataclass(frozen=True)
@@ -4309,6 +4325,8 @@ def build_rule_registry() -> RuleRegistry:
         CardRule("TIME_006t1", {}, RuleSource("official_text", "HearthstoneJSON 251332")),
         CardRule("TIME_870t", {}, RuleSource("official_text", "HearthstoneJSON 251332")),
         CardRule("TIME_873t", {}, RuleSource("official_text", "HearthstoneJSON 251332")),
+        CardRule("TIME_713t", {Hook.DEATHRATTLE: (TimelessChestDeathrattle(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule(
             "TIME_850", {Hook.DEATHRATTLE: (SummonBloodFighterFromHandThenAttack(),)},
             RuleSource(
