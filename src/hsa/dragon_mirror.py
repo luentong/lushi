@@ -6452,14 +6452,18 @@ class DragonMirrorGame:
                     # Common targeted damage spells can safely default to the
                     # opposing hero.  Other target requirements remain
                     # explicit unavailable outcomes rather than guessed plays.
-                    targeted = [
-                        (1 - player.index, None, "enemy_hero"),
-                        (player.index, None, "friendly_hero"),
-                    ]
-                    targeted.extend((1 - player.index, m.entity_id, "enemy_minion")
-                                    for m in self.players[1 - player.index].board)
-                    targeted.extend((player.index, m.entity_id, "friendly_minion")
-                                    for m in player.board)
+                    text = spell.definition.text.casefold()
+                    enemy_only = "enemy" in text and "friendly" not in text
+                    friendly_only = "friendly" in text and "enemy" not in text
+                    targeted = []
+                    if not friendly_only:
+                        targeted.append((1 - player.index, None, "enemy_hero"))
+                        targeted.extend((1 - player.index, m.entity_id, "enemy_minion")
+                                        for m in self.players[1 - player.index].board)
+                    if not enemy_only:
+                        targeted.append((player.index, None, "friendly_hero"))
+                        targeted.extend((player.index, m.entity_id, "friendly_minion")
+                                        for m in player.board)
                     self.rng.shuffle(targeted)
                     for target_player, target_entity, target_name in targeted:
                         try:
