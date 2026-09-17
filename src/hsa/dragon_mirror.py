@@ -923,6 +923,7 @@ class Player:
     locked_mana: int = 0
     next_demon_free: bool = False
     next_beast_cost_reduction: int = 0
+    next_murloc_cost_reduction: int = 0
     hero_divine_shield: bool = False
     hero_divine_shield_hits: int = 0
     hero_divine_shield_toreth: bool = False
@@ -2137,6 +2138,7 @@ class DragonMirrorGame:
         player.hero_power_used = False
         player.imbue_passive_triggered_this_turn = False
         player.next_beast_cost_reduction = 0
+        player.next_murloc_cost_reduction = 0
         player.fire_spell_played = False
         player.cards_played_this_turn = 0
         player.dragons_played_this_turn = 0
@@ -2498,6 +2500,8 @@ class DragonMirrorGame:
             )
         if card.has_race("BEAST"):
             cost -= player.next_beast_cost_reduction
+        if card.has_race("MURLOC"):
+            cost -= player.next_murloc_cost_reduction
         if card.card_id == "TLC_600" and "DRAGON" in player.played_races_last_turn:
             cost -= 3
         if card.card_id == "END_033" and any(
@@ -3752,6 +3756,8 @@ class DragonMirrorGame:
             )
         if card.has_race("BEAST") and player.next_beast_cost_reduction:
             player.next_beast_cost_reduction = 0
+        if card.has_race("MURLOC") and player.next_murloc_cost_reduction:
+            player.next_murloc_cost_reduction = 0
         if card.definition.card_type == "SPELL" and player.next_spell_cost_reduction:
             player.next_spell_cost_reduction = 0
         controller = (

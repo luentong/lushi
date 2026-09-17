@@ -142,6 +142,11 @@ STANDARD_DECLARATIVE_IDS = {
     "TLC_440",
     "TLC_447",
     "TLC_226",
+    "TLC_428",  # Hot Spring Glider (Kindred)
+    "TLC_429", "TLC_429t",  # Steamfin Thief
+    "TLC_519", "TLC_519t",  # Ambush Predators
+    "TLC_815", "TLC_816",  # Gravedawn spells
+    "TLC_454",  # Scalehide Kodo
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "CS2_tk1",
@@ -1919,6 +1924,107 @@ class DiscountNextBeast:
         context.player.next_beast_cost_reduction = max(
             context.player.next_beast_cost_reduction, self.amount
         )
+
+
+@dataclass(frozen=True)
+class HotSpringGliderBattlecry:
+    """Discount the next Murloc; Kindred also grants this minion Divine Shield."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        kindred = game._kindred_active(context.player, context.card)
+        context.player.next_murloc_cost_reduction += 1
+        if kindred:
+            context.card.divine_shield = True
+            context.card.divine_shield_hits = max(1, context.card.divine_shield_hits)
+        game._event(
+            "hot_spring_glider_battlecry",
+            player=context.player.index,
+            source=context.card.card_id,
+            kindred=kindred,
+        )
+
+
+@dataclass(frozen=True)
+class SteamfinThiefKindred:
+    """Kindred: summon two 1/1 Rush Murlocs."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if not game._kindred_active(context.player, context.card):
+            return
+        summoned = 0
+        for _ in range(2):
+            if len(context.player.board) + len(context.player.locations) >= 7:
+                break
+            token = game._entity("TLC_429t", created_by=context.card.card_id)
+            token.rush = True
+            token.summoned_turn = game.turn
+            game._summon(context.player, token)
+            summoned += 1
+        game._event("steamfin_thief_kindred", player=context.player.index,
+                    source=context.card.card_id, summoned=summoned)
+
+
+@dataclass(frozen=True)
+class AmbushPredatorsKindred:
+    """Summon stealth poisonous Spitters, with a second one under Kindred."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        count = 2 if game._kindred_active(context.player, context.card) else 1
+        summoned = 0
+        for _ in range(count):
+            if len(context.player.board) + len(context.player.locations) >= 7:
+                break
+            token = game._entity("TLC_519t", created_by=context.card.card_id)
+            token.stealth = True
+            token.poisonous = True
+            token.summoned_turn = game.turn
+            game._summon(context.player, token)
+            summoned += 1
+        game._event("ambush_predators", player=context.player.index,
+                    source=context.card.card_id, summoned=summoned)
+
+
+@dataclass(frozen=True)
+class GravedawnVoidbulbKindred:
+    """Summon one or two random 4-cost minions with Taunt."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        count = 2 if game._kindred_active(context.player, context.card) else 1
+        candidates = [
+            card_id for card_id in game.executable_card_ids
+            if card_id in game.card_defs
+            and game.card_defs[card_id].card_type == "MINION"
+            and game.card_defs[card_id].cost == 4
+        ]
+        summoned = 0
+        for _ in range(count):
+            if not candidates or len(context.player.board) + len(context.player.locations) >= 7:
+                break
+            minion = game._entity(game.rng.choice(sorted(candidates)), created_by=context.card.card_id)
+            minion.taunt = True
+            minion.summoned_turn = game.turn
+            game._summon(context.player, minion)
+            summoned += 1
+        game._event("gravedawn_voidbulb", player=context.player.index,
+                    source=context.card.card_id, summoned=summoned)
+
+
+@dataclass(frozen=True)
+class ScalehideKodoBattlecry:
+    """Destroy the lowest Attack enemy minion, or highest Attack with Kindred."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        candidates = [m for m in enemy.board if m.health > 0 and not m.silenced]
+        if not candidates:
+            return
+        reverse = game._kindred_active(context.player, context.card)
+        target = (max if reverse else min)(candidates, key=lambda m: m.attack)
+        target.damage = target.max_health
+        game._resolve_deaths()
+        game._event("scalehide_kodo_destroy", player=context.player.index,
+                    source=context.card.card_id, target=target.entity_id,
+                    highest=reverse)
 
 
 @dataclass(frozen=True)
@@ -4410,6 +4516,21 @@ def build_rule_registry() -> RuleRegistry:
                  targeting=TargetSpec(TargetKind.ENEMY_MINION)),
         CardRule("TLC_226", {Hook.DEATHRATTLE: (ConjuredBookkeeperDeathrattle(),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TLC_428", {Hook.BATTLECRY: (HotSpringGliderBattlecry(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TLC_429", {Hook.BATTLECRY: (SteamfinThiefKindred(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TLC_429t", {}, RuleSource("official_text", "HearthstoneJSON 251332")),
+        CardRule("TLC_519", {Hook.SPELL: (AmbushPredatorsKindred(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TLC_519t", {}, RuleSource("official_text", "HearthstoneJSON 251332")),
+        CardRule("TLC_815", {Hook.SPELL: (GravedawnVoidbulbKindred(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TLC_816", {Hook.SPELL: (Draw(2),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+                 cost_modifier=CostIfKindred(2)),
+        CardRule("TLC_454", {Hook.BATTLECRY: (ScalehideKodoBattlecry(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule(
             "TIME_850", {Hook.DEATHRATTLE: (SummonBloodFighterFromHandThenAttack(),)},
             RuleSource(
@@ -5117,13 +5238,6 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_cultist_map_deck_discover",),
-            ),
-        ),
-        CardRule(
-            "TLC_816", {Hook.SPELL: (Draw(2),)},
-            RuleSource(
-                "official_text_and_engine_verified", "HearthstoneJSON 251332",
-                verification=("test_gravedawn_sunbloom_draws_two",),
             ),
         ),
         CardRule(
