@@ -6452,14 +6452,27 @@ class DragonMirrorGame:
                     # Common targeted damage spells can safely default to the
                     # opposing hero.  Other target requirements remain
                     # explicit unavailable outcomes rather than guessed plays.
-                    try:
-                        self._cast_spell(
-                            player, spell,
-                            Action("PLAY", spell.entity_id, 1 - player.index, None),
-                        )
-                        cast.append({"card": spell.card_id, "entity": spell.entity_id,
-                                     "target": "enemy_hero"})
-                    except ValueError:
+                    targeted = [
+                        (1 - player.index, None, "enemy_hero"),
+                        (player.index, None, "friendly_hero"),
+                    ]
+                    targeted.extend((1 - player.index, m.entity_id, "enemy_minion")
+                                    for m in self.players[1 - player.index].board)
+                    targeted.extend((player.index, m.entity_id, "friendly_minion")
+                                    for m in player.board)
+                    for target_player, target_entity, target_name in targeted:
+                        try:
+                            self._cast_spell(
+                                player, spell,
+                                Action("PLAY", spell.entity_id,
+                                       target_player, target_entity),
+                            )
+                            cast.append({"card": spell.card_id, "entity": spell.entity_id,
+                                         "target": target_name})
+                            break
+                        except ValueError:
+                            continue
+                    else:
                         self._event(
                             "rewind_spell_unavailable", player=player.index,
                             source="TIME_033", card=spell.card_id, reason=str(exc),
