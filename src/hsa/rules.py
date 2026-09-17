@@ -119,6 +119,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_850",  # Lo'Gosh, Blood Fighter (Fabled)
     "TIME_209",  # Muradin, High King (Fabled)
     "TIME_875",  # Garona Halforcen (Fabled)
+    "TIME_009",  # Gelbin of Tomorrow (Fabled)
     "CORE_EX1_096",  # Loot Hoarder
     "CORE_CFM_604",  # Greater Healing Potion
     "CORE_BRM_013",  # Quick Shot
@@ -3046,6 +3047,27 @@ class ReturnHammerIfClaimed:
 
 
 @dataclass(frozen=True)
+class SummonAurasFromDeck:
+    """Gelbin's Fabled Battlecry: pull one of each Aura from the deck."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        selected: list[CardInstance] = []
+        seen: set[str] = set()
+        for card in list(player.deck):
+            if "AURA" not in card.definition.mechanics or card.card_id in seen:
+                continue
+            if len(player.board) + len(player.locations) + len(selected) >= 7:
+                break
+            seen.add(card.card_id)
+            selected.append(card)
+        for card in selected:
+            player.deck.remove(card)
+            card.summoned_turn = game.turn
+            game._summon(player, card)
+
+
+@dataclass(frozen=True)
 class DestroyHeldCardAndHalveEnemyHealth:
     card_id: str
 
@@ -4395,6 +4417,13 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_pattern", "HearthstoneJSON 251332",
                 verification=("test_garona_destroys_king_llane_and_halves_health",),
+            ),
+        ),
+        CardRule(
+            "TIME_009", {Hook.BATTLECRY: (SummonAurasFromDeck(),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_gelbin_pulls_distinct_auras_from_deck",),
             ),
         ),
         CardRule(

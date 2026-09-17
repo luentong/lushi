@@ -552,6 +552,18 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertEqual(7, game.players[1].health)
         self.assertEqual(8, game.players[1].armor)
 
+    def test_gelbin_pulls_distinct_auras_from_deck(self):
+        game = self.game(294)
+        for card_id in ("AURA_TEST_1", "AURA_TEST_2"):
+            game.card_defs[card_id] = CardDef(
+                card_id, card_id, "MINION", 2, 2, 2,
+                mechanics=("AURA",),
+            )
+            game.players[0].deck.append(game._entity(card_id, started_in_deck=True))
+        card = self.add_hand(game, "TIME_009")
+        self.play(game, card)
+        self.assertTrue({m.card_id for m in game.players[0].board} >= {"AURA_TEST_1", "AURA_TEST_2"})
+
     def test_morchie_handles_three_clocksworth_rewinds(self):
         game = self.game(281)
         self.add_board(game, "END_036", 0)
