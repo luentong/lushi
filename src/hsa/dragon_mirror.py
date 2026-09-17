@@ -877,6 +877,7 @@ class Player:
     hero_attack_bonus: int = 0
     hero_attacks_this_turn: int = 0
     hero_attacks_this_game: int = 0
+    avatar_form_hero_pending: bool = False
     void_soul_level: int = 1
     # Shared Leyline progression.  Crystallized Leyline reads this value;
     # upgrade cards will increment it rather than carrying local constants.
@@ -6021,6 +6022,15 @@ class DragonMirrorGame:
         attacked: tuple[int, int | None],
         attack_amount: int,
     ) -> None:
+        if player.avatar_form_hero_pending:
+            player.avatar_form_hero_pending = False
+            enemy = self.players[1 - player.index]
+            self._damage_hero(enemy, 2)
+            for minion in list(enemy.board):
+                self._damage_minion(enemy.index, minion, 2)
+            self._resolve_deaths()
+            self._event("avatar_form_blast", player=player.index,
+                        source="hero", amount=2)
         if weapon is None:
             self._dispatch_after_hero_attack(
                 player, attack_amount=attack_amount, weapon=None, attacked=attacked

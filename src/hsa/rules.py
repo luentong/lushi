@@ -3268,6 +3268,8 @@ class AvatarForm:
         if context.action is None or context.action.target_player != context.player.index:
             return
         if context.action.target_entity is None:
+            context.player.avatar_form_hero_pending = True
+            game._event("avatar_form", player=context.player.index, target="hero")
             return
         target = game._find_minion(context.player.index, context.action.target_entity)
         target.temporary_attack_modifiers.append((2, game.turn))
@@ -4283,7 +4285,7 @@ def build_rule_registry() -> RuleRegistry:
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule("TIME_209t2", {Hook.SPELL: (AvatarForm(),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
-                 targeting=TargetSpec(TargetKind.FRIENDLY_MINION)),
+                 targeting=TargetSpec(TargetKind.FRIENDLY_CHARACTER)),
         CardRule(
             "TIME_619", {Hook.BATTLECRY: (TalanjiBattlecry(),)},
             RuleSource(
