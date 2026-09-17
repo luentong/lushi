@@ -1403,7 +1403,9 @@ class DamageRandomEnemyMinion:
 
     def execute(self, game: Any, context: RuleContext) -> None:
         enemy = game.players[1 - context.player.index]
-        targets = [m for m in enemy.board if m.dormant_turns == 0 and not m.stealth]
+        # Random effects are allowed to hit Stealth; only Dormant removes a
+        # minion from the character pool.
+        targets = [m for m in enemy.board if m.dormant_turns == 0]
         if not targets:
             return
         target = game.rng.choice(targets)
@@ -1425,7 +1427,7 @@ class DamageRandomEnemyMinionWithHeldCost:
     def execute(self, game: Any, context: RuleContext) -> None:
         targets = [
             minion for minion in game.players[1 - context.player.index].board
-            if minion.dormant_turns == 0 and not minion.stealth
+            if minion.dormant_turns == 0
         ]
         if not targets:
             return
@@ -2949,7 +2951,7 @@ class SummonStatsByHandThenAttackRandomEnemyMinion:
         enemy = game.players[1 - player.index]
         targets = [
             target for target in enemy.board
-            if target.dormant_turns == 0 and not target.stealth
+            if target.dormant_turns == 0
         ]
         if targets:
             target = game.rng.choice(targets)
