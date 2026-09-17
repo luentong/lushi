@@ -446,6 +446,8 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertEqual("REWIND_DISCOVER", game.pending_choice["kind"])
         game.step(Action("REWIND_RETRY"))
         self.assertEqual("REWIND_DISCOVER", game.pending_choice["kind"])
+        self.assertTrue(all(option.definition.card_class == game.players[0].card_class
+                            for option in game.pending_choice["options"]))
         option = game.pending_choice["options"][0]
         game.step(Action("DISCOVER_PICK", option.entity_id))
         self.assertIsNone(game.pending_choice)

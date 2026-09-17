@@ -6169,10 +6169,12 @@ class DragonMirrorGame:
             outcome=outcome,
         )
 
-    def _offer_rewind_discover(self, player: Player) -> None:
+    def _offer_rewind_discover(self, player: Player, *, class_only: bool = False,
+                               before_players: list[Player] | None = None) -> None:
         pool = [
             card_id for card_id, definition in self.card_defs.items()
             if card_id in EXECUTABLE_CARD_IDS and definition.card_type == "SPELL"
+            and (not class_only or definition.card_class == player.card_class)
         ]
         shuffled = sorted(pool)
         self.rng.shuffle(shuffled)
@@ -6180,7 +6182,8 @@ class DragonMirrorGame:
                    for card_id in shuffled[:3]]
         self.pending_choice = {
             "kind": "REWIND_DISCOVER", "player": player.index,
-            "before_players": copy.deepcopy(self.players),
+            "before_players": copy.deepcopy(self.players) if before_players is None else before_players,
+            "class_only": class_only,
             "pool": tuple(sorted(pool)), "options": options,
         }
         self._event("rewind_discover_offer", player=player.index,
@@ -6191,9 +6194,13 @@ class DragonMirrorGame:
         if pending is None or pending["kind"] != "REWIND_DISCOVER":
             raise ValueError("no Rewind Discover is pending")
         if action.kind == "REWIND_RETRY":
-            self.players = copy.deepcopy(pending["before_players"])
+            before = copy.deepcopy(pending["before_players"])
+            self.players = before
             self.pending_choice = None
-            self._offer_rewind_discover(self.players[pending["player"]])
+            self._offer_rewind_discover(
+                self.players[pending["player"]], class_only=True,
+                before_players=before,
+            )
             return
         option = next((c for c in pending["options"] if c.entity_id == action.source), None)
         if option is None:
