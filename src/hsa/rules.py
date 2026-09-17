@@ -155,6 +155,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TLC_102", "TLC_223", "TLC_243", "TLC_432", "TLC_600",
     "CORE_GIL_836",
     "JAIL_460",
+    "TLC_435", "TLC_442", "TLC_464", "TLC_515", "TLC_824", "TLC_900",
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "CS2_tk1",
@@ -915,6 +916,36 @@ class AddRandomWeapon:
         game._event("random_weapon_added", player=context.player.index,
                     source=context.card.card_id, card=card.card_id,
                     destination=destination)
+
+
+@dataclass(frozen=True)
+class MapDiscover:
+    """Shared Discover implementation for the current Map card family."""
+
+    race: str | None = None
+    spell_school: str | None = None
+    odd_attack_beast: bool = False
+    unplayed_race: bool = False
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        played = set(context.player.played_races_last_turn)
+        pool = []
+        for card_id, definition in game.card_defs.items():
+            if card_id not in game.executable_card_ids:
+                continue
+            if self.spell_school is not None:
+                if definition.card_type != "SPELL" or definition.spell_school != self.spell_school:
+                    continue
+            elif definition.card_type != "MINION":
+                continue
+            if self.race is not None and self.race not in definition.races:
+                continue
+            if self.odd_attack_beast and ("BEAST" not in definition.races or definition.attack % 2 != 1):
+                continue
+            if self.unplayed_race and set(definition.races) & played:
+                continue
+            pool.append(card_id)
+        game._offer_discover(context.player, pool, source_card_id=context.card.card_id)
 
 
 @dataclass(frozen=True)
@@ -4843,6 +4874,18 @@ def build_rule_registry() -> RuleRegistry:
             "JAIL_460", {Hook.DEATHRATTLE: (AddRandomWeapon(),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
         ),
+        CardRule("TLC_435", {Hook.SPELL: (MapDiscover(spell_school="FROST"),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TLC_442", {Hook.SPELL: (MapDiscover(race="MURLOC"),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TLC_464", {Hook.SPELL: (MapDiscover(unplayed_race=True),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TLC_515", {Hook.SPELL: (OfferDeckCardDiscover(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TLC_824", {Hook.SPELL: (MapDiscover(odd_attack_beast=True),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TLC_900", {Hook.SPELL: (MapDiscover(spell_school="FEL"),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule(
             "CORE_EDR_004_2026", {Hook.BATTLECRY: (OfferRaptorHeraldDiscover(),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332; versioned Raptor Herald entity", ("test_raptor_herald_dark_gift_discover",)),
@@ -5311,13 +5354,6 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_lotus_bookie_deathrattle_coin",),
-            ),
-        ),
-        CardRule(
-            "TLC_515", {},
-            RuleSource(
-                "official_text_and_engine_verified", "HearthstoneJSON 251332",
-                verification=("test_cultist_map_deck_discover",),
             ),
         ),
         CardRule(
