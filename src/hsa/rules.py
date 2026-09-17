@@ -139,6 +139,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_006t1", "TIME_870t", "TIME_873t",
     "TIME_713t",
     "TLC_366", "TLC_903",
+    "TLC_440",
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "CS2_tk1",
@@ -3361,6 +3362,18 @@ class KindredHeroAttack:
 
 
 @dataclass(frozen=True)
+class CryosleepKindred:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            return
+        target = (context.action.target_player, context.action.target_entity)
+        game._deal_to_target(context.player.index, target, 4, source=context.card)
+        Draw().execute(game, context)
+        if game._kindred_active(context.player, context.card):
+            Draw().execute(game, context)
+
+
+@dataclass(frozen=True)
 class TimelessChestDeathrattle:
     """Fill the opponent's hand with Coins, respecting the hand cap."""
 
@@ -4353,6 +4366,9 @@ def build_rule_registry() -> RuleRegistry:
                  cost_modifier=CostIfKindred(2)),
         CardRule("TLC_903", {Hook.BATTLECRY: (KindredHeroAttack(5),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TLC_440", {Hook.SPELL: (CryosleepKindred(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+                 targeting=TargetSpec(TargetKind.ANY_CHARACTER)),
         CardRule(
             "TIME_850", {Hook.DEATHRATTLE: (SummonBloodFighterFromHandThenAttack(),)},
             RuleSource(
