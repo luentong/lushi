@@ -3289,10 +3289,20 @@ class DrawFirstArgusPortalOnHeroKill:
             return
         if target.health > 0:
             return
-        game._draw(context.player)
-        portal = game._entity("TIME_020t2", created_by=context.card.card_id)
-        context.player.deck.insert(game.rng.randrange(len(context.player.deck) + 1), portal)
-        game._event("axe_of_cenarius_portal", player=context.player.index, portal=portal.card_id)
+        portals = [
+            card for card in context.player.deck
+            if card.card_id in {"TIME_020t2", "TIME_020t3", "TIME_020t4", "TIME_020t5"}
+        ]
+        if not portals:
+            return
+        portal = game.rng.choice(portals)
+        context.player.deck.remove(portal)
+        if len(context.player.hand) < 10:
+            context.player.hand.append(portal)
+            destination = "hand"
+        else:
+            destination = "burned"
+        game._event("axe_of_cenarius_portal", player=context.player.index, portal=portal.card_id, destination=destination)
 
 
 @dataclass(frozen=True)

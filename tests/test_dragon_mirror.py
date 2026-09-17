@@ -731,12 +731,33 @@ class DragonMirrorRulesTests(unittest.TestCase):
 
     def test_axe_of_cenarius_draws_portal_after_hero_minion_kill(self):
         game = self.game(311)
+        player = game.players[0]
+        # Axe does not create or insert a portal.  It may only take one of
+        # the portals that is already in the player's deck, chosen at random.
+        player.deck.extend(
+            [
+                game._entity("TIME_020t2", started_in_deck=True),
+                game._entity("TIME_020t4", started_in_deck=True),
+            ]
+        )
         target = self.add_board(game, "CORE_CS2_065", 1)
         target.damage = target.max_health - 1
         weapon = Weapon("TIME_020t1", "Axe of Cenarius", 3, 2)
         game._damage_minion(1, target, 3)
-        game._after_hero_attack(game.players[0], weapon, (1, target.entity_id), 3)
-        self.assertTrue(any(card.card_id == "TIME_020t2" for card in game.players[0].deck))
+        game._after_hero_attack(player, weapon, (1, target.entity_id), 3)
+        self.assertEqual(1, len(player.hand))
+        self.assertIn(player.hand[0].card_id, {"TIME_020t2", "TIME_020t4"})
+        self.assertEqual(1, sum(card.card_id in {"TIME_020t2", "TIME_020t4"} for card in player.deck))
+
+    def test_axe_of_cenarius_does_nothing_without_existing_portal(self):
+        game = self.game(312)
+        player = game.players[0]
+        target = self.add_board(game, "CORE_CS2_065", 1)
+        target.damage = target.max_health - 1
+        weapon = Weapon("TIME_020t1", "Axe of Cenarius", 3, 2)
+        game._damage_minion(1, target, 3)
+        game._after_hero_attack(player, weapon, (1, target.entity_id), 3)
+        self.assertEqual([], player.hand)
 
     def test_final_argus_demon_returns_broxigar_only_once(self):
         game = self.game(309)
