@@ -5958,6 +5958,15 @@ class DragonMirrorGame:
             player.board.remove(minion)
             minion.cost_delta -= 2
             minion.damage = 0
+        elif weapon.card_id == "TIME_209t":
+            # High King's Hammer's deathrattle shuffles itself back with
+            # permanently increased attack.  The equipped instance is not
+            # reused; create a fresh deck entity carrying the attack gain.
+            hammer = self._entity("TIME_209t", started_in_deck=True)
+            hammer.attack_delta = weapon.attack - hammer.definition.attack + 2
+            player.deck.insert(self.rng.randrange(len(player.deck) + 1), hammer)
+            self._event("high_kings_hammer_reshuffled", player=player.index,
+                        attack=hammer.attack, card=hammer.card_id)
             player.hand.append(minion)
         elif weapon.card_id == "CORE_OG_031" and len(player.board) + len(player.locations) < 7:
             token = CardInstance(
