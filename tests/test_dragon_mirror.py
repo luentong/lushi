@@ -467,6 +467,19 @@ class DragonMirrorRulesTests(unittest.TestCase):
         targets = game._random_spell_target_candidates(0, friendly_only)
         self.assertTrue(all(owner == 0 for owner, _, _ in targets))
 
+    def test_brightwing_adds_random_legendary(self):
+        game = self.game(285)
+        card = self.add_hand(game, "CORE_EX1_189")
+        self.play(game, card)
+        self.assertTrue(any(c.created_by == "CORE_EX1_189" for c in game.players[0].hand))
+
+    def test_sneed_summons_random_legendary_on_deathrattle(self):
+        game = self.game(286)
+        sneed = self.add_board(game, "CORE_GVG_114", 0)
+        game._damage_minion(0, sneed, sneed.health)
+        game._resolve_deaths()
+        self.assertTrue(any(m.created_by == "CORE_GVG_114" for m in game.players[0].board))
+
     def test_morchie_handles_three_clocksworth_rewinds(self):
         game = self.game(281)
         self.add_board(game, "END_036", 0)

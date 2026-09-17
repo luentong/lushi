@@ -113,6 +113,8 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_BT_035",  # Chaos Strike
     "CORE_BT_292",  # Hand of A'dal
     "CORE_CS2_053",  # Far Sight
+    "CORE_EX1_189",  # Brightwing
+    "CORE_GVG_114",  # Sneed's Old Shredder
     "CORE_EX1_096",  # Loot Hoarder
     "CORE_CFM_604",  # Greater Healing Potion
     "CORE_BRM_013",  # Quick Shot
@@ -2983,6 +2985,44 @@ class AddToHand:
 
 
 @dataclass(frozen=True)
+class AddRandomLegendaryMinion:
+    """Add one collectible/executable Legendary minion to hand."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = [
+            card_id for card_id in game.executable_card_ids
+            if card_id in game.card_defs
+            and game.card_defs[card_id].card_type == "MINION"
+            and game.card_defs[card_id].rarity == "LEGENDARY"
+        ]
+        if not candidates or len(context.player.hand) >= 10:
+            return
+        card_id = game.rng.choice(sorted(candidates))
+        game._add_generated(
+            context.player,
+            game._entity(card_id, created_by=context.card.card_id),
+        )
+
+
+@dataclass(frozen=True)
+class SummonRandomLegendaryMinion:
+    """Summon one random executable Legendary minion if board space exists."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if len(context.player.board) + len(context.player.locations) >= 7:
+            return
+        candidates = [
+            card_id for card_id in game.executable_card_ids
+            if card_id in game.card_defs
+            and game.card_defs[card_id].card_type == "MINION"
+            and game.card_defs[card_id].rarity == "LEGENDARY"
+        ]
+        if not candidates:
+            return
+        minion = game._entity(game.rng.choice(sorted(candidates)), created_by=context.card.card_id)
+        minion.summoned_turn = game.turn
+        game._summon(context.player, minion)
+@dataclass(frozen=True)
 class AddShaladrassilDreamCards:
     """Get the fixed Dream set, using Corrupted versions only if earned."""
 
@@ -3527,6 +3567,20 @@ def build_rule_registry() -> RuleRegistry:
                 "powerlog_verified",
                 "Power.log 23282dea + HearthstoneJSON 251332",
                 verification=("test_lunarwing_messenger_imbues_hero_power",),
+            ),
+        ),
+        CardRule(
+            "CORE_EX1_189", {Hook.BATTLECRY: (AddRandomLegendaryMinion(),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_brightwing_adds_random_legendary",),
+            ),
+        ),
+        CardRule(
+            "CORE_GVG_114", {Hook.DEATHRATTLE: (SummonRandomLegendaryMinion(),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_sneed_summons_random_legendary",),
             ),
         ),
         CardRule(
