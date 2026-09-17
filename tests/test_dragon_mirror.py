@@ -713,6 +713,11 @@ class DragonMirrorRulesTests(unittest.TestCase):
         queen = self.add_board(game, "TIME_852")
         arcane = game._entity("CORE_CS2_023")
         self.assertEqual(arcane.cost, game._effective_cost(player, arcane))
+        dragon = self.add_board(game, "EDR_571")
+        self.assertEqual(max(0, arcane.cost - 2), game._effective_cost(player, arcane))
+        player.board.remove(dragon)
+        queen.silenced = True
+        self.assertEqual(arcane.cost, game._effective_cost(player, arcane))
 
     def test_first_portal_summons_opponent_demon(self):
         game = self.game(308)
@@ -735,18 +740,6 @@ class DragonMirrorRulesTests(unittest.TestCase):
         game._damage_minion(1, second, second.health)
         game._resolve_deaths()
         self.assertEqual(0, sum(card.card_id == "TIME_020" for card in game.players[0].hand))
-        dragon = self.add_board(game, "EDR_571")
-        self.assertEqual(max(0, arcane.cost - 2), game._effective_cost(player, arcane))
-        player.board.remove(dragon)
-        queen.silenced = True
-        self.assertEqual(arcane.cost, game._effective_cost(player, arcane))
-
-    def test_first_portal_summons_opponent_demon(self):
-        game = self.game(308)
-        portal = self.add_hand(game, "TIME_020t2")
-        self.play(game, portal)
-        self.assertTrue(any(m.card_id == "TIME_020t2t" for m in game.players[1].board))
-
     def test_morchie_handles_three_clocksworth_rewinds(self):
         game = self.game(281)
         self.add_board(game, "END_036", 0)
