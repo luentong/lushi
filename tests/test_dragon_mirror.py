@@ -426,6 +426,12 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertIsNotNone(game.pending_choice)
         self.assertEqual("REWIND", game.pending_choice["kind"])
 
+    def test_all_closed_rewind_cards_are_instantiable(self):
+        game = self.game(277)
+        for card_id in sorted(ADDITIONAL_PLAYABLE_CARD_IDS):
+            card = game._entity(card_id)
+            self.assertEqual(card_id, card.card_id)
+
     def test_generated_weapon_passives_and_deathrattle(self):
         game = self.game(29)
         player = game.players[0]
