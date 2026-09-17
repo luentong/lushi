@@ -119,6 +119,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_609t1", "TIME_609t2",
     "TIME_850",  # Lo'Gosh, Blood Fighter (Fabled)
     "TIME_850t", "TIME_850t1",
+    "TIME_852", "TIME_852t1",
     "TIME_209",  # Muradin, High King (Fabled)
     "TIME_209t", "TIME_209t2",
     "TIME_875",  # Garona Halforcen (Fabled)
@@ -4278,6 +4279,7 @@ def build_rule_registry() -> RuleRegistry:
         ),
         CardRule("TIME_020", {}, RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule("TIME_852", {}, RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TIME_852t1", {}, RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule(
             "TIME_850", {Hook.DEATHRATTLE: (SummonBloodFighterFromHandThenAttack(),)},
             RuleSource(

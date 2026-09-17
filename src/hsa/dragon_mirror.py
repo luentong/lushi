@@ -3886,7 +3886,14 @@ class DragonMirrorGame:
                     and minion.dormant_turns == 0
                 ]
             self._cast_spell(player, card, action)
-            if card.spell_casts_twice and self.pending_choice is None:
+            malygos_active = (
+                card.definition.spell_school == "ARCANE"
+                and any(m.card_id == "TIME_852t1" and not m.silenced and m.dormant_turns == 0
+                        for m in player.board)
+                and any(m.has_race("DRAGON") and m.card_id != "TIME_852t1"
+                        and not m.silenced and m.dormant_turns == 0 for m in player.board)
+            )
+            if (card.spell_casts_twice or malygos_active) and self.pending_choice is None:
                 self._cast_spell(player, card, action)
             if player.hamuul_active:
                 player.hamuul_spells_cast += 1
