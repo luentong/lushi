@@ -237,7 +237,8 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "END_037",  # Endtime Murozond
     "TIME_619",  # Talanji of the Graves
     "TIME_619t",  # Bwonsamdi token
-    "TIME_020t2", "TIME_020t2t",  # First Portal to Argus
+    "TIME_020t2", "TIME_020t3", "TIME_020t4", "TIME_020t5",
+    "TIME_020t2t", "TIME_020t3t", "TIME_020t4t", "TIME_020t5t",
     "TIME_005",  # Timethief Rafaam
     "TIME_603",  # Ticking Timebomb
     "TIME_609t1", "TIME_609t2",  # Sylvanas sister tokens

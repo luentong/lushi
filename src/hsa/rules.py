@@ -126,7 +126,8 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_211t2", "TIME_211t2t",
     "TIME_619", "TIME_619t2", "TIME_619t3", "TIME_619t4", "TIME_619t5",
     "TIME_619t",
-    "TIME_020t2", "TIME_020t2t",
+    "TIME_020t2", "TIME_020t3", "TIME_020t4", "TIME_020t5",
+    "TIME_020t2t", "TIME_020t3t", "TIME_020t4t", "TIME_020t5t",
     "TIME_005",  # Timethief Rafaam (Fabled+)
     "END_037",  # Endtime Murozond
     "CORE_EX1_096",  # Loot Hoarder
@@ -3252,6 +3253,24 @@ class SummonOpponentArgusDemon:
 
 
 @dataclass(frozen=True)
+class ArgusPortalDeathrattle:
+    next_portal: str | None = None
+    return_broxigar: bool = False
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        recipient = game.players[1 - context.player.index]
+        if self.return_broxigar:
+            if len(recipient.hand) < 10:
+                recipient.hand.append(game._entity("TIME_020", created_by=context.card.card_id))
+            game._event("argus_broxigar_return", player=recipient.index, source=context.card.card_id)
+            return
+        game._draw(recipient)
+        if self.next_portal is not None:
+            recipient.deck.insert(game.rng.randrange(len(recipient.deck) + 1), game._entity(self.next_portal, started_in_deck=True, created_by=context.card.card_id))
+        game._event("argus_portal_deathrattle", player=recipient.index, source=context.card.card_id, next_portal=self.next_portal)
+
+
+@dataclass(frozen=True)
 class TalanjiBattlecry:
     """Draw or resurrect Bwonsamdi, then offer one of three Boons."""
 
@@ -4110,6 +4129,13 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_neutral_imbue_uses_controller_class",),
             ),
         ),
+        CardRule("TIME_020t3", {Hook.SPELL: (SummonOpponentArgusDemon("TIME_020t3t"),)}, RuleSource("official_text", "HearthstoneJSON 251332")),
+        CardRule("TIME_020t4", {Hook.SPELL: (SummonOpponentArgusDemon("TIME_020t4t"),)}, RuleSource("official_text", "HearthstoneJSON 251332")),
+        CardRule("TIME_020t5", {Hook.SPELL: (SummonOpponentArgusDemon("TIME_020t5t"),)}, RuleSource("official_text", "HearthstoneJSON 251332")),
+        CardRule("TIME_020t2t", {Hook.DEATHRATTLE: (ArgusPortalDeathrattle("TIME_020t3"),)}, RuleSource("official_text", "HearthstoneJSON 251332")),
+        CardRule("TIME_020t3t", {Hook.DEATHRATTLE: (ArgusPortalDeathrattle("TIME_020t4"),)}, RuleSource("official_text", "HearthstoneJSON 251332")),
+        CardRule("TIME_020t4t", {Hook.DEATHRATTLE: (ArgusPortalDeathrattle("TIME_020t5"),)}, RuleSource("official_text", "HearthstoneJSON 251332")),
+        CardRule("TIME_020t5t", {Hook.DEATHRATTLE: (ArgusPortalDeathrattle(return_broxigar=True),)}, RuleSource("official_text", "HearthstoneJSON 251332")),
         CardRule(
             "EDR_845", {},
             RuleSource(
