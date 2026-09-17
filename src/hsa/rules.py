@@ -150,6 +150,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TLC_463", "TLC_482", "TLC_825", "TLC_829",
     "TLC_251", "TLC_251e",
     "TLC_107", "END_015",
+    "DINO_435",
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "CS2_tk1",
@@ -384,7 +385,7 @@ class CostIfKindred:
 
     def adjustment(self, game: Any, player: Any, card: Any) -> int:
         races = set(card.definition.races)
-        active = bool(races & player.played_races_last_turn) if races else bool(
+        active = bool(races & player.played_races_last_turn) if races and "ALL" not in races else bool(
             player.played_races_last_turn
         )
         return -self.amount if active else 0

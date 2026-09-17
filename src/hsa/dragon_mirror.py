@@ -2558,7 +2558,7 @@ class DragonMirrorGame:
         races = set(card.definition.races)
         # Race-less spells use the generic Kindred condition: any friendly
         # minion tribe played during the previous turn activates them.
-        return bool(races & player.played_races_last_turn) if races else bool(
+        return bool(races & player.played_races_last_turn) if races and "ALL" not in races else bool(
             player.played_races_last_turn
         )
 
@@ -3818,6 +3818,16 @@ class DragonMirrorGame:
             self._summon(controller, card)
             if card.card_id == "TLC_107" and self._kindred_repeats(controller, card):
                 card.rush = True
+            if card.card_id == "DINO_435" and self._kindred_repeats(controller, card):
+                if len(controller.board) + len(controller.locations) < 7:
+                    copy = card.clone(self.next_entity_id)
+                    self.next_entity_id += 1
+                    copy.damage = 0
+                    copy.summoned_turn = self.turn
+                    copy.created_by = card.card_id
+                    self._summon(controller, copy)
+                    self._event("crater_experiment_kindred", player=controller.index,
+                                source=card.entity_id, copy=copy.entity_id)
             self._update_mirrex_trackers(self.players[1 - player.index], card)
             if "DEATHRATTLE" in card.definition.mechanics and any(
                 minion.entity_id != card.entity_id
