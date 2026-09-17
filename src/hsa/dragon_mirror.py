@@ -6256,6 +6256,9 @@ class DragonMirrorGame:
                 self._summon(player, summoned_card)
                 summoned.append({"card": chosen, "cost": cost})
                 remaining -= cost
+            # Instant Multiverse has Overload (3), applied after the rewind
+            # effect just like a normally played overload spell.
+            self._overload(player, 3)
             return summoned
         if effect == "mend_the_timeline":
             candidates = [
