@@ -695,6 +695,18 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertEqual(2, deck_card.attack_delta)
         self.assertEqual(2, deck_card.health_delta)
 
+    def test_alleria_discovers_and_repeats_after_sylvanas(self):
+        game = self.game(306)
+        player = game.players[0]
+        player.played_card_counts["TIME_609"] = 1
+        token = self.add_hand(game, "TIME_609t1")
+        self.play(game, token)
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        first = game.pending_choice["options"][0]
+        game.step(Action("DISCOVER_PICK", first.entity_id))
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        self.assertEqual(2, len([e for e in game.events if e["kind"] == "discover_offer"]))
+
     def test_morchie_handles_three_clocksworth_rewinds(self):
         game = self.game(281)
         self.add_board(game, "END_036", 0)
