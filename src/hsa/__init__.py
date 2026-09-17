@@ -1,7 +1,7 @@
 """Deterministic Hearthstone vertical-slice simulator."""
 
 from .belief import GeneratedCardBelief, HandModifierBelief, PublicBelief
-from .dragon_mirror import DragonMirrorGame, RULESET, UnsupportedGeneratedCard
+from .game_engine import DragonMirrorGame, RULESET, UnsupportedGeneratedCard
 from .standard_catalog import CARDS_BUILD, StandardCard, StandardCatalog
 from .encoding import EncodedDecision, encode_action, encode_decision, encode_state
 from .mcts import DeterminizedMCTSPolicy, InformationSetMCTSPolicy, MCTSPolicy
