@@ -120,6 +120,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_850",  # Lo'Gosh, Blood Fighter (Fabled)
     "TIME_850t", "TIME_850t1",
     "TIME_209",  # Muradin, High King (Fabled)
+    "TIME_209t2",
     "TIME_875",  # Garona Halforcen (Fabled)
     "TIME_009",  # Gelbin of Tomorrow (Fabled)
     "TIME_211",  # Lady Azshara (Fabled)
@@ -3260,6 +3261,23 @@ class WhatBefellZandalar:
 
 
 @dataclass(frozen=True)
+class AvatarForm:
+    """Give a friendly minion +2 Attack and a one-shot attack blast."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player != context.player.index:
+            return
+        if context.action.target_entity is None:
+            return
+        target = game._find_minion(context.player.index, context.action.target_entity)
+        target.temporary_attack_modifiers.append((2, game.turn))
+        target.avatar_form_pending = True
+        game._event("avatar_form", player=context.player.index, target=target.entity_id)
+
+
+
+
+@dataclass(frozen=True)
 class SummonCopyOfFriendlyTarget:
     doubled: bool = False
 
@@ -4263,6 +4281,9 @@ def build_rule_registry() -> RuleRegistry:
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule("TIME_211b", {Hook.SPELL: (EmpowerAzsharaLocation("well"),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TIME_209t2", {Hook.SPELL: (AvatarForm(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+                 targeting=TargetSpec(TargetKind.FRIENDLY_MINION)),
         CardRule(
             "TIME_619", {Hook.BATTLECRY: (TalanjiBattlecry(),)},
             RuleSource(

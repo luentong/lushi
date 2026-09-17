@@ -741,6 +741,7 @@ class CardInstance:
     return_control_at_end_of_turn: int | None = None
     cant_attack_turn: int = -1
     temporary_attack_modifiers: list[tuple[int, int]] = field(default_factory=list)
+    avatar_form_pending: bool = False
     temporary_health_modifiers: list[tuple[int, int]] = field(default_factory=list)
     temporary_immune_expiry_turn: int = -1
     destroy_at_turn_start: int = -1
@@ -5040,6 +5041,15 @@ class DragonMirrorGame:
         *, attacked_minion: bool = False, was_stealthed: bool = False,
     ) -> None:
         player = self.players[attacker_owner]
+        if getattr(attacker, "avatar_form_pending", False) and not attacker.silenced:
+            attacker.avatar_form_pending = False
+            enemy = self.players[1 - attacker_owner]
+            self._damage_hero(enemy, 2, attacker)
+            for minion in list(enemy.board):
+                self._damage_minion(enemy.index, minion, 2)
+            self._resolve_deaths()
+            self._event("avatar_form_blast", player=attacker_owner,
+                        source=attacker.entity_id, amount=2)
         if was_stealthed and not attacker.silenced:
             for trigger in list(player.board):
                 if trigger.silenced or trigger.dormant_turns > 0:
