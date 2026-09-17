@@ -3448,7 +3448,20 @@ class DragonMirrorGame:
                 elif location.card_id in {"CATA_584", "FIR_907"}:
                     actions.append(Action("LOCATION", location.entity_id))
                 elif self.rule_registry.has_hook(Hook.LOCATION, location.card_id):
-                    actions.append(Action("LOCATION", location.entity_id))
+                    target_spec = self.rule_registry.targeting(location.card_id)
+                    if target_spec is None:
+                        actions.append(Action("LOCATION", location.entity_id))
+                    else:
+                        location_card = CardInstance(
+                            location.entity_id, self.card_defs[location.card_id]
+                        )
+                        targets = self._rule_targets(player, location_card, target_spec.kind)
+                        if target_spec.optional:
+                            targets = [(None, None), *targets]
+                        actions.extend(
+                            Action("LOCATION", location.entity_id, p, e)
+                            for p, e in targets
+                        )
         return sorted(actions, key=Action.key)
 
     def step(self, action: Action) -> None:

@@ -637,6 +637,16 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertIn("power", summoned.gifts)
         self.assertFalse(any(card.card_id == "TIME_619t" for card in player.dead_minions))
 
+    def test_zin_azshari_copies_friendly_minion(self):
+        game = self.game(302)
+        player = game.players[0]
+        target = self.add_board(game, "CORE_CS2_065")
+        location = Location(9100, "TIME_211t2", 3, cooldown=0)
+        player.locations.append(location)
+        game.step(Action("LOCATION", location.entity_id, 0, target.entity_id))
+        copies = [m for m in player.board if m.card_id == target.card_id]
+        self.assertEqual(2, len(copies))
+
     def test_timethief_rafaam_requires_other_fabled_cards(self):
         from hsa.dragon_mirror import FABLED_MINION_IDS
         game = self.game(299)
