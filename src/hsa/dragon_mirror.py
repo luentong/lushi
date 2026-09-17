@@ -3889,11 +3889,22 @@ class DragonMirrorGame:
             )
             return
         if card.card_id == "TOT_056":
+            expansion_cards = [
+                card_id for card_id, definition in self.card_defs.items()
+                if definition.card_set == "TIME_TRAVEL"
+            ]
             candidates = [
                 card_id for card_id, definition in self.card_defs.items()
                 if card_id in EXECUTABLE_CARD_IDS
                 and definition.card_set == "TIME_TRAVEL"
             ]
+            self._event(
+                "rewind_taverns_pool", player=player.index,
+                source=card.entity_id, expansion="TIME_TRAVEL",
+                total_cards=len(expansion_cards),
+                executable_cards=len(candidates),
+                unsupported_cards=len(expansion_cards) - len(candidates),
+            )
             if candidates:
                 generated = self._entity(
                     self.rng.choice(sorted(candidates)), created_by=card.card_id
