@@ -902,6 +902,7 @@ class Player:
     fire_spell_played: bool = False
     played_races_this_turn: set[str] = field(default_factory=set)
     played_races_last_turn: set[str] = field(default_factory=set)
+    played_races_this_game: set[str] = field(default_factory=set)
     minion_played_this_turn: bool = False
     minion_played_last_turn: bool = False
     damaged_characters_this_turn: set[str] = field(default_factory=set)
@@ -961,6 +962,7 @@ class Player:
         result.weapon = copy.deepcopy(self.weapon, memo)
         result.played_races_this_turn = set(self.played_races_this_turn)
         result.played_races_last_turn = set(self.played_races_last_turn)
+        result.played_races_this_game = set(self.played_races_this_game)
         result.damaged_characters_this_turn = set(self.damaged_characters_this_turn)
         result.played_card_counts = dict(self.played_card_counts)
         result.map_followup_options = list(self.map_followup_options)
@@ -3850,8 +3852,10 @@ class DragonMirrorGame:
                     entity=card.entity_id,
                 )
             player.played_races_this_turn.update(card.definition.races)
+            player.played_races_this_game.update(card.definition.races)
             if card.definition.race:
                 player.played_races_this_turn.add(card.definition.race)
+                player.played_races_this_game.add(card.definition.race)
             if card.has_race("DRAGON"):
                 player.dragons_played_this_turn += 1
             if card.card_id == "CATA_150":

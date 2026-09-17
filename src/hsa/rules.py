@@ -927,11 +927,12 @@ class MapDiscover:
 
     race: str | None = None
     spell_school: str | None = None
+    rune: str | None = None
     odd_attack_beast: bool = False
     unplayed_race: bool = False
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        played = set(context.player.played_races_last_turn)
+        played = set(context.player.played_races_this_game)
         pool = []
         for card_id, definition in game.card_defs.items():
             if card_id not in game.executable_card_ids:
@@ -942,6 +943,8 @@ class MapDiscover:
             elif definition.card_type != "MINION":
                 continue
             if self.race is not None and self.race not in definition.races:
+                continue
+            if self.rune is not None and getattr(definition, "rune_cost", {}).get(self.rune, 0) <= 0:
                 continue
             if self.odd_attack_beast and ("BEAST" not in definition.races or definition.attack % 2 != 1):
                 continue
@@ -4879,7 +4882,7 @@ def build_rule_registry() -> RuleRegistry:
             "JAIL_460", {Hook.DEATHRATTLE: (AddRandomWeapon(),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
         ),
-        CardRule("TLC_435", {Hook.SPELL: (MapDiscover(spell_school="FROST"),)},
+        CardRule("TLC_435", {Hook.SPELL: (MapDiscover(rune="frost"),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule("TLC_442", {Hook.SPELL: (MapDiscover(race="MURLOC"),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
