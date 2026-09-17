@@ -602,6 +602,8 @@ class DragonMirrorRulesTests(unittest.TestCase):
     def test_bwonsamdi_deathrattle_summons_random_four_cost(self):
         game = self.game(297)
         bwonsamdi = self.add_board(game, "TIME_619t")
+        bwonsamdi.gifts.append("power")
+        bwonsamdi.taunt = True
         self.assertTrue(any(c.card_id == "TIME_619t" for c in game.players[0].board))
         game._damage_minion(0, bwonsamdi, bwonsamdi.health)
         game._resolve_deaths()
@@ -609,6 +611,8 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertEqual(4, event["cost"])
         summoned = next(m for m in game.players[0].board if m.entity_id == event["entity"])
         self.assertEqual(4, summoned.definition.cost)
+        self.assertIn("power", summoned.gifts)
+        self.assertTrue(summoned.taunt)
 
     def test_talanji_draws_or_resurrects_bwonsamdi_and_offers_boon(self):
         game = self.game(298)

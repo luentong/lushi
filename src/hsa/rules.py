@@ -3388,6 +3388,13 @@ class SummonRandomMinionWithCost:
         minion = game._entity(
             game.rng.choice(sorted(candidates)), created_by=context.card.card_id
         )
+        # Bwonsamdi's Boons carry over to the minion summoned by its
+        # deathrattle.  Copy the keyword flags and the auditable gift labels.
+        if context.card.gifts:
+            minion.gifts = list(context.card.gifts)
+            minion.taunt = minion.taunt or context.card.taunt
+            minion.lifesteal = minion.lifesteal or context.card.lifesteal
+            minion.rush = minion.rush or context.card.rush
         minion.summoned_turn = game.turn
         game._summon(context.player, minion)
         game._event(
