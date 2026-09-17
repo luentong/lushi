@@ -3293,7 +3293,11 @@ class GelbinAuraEndTurn:
                 if minion is not aura and minion.health > 0:
                     minion.damage = max(0, minion.damage - 4)
         else:
-            candidates = [m for m in context.player.board if m is not aura and m.health > 0]
+            candidates = [
+                m for m in context.player.board
+                if m is not aura and m.health > 0
+                and m.definition.card_type == "MINION"
+            ]
             if candidates:
                 target = game.rng.choice(candidates)
                 target.attack_delta += 4
