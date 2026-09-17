@@ -867,6 +867,16 @@ class OfferMinionDarkGiftDiscover:
 
 
 @dataclass(frozen=True)
+class OfferRaptorHeraldDiscover:
+    """Raptor Herald's Beast Dark Gift discover with Kindred discount."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        OfferMinionDarkGiftDiscover(race="BEAST").execute(game, context)
+        if game.pending_choice is not None and game._kindred_active(context.player, context.card):
+            game.pending_choice["dark_gift_cost_delta"] = -1
+
+
+@dataclass(frozen=True)
 class OfferOpponentDeckMinionDiscover:
     def execute(self, game: Any, context: RuleContext) -> None:
         game._offer_opponent_deck_minion_discover(
@@ -4778,15 +4788,11 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332; Combo adds Dark Gift", ("test_nightmare_fuel_opponent_deck_combo",)),
         ),
         CardRule(
-            "CORE_EDR_004", {Hook.BATTLECRY: (
-                OfferMinionDarkGiftDiscover(race="BEAST"),
-            )},
+            "CORE_EDR_004", {Hook.BATTLECRY: (OfferRaptorHeraldDiscover(),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332; Beast Dark Gift discover", ("test_raptor_herald_dark_gift_discover",)),
         ),
         CardRule(
-            "CORE_EDR_004_2026", {Hook.BATTLECRY: (
-                OfferMinionDarkGiftDiscover(race="BEAST"),
-            )},
+            "CORE_EDR_004_2026", {Hook.BATTLECRY: (OfferRaptorHeraldDiscover(),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332; versioned Raptor Herald entity", ("test_raptor_herald_dark_gift_discover",)),
         ),
         # These cards have additional engine-level resolution branches in
