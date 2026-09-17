@@ -120,6 +120,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_209",  # Muradin, High King (Fabled)
     "TIME_875",  # Garona Halforcen (Fabled)
     "TIME_009",  # Gelbin of Tomorrow (Fabled)
+    "END_037",  # Endtime Murozond
     "CORE_EX1_096",  # Loot Hoarder
     "CORE_CFM_604",  # Greater Healing Potion
     "CORE_BRM_013",  # Quick Shot
@@ -3068,6 +3069,35 @@ class SummonAurasFromDeck:
 
 
 @dataclass(frozen=True)
+class EndtimeMurozondBattlecry:
+    """Fill the board with random Dragons, heal fully, and skip next turn."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        # Import locally: the rule catalogue is intentionally independent of
+        # the state model at module import time.
+        from .dragon_mirror import DRAGON_IDS
+
+        player = context.player
+        summoned: list[str] = []
+        while len(player.board) + len(player.locations) < 7:
+            candidates = sorted(card_id for card_id in DRAGON_IDS if card_id in game.card_defs)
+            if not candidates:
+                break
+            dragon_id = game.rng.choice(candidates)
+            dragon = game._entity(dragon_id, created_by=context.card.card_id)
+            dragon.summoned_turn = game.turn
+            game._summon(player, dragon)
+            summoned.append(dragon_id)
+        player.health = player.max_health
+        player.skip_next_turn = True
+        game._event(
+            "endtime_murozond_battlecry", player=player.index,
+            source=context.card.card_id, summoned=summoned,
+            healed=True, skip_next_turn=True,
+        )
+
+
+@dataclass(frozen=True)
 class DestroyHeldCardAndHalveEnemyHealth:
     card_id: str
 
@@ -3730,6 +3760,13 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_pattern", "HearthstoneJSON 251332",
                 verification=("test_muradin_equips_and_returns_hammer",),
+            ),
+        ),
+        CardRule(
+            "END_037", {Hook.BATTLECRY: (EndtimeMurozondBattlecry(),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_endtime_murozond_fills_heals_and_skips_turn",),
             ),
         ),
         CardRule(

@@ -234,6 +234,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "TIME_209",  # Muradin, High King
     "TIME_875",  # Garona Halforcen
     "TIME_009",  # Gelbin of Tomorrow
+    "END_037",  # Endtime Murozond
     "TIME_603",  # Ticking Timebomb
     "TLC_228",  # Bralma Searstone
     "TLC_241",  # Ido of the Threshfleet
@@ -878,6 +879,10 @@ class Player:
     hero_power_armor: int = 2
     hero_power_id: str | None = None
     hero_power_imbues: int = 0
+    # Endtime Murozond skips the controller's next turn.  This is a turn-level
+    # flag rather than a card-local effect so it survives state cloning and
+    # resolves before start-of-turn draws/mana refresh.
+    skip_next_turn: bool = False
     imbued_hero_power_id: str | None = None
     imbue_passive_triggered_this_turn: bool = False
     hamuul_active: bool = False
@@ -2002,6 +2007,13 @@ class DragonMirrorGame:
         self.turn += 1
         self.minions_died_this_turn = 0
         player = self.players[index]
+        if player.skip_next_turn:
+            player.skip_next_turn = False
+            self._event("turn_skipped", player=index, source="END_037")
+            self._event("turn_start", player=index, skipped=True)
+            self._event("turn_end", player=index, skipped=True)
+            self._start_turn(1 - index)
+            return
         for owner in self.players:
             for minion in owner.board:
                 expired = [

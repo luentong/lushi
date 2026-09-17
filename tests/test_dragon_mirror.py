@@ -564,6 +564,24 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.play(game, card)
         self.assertTrue({m.card_id for m in game.players[0].board} >= {"AURA_TEST_1", "AURA_TEST_2"})
 
+    def test_endtime_murozond_fills_heals_and_skips_turn(self):
+        game = self.game(295)
+        game.players[0].health = 17
+        card = self.add_hand(game, "END_037")
+        self.play(game, card)
+        self.assertEqual(30, game.players[0].health)
+        self.assertEqual(7, len(game.players[0].board))
+        self.assertTrue(game.players[0].skip_next_turn)
+        game.step(Action("END_TURN"))
+        self.assertEqual(1, game.current)
+        before = game.turn
+        game.step(Action("END_TURN"))
+        # The skipped turn immediately advances back to the opponent; no
+        # draw/mana refresh is performed for the Murozond controller.
+        self.assertEqual(1, game.current)
+        self.assertGreaterEqual(game.turn, before + 2)
+        self.assertFalse(game.players[0].skip_next_turn)
+
     def test_morchie_handles_three_clocksworth_rewinds(self):
         game = self.game(281)
         self.add_board(game, "END_036", 0)
