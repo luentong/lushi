@@ -253,6 +253,7 @@ ADDITIONAL_PLAYABLE_CARD_IDS = {
     "TIME_035",  # Time Machine
     "TIME_602",  # Wormhole
     "TIME_038",  # Mister Clocksworth
+    "TOT_056",  # Wildlands Adventurer
     "TIME_433",  # Cease to Exist
     "TIME_441",  # Aeon Rend
     "TIME_610",  # Shadows of Yesterday
@@ -3886,6 +3887,23 @@ class DragonMirrorGame:
             self._offer_rewind(
                 player, "mister_clocksworth", remaining_battlecries=2
             )
+            return
+        if card.card_id == "TOT_056":
+            candidates = [
+                card_id for card_id, definition in self.card_defs.items()
+                if card_id in EXECUTABLE_CARD_IDS
+                and definition.card_set == "TIME_TRAVEL"
+            ]
+            if candidates:
+                generated = self._entity(
+                    self.rng.choice(sorted(candidates)), created_by=card.card_id
+                )
+                destination = self._add_generated(player, generated)
+                self._event(
+                    "rewind_taverns_card", player=player.index,
+                    source=card.entity_id, card=generated.card_id,
+                    destination=destination,
+                )
             return
         if card.card_id == "TIME_003":
             self._offer_rewind(

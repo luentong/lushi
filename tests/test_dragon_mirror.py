@@ -110,6 +110,10 @@ class DragonMirrorRulesTests(unittest.TestCase):
 
         game.step(Action("MULLIGAN_CONFIRM"))
         self.assertIsNone(game.pending_choice)
+        game = self.game(260)
+        card = self.add_hand(game, "TOT_056")
+        self.play(game, card)
+        self.assertTrue(any(e["kind"] == "rewind_taverns_card" for e in game.events))
         self.assertEqual(1, game.turn)
         self.assertEqual(0, game.current)
         self.assertEqual((4, 5), tuple(len(p.hand) for p in game.players))
