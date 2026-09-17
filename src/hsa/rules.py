@@ -123,6 +123,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_211",  # Lady Azshara (Fabled)
     "TIME_211a", "TIME_211b", "TIME_211t1", "TIME_211t1t",
     "TIME_211t2", "TIME_211t2t",
+    "TIME_619t",
     "END_037",  # Endtime Murozond
     "CORE_EX1_096",  # Loot Hoarder
     "CORE_CFM_604",  # Greater Healing Potion
@@ -3226,6 +3227,35 @@ class SummonRandomLegendaryMinion:
         minion = game._entity(game.rng.choice(sorted(candidates)), created_by=context.card.card_id)
         minion.summoned_turn = game.turn
         game._summon(context.player, minion)
+
+
+@dataclass(frozen=True)
+class SummonRandomMinionWithCost:
+    """Summon a random executable minion with the requested printed cost."""
+
+    cost: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if len(context.player.board) + len(context.player.locations) >= 7:
+            return
+        candidates = [
+            card_id for card_id in game.executable_card_ids
+            if card_id in game.card_defs
+            and game.card_defs[card_id].card_type == "MINION"
+            and game.card_defs[card_id].cost == self.cost
+        ]
+        if not candidates:
+            return
+        minion = game._entity(
+            game.rng.choice(sorted(candidates)), created_by=context.card.card_id
+        )
+        minion.summoned_turn = game.turn
+        game._summon(context.player, minion)
+        game._event(
+            "random_cost_minion_summoned", player=context.player.index,
+            source=context.card.card_id, card=minion.card_id,
+            entity=minion.entity_id, cost=self.cost,
+        )
 @dataclass(frozen=True)
 class AddShaladrassilDreamCards:
     """Get the fixed Dream set, using Corrupted versions only if earned."""
@@ -3828,6 +3858,13 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_pattern", "HearthstoneJSON 251332",
                 verification=("test_lady_azshara_choice_empowers_one_location",),
+            ),
+        ),
+        CardRule(
+            "TIME_619t", {Hook.DEATHRATTLE: (SummonRandomMinionWithCost(4),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_bwonsamdi_deathrattle_summons_random_four_cost",),
             ),
         ),
         CardRule(

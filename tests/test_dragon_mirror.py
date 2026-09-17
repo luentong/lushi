@@ -599,6 +599,17 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertTrue(any(card.card_id == "TIME_211t1" for card in game.players[1].hand))
         self.assertEqual(["Empower Zin-Azshari"], [event["option"] for event in game.events if event["kind"] == "rule_choice_pick"])
 
+    def test_bwonsamdi_deathrattle_summons_random_four_cost(self):
+        game = self.game(297)
+        bwonsamdi = self.add_board(game, "TIME_619t")
+        self.assertTrue(any(c.card_id == "TIME_619t" for c in game.players[0].board))
+        game._damage_minion(0, bwonsamdi, bwonsamdi.health)
+        game._resolve_deaths()
+        event = next(e for e in game.events if e["kind"] == "random_cost_minion_summoned")
+        self.assertEqual(4, event["cost"])
+        summoned = next(m for m in game.players[0].board if m.entity_id == event["entity"])
+        self.assertEqual(4, summoned.definition.cost)
+
     def test_morchie_handles_three_clocksworth_rewinds(self):
         game = self.game(281)
         self.add_board(game, "END_036", 0)
