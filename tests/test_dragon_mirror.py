@@ -711,9 +711,9 @@ class DragonMirrorRulesTests(unittest.TestCase):
         game = self.game(307)
         player = game.players[0]
         queen = self.add_board(game, "TIME_852")
-        arcane = game._entity("CORE_CS2_029")
+        arcane = game._entity("CORE_CS2_023")
         self.assertEqual(arcane.cost, game._effective_cost(player, arcane))
-        dragon = self.add_board(game, "CORE_NEW1_023")
+        dragon = self.add_board(game, "EDR_571")
         self.assertEqual(max(0, arcane.cost - 2), game._effective_cost(player, arcane))
         player.board.remove(dragon)
         queen.silenced = True
