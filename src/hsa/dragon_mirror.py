@@ -254,6 +254,7 @@ ADDITIONAL_PLAYABLE_CARD_IDS = {
     "TIME_602",  # Wormhole
     "TIME_038",  # Mister Clocksworth
     "TOT_056",  # Wildlands Adventurer
+    "TIME_033",  # Druid of Regrowth
     "TIME_433",  # Cease to Exist
     "TIME_441",  # Aeon Rend
     "TIME_610",  # Shadows of Yesterday
@@ -3883,6 +3884,11 @@ class DragonMirrorGame:
                 player, "aeon_wizard", remaining_battlecries=times - 1
             )
             return
+        if card.card_id == "TIME_033":
+            self._offer_rewind(
+                player, "druid_of_regrowth", remaining_battlecries=times - 1
+            )
+            return
         if card.card_id == "TIME_038":
             self._offer_rewind(
                 player, "mister_clocksworth", remaining_battlecries=2
@@ -6305,6 +6311,31 @@ class DragonMirrorGame:
                 self._summon(player, minion)
                 summoned.append({"card": card_id, "entity": minion.entity_id})
             return summoned
+        if effect == "druid_of_regrowth":
+            # Cast only targetless Nature spells through the normal spell
+            # dispatcher. Targeted spells are left out rather than inventing a
+            # target, and are reported for follow-up pool completion.
+            candidates = [
+                card_id for card_id, definition in self.card_defs.items()
+                if card_id in EXECUTABLE_CARD_IDS
+                and definition.card_type == "SPELL"
+                and definition.spell_school == "NATURE"
+                and not any(word in definition.text.casefold() for word in ("target", "enemy", "friendly"))
+            ]
+            cast = []
+            for _ in range(2):
+                if not candidates:
+                    break
+                spell = self._entity(self.rng.choice(sorted(candidates)), created_by="TIME_033")
+                try:
+                    self._cast_spell(player, spell, Action("PLAY", spell.entity_id))
+                    cast.append({"card": spell.card_id, "entity": spell.entity_id})
+                except ValueError as exc:
+                    self._event(
+                        "rewind_spell_unavailable", player=player.index,
+                        source="TIME_033", card=spell.card_id, reason=str(exc),
+                    )
+            return cast
         raise ValueError(f"unknown Rewind effect: {effect}")
 
     def _resolve_rewind(self, retry: bool) -> None:
