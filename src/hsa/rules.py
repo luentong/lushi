@@ -148,6 +148,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TLC_815", "TLC_816",  # Gravedawn spells
     "TLC_454",  # Scalehide Kodo
     "TLC_463", "TLC_482", "TLC_825", "TLC_829",
+    "TLC_251", "TLC_251e",
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "CS2_tk1",
@@ -1949,14 +1950,25 @@ class HotSpringGliderBattlecry:
 
 
 @dataclass(frozen=True)
+class PrimalfinChallengerBattlecry:
+    """Make the next active Kindred effect resolve twice."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.kindred_triggers_twice = 1
+        game._event("kindred_trigger_primed", player=context.player.index,
+                    source=context.card.card_id)
+
+
+@dataclass(frozen=True)
 class SteamfinThiefKindred:
     """Kindred: summon two 1/1 Rush Murlocs."""
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        if not game._kindred_active(context.player, context.card):
+        repeats = game._kindred_repeats(context.player, context.card)
+        if not repeats:
             return
         summoned = 0
-        for _ in range(2):
+        for _ in range(2 * repeats):
             if len(context.player.board) + len(context.player.locations) >= 7:
                 break
             token = game._entity("TLC_429t", created_by=context.card.card_id)
@@ -1973,7 +1985,8 @@ class AmbushPredatorsKindred:
     """Summon stealth poisonous Spitters, with a second one under Kindred."""
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        count = 2 if game._kindred_active(context.player, context.card) else 1
+        repeats = game._kindred_repeats(context.player, context.card)
+        count = 2 if repeats == 2 else 1
         summoned = 0
         for _ in range(count):
             if len(context.player.board) + len(context.player.locations) >= 7:
@@ -1993,7 +2006,8 @@ class GravedawnVoidbulbKindred:
     """Summon one or two random 4-cost minions with Taunt."""
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        count = 2 if game._kindred_active(context.player, context.card) else 1
+        repeats = game._kindred_repeats(context.player, context.card)
+        count = 2 if repeats == 2 else 1
         candidates = [
             card_id for card_id in game.executable_card_ids
             if card_id in game.card_defs
@@ -2022,7 +2036,7 @@ class ScalehideKodoBattlecry:
         candidates = [m for m in enemy.board if m.health > 0 and not m.silenced]
         if not candidates:
             return
-        reverse = game._kindred_active(context.player, context.card)
+        reverse = bool(game._kindred_repeats(context.player, context.card))
         target = (max if reverse else min)(candidates, key=lambda m: m.attack)
         target.damage = target.max_health
         game._resolve_deaths()
@@ -4522,6 +4536,9 @@ def build_rule_registry() -> RuleRegistry:
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule("TLC_428", {Hook.BATTLECRY: (HotSpringGliderBattlecry(),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TLC_251", {Hook.BATTLECRY: (PrimalfinChallengerBattlecry(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TLC_251e", {}, RuleSource("official_text", "HearthstoneJSON 251332")),
         CardRule("TLC_429", {Hook.BATTLECRY: (SteamfinThiefKindred(),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule("TLC_429t", {}, RuleSource("official_text", "HearthstoneJSON 251332")),

@@ -924,6 +924,7 @@ class Player:
     next_demon_free: bool = False
     next_beast_cost_reduction: int = 0
     next_murloc_cost_reduction: int = 0
+    kindred_triggers_twice: int = 0
     hero_divine_shield: bool = False
     hero_divine_shield_hits: int = 0
     hero_divine_shield_toreth: bool = False
@@ -2560,6 +2561,14 @@ class DragonMirrorGame:
         return bool(races & player.played_races_last_turn) if races else bool(
             player.played_races_last_turn
         )
+
+    def _kindred_repeats(self, player: Player, card: CardInstance) -> int:
+        """Return Kindred repeat count and consume the one-shot multiplier."""
+        if not self._kindred_active(player, card):
+            return 0
+        repeats = 2 if player.kindred_triggers_twice else 1
+        player.kindred_triggers_twice = 0
+        return repeats
 
     def _overload(self, player: Player, amount: int) -> None:
         if amount <= 0:
