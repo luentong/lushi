@@ -3260,6 +3260,10 @@ class ArgusPortalDeathrattle:
     def execute(self, game: Any, context: RuleContext) -> None:
         recipient = game.players[1 - context.player.index]
         if self.return_broxigar:
+            if recipient.broxigar_return_used:
+                game._event("argus_broxigar_return_skipped", player=recipient.index, source=context.card.card_id, reason="once_per_game")
+                return
+            recipient.broxigar_return_used = True
             if len(recipient.hand) < 10:
                 recipient.hand.append(game._entity("TIME_020", created_by=context.card.card_id))
             game._event("argus_broxigar_return", player=recipient.index, source=context.card.card_id)

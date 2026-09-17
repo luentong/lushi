@@ -723,6 +723,18 @@ class DragonMirrorRulesTests(unittest.TestCase):
         game._damage_minion(1, token, token.health)
         game._resolve_deaths()
         self.assertTrue(any(card.card_id == "TIME_020t3" for card in game.players[0].deck))
+
+    def test_final_argus_demon_returns_broxigar_only_once(self):
+        game = self.game(309)
+        first = self.add_board(game, "TIME_020t5t", 1)
+        game._damage_minion(1, first, first.health)
+        game._resolve_deaths()
+        self.assertEqual(1, sum(card.card_id == "TIME_020" for card in game.players[0].hand))
+        game.players[0].hand.clear()
+        second = self.add_board(game, "TIME_020t5t", 1)
+        game._damage_minion(1, second, second.health)
+        game._resolve_deaths()
+        self.assertEqual(0, sum(card.card_id == "TIME_020" for card in game.players[0].hand))
         dragon = self.add_board(game, "EDR_571")
         self.assertEqual(max(0, arcane.cost - 2), game._effective_cost(player, arcane))
         player.board.remove(dragon)

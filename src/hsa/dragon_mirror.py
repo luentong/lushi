@@ -890,6 +890,7 @@ class Player:
     # flag rather than a card-local effect so it survives state cloning and
     # resolves before start-of-turn draws/mana refresh.
     skip_next_turn: bool = False
+    broxigar_return_used: bool = False
     imbued_hero_power_id: str | None = None
     imbue_passive_triggered_this_turn: bool = False
     hamuul_active: bool = False
