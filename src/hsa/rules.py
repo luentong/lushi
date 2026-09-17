@@ -120,6 +120,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_850",  # Lo'Gosh, Blood Fighter (Fabled)
     "TIME_850t", "TIME_850t1",
     "TIME_852", "TIME_852t1",
+    "TIME_852t3",
     "TIME_209",  # Muradin, High King (Fabled)
     "TIME_209t", "TIME_209t2",
     "TIME_875",  # Garona Halforcen (Fabled)
@@ -3313,6 +3314,28 @@ class GelbinAuraEndTurn:
             game._event("gelbin_aura_expired", player=context.player.index, source=aura.card_id)
 
 
+@dataclass(frozen=True)
+class AzureOathstone:
+    """Summon friendly Dragons that died this game, up to board capacity."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        summoned = 0
+        for dead in list(player.dead_minions):
+            if len(player.board) + len(player.locations) >= 7:
+                break
+            if not dead.has_race("DRAGON"):
+                continue
+            copy = dead.clone(game.next_entity_id)
+            game.next_entity_id += 1
+            copy.damage = 0
+            copy.summoned_turn = game.turn
+            copy.created_by = context.card.card_id
+            game._summon(player, copy)
+            summoned += 1
+        game._event("azure_oathstone_summon", player=player.index, summoned=summoned)
+
+
 
 
 @dataclass(frozen=True)
@@ -4280,6 +4303,8 @@ def build_rule_registry() -> RuleRegistry:
         CardRule("TIME_020", {}, RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule("TIME_852", {}, RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule("TIME_852t1", {}, RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TIME_852t3", {Hook.SPELL: (AzureOathstone(),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule(
             "TIME_850", {Hook.DEATHRATTLE: (SummonBloodFighterFromHandThenAttack(),)},
             RuleSource(
