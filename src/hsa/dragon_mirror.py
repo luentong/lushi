@@ -6189,6 +6189,9 @@ class DragonMirrorGame:
             "kind": "REWIND_DISCOVER", "player": player.index,
             "before_players": copy.deepcopy(self.players) if before_players is None else before_players,
             "class_only": class_only,
+            "morchie_second": (not class_only and any(
+                m.card_id == "END_036" and not m.silenced for m in player.board
+            )),
             "pool": tuple(sorted(pool)), "options": options,
         }
         self._event("rewind_discover_offer", player=player.index,
@@ -6214,6 +6217,12 @@ class DragonMirrorGame:
         self.pending_choice = None
         self._add_generated(player, option)
         self._event("rewind_discover_pick", player=player.index, card=option.card_id)
+        if pending.get("morchie_second"):
+            # Morchie keeps both Sands of Time outcomes: after the first
+            # (any-class) Discover, immediately offer the post-Rewind,
+            # own-class Discover without restoring away the first pick.
+            self._offer_rewind_discover(player, class_only=True,
+                                        before_players=pending["before_players"])
 
     def _run_rewind_effect(self, player: Player, effect: str) -> Any:
         if effect == "stadium_weapons":
@@ -6440,10 +6449,21 @@ class DragonMirrorGame:
                     self._cast_spell(player, spell, Action("PLAY", spell.entity_id))
                     cast.append({"card": spell.card_id, "entity": spell.entity_id})
                 except ValueError as exc:
-                    self._event(
-                        "rewind_spell_unavailable", player=player.index,
-                        source="TIME_033", card=spell.card_id, reason=str(exc),
-                    )
+                    # Common targeted damage spells can safely default to the
+                    # opposing hero.  Other target requirements remain
+                    # explicit unavailable outcomes rather than guessed plays.
+                    try:
+                        self._cast_spell(
+                            player, spell,
+                            Action("PLAY", spell.entity_id, 1 - player.index, None),
+                        )
+                        cast.append({"card": spell.card_id, "entity": spell.entity_id,
+                                     "target": "enemy_hero"})
+                    except ValueError:
+                        self._event(
+                            "rewind_spell_unavailable", player=player.index,
+                            source="TIME_033", card=spell.card_id, reason=str(exc),
+                        )
             return cast
         raise ValueError(f"unknown Rewind effect: {effect}")
 

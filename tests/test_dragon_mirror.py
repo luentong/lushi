@@ -461,6 +461,20 @@ class DragonMirrorRulesTests(unittest.TestCase):
         game.step(Action("DISCOVER_PICK", option.entity_id))
         self.assertIsNone(game.pending_choice)
 
+    def test_morchie_keeps_both_sands_discover_outcomes(self):
+        game = self.game(282)
+        self.add_board(game, "END_036", 0)
+        card = self.add_hand(game, "TIME_EVENT_999")
+        self.play(game, card)
+        first = game.pending_choice["options"][0]
+        game.step(Action("DISCOVER_PICK", first.entity_id))
+        self.assertEqual("REWIND_DISCOVER", game.pending_choice["kind"])
+        self.assertTrue(all(option.definition.card_class == game.players[0].card_class
+                            for option in game.pending_choice["options"]))
+        second = game.pending_choice["options"][0]
+        game.step(Action("DISCOVER_PICK", second.entity_id))
+        self.assertIsNone(game.pending_choice)
+
     def test_generated_weapon_passives_and_deathrattle(self):
         game = self.game(29)
         player = game.players[0]
