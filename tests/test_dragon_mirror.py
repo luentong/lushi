@@ -534,6 +534,15 @@ class DragonMirrorRulesTests(unittest.TestCase):
         game._resolve_deaths()
         self.assertFalse(any(c.card_id == "TIME_209t" for c in game.players[0].hand))
 
+    def test_garona_destroys_king_llane_and_halves_health(self):
+        game = self.game(292)
+        game.players[1].hand.append(game._entity("TIME_875t"))
+        game.players[1].health = 30
+        card = self.add_hand(game, "TIME_875")
+        self.play(game, card)
+        self.assertEqual(15, game.players[1].health)
+        self.assertFalse(any(c.card_id == "TIME_875t" for c in game.players[1].hand))
+
     def test_morchie_handles_three_clocksworth_rewinds(self):
         game = self.game(281)
         self.add_board(game, "END_036", 0)

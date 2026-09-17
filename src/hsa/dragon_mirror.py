@@ -232,6 +232,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "TIME_852",  # Azure Queen Sindragosa
     "TIME_850",  # Lo'Gosh, Blood Fighter
     "TIME_209",  # Muradin, High King
+    "TIME_875",  # Garona Halforcen
     "TIME_603",  # Ticking Timebomb
     "TLC_228",  # Bralma Searstone
     "TLC_241",  # Ido of the Threshfleet

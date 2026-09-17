@@ -118,6 +118,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_609",  # Ranger General Sylvanas (Fabled)
     "TIME_850",  # Lo'Gosh, Blood Fighter (Fabled)
     "TIME_209",  # Muradin, High King (Fabled)
+    "TIME_875",  # Garona Halforcen (Fabled)
     "CORE_EX1_096",  # Loot Hoarder
     "CORE_CFM_604",  # Greater Healing Potion
     "CORE_BRM_013",  # Quick Shot
@@ -4387,6 +4388,13 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_king_llane_draws_and_shuffles_back",),
+            ),
+        ),
+        CardRule(
+            "TIME_875", {Hook.BATTLECRY: (DestroyHeldCardAndHalveEnemyHealth("TIME_875t"),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_garona_destroys_king_llane_and_halves_health",),
             ),
         ),
         CardRule(
