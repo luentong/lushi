@@ -2045,7 +2045,7 @@ class ScalehideKodoBattlecry:
 
     def execute(self, game: Any, context: RuleContext) -> None:
         enemy = game.players[1 - context.player.index]
-        candidates = [m for m in enemy.board if m.health > 0 and not m.silenced]
+        candidates = [m for m in enemy.board if m.health > 0]
         if not candidates:
             return
         reverse = bool(game._kindred_repeats(context.player, context.card))
