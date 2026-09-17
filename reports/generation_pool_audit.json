@@ -54,10 +54,10 @@
     "fire_spell": {
       "candidate_count": 33,
       "direct_supported": 3,
-      "generated_supported": 23,
+      "generated_supported": 26,
       "metadata_only": 0,
-      "needs_rule": 7,
-      "unimplemented": 7
+      "needs_rule": 4,
+      "unimplemented": 4
     },
     "tortotem_multi_type_minion": {
       "candidate_count": 55,
@@ -78,58 +78,58 @@
     "mech_play": {
       "candidate_count": 29,
       "direct_supported": 0,
-      "generated_supported": 23,
+      "generated_supported": 26,
       "metadata_only": 0,
-      "needs_rule": 6,
-      "unimplemented": 6
+      "needs_rule": 3,
+      "unimplemented": 3
     },
     "five_cost_minion_play": {
       "candidate_count": 83,
       "direct_supported": 0,
-      "generated_supported": 22,
+      "generated_supported": 24,
       "metadata_only": 0,
-      "needs_rule": 61,
-      "unimplemented": 61
+      "needs_rule": 59,
+      "unimplemented": 59
     },
     "two_cost_minion_play": {
       "candidate_count": 121,
       "direct_supported": 1,
-      "generated_supported": 20,
+      "generated_supported": 21,
       "metadata_only": 0,
-      "needs_rule": 100,
-      "unimplemented": 100
+      "needs_rule": 99,
+      "unimplemented": 99
     },
     "four_cost_minion_play": {
       "candidate_count": 127,
       "direct_supported": 4,
-      "generated_supported": 28,
+      "generated_supported": 31,
       "metadata_only": 0,
-      "needs_rule": 95,
-      "unimplemented": 95
+      "needs_rule": 92,
+      "unimplemented": 92
     },
     "legendary_minion_play": {
       "candidate_count": 54,
       "direct_supported": 2,
-      "generated_supported": 33,
+      "generated_supported": 36,
       "metadata_only": 0,
-      "needs_rule": 19,
-      "unimplemented": 19
+      "needs_rule": 16,
+      "unimplemented": 16
     },
     "rewind_card_play": {
       "candidate_count": 18,
       "direct_supported": 1,
-      "generated_supported": 7,
+      "generated_supported": 16,
       "metadata_only": 0,
-      "needs_rule": 10,
-      "unimplemented": 10
+      "needs_rule": 1,
+      "unimplemented": 1
     },
     "aura_card_play": {
       "candidate_count": 29,
       "direct_supported": 0,
-      "generated_supported": 24,
+      "generated_supported": 25,
       "metadata_only": 0,
-      "needs_rule": 5,
-      "unimplemented": 5
+      "needs_rule": 4,
+      "unimplemented": 4
     },
     "void_soul_demon_1": {
       "candidate_count": 5,

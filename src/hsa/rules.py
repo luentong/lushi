@@ -153,6 +153,7 @@ STANDARD_DECLARATIVE_IDS = {
     "DINO_435",
     "DINO_138", "DINO_404", "DINO_413",
     "TLC_102", "TLC_223", "TLC_243", "TLC_432", "TLC_600",
+    "CORE_GIL_836",
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "CS2_tk1",
@@ -877,6 +878,23 @@ class OfferRaptorHeraldDiscover:
         OfferMinionDarkGiftDiscover(race="BEAST").execute(game, context)
         if game.pending_choice is not None and game._kindred_repeats(context.player, context.card):
             game.pending_choice["dark_gift_cost_delta"] = -1
+
+
+@dataclass(frozen=True)
+class OfferBattlecryMinionDiscover:
+    """Discover an executable minion with a printed Battlecry."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        pool = [
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "MINION"
+            and "BATTLECRY" in definition.mechanics
+        ]
+        game._offer_discover(context.player, pool, source_card_id=context.card.card_id)
+        if game.pending_choice is not None:
+            for option in game.pending_choice["options"]:
+                option.cost_delta -= 1
 
 
 @dataclass(frozen=True)
@@ -4796,6 +4814,10 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CORE_EDR_004", {Hook.BATTLECRY: (OfferRaptorHeraldDiscover(),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332; Beast Dark Gift discover", ("test_raptor_herald_dark_gift_discover",)),
+        ),
+        CardRule(
+            "CORE_GIL_836", {Hook.SPELL: (OfferBattlecryMinionDiscover(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
         ),
         CardRule(
             "CORE_EDR_004_2026", {Hook.BATTLECRY: (OfferRaptorHeraldDiscover(),)},
