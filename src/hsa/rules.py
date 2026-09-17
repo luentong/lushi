@@ -118,6 +118,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_609",  # Ranger General Sylvanas (Fabled)
     "TIME_609t1", "TIME_609t2",
     "TIME_850",  # Lo'Gosh, Blood Fighter (Fabled)
+    "TIME_850t", "TIME_850t1",
     "TIME_209",  # Muradin, High King (Fabled)
     "TIME_875",  # Garona Halforcen (Fabled)
     "TIME_009",  # Gelbin of Tomorrow (Fabled)
@@ -3056,6 +3057,31 @@ class SummonBloodFighterFromHandThenAttack:
 
 
 @dataclass(frozen=True)
+class SummonBloodFighterFromHandBuffed:
+    """Broll/Valeera recursive Blood Fighter deathrattle."""
+    keyword: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        candidates = [card for card in player.hand if "blood fighter" in card.definition.name.casefold()]
+        if not candidates or len(player.board) + len(player.locations) >= 7:
+            return
+        summoned = game.rng.choice(candidates)
+        player.hand.remove(summoned)
+        summoned.attack_delta += 5
+        summoned.health_delta += 5
+        if self.keyword == "TAUNT":
+            summoned.taunt = True
+        else:
+            summoned.elusive = True
+        summoned.summoned_turn = game.turn
+        game._summon(player, summoned)
+        game._event("blood_fighter_recursive_summon", player=player.index,
+                    source=context.card.card_id, card=summoned.card_id,
+                    entity=summoned.entity_id, keyword=self.keyword)
+
+
+@dataclass(frozen=True)
 class EquipHighKingsHammer:
     """Muradin's Fabled Battlecry: equip the High King's Hammer."""
 
@@ -4168,6 +4194,10 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_logosh_summons_blood_fighter_and_attacks",),
             ),
         ),
+        CardRule("TIME_850t", {Hook.DEATHRATTLE: (SummonBloodFighterFromHandBuffed("TAUNT"),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TIME_850t1", {Hook.DEATHRATTLE: (SummonBloodFighterFromHandBuffed("ELUSIVE"),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule(
             "TIME_209",
             {Hook.BATTLECRY: (EquipHighKingsHammer(),), Hook.DEATHRATTLE: (ReturnHammerIfClaimed(),)},

@@ -512,6 +512,17 @@ class DragonMirrorRulesTests(unittest.TestCase):
         summoned = next(m for m in game.players[0].board if m.entity_id == event["entity"])
         self.assertEqual(5, summoned.attack_delta)
 
+    def test_blood_fighter_derived_deathrattle_recurses_with_keyword(self):
+        game = self.game(314)
+        player = game.players[0]
+        broll = self.add_hand(game, "TIME_850t")
+        player.hand.append(game._entity("TIME_850t1"))
+        self.play(game, broll)
+        game._damage_minion(0, player.board[0], player.board[0].health)
+        game._resolve_deaths()
+        summoned = next(m for m in player.board if m.card_id == "TIME_850t1")
+        self.assertTrue(summoned.taunt)
+
     def test_muradin_equips_and_returns_hammer(self):
         game = self.game(290)
         game.players[0].deck.append(game._entity("TIME_209t", started_in_deck=True))
