@@ -3240,6 +3240,26 @@ class ApplyBwonsamdiBoonSpell:
 
 
 @dataclass(frozen=True)
+class WhatBefellZandalar:
+    """Damage all enemies, then offer a Boon for the active Bwonsamdi."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        game._damage_hero(enemy, 2, context.card)
+        for minion in list(enemy.board):
+            game._damage_minion(enemy.index, minion, 2)
+        game._resolve_deaths()
+        target = next((m for m in context.player.board if m.card_id == "TIME_619t"), None)
+        if target is None:
+            return
+        OfferEffectChoice((
+                ("Boon of Power", (ApplyBwonsamdiBoon(target.entity_id, "power"),)),
+                ("Boon of Longevity", (ApplyBwonsamdiBoon(target.entity_id, "longevity"),)),
+                ("Boon of Speed", (ApplyBwonsamdiBoon(target.entity_id, "speed"),)),
+            )).execute(game, context)
+
+
+@dataclass(frozen=True)
 class SummonCopyOfFriendlyTarget:
     doubled: bool = False
 
@@ -4292,6 +4312,8 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule("TIME_619t3", {Hook.SPELL: (ApplyBwonsamdiBoonSpell("power"),)},
+                 RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule("TIME_619t2", {Hook.SPELL: (WhatBefellZandalar(),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule("TIME_619t4", {Hook.SPELL: (ApplyBwonsamdiBoonSpell("longevity"),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
