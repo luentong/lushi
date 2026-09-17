@@ -725,6 +725,12 @@ class DragonMirrorRulesTests(unittest.TestCase):
         queen.silenced = True
         self.assertEqual(arcane.cost, game._effective_cost(player, arcane))
 
+    def test_first_portal_summons_opponent_demon(self):
+        game = self.game(308)
+        portal = self.add_hand(game, "TIME_020t2")
+        self.play(game, portal)
+        self.assertTrue(any(m.card_id == "TIME_020t2t" for m in game.players[1].board))
+
     def test_morchie_handles_three_clocksworth_rewinds(self):
         game = self.game(281)
         self.add_board(game, "END_036", 0)
