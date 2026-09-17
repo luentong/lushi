@@ -1130,16 +1130,23 @@ class DamageAllEnemyCharacters:
     """Deal fixed damage to the opposing hero and all awake minions."""
 
     amount: int
+    repeat_for_cards: tuple[str, ...] = ()
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        targets = game._random_enemy_characters(context.player.index)
         amount = game._spell_effect_amount(context.player, context.card, self.amount)
-        for target in targets:
-            game._deal_to_target(context.player.index, target, amount, context.card)
-        game._resolve_deaths()
+        repeats = 1 + sum(
+            context.player.played_card_counts.get(card_id, 0)
+            for card_id in self.repeat_for_cards
+        )
+        targets = game._random_enemy_characters(context.player.index)
+        for _ in range(repeats):
+            for target in targets:
+                game._deal_to_target(context.player.index, target, amount, context.card)
+            game._resolve_deaths()
         game._event(
             "all_enemy_damage", player=context.player.index,
-            source=context.card.card_id, amount=amount, targets=targets,
+            source=context.card.card_id, amount=amount, repeats=repeats,
+            targets=targets,
         )
 
 
@@ -3603,7 +3610,9 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule(
-            "TIME_609", {Hook.BATTLECRY: (DamageAllEnemyCharacters(2),)},
+            "TIME_609", {Hook.BATTLECRY: (
+                DamageAllEnemyCharacters(2, repeat_for_cards=("TIME_609t1", "TIME_609t2")),
+            )},
             RuleSource(
                 "official_text_and_engine_pattern", "HearthstoneJSON 251332",
                 verification=("test_ranger_general_sylvanas_hits_all_enemies",),

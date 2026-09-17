@@ -489,6 +489,16 @@ class DragonMirrorRulesTests(unittest.TestCase):
         event = next(e for e in game.events if e["kind"] == "all_enemy_damage")
         self.assertEqual(2, len(event["targets"]))
 
+    def test_ranger_general_sylvanas_repeats_for_played_sisters(self):
+        game = self.game(288)
+        game.players[0].played_card_counts["TIME_609t1"] = 1
+        game.players[0].played_card_counts["TIME_609t2"] = 1
+        card = self.add_hand(game, "TIME_609")
+        self.play(game, card)
+        self.assertEqual(24, game.players[1].health)
+        event = next(e for e in game.events if e["kind"] == "all_enemy_damage")
+        self.assertEqual(3, event["repeats"])
+
     def test_morchie_handles_three_clocksworth_rewinds(self):
         game = self.game(281)
         self.add_board(game, "END_036", 0)
