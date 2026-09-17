@@ -126,6 +126,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_211t2", "TIME_211t2t",
     "TIME_619", "TIME_619t2", "TIME_619t3", "TIME_619t4", "TIME_619t5",
     "TIME_619t",
+    "TIME_020t2", "TIME_020t2t",
     "TIME_005",  # Timethief Rafaam (Fabled+)
     "END_037",  # Endtime Murozond
     "CORE_EX1_096",  # Loot Hoarder
@@ -3233,6 +3234,24 @@ class FillHandRandomTemporarySpells:
 
 
 @dataclass(frozen=True)
+class SummonOpponentArgusDemon:
+    token_id: str = "TIME_020t2t"
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        if len(enemy.board) + len(enemy.locations) >= 7:
+            return
+        token = game._entity(self.token_id, created_by=context.card.card_id)
+        token.summoned_turn = game.turn
+        game._summon(enemy, token)
+        game._event(
+            "argus_portal_summon", player=context.player.index,
+            source=context.card.card_id, target_player=enemy.index,
+            card=token.card_id, entity=token.entity_id,
+        )
+
+
+@dataclass(frozen=True)
 class TalanjiBattlecry:
     """Draw or resurrect Bwonsamdi, then offer one of three Boons."""
 
@@ -4060,6 +4079,10 @@ def build_rule_registry() -> RuleRegistry:
                 "official_text_and_engine_pattern", "HearthstoneJSON 251332",
                 verification=("test_bwonsamdi_deathrattle_summons_random_four_cost",),
             ),
+        ),
+        CardRule(
+            "TIME_020t2", {Hook.SPELL: (SummonOpponentArgusDemon(),)},
+            RuleSource("official_text", "HearthstoneJSON 251332", verification=("test_first_portal_summons_opponent_demon",)),
         ),
         CardRule(
             "TIME_211t2", {Hook.LOCATION: (SummonCopyOfFriendlyTarget(False),)},
