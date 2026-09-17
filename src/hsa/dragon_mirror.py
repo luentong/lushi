@@ -238,7 +238,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "TIME_619",  # Talanji of the Graves
     "TIME_619t",  # Bwonsamdi token
     "TIME_020",  # Broxigar
-    "TIME_020t2", "TIME_020t3", "TIME_020t4", "TIME_020t5",
+    "TIME_020t1", "TIME_020t2", "TIME_020t3", "TIME_020t4", "TIME_020t5",
     "TIME_020t2t", "TIME_020t3t", "TIME_020t4t", "TIME_020t5t",
     "TIME_005",  # Timethief Rafaam
     "TIME_603",  # Ticking Timebomb
@@ -6001,7 +6001,7 @@ class DragonMirrorGame:
     ) -> None:
         if weapon is None:
             self._dispatch_after_hero_attack(
-                player, attack_amount=attack_amount, weapon=None
+                player, attack_amount=attack_amount, weapon=None, attacked=attacked
             )
             return
         if weapon.card_id == "CAP_103":
@@ -6076,12 +6076,13 @@ class DragonMirrorGame:
         elif weapon.card_id == "JAIL_458" and weapon.ammunition is not None:
             self._fire_tiny_pal_ammunition(player, weapon, attacked)
         self._dispatch_after_hero_attack(
-            player, attack_amount=attack_amount, weapon=weapon
+            player, attack_amount=attack_amount, weapon=weapon, attacked=attacked
         )
 
     def _dispatch_after_hero_attack(
         self, player: Player, *, attack_amount: int | None = None,
         weapon: Weapon | None = None,
+        attacked: tuple[int, int | None] | None = None,
     ) -> None:
         """Run friendly-minion triggers after every hero attack.
 
@@ -6100,7 +6101,7 @@ class DragonMirrorGame:
                 Hook.AFTER_HERO_ATTACK, minion.card_id, self,
                 RuleContext(
                     player=player, card=minion,
-                    payload={"hero_attack": attack_amount},
+                    payload={"hero_attack": attack_amount, "attacked": attacked},
                 ),
             )
         if weapon is not None and weapon.card_id == "JAIL_730":
@@ -6136,7 +6137,7 @@ class DragonMirrorGame:
                 Hook.AFTER_HERO_ATTACK, weapon.card_id, self,
                 RuleContext(
                     player=player, card=card,
-                    payload={"hero_attack": attack_amount},
+                    payload={"hero_attack": attack_amount, "attacked": attacked},
                 ),
             )
 

@@ -126,7 +126,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_211t2", "TIME_211t2t",
     "TIME_619", "TIME_619t2", "TIME_619t3", "TIME_619t4", "TIME_619t5",
     "TIME_619t",
-    "TIME_020t2", "TIME_020t3", "TIME_020t4", "TIME_020t5",
+    "TIME_020t1", "TIME_020t2", "TIME_020t3", "TIME_020t4", "TIME_020t5",
     "TIME_020t2t", "TIME_020t3t", "TIME_020t4t", "TIME_020t5t",
     "TIME_005",  # Timethief Rafaam (Fabled+)
     "END_037",  # Endtime Murozond
@@ -3278,6 +3278,24 @@ class ArgusPortalDeathrattle:
 
 
 @dataclass(frozen=True)
+class DrawFirstArgusPortalOnHeroKill:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        attacked = (context.payload or {}).get("attacked")
+        if not attacked or attacked[1] is None:
+            return
+        try:
+            target = game._find_minion(attacked[0], attacked[1])
+        except ValueError:
+            return
+        if target.health > 0:
+            return
+        game._draw(context.player)
+        portal = game._entity("TIME_020t2", created_by=context.card.card_id)
+        context.player.deck.insert(game.rng.randrange(len(context.player.deck) + 1), portal)
+        game._event("axe_of_cenarius_portal", player=context.player.index, portal=portal.card_id)
+
+
+@dataclass(frozen=True)
 class TalanjiBattlecry:
     """Draw or resurrect Bwonsamdi, then offer one of three Boons."""
 
@@ -4136,6 +4154,7 @@ def build_rule_registry() -> RuleRegistry:
                 verification=("test_neutral_imbue_uses_controller_class",),
             ),
         ),
+        CardRule("TIME_020t1", {Hook.AFTER_HERO_ATTACK: (DrawFirstArgusPortalOnHeroKill(),)}, RuleSource("official_text", "HearthstoneJSON 251332")),
         CardRule("TIME_020t3", {Hook.SPELL: (SummonOpponentArgusDemon("TIME_020t3t"),)}, RuleSource("official_text", "HearthstoneJSON 251332")),
         CardRule("TIME_020t4", {Hook.SPELL: (SummonOpponentArgusDemon("TIME_020t4t"),)}, RuleSource("official_text", "HearthstoneJSON 251332")),
         CardRule("TIME_020t5", {Hook.SPELL: (SummonOpponentArgusDemon("TIME_020t5t"),)}, RuleSource("official_text", "HearthstoneJSON 251332")),
