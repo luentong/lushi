@@ -2797,6 +2797,22 @@ class DragonMirrorGame:
             if minion.dormant_turns == 0
         ]
 
+    def _random_enemy_minions(
+        self, player_index: int, *, alive_only: bool = True
+    ) -> list[CardInstance]:
+        """Return enemy minions eligible for a random effect.
+
+        Stealth does not protect a minion from random effects; Dormant does.
+        Most damage/destruction effects also ignore already-dead minions, so
+        that is the default here.
+        """
+        enemy = self.players[1 - player_index]
+        return [
+            minion for minion in enemy.board
+            if minion.dormant_turns == 0
+            and (not alive_only or minion.health > 0)
+        ]
+
     def _random_spell_target_candidates(
         self, player_index: int, spell: CardInstance
     ) -> list[tuple[int, int | None, str]]:

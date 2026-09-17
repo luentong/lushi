@@ -1405,7 +1405,7 @@ class DamageRandomEnemyMinion:
         enemy = game.players[1 - context.player.index]
         # Random effects are allowed to hit Stealth; only Dormant removes a
         # minion from the character pool.
-        targets = [m for m in enemy.board if m.dormant_turns == 0]
+        targets = game._random_enemy_minions(context.player.index)
         if not targets:
             return
         target = game.rng.choice(targets)
@@ -1425,10 +1425,7 @@ class DamageRandomEnemyMinionWithHeldCost:
     threshold: int
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        targets = [
-            minion for minion in game.players[1 - context.player.index].board
-            if minion.dormant_turns == 0
-        ]
+        targets = game._random_enemy_minions(context.player.index)
         if not targets:
             return
         amount = (
@@ -1767,7 +1764,7 @@ class DamageRandomEnemyMinionsThenDrawPerKill:
         enemy = game.players[1 - context.player.index]
         killed = 0
         for _ in range(self.count):
-            available = [m for m in enemy.board if m.dormant_turns == 0]
+            available = game._random_enemy_minions(context.player.index)
             if not available:
                 break
             target = game.rng.choice(available)
@@ -2950,10 +2947,7 @@ class SummonStatsByHandThenAttackRandomEnemyMinion:
         minion.summoned_turn = game.turn
         game._summon(player, minion)
         enemy = game.players[1 - player.index]
-        targets = [
-            target for target in enemy.board
-            if target.dormant_turns == 0
-        ]
+        targets = game._random_enemy_minions(player.index)
         if targets:
             target = game.rng.choice(targets)
             game._forced_minion_attack(player.index, minion, enemy.index, target)
