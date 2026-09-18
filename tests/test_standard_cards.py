@@ -22,6 +22,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game = self.game()
         self.assertTrue(HERALD_COLLECTIBLE_IDS <= game.executable_card_ids)
 
+    def test_all_standard_prepare_cards_are_executable(self):
+        prepare_ids = {
+            "CAP_407", "JAIL_321", "JAIL_326", "JAIL_395", "JAIL_407",
+            "JAIL_435", "JAIL_444", "JAIL_453", "JAIL_457", "JAIL_718",
+            "JAIL_721", "JAIL_735", "JAIL_890", "JAIL_906", "JAIL_909",
+            "JAIL_912", "JAIL_913", "JAIL_998",
+        }
+        game = self.game()
+        self.assertTrue(prepare_ids <= game.executable_card_ids)
+
     def game(self) -> DragonMirrorGame:
         game = DragonMirrorGame(CARDS, 29)
         game.current = 0
