@@ -978,7 +978,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         dormant = self.add_board(game, "CATA_565", 0)
         dormant.dormant_turns = 2
         game._end_turn()
-        self.assertNotIn(dormant, game.players[0].board)
+        self.assertIn(dormant, game.players[0].board)
 
     def test_herald_soldier_azshara_and_alakir_variants(self):
         game = self.game()

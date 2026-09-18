@@ -2456,7 +2456,7 @@ class HeraldDestroyRightAndGrow:
         if index + 1 >= len(player.board):
             return
         right = player.board[index + 1]
-        if right.health <= 0:
+        if right.dormant_turns > 0 or right.health <= 0:
             return
         right.damage = right.max_health
         game._event(
