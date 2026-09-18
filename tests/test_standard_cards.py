@@ -1024,9 +1024,11 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         enemy = self.add_board(game, "TLC_248", 1)
         spell = self.add_hand(game, "CATA_156")
         before = enemy.health
+        hero_before = game.players[1].health
         game.step(Action("PLAY", spell.entity_id))
         self.assertEqual(1, game.players[0].herald_count)
         self.assertEqual(before - 4, enemy.health)
+        self.assertEqual(hero_before, game.players[1].health)
 
     def test_fel_infusion_herald_and_hero_lifesteal(self):
         game = self.game()

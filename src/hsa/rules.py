@@ -6861,7 +6861,7 @@ def build_rule_registry() -> RuleRegistry:
             TargetSpec(TargetKind.ANY_MINION),
         ),
         CardRule(
-            "CATA_156", {Hook.SPELL: (HeraldRagnaros(), DamageAllEnemies(4),)},
+            "CATA_156", {Hook.SPELL: (HeraldRagnaros(), DamageEnemyMinions(4),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Herald event model", ("test_experimental_animation_heralds_and_damages_enemy_minions",)),
         ),
         CardRule(
