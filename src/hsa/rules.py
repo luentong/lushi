@@ -191,7 +191,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
-    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "CATA_724", "CORE_AT_052", "CORE_EX1_250", "CORE_OG_044", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010", "JAIL_462", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_601", "TIME_810", "TLC_449",  # Standard mechanism tranche
+    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "CATA_569", "CATA_724", "CORE_AT_052", "CORE_EX1_250", "CORE_OG_044", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010", "END_028", "JAIL_462", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_601", "TIME_810", "TLC_227", "TLC_449",  # Standard mechanism tranche
     "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
@@ -7994,7 +7994,7 @@ def build_rule_registry() -> RuleRegistry:
         ),
         CardRule(
             "TLC_227",
-            {Hook.SPELL: (DamageLowestHealthEnemyRepeated(2, 3),)},
+            {Hook.SPELL: (DamageLowestHealthEnemyRepeated(2, 3), Overload(1))},
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_lava_flow_retargets_lowest_health_enemy",),
@@ -8861,6 +8861,21 @@ def build_rule_registry() -> RuleRegistry:
             "CORE_AT_052", {Hook.AFTER_PLAY: (Overload(1),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
                        verification=("test_totem_golem_overload",)),
+        ),
+        CardRule(
+            "CATA_569", {Hook.SPELL: (
+                SummonRandomExecutableMinion(cost=3),
+                SummonRandomExecutableMinion(cost=2),
+                SummonRandomExecutableMinion(cost=1),
+                Overload(1),
+            )},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_ceremonial_clash_summons_costs_and_overload",)),
+        ),
+        CardRule(
+            "END_028", {Hook.SPELL: (DestroyMinionsByAttackAtMost(4), Overload(2))},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_for_all_time_attack_filter_and_overload",)),
         ),
         CardRule(
             "CORE_EX1_250", {Hook.AFTER_PLAY: (Overload(2),)},
