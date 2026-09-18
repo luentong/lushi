@@ -4076,6 +4076,8 @@ class DragonMirrorGame:
                         Action("LOCATION", location.entity_id, p, e)
                         for p, e in self._enemy_characters(player.index)
                     )
+                elif location.custom_effects:
+                    actions.append(Action("LOCATION", location.entity_id))
                 elif self.rule_registry.has_hook(Hook.LOCATION, location.card_id):
                     target_spec = self.rule_registry.targeting(location.card_id)
                     if target_spec is None:

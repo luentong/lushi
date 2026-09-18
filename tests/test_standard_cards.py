@@ -119,6 +119,29 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(5, game.players[0].locations[0].custom_tier)
         self.assertEqual(2, len(game.players[0].locations[0].custom_effects))
 
+    def test_elise_one_cost_excludes_radiant_crystals_and_activates(self):
+        game = self.game()
+        by_cost = {}
+        for card_id, definition in game.card_defs.items():
+            if definition.card_type and definition.cost not in by_cost:
+                by_cost[definition.cost] = card_id
+        game.players[0].deck = [
+            game._entity(by_cost[cost], started_in_deck=True)
+            for cost in range(10) if cost in by_cost
+        ]
+        elise = self.add_hand(game, "TLC_100")
+        game.step(Action("PLAY", elise.entity_id))
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        labels = [label for label, _ in game.pending_choice["options"]]
+        self.assertNotIn("Radiant Crystals", labels)
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        location = game.players[0].locations[0]
+        location.cooldown = 0
+        game.players[1].health = 30
+        game.step(Action("LOCATION", location.entity_id))
+        self.assertEqual(29, game.players[1].health)
+
     def game(self) -> DragonMirrorGame:
         game = DragonMirrorGame(CARDS, 29)
         game.current = 0
