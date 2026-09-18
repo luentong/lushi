@@ -804,6 +804,44 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual((6, 7), (ogre.attack, ogre.max_health))
         self.assertEqual((14, 28), (giga.attack, giga.max_health))
 
+    def test_standard_batch_50_registry_and_smoke(self):
+        batch = {
+            "RLK_067", "CORE_BT_921", "EDR_272", "CATA_558", "CORE_CS2_179",
+            "CORE_DRG_079", "CORE_EX1_010", "CORE_EX1_028", "CORE_GIL_558",
+            "CORE_GVG_085", "CORE_LOOT_137", "CORE_NEW1_023", "CORE_ULD_723",
+            "CS3_038", "Core_CS2_200", "EDR_486", "EDR_598", "TIME_045",
+            "TIME_053", "TIME_056", "TLC_248", "CORE_ICC_038", "CORE_BT_701",
+            "CORE_EX1_082", "CORE_ULD_271", "CORE_EX1_058", "CORE_EX1_103",
+            "CORE_EX1_506", "CORE_LOOT_413", "CORE_REV_308", "CORE_SW_088",
+            "CORE_CS2_042", "CORE_EX1_134", "CORE_GVG_059", "CORE_EX1_362",
+            "CORE_CFM_753", "CORE_TSC_076", "CORE_UNG_952", "CORE_GVG_061",
+            "CORE_BAR_310", "CORE_EX1_198", "CORE_ICC_214", "CORE_NEW1_031",
+            "CORE_OG_211", "CORE_AV_337", "CORE_RLK_062", "CORE_ULD_178",
+            "CORE_WON_141", "CORE_LOOT_309", "CORE_RLK_657",
+        }
+        game = self.game()
+        self.assertEqual(50, len(batch))
+        self.assertTrue(batch <= game.executable_card_ids)
+        self.assertTrue(batch <= {rule.card_id for rule in game.rule_registry.all_rules()})
+        # Metadata keywords are initialized even when the rule body is empty.
+        evasive = game._entity("CORE_DRG_079")
+        self.assertTrue(evasive.rush and evasive.divine_shield and evasive.elusive)
+
+        enemy = self.add_board(game, "CORE_LOOT_137", 1)
+        bomber = self.add_hand(game, "CORE_EX1_082")
+        game.step(Action("PLAY", bomber.entity_id))
+        self.assertTrue(any(e["kind"] == "random_other_character_damage" for e in game.events))
+
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        natalie = self.add_hand(game, "CORE_EX1_198")
+        game.step(Action("PLAY", natalie.entity_id, 1, target.entity_id))
+        self.assertNotIn(target, game.players[1].board)
+
+        companion = self.add_hand(game, "CORE_NEW1_031")
+        game.step(Action("PLAY", companion.entity_id))
+        self.assertTrue(any(minion.card_id in {"NEW1_032", "NEW1_033", "NEW1_034"}
+                            for minion in game.players[0].board))
+
     def test_all_standard_vanilla_entities_are_constructible_and_playable(self):
         # This is intentionally table-driven: adding another text-free token
         # to the tranche automatically exercises metadata loading and the
