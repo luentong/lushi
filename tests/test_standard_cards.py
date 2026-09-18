@@ -1046,6 +1046,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(2, game.players[0].herald_count)
         self.assertEqual(2, sum(m.card_id == "CATA_154t" for m in game.players[0].board))
 
+    def test_vulcanos_colossal_and_end_turn_damage(self):
+        game = self.game()
+        vulcanos = self.add_hand(game, "CATA_488")
+        game.step(Action("PLAY", vulcanos.entity_id))
+        self.assertEqual(2, sum(m.card_id == "CATA_488t" for m in game.players[0].board))
+        enemy = self.add_board(game, "CATA_565", 1)
+        before = enemy.health
+        game._end_turn()
+        self.assertEqual(before - 3, enemy.health)
+        self.assertEqual(8, vulcanos.health)
+
     def test_experimental_animation_heralds_and_damages_enemy_minions(self):
         game = self.game()
         enemy = self.add_board(game, "TLC_248", 1)

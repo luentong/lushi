@@ -1178,6 +1178,19 @@ class DamageBoard:
 
 
 @dataclass(frozen=True)
+class DamageAllOtherMinions:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        amount = game._spell_effect_amount(context.player, context.card, self.amount)
+        for owner in game.players:
+            for target in list(owner.board):
+                if target.entity_id != context.card.entity_id:
+                    game._damage_minion(owner.index, target, amount, context.card)
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
 class ResolveDeaths:
     def execute(self, game: Any, context: RuleContext) -> None:
         game._resolve_deaths()
@@ -6936,6 +6949,10 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CATA_154", {},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Colossal appendage model", ("test_sinestra_colossal_doubles_other_class_spells",)),
+        ),
+        CardRule(
+            "CATA_488", {Hook.END_TURN: (DamageAllOtherMinions(3),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Colossal appendage model", ("test_vulcanos_colossal_and_end_turn_damage",)),
         ),
         CardRule(
             "CATA_725t", {Hook.END_TURN: (HeraldDestroyRightAndGrow(),)},

@@ -188,6 +188,7 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 ADDITIONAL_PLAYABLE_MINION_IDS = {
     "CATA_153",  # Al'Akir, Lord of Storms
     "CATA_154",  # Sinestra
+    "CATA_488",  # Vulcanos
     "CATA_525",  # Armored Bloodletter
     "CATA_565",  # Skywall Sentinel
     "CATA_780",  # Obsessive Technician
@@ -322,6 +323,7 @@ SPECIAL_TOKEN_IDS = {
     "CATA_154t", "CATA_154t1",  # Sinestra's Wing
     "CATA_525t", "CATA_565t", "CATA_725t", "CATA_726t", "CATA_726t1",
     "CATA_780t",
+    "CATA_488t", "CATA_488t2",
     "BOT_102t",  # Spark
     "CAP_107t",  # Cannoneer
     "CATA_155t",  # Onyxia's Wing
@@ -1776,6 +1778,8 @@ class DragonMirrorGame:
             self._summon_colossal_appendages(player, minion, "CATA_153t", 2)
         elif minion.card_id == "CATA_154":
             self._summon_colossal_appendages(player, minion, "CATA_154t", 2)
+        elif minion.card_id == "CATA_488":
+            self._summon_colossal_appendages(player, minion, "CATA_488t", 2)
         elif minion.card_id == "CATA_151":
             self._summon_azshara_tentacles(player, minion)
         elif minion.card_id == "CATA_155":
