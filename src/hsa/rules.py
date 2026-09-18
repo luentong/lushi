@@ -6309,6 +6309,13 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule(
+            "MEND_046", {},
+            RuleSource(
+                "local_spec", local,
+                verification=("test_bashana_carves_nature_spells",),
+            ),
+        ),
+        CardRule(
             "CORE_SW_068", {Hook.DEATHRATTLE: (GainArmor(8),)},
             RuleSource(
                 "upstream_adapted", rosetta, "CORE_SW_068", "AGPL-3.0",

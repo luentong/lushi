@@ -142,6 +142,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("LOCATION", location.entity_id))
         self.assertEqual(29, game.players[1].health)
 
+    def test_bashana_carves_nature_spells(self):
+        game = self.game()
+        bashana = self.add_hand(game, "MEND_046")
+        game.step(Action("PLAY", bashana.entity_id))
+        tokens = [card for card in game.players[0].board if card.card_id == "MEND_046t"]
+        self.assertEqual(3, len(tokens))
+        self.assertTrue(all(token.embedded_spell_id for token in tokens))
+        total = sum(
+            game.card_defs[token.embedded_spell_id].cost for token in tokens
+        )
+        self.assertEqual(12, total)
+
     def game(self) -> DragonMirrorGame:
         game = DragonMirrorGame(CARDS, 29)
         game.current = 0

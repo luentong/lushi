@@ -188,6 +188,7 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
     "TLC_100",  # Elise the Navigator
+    "MEND_046",  # Bashana Runetotem
     "JAIL_860",  # Chef Neth'rek
     "JAIL_719",  # Irida Sinseeker
     "JAIL_446",  # Blood Doctor Thal'ena
@@ -806,6 +807,7 @@ class CardInstance:
     cant_attack: bool = False
     mirrex_tracker: bool = False
     spell_damage_bonus: int = 0
+    embedded_spell_id: str | None = None
     prepared_turn: int = -1
     # Prepare is a one-time state on the card, not a per-turn activation.
     prepared: bool = False
@@ -4922,6 +4924,54 @@ class DragonMirrorGame:
                     "elise_location_cost_offer", player=player.index,
                     source=card.card_id, costs=[1, 5, 10],
                 )
+            return
+        if card.card_id == "MEND_046":
+            nature = [
+                (card_id, definition.cost)
+                for card_id, definition in self.card_defs.items()
+                if card_id in EXECUTABLE_CARD_IDS
+                and definition.card_type == "SPELL"
+                and definition.spell_school == "NATURE"
+                and 1 <= definition.cost <= 10
+            ]
+            triples = [
+                (a, b, c) for a, ca in nature for b, cb in nature
+                for c, cc in nature if ca + cb + cc == 12
+            ]
+            chosen = self.rng.choice(triples) if triples else None
+            for index in range(3):
+                if len(player.board) + len(player.locations) >= 7:
+                    break
+                token = self._entity("MEND_046t", created_by=card.card_id)
+                token.embedded_spell_id = chosen[index] if chosen else None
+                token.summoned_turn = self.turn
+                self._summon(player, token)
+            self._event(
+                "bashana_runetotem", player=player.index,
+                source=card.card_id,
+                spells=list(chosen) if chosen else [],
+            )
+            return
+        if card.card_id == "MEND_046t" and card.embedded_spell_id:
+            spell = self._entity(card.embedded_spell_id, created_by=card.card_id)
+            try:
+                self._cast_spell(player, spell, Action("PLAY", spell.entity_id))
+            except ValueError:
+                for target_player, target_entity, _ in self._random_spell_target_candidates(
+                    player.index, spell
+                ):
+                    try:
+                        self._cast_spell(
+                            player, spell,
+                            Action("PLAY", spell.entity_id, target_player, target_entity),
+                        )
+                        break
+                    except ValueError:
+                        continue
+            self._event(
+                "bashana_treant_cast", player=player.index,
+                source=card.entity_id, spell=spell.card_id,
+            )
             return
         if card.card_id == "JAIL_851":
             opponent = self.players[1 - player.index]
@@ -9365,6 +9415,7 @@ class DragonMirrorGame:
                 "cant_attack": card.cant_attack,
                 "mirrex_tracker": card.mirrex_tracker,
                 "spell_damage_bonus": card.spell_damage_bonus,
+                "embedded_spell_id": card.embedded_spell_id,
                 "prepared_turn": card.prepared_turn,
                 "prepared": card.prepared,
                 "prepare_granted": card.prepare_granted,
