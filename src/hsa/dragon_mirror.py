@@ -2981,6 +2981,41 @@ class DragonMirrorGame:
                 minion.damage = minion.max_health
             elif minion.card_id == "CATA_999" and not minion.silenced:
                 self._damage_hero(self.players[1 - player.index], 4, minion)
+            elif minion.card_id == "JAIL_887t2" and not minion.silenced:
+                discarded = player.zuramat_discarded_card
+                player.zuramat_discarded_card = None
+                if discarded is not None:
+                    discarded.created_by = minion.card_id
+                    if discarded.definition.card_type == "MINION":
+                        if len(player.board) + len(player.locations) < 7:
+                            discarded.summoned_turn = self.turn
+                            self._summon(player, discarded)
+                            self._battlecry(
+                                player, discarded,
+                                Action("PLAY", discarded.entity_id),
+                            )
+                    elif discarded.definition.card_type == "SPELL":
+                        try:
+                            self._cast_spell(
+                                player, discarded,
+                                Action("PLAY", discarded.entity_id),
+                            )
+                        except ValueError:
+                            for target_player, target_entity, _ in self._random_spell_target_candidates(
+                                player.index, discarded
+                            ):
+                                try:
+                                    self._cast_spell(
+                                        player, discarded,
+                                        Action("PLAY", discarded.entity_id, target_player, target_entity),
+                                    )
+                                    break
+                                except ValueError:
+                                    continue
+                    self._event(
+                        "zuramat_play_discarded", player=player.index,
+                        source=minion.entity_id, card=discarded.card_id,
+                    )
             elif minion.card_id == "EDR_889" and not minion.silenced:
                 dragons = [
                     other for other in player.board
