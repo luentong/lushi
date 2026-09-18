@@ -7823,6 +7823,30 @@ class DragonMirrorGame:
                 "tortolla_damaged", player=player_index,
                 entity=minion.entity_id,
             )
+        if (
+            minion.card_id in {"CATA_488t", "CATA_488t2"}
+            and not minion.silenced
+        ):
+            fire_spells = [
+                card_id for card_id, definition in self.card_defs.items()
+                if card_id in EXECUTABLE_CARD_IDS
+                and definition.card_type == "SPELL"
+                and definition.spell_school == "FIRE"
+            ]
+            if fire_spells:
+                generated = self._entity(
+                    self.rng.choice(sorted(fire_spells)),
+                    created_by=minion.card_id,
+                )
+                generated.cost_delta -= 3
+                destination = self._add_generated(
+                    self.players[player_index], generated
+                )
+                self._event(
+                    "vulcanos_plume_damaged", player=player_index,
+                    source=minion.entity_id, card=generated.card_id,
+                    destination=destination,
+                )
         for owner in self.players:
             for berserker in owner.board:
                 if (

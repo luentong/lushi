@@ -1057,6 +1057,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(before - 3, enemy.health)
         self.assertEqual(8, vulcanos.health)
 
+        plume = next(m for m in game.players[0].board if m.card_id == "CATA_488t")
+        game._damage_minion(0, plume, 1)
+        generated = [card for card in game.players[0].hand if card.created_by == "CATA_488t"]
+        self.assertEqual(3, len(generated))
+        self.assertTrue(all(card.definition.spell_school == "FIRE" for card in generated))
+        self.assertTrue(all(card.cost <= 0 for card in generated))
+
     def test_experimental_animation_heralds_and_damages_enemy_minions(self):
         game = self.game()
         enemy = self.add_board(game, "TLC_248", 1)
