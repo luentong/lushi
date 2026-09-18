@@ -308,6 +308,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "CS3_025",  # Overlord Runthak
     "FIR_958",  # Tindral Sageswift
     "JAIL_509",  # Godfrey the Betrayer
+    "TLC_987",  # Questing Assistant
     "TLC_480",  # Krog, Crater King
     "CORE_EX1_005",  # Big Game Hunter
     "CORE_REV_023",  # Demolition Renovator
@@ -426,6 +427,7 @@ ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "CATA_156",  # Experimental Animation
     "CATA_530",  # Fel Infusion
     "CATA_561",  # Ritual of Power
+    "END_017",  # Battle at the End Time
 }
 
 # Rotated Quickdraw cards retained for an optional Wild/historical ruleset.
@@ -684,10 +686,12 @@ FABLED_MINION_IDS = frozenset({
 # once played; treating them as ordinary spells would silently consume them
 # without retaining their progress.
 LOST_CITY_QUEST_IDS = frozenset({
+    "END_017",
     "TLC_229", "TLC_239", "TLC_426", "TLC_433", "TLC_446",
     "TLC_460", "TLC_513", "TLC_602", "TLC_631", "TLC_817", "TLC_830",
 })
 LOST_CITY_QUEST_REWARDS = {
+    "END_017": "END_017t",
     "TLC_229": "TLC_229t14", "TLC_239": "TLC_239t", "TLC_446": "TLC_446t",
     "TLC_433": "TLC_433t", "TLC_460": "TLC_460t", "TLC_513": "TLC_513t",
     "TLC_602": "TLC_602t", "TLC_631": "TLC_631t",
@@ -1691,6 +1695,15 @@ class DragonMirrorGame:
                         state["holy"] = state.get("holy", 0) + 1
                     elif school == "SHADOW":
                         state["shadow"] = state.get("shadow", 0) + 1
+            if quest_id == "END_017":
+                # Battle at the End Time is sequential: first fill the hand,
+                # then empty it.  Checking after every event also covers
+                # generated cards, draws, trades, and cards played from hand.
+                if len(player.hand) >= 10:
+                    state["filled"] = True
+                elif state.get("filled") and len(player.hand) == 0:
+                    self._complete_lost_city_quest(player, quest_id)
+                    continue
             if quest_id == "TLC_460" and kind in {
                 "discover_pick", "deck_card_discover_pick", "deck_discover_pick",
                 "intertwined_fate_pick", "rewind_discover_pick",
@@ -4986,6 +4999,28 @@ class DragonMirrorGame:
 
     def _battlecry(self, player: Player, card: CardInstance, action: Action) -> None:
         times = 2 if card.battlecry_twice else 1
+        if card.card_id == "END_017t":
+            # Tick and Tock draws only while there is room in hand.  If the
+            # deck is empty, stop rather than repeatedly applying fatigue.
+            while len(player.hand) < 10 and player.deck:
+                self._draw(player)
+            self._event(
+                "tick_and_tock_battlecry", player=player.index,
+                source=card.entity_id, hand_size=len(player.hand),
+            )
+            return
+        if card.card_id == "TLC_987":
+            if player.active_quests or player.completed_quests:
+                targets = self._random_enemy_minions(player.index)
+                if targets:
+                    target = self.rng.choice(targets)
+                    target_ref = (1 - player.index, target.entity_id)
+                    self._deal_to_target(player.index, target_ref, 3, source=card)
+                    self._event(
+                        "questing_assistant_battlecry", player=player.index,
+                        source=card.entity_id, target=target.entity_id, damage=3,
+                    )
+            return
         if card.card_id == "JAIL_452":
             # Overload belongs to the side that received the minion.  This is
             # observable when the Detective is deliberately played onto the
@@ -9189,6 +9224,15 @@ class DragonMirrorGame:
             Hook.DEATHRATTLE, minion.card_id, self,
             RuleContext(player=player, card=minion),
         )
+        if minion.card_id == "END_017t":
+            opponent = self.players[1 - player.index]
+            removed = len(opponent.hand)
+            opponent.hand.clear()
+            self._event(
+                "tick_and_tock_deathrattle", player=player.index,
+                source=minion.entity_id, opponent=opponent.index,
+                cards_removed=removed,
+            )
         # Chromatus heads remove exactly their own keyword from the surviving
         # parent.  The parent entity link matters when multiple Chromatuses
         # are present; looking only at the card ID would mutate the wrong one.

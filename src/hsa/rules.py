@@ -180,6 +180,8 @@ STANDARD_DECLARATIVE_IDS = {
     "TLC_229t14", "TLC_239t", "TLC_446t", "TLC_513t", "TLC_602t",
     "TLC_426t", "TLC_433t", "TLC_433t2", "TLC_460t", "TLC_631t",
     "TLC_817t3", "TLC_817t4", "TLC_817t5", "TLC_830t",
+    "END_017", "END_017t",  # Battle at the End Time / Tick and Tock
+    "TLC_987",  # Questing Assistant
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
     "UNG_934t1", "UNG_940t8", "UNG_942t", "UNG_954t1",
     "UNG_999t2t1",

@@ -2997,6 +2997,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_all_current_class_legendary_quests_are_registered(self):
         expected = {
+            "END_017",
             "TLC_229", "TLC_239", "TLC_426", "TLC_433", "TLC_446",
             "TLC_460", "TLC_513", "TLC_602", "TLC_631", "TLC_817", "TLC_830",
         }
