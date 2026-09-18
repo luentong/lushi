@@ -5002,6 +5002,31 @@ class DragonMirrorGame:
             )
             self._draw(player)
             return
+        if card.card_id == "TLC_446t":
+            if player.hand:
+                thrown = next(
+                    (held for held in player.hand if held.entity_id == action.target_entity),
+                    None,
+                ) or self.rng.choice(player.hand)
+                player.hand.remove(thrown)
+                # “Throw into the Rift” consumes the selected hand card; it
+                # is not a discard and therefore must not trigger discard
+                # reactions or be counted as a discard quest event.
+                self._event("underfel_rift_throw", player=player.index,
+                            card=thrown.card_id, source=card.card_id)
+            pool = [
+                card_id for card_id, definition in self.card_defs.items()
+                if card_id in EXECUTABLE_CARD_IDS
+                and definition.card_type == "MINION"
+                and "DEMON" in definition.races
+            ]
+            for _ in range(2):
+                if len(player.board) + len(player.locations) >= 7 or not pool:
+                    break
+                minion = self._entity(self.rng.choice(pool), created_by=card.card_id)
+                minion.summoned_turn = self.turn
+                self._summon(player, minion)
+            return
         if card.card_id == "JAIL_200":
             # Sanitized Power.log observed 3 prior hero attacks producing two
             # 6-Cost minions and 7 prior attacks producing two 10-Cost
