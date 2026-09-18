@@ -44,7 +44,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_standard_location_batch_is_executable(self):
         game = self.game()
-        self.assertTrue({"JAIL_877", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449"}
+        self.assertTrue({"JAIL_877", "JAIL_987", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449"}
                         <= game.executable_card_ids)
 
     def test_chef_nethrek_is_executable(self):

@@ -5439,6 +5439,29 @@ class SummonLocationRat:
 
 
 @dataclass(frozen=True)
+class AddRandomShamanMinionLocked:
+    """Add a random executable Shaman minion locked until another card is played."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        pool = sorted(
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "MINION"
+            and definition.card_class == "SHAMAN"
+        )
+        if not pool or len(context.player.hand) >= 10:
+            return
+        card = game._entity(game.rng.choice(pool), created_by=context.card.card_id)
+        card.locked_until_card_played = True
+        destination = game._add_generated(context.player, card)
+        game._event(
+            "locked_shaman_minion_added", player=context.player.index,
+            source=context.card.card_id, card=card.card_id,
+            destination=destination,
+        )
+
+
+@dataclass(frozen=True)
 class BuffLocationTargetAndSleep:
     attack: int
     health: int
@@ -6221,6 +6244,10 @@ def build_rule_registry() -> RuleRegistry:
         ),
         CardRule(
             "JAIL_877", {Hook.LOCATION: (SummonLocationRat(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "JAIL_987", {Hook.LOCATION: (AddRandomShamanMinionLocked(),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
         ),
         CardRule(

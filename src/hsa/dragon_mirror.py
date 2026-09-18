@@ -47,7 +47,7 @@ DIRECT_IDS = {
     "JAIL_384",
     "CAP_105",
     "CAP_107",
-    "JAIL_877", "MEND_044", "TIME_044", "TLC_449",
+    "JAIL_877", "JAIL_987", "MEND_044", "TIME_044", "TLC_449",
     "TIME_436", "TIME_446", "TIME_810",
 }
 
@@ -884,6 +884,7 @@ class CardInstance:
     created_by: str | None = None
     dormant_turns: int = 0
     playable_after_turn: int = -1
+    locked_until_card_played: bool = False
     summoned_when_drawn: bool = False
     immune: bool = False
     immune_while_attacking: bool = False
@@ -4130,6 +4131,8 @@ class DragonMirrorGame:
                 continue
             if self.turn <= card.playable_after_turn:
                 continue
+            if card.locked_until_card_played:
+                continue
             if card.card_id == "TLC_446t" and player.underfel_rift_used_turn == self.turn:
                 continue
             effective_cost = self._effective_cost(player, card)
@@ -4732,6 +4735,9 @@ class DragonMirrorGame:
             player.zee_might_minions_played += 1
             held.battlecry_twice = player.zee_might_minions_played % 5 == 0
         card = self._pop_hand(player, action.source)
+        for held_card in player.hand:
+            if held_card.locked_until_card_played:
+                held_card.locked_until_card_played = False
         watcher = self.players[1 - player.index]
         if (
             watcher.holmes_target_card_id == card.card_id
