@@ -1209,6 +1209,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertIn("BATTLECRY", generated[0].definition.mechanics)
         self.assertLessEqual(generated[0].cost, generated[0].definition.cost - 2)
 
+    def test_tricksy_improviser_prepared_secrets(self):
+        game = self.game()
+        prior_spell = self.add_hand(game, "CORE_EX1_289")
+        game.step(Action("PLAY", prior_spell.entity_id))
+        improvisor = self.add_hand(game, "JAIL_321")
+        game.step(Action("PREPARE", improvisor.entity_id))
+        game.step(Action("PLAY", improvisor.entity_id))
+        self.assertGreaterEqual(len(game.players[0].secrets), 2)
+
     def test_experimental_animation_heralds_and_damages_enemy_minions(self):
         game = self.game()
         enemy = self.add_board(game, "TLC_248", 1)

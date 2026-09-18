@@ -98,6 +98,7 @@ DECLARATIVE_METADATA_ALIASES = {
 # New full-Standard rules are kept separate from the historical Dragon slice
 # so adding cards does not mutate the vocabulary of existing neural models.
 STANDARD_DECLARATIVE_IDS = {
+    "JAIL_321",  # Tricksy Improviser
     "JAIL_326",  # Judgment
     "JAIL_913",  # Hold Them Off!
     "JAIL_444",  # Sawbones
@@ -3104,6 +3105,32 @@ class TriggerFriendlyDeathrattle:
         game._deathrattle(context.player, target)
         game._event("trigger_friendly_deathrattle", player=context.player.index,
                     source=context.card.card_id, target=target.entity_id)
+
+
+@dataclass(frozen=True)
+class CastRandomMageSecretsIfSpellCast:
+    count: int = 2
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.player.spells_cast_this_turn <= 0:
+            return
+        candidates = [
+            card_id for card_id in game.executable_card_ids
+            if card_id in game.card_defs
+            and game.card_defs[card_id].card_type == "SPELL"
+            and game.card_defs[card_id].card_class == "MAGE"
+            and "SECRET" in game.card_defs[card_id].mechanics
+        ]
+        for _ in range(self.count):
+            if not candidates or len(context.player.secrets) >= 7:
+                break
+            secret = game._entity(
+                game.rng.choice(sorted(candidates)),
+                created_by=context.card.card_id,
+            )
+            game._arm_secret(context.player, secret)
+        game._event("tricksy_improviser_secrets", player=context.player.index,
+                    source=context.card.card_id, count=self.count)
 
 
 @dataclass(frozen=True)
@@ -7177,6 +7204,10 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "JAIL_407", {},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; card-play event model", ("test_vanessa_generates_discounted_battlecry_minion",)),
+        ),
+        CardRule(
+            "JAIL_321", {Hook.BATTLECRY: (CastRandomMageSecretsIfSpellCast(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; spell-count event model", ("test_tricksy_improviser_prepared_secrets",)),
         ),
         CardRule(
             "CATA_725t", {Hook.END_TURN: (HeraldDestroyRightAndGrow(),)},

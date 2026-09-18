@@ -186,6 +186,7 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 }
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
+    "JAIL_321",  # Tricksy Improviser
     "JAIL_407",  # Vanessa the Ringleader
     "JAIL_718",  # Black Market Auctioneer
     "JAIL_721",  # Tras'tath, Soul Parasite
@@ -967,6 +968,7 @@ class Player:
     hero_board_attack_bonus: int = 0
     frozen_turn: int = -1
     cards_played_this_turn: int = 0
+    spells_cast_this_turn: int = 0
     generated_cards_played: int = 0
     played_card_counts: dict[str, int] = field(default_factory=dict)
     pending_phoenixes: int = 0
@@ -2458,6 +2460,7 @@ class DragonMirrorGame:
             player.map_followup_turn = -1
         player.fire_spell_played = False
         player.cards_played_this_turn = 0
+        player.spells_cast_this_turn = 0
         player.dragons_played_this_turn = 0
         player.damaged_characters_this_turn.clear()
         self._reform_nythendra(player)
@@ -4183,6 +4186,8 @@ class DragonMirrorGame:
             created_by=card.created_by,
         )
         player.cards_played_this_turn += 1
+        if card.definition.card_type == "SPELL":
+            player.spells_cast_this_turn += 1
         player.played_card_counts[card.card_id] = player.played_card_counts.get(card.card_id, 0) + 1
         if card.card_id != "JAIL_407":
             vanessas = [
