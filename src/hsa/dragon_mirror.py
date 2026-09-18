@@ -47,7 +47,7 @@ DIRECT_IDS = {
     "JAIL_384",
     "CAP_105",
     "CAP_107",
-    "CATA_477", "EDR_520", "JAIL_877", "JAIL_987", "MEND_044", "TIME_044", "TLC_449",
+    "CATA_477", "EDR_454", "EDR_520", "JAIL_877", "JAIL_987", "MEND_044", "TIME_044", "TLC_449",
     "TIME_436", "TIME_446", "TIME_810",
 }
 
@@ -4047,6 +4047,12 @@ class DragonMirrorGame:
                 (player.index, card.entity_id)
                 for card in player.hand
                 if card.definition.card_type == "MINION"
+            ]
+        if target_kind == TargetKind.FRIENDLY_DRAGON:
+            return [
+                (player.index, minion.entity_id)
+                for minion in player.board
+                if minion.dormant_turns == 0 and minion.has_race("DRAGON")
             ]
         if target_kind == TargetKind.FRIENDLY_UNDEAD:
             return [
@@ -9394,6 +9400,17 @@ class DragonMirrorGame:
             self._event(
                 "snoot_hoarder_deathrattle", player=player.index,
                 source=minion.entity_id,
+            )
+        if minion.deathrattle_copy_card_id and len(player.board) + len(player.locations) < 7:
+            copied = self._entity(
+                minion.deathrattle_copy_card_id, created_by=minion.card_id,
+            )
+            copied.summoned_turn = self.turn
+            self._summon(player, copied)
+            self._event(
+                "deathrattle_copy_summon", player=player.index,
+                source=minion.entity_id, summoned=copied.entity_id,
+                card=copied.card_id,
             )
         # Chromatus heads remove exactly their own keyword from the surviving
         # parent.  The parent entity link matters when multiple Chromatuses

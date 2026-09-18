@@ -37,6 +37,7 @@ class TargetKind(StrEnum):
     FRIENDLY_UNDEAD = "friendly_undead"
     ENEMY_CHARACTER = "enemy_character"
     FRIENDLY_HAND_MINION = "friendly_hand_minion"
+    FRIENDLY_DRAGON = "friendly_dragon"
 
 
 @dataclass(frozen=True)
@@ -188,7 +189,8 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
-    "CATA_477", "EDR_520", "JAIL_877", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Location cards
+    "CATA_477", "EDR_454", "EDR_520", "JAIL_877", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Location cards
+    "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
     "UNG_934t1", "UNG_940t8", "UNG_942t", "UNG_954t1",
     "UNG_999t2t1",
@@ -5554,6 +5556,31 @@ class BuffFriendlyHandMinion:
 
 
 @dataclass(frozen=True)
+class SummonEggCopyingTargetDragon:
+    """Summon a 0/2 egg whose deathrattle copies the chosen Dragon."""
+
+    egg_id: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player != context.player.index:
+            raise ValueError("friendly Dragon target is required")
+        target = game._find_minion(context.player.index, context.action.target_entity)
+        if not target.has_race("DRAGON"):
+            raise ValueError("friendly Dragon target is required")
+        if len(context.player.board) + len(context.player.locations) >= 7:
+            return
+        egg = game._entity(self.egg_id, created_by=context.card.card_id)
+        egg.deathrattle_copy_card_id = target.card_id
+        egg.summoned_turn = game.turn
+        game._summon(context.player, egg)
+        game._event(
+            "dragon_copy_egg_summoned", player=context.player.index,
+            source=context.card.card_id, egg=egg.entity_id,
+            copied=target.card_id,
+        )
+
+
+@dataclass(frozen=True)
 class DiscoverTemporaryOneCostMinion:
     def execute(self, game: Any, context: RuleContext) -> None:
         pool = [
@@ -6324,6 +6351,11 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "EDR_520", {Hook.LOCATION: (SpendManaCastRandomSpell(),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "EDR_454", {Hook.LOCATION: (SummonEggCopyingTargetDragon("EDR_454t"),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+            TargetSpec(TargetKind.FRIENDLY_DRAGON),
         ),
         CardRule(
             "JAIL_987", {Hook.LOCATION: (AddRandomShamanMinionLocked(),)},
