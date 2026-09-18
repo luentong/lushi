@@ -191,6 +191,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "JAIL_446",  # Blood Doctor Thal'ena
     "JAIL_800",  # Mug'Zee
     "JAIL_504",  # Aya, Lotus Kingpin
+    "JAIL_397",  # Commander Beatrix
     "TLC_226",  # Conjured Bookkeeper
     "TLC_251",  # Primalfin Challenger
     "TLC_366",  # Pterrorwing Ravager
@@ -324,6 +325,7 @@ ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "TLC_816",  # Gravedawn Sunbloom
     "TLC_824",  # Odd Map
     "TLC_900",  # Hive Map
+    "JAIL_319",  # The Skeleton Key
     "CAP_407",  # Wanted Poster
     "JAIL_735",  # Code Violet
     "CORE_CS2_013", "CORE_EX1_164", "CORE_CS2_075",

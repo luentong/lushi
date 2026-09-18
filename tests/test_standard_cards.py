@@ -62,6 +62,10 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game = self.game()
         self.assertIn("JAIL_504", game.executable_card_ids)
 
+    def test_rulebreaker_cards_are_executable(self):
+        game = self.game()
+        self.assertTrue({"JAIL_397", "JAIL_319"} <= game.executable_card_ids)
+
     def game(self) -> DragonMirrorGame:
         game = DragonMirrorGame(CARDS, 29)
         game.current = 0
