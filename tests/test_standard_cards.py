@@ -2331,6 +2331,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", combined.entity_id))
         self.assertEqual(2, sum(c.card_id == "TLC_817t5" for c in game.players[0].board))
 
+    def test_underfel_rift_is_once_per_turn(self):
+        game = self.game()
+        first = self.add_hand(game, "TLC_446t")
+        second = self.add_hand(game, "TLC_446t")
+        game.step(Action("PLAY", first.entity_id))
+        self.assertFalse(any(a.kind == "PLAY" and a.source == second.entity_id
+                             for a in game.legal_actions()))
+
     def test_secret_ingredient_choose_one_attack_or_druid_card(self):
         attack_game = self.game()
         ingredient = self.add_hand(attack_game, "JAIL_201")

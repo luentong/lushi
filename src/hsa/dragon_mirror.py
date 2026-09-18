@@ -962,6 +962,7 @@ class Player:
     gorishi_double_damage: bool = False
     ninja_shuffle_active: bool = False
     ashalon_adaptations: list[str] = field(default_factory=list)
+    underfel_rift_used_turn: int = -1
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "Player":
         """Fast branch copy for the mutable player state used by MCTS."""
@@ -3447,6 +3448,8 @@ class DragonMirrorGame:
                 continue
             if self.turn <= card.playable_after_turn:
                 continue
+            if card.card_id == "TLC_446t" and player.underfel_rift_used_turn == self.turn:
+                continue
             effective_cost = self._effective_cost(player, card)
             if card.card_id == "TLC_436":
                 if effective_cost > player.corpses:
@@ -5114,6 +5117,7 @@ class DragonMirrorGame:
             self._draw(player)
             return
         if card.card_id == "TLC_446t":
+            player.underfel_rift_used_turn = self.turn
             if player.hand:
                 thrown = next(
                     (held for held in player.hand if held.entity_id == action.target_entity),
