@@ -189,7 +189,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
-    "CATA_301", "CATA_477", "CATA_527", "EDR_454", "EDR_520", "JAIL_877", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Location cards
+    "CATA_301", "CATA_477", "CATA_527", "EDR_454", "EDR_520", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Location cards
     "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
@@ -5523,6 +5523,21 @@ class ArmRubySanctum:
 
 
 @dataclass(frozen=True)
+class StartZuramatPrison:
+    """Ask the controller to discard a chosen card and summon the Prison token."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if not context.player.hand:
+            return
+        game.pending_choice = {
+            "kind": "HAND_DISCARD",
+            "player": context.player.index,
+            "source": context.card.card_id,
+            "options": list(context.player.hand),
+        }
+
+
+@dataclass(frozen=True)
 class NespirahUnshackledAfterFel:
     """After a Fel spell, add a random non-Colossal Naga at 1 cost."""
 
@@ -6381,6 +6396,10 @@ def build_rule_registry() -> RuleRegistry:
         ),
         CardRule(
             "JAIL_877", {Hook.LOCATION: (SummonLocationRat(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "JAIL_887", {Hook.LOCATION: (StartZuramatPrison(),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
         ),
         CardRule(

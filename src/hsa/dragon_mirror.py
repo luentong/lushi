@@ -47,7 +47,7 @@ DIRECT_IDS = {
     "JAIL_384",
     "CAP_105",
     "CAP_107",
-    "CATA_301", "CATA_477", "CATA_527", "EDR_454", "EDR_520", "JAIL_877", "JAIL_987", "MEND_044", "TIME_044", "TLC_449",
+    "CATA_301", "CATA_477", "CATA_527", "EDR_454", "EDR_520", "JAIL_877", "JAIL_887", "JAIL_987", "MEND_044", "TIME_044", "TLC_449",
     "TIME_436", "TIME_446", "TIME_810",
 }
 
@@ -1182,6 +1182,7 @@ class Player:
     recover_overdrawn_cards: bool = False
     overdrawn_cards: list[CardInstance] = field(default_factory=list)
     pending_end_turn_returns: list[CardInstance] = field(default_factory=list)
+    zuramat_discarded_card: CardInstance | None = None
     active_quests: dict[str, dict[str, Any]] = field(default_factory=dict)
     completed_quests: set[str] = field(default_factory=set)
     murloc_quest_buff: bool = False
@@ -1219,6 +1220,7 @@ class Player:
         result.ashalon_adaptations = list(self.ashalon_adaptations)
         result.active_quests = copy.deepcopy(self.active_quests, memo)
         result.completed_quests = set(self.completed_quests)
+        result.zuramat_discarded_card = copy.deepcopy(self.zuramat_discarded_card, memo)
         return result
 
     @property
@@ -4085,6 +4087,11 @@ class DragonMirrorGame:
                     Action("MULLIGAN_TOGGLE", entity_id)
                     for entity_id in self.pending_choice["options"]
                 ] + [Action("MULLIGAN_CONFIRM")]
+            if self.pending_choice["kind"] == "HAND_DISCARD":
+                return [
+                    Action("DISCARD_PICK", card.entity_id)
+                    for card in self.pending_choice["options"]
+                ]
             if self.pending_choice["kind"] in {
                 "DISCOVER", "GEDDON_DRAW", "DECK_DISCOVER", "DECK_CARD_DISCOVER",
                 "IMBUE_PICK", "INTERTWINED_FATE", "INTERTWINED_FATE_OPPONENT",
@@ -4450,10 +4457,33 @@ class DragonMirrorGame:
                 self._resolve_rule_choice(action.source)
         elif action.kind == "CATACLYSM_PICK":
             self._resolve_deathwing_cataclysm(action.source)
+        elif action.kind == "DISCARD_PICK":
+            self._resolve_hand_discard(action.source)
         for owner in self.players:
             self._normalize_shattered_hand(owner)
         self._resolve_deaths()
         self._check_winner()
+
+    def _resolve_hand_discard(self, entity_id: int | None) -> None:
+        pending = self.pending_choice
+        if pending is None or pending.get("kind") != "HAND_DISCARD":
+            raise ValueError("no hand discard is pending")
+        player = self.players[pending["player"]]
+        card = next((item for item in player.hand if item.entity_id == entity_id), None)
+        if card is None:
+            raise ValueError("invalid discard choice")
+        player.hand.remove(card)
+        player.zuramat_discarded_card = card
+        self.pending_choice = None
+        if len(player.board) + len(player.locations) < 7:
+            token = self._entity("JAIL_887t3", created_by=pending["source"])
+            token.taunt = True
+            token.summoned_turn = self.turn
+            self._summon(player, token)
+        self._event(
+            "zuramat_prison_discard", player=player.index,
+            source=pending["source"], discarded=card.card_id,
+        )
 
     def _resolve_rule_choice(self, option_index: int | None) -> None:
         pending = self.pending_choice
@@ -8653,6 +8683,16 @@ class DragonMirrorGame:
                     source=location.entity_id, entity=summoned.entity_id,
                 )
             return
+        if location.card_id == "JAIL_887":
+            if len(player.board) + len(player.locations) < 7:
+                zuramat = self._entity("JAIL_887t2", created_by=location.card_id)
+                zuramat.summoned_turn = self.turn
+                self._summon(player, zuramat)
+                self._event(
+                    "zuramat_freed", player=player.index,
+                    source=location.entity_id, entity=zuramat.entity_id,
+                )
+            return
         if location.card_id != "TLC_433t2":
             return
         if len(player.board) + len(player.locations) >= 7:
@@ -9932,6 +9972,15 @@ class DragonMirrorGame:
             return (
                 f"P{self.current + 1} {choice_kind}_PICK "
                 f"{option.definition.name}[{option.card_id}]{gift}"
+            )
+        if action.kind == "DISCARD_PICK":
+            option = next(
+                card for card in self.pending_choice["options"]
+                if card.entity_id == action.source
+            )
+            return (
+                f"P{self.current + 1} DISCARD_PICK "
+                f"{option.definition.name}[{option.card_id}]"
             )
         if action.kind == "REWIND_KEEP":
             return f"P{self.current + 1} REWIND_KEEP"
