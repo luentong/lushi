@@ -210,7 +210,10 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_continuous_aura_cards_are_registered_for_audit(self):
         game = self.game()
-        for card_id in ("CATA_898", "CATA_613", "TLC_228"):
+        for card_id in (
+            "CATA_898", "CATA_613", "TLC_228", "CORE_WON_351", "JAIL_202",
+            "EDR_480", "TTN_844", "CATA_130",
+        ):
             self.assertIsNotNone(game.rule_registry.get(card_id))
 
     def test_murloc_warleader_aura_buffs_other_murlocs_only(self):
