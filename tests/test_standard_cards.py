@@ -208,6 +208,11 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(base + 1, other.attack)
         self.assertEqual(leader.definition.attack, leader.attack)
 
+    def test_continuous_aura_cards_are_registered_for_audit(self):
+        game = self.game()
+        for card_id in ("CATA_898", "CATA_613", "TLC_228"):
+            self.assertIsNotNone(game.rule_registry.get(card_id))
+
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
         spell = self.add_hand(game, "EDR_490")

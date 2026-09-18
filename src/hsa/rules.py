@@ -8898,6 +8898,21 @@ def build_rule_registry() -> RuleRegistry:
                        verification=("test_instant_multiverse_overload",)),
         ),
         CardRule(
+            "CATA_898", {},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332 + continuous aura engine",
+                       verification=("test_scaled_lancer_aura_adds_enemy_taunt",)),
+        ),
+        CardRule(
+            "CATA_613", {},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332 + continuous aura engine",
+                       verification=("test_survivalist_no_other_minions_immune",)),
+        ),
+        CardRule(
+            "TLC_228", {},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332 + continuous aura engine",
+                       verification=("test_bralma_elemental_damage_aura",)),
+        ),
+        CardRule(
             "CATA_724", {
                 Hook.AFTER_PLAY: (Overload(3),),
                 Hook.DEATHRATTLE: (UnlockOverloadedMana(),),
