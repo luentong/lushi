@@ -424,6 +424,16 @@ ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "CATA_561",  # Ritual of Power
 }
 
+# Rotated Quickdraw cards retained for an optional Wild/historical ruleset.
+# They are deliberately not included in SUPPORTED_IDS for the current pinned
+# Standard environment.
+WILD_QUICKDRAW_IDS = frozenset({
+    "WW_003", "WW_325", "WW_348", "WW_358", "WW_360", "WW_363",
+    "WW_365", "WW_377", "WW_379", "WW_384", "WW_403", "WW_411",
+    "WW_417", "WW_434", "WW_436", "WW_808", "WW_823", "WW_900",
+    "DED_506", "SW_037", "TTN_841", "TTN_844", "TOY_519", "YOG_402",
+})
+
 SPECIAL_TOKEN_IDS = {
     "CATA_300t1", "CATA_300t2", "CATA_300t3",
     "CATA_432t1", "CATA_432t2", "CATA_432t3", "CATA_432t4",
