@@ -3138,11 +3138,23 @@ class GenerateRandomCombinedShatter:
     card_ids: tuple[str, ...]
 
     def execute(self, game: Any, context: RuleContext) -> None:
+        dynamic = [
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "SPELL"
+            and "shatter" in (definition.text or "").casefold()
+            and not card_id.endswith("t")
+        ]
         candidates = [
             card_id for card_id in self.card_ids
             if card_id in game.card_defs
             and game.card_defs[card_id].card_class != context.player.card_class
         ]
+        if dynamic:
+            candidates = [
+                card_id for card_id in dynamic
+                if game.card_defs[card_id].card_class != context.player.card_class
+            ]
         if not candidates:
             candidates = list(self.card_ids)
         if not candidates:
