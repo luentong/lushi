@@ -189,6 +189,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "JAIL_860",  # Chef Neth'rek
     "JAIL_719",  # Irida Sinseeker
     "JAIL_446",  # Blood Doctor Thal'ena
+    "JAIL_800",  # Mug'Zee
     "TLC_226",  # Conjured Bookkeeper
     "TLC_251",  # Primalfin Challenger
     "TLC_366",  # Pterrorwing Ravager
@@ -1030,6 +1031,10 @@ class Player:
     # turns and grants ten mana when it reaches zero.
     chef_nethrek_turns_remaining: int = -1
     irida_active: bool = False
+    mug_magic_active: bool = False
+    mug_magic_used_this_turn: bool = False
+    zee_might_active: bool = False
+    zee_might_minions_played: int = 0
     minion_cost_increase_turn: int = -1
     minion_cost_increase_amount: int = 0
     recover_overdrawn_cards: bool = False
@@ -1479,6 +1484,21 @@ class DragonMirrorGame:
                     self._event(
                         "start_of_game", player=player.index,
                         card="JAIL_860", effect="ten_mana_after_five_turns",
+                    )
+            if any(c.card_id == "JAIL_800" for c in player.hand + player.deck):
+                starting_cards = [
+                    c for c in player.hand + player.deck
+                    if c.card_id != "JAIL_800"
+                ]
+                if not any(c.definition.card_type == "MINION" for c in starting_cards):
+                    player.mug_magic_active = True
+                if not any(c.definition.card_type == "SPELL" for c in starting_cards):
+                    player.zee_might_active = True
+                if player.mug_magic_active or player.zee_might_active:
+                    self._event(
+                        "start_of_game", player=player.index,
+                        card="JAIL_800", mug=player.mug_magic_active,
+                        zee=player.zee_might_active,
                     )
             if any(c.card_id == "JAIL_509" for c in player.hand + player.deck):
                 player.recover_overdrawn_cards = True
@@ -2541,6 +2561,7 @@ class DragonMirrorGame:
         player.fire_spell_played = False
         player.cards_played_this_turn = 0
         player.spells_cast_this_turn = 0
+        player.mug_magic_used_this_turn = False
         player.dragons_played_this_turn = 0
         player.damaged_characters_this_turn.clear()
         self._reform_nythendra(player)
@@ -2914,6 +2935,12 @@ class DragonMirrorGame:
                 and minion.dormant_turns == 0
                 for owner in self.players for minion in owner.board
             )
+            if (
+                player.mug_magic_active
+                and self.turn >= 3
+                and not player.mug_magic_used_this_turn
+            ):
+                cost -= 2
         if card.has_race("BEAST"):
             cost -= player.next_beast_cost_reduction
         if card.has_race("MURLOC"):
@@ -4236,6 +4263,16 @@ class DragonMirrorGame:
         held = player.hand[held_index]
         held.outcast_active = held_index in {0, len(player.hand) - 1}
         effective_cost = self._effective_cost(player, held)
+        if (
+            held.definition.card_type == "MINION"
+            and player.mug_magic_active
+            and self.turn >= 3
+            and not player.mug_magic_used_this_turn
+        ):
+            player.mug_magic_used_this_turn = True
+        if held.definition.card_type == "MINION" and player.zee_might_active:
+            player.zee_might_minions_played += 1
+            held.battlecry_twice = player.zee_might_minions_played % 5 == 0
         card = self._pop_hand(player, action.source)
         # "While holding this" uses the card's displayed Cost.  Capture it
         # before resolving play effects that could mutate the remaining hand.
@@ -9079,6 +9116,9 @@ class DragonMirrorGame:
                 "deck_count": len(player.deck),
                 "void_count": len(player.void_cards),
                 "irida_active": player.irida_active,
+                "mug_magic_active": player.mug_magic_active,
+                "zee_might_active": player.zee_might_active,
+                "zee_might_minions_played": player.zee_might_minions_played,
                 "dead_minions": [card.card_id for card in player.dead_minions],
                 "board": [card_state(card, player) for card in player.board],
                 "locations": [
