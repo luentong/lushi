@@ -201,6 +201,7 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_890", "TIME_606",
     "CAP_000", "CAP_003", "CAP_005",
     "TIME_042", "TIME_042t",
+    "TIME_617",
     "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
@@ -9034,6 +9035,9 @@ def build_rule_registry() -> RuleRegistry:
         CardRule("TIME_042t", {Hook.SPELL: (BuffActionTarget(1, 1, event="infinite_banana"),)},
                  RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
                             verification=("test_king_maluk_discards_hand_for_infinite_banana",))),
+        CardRule("TIME_617", {},
+                 RuleSource("official_text_and_engine_verified", "start-turn draw engine",
+                            verification=("test_chronochiller_skips_start_turn_draw",))),
         CardRule(
             "CATA_724", {
                 Hook.AFTER_PLAY: (Overload(3),),

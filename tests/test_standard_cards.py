@@ -374,6 +374,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(1, target.attack - target.definition.attack)
         self.assertEqual(1, sum(card.card_id == "TIME_042t" for card in game.players[0].hand))
 
+    def test_chronochiller_skips_start_turn_draw(self):
+        game = self.game()
+        self.add_board(game, "TIME_617", 0)
+        game.players[0].deck = [game._entity("CORE_CS2_023", started_in_deck=True)]
+        game._start_turn(0)
+        self.assertEqual(1, len(game.players[0].deck))
+        self.assertTrue(any(event["kind"] == "chronochiller_skip_draw" for event in game.events))
+
 
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
