@@ -49,7 +49,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_standard_choose_one_batch_is_executable(self):
         game = self.game()
-        self.assertTrue({"Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_490", "EDR_570", "EDR_843", "EDR_872"}
+        self.assertTrue({"Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_490", "EDR_570", "EDR_843", "EDR_872", "END_010"}
                         <= game.executable_card_ids)
 
     def test_boomkin_choose_one_deals_damage_or_heals(self):
@@ -96,6 +96,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", spell.entity_id))
         game.step(Action("RULE_CHOICE_PICK", 1))
         self.assertEqual("CORE_EX1_005", game.players[0].hand[-1].card_id)
+
+    def test_twilight_timereaver_choose_one_sets_other_minion_stat(self):
+        game = self.game()
+        source = self.add_hand(game, "END_010")
+        other = self.add_board(game, "CORE_EX1_005", 0)
+        game.step(Action("PLAY", source.entity_id))
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        self.assertEqual(1, other.attack)
 
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
