@@ -1218,6 +1218,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", improvisor.entity_id))
         self.assertGreaterEqual(len(game.players[0].secrets), 2)
 
+    def test_defias_wannabe_prepare_combo(self):
+        game = self.game()
+        coin = self.add_hand(game, "JAIL_COIN1")
+        game.step(Action("PLAY", coin.entity_id))
+        wannabe = self.add_hand(game, "JAIL_909")
+        game.step(Action("PREPARE", wannabe.entity_id))
+        before = (wannabe.attack, wannabe.max_health)
+        game.step(Action("PLAY", wannabe.entity_id))
+        self.assertEqual((before[0] + 1, before[1] + 1), (wannabe.attack, wannabe.max_health))
+
     def test_experimental_animation_heralds_and_damages_enemy_minions(self):
         game = self.game()
         enemy = self.add_board(game, "TLC_248", 1)

@@ -186,6 +186,7 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 }
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
+    "JAIL_909",  # Defias Wannabe
     "JAIL_321",  # Tricksy Improviser
     "JAIL_407",  # Vanessa the Ringleader
     "JAIL_718",  # Black Market Auctioneer
@@ -4236,6 +4237,14 @@ class DragonMirrorGame:
             player.rafaam_next_discount = False
             self._event("rafaam_discount_consumed", player=player.index, card=card.card_id)
         card.combo_active = player.cards_played_this_turn > 1
+        if card.card_id == "JAIL_909" and card.combo_active:
+            amount = player.cards_played_this_turn - 1
+            card.attack_delta += amount
+            card.health_delta += amount
+            self._event(
+                "defias_wannabe_combo", player=player.index,
+                source=card.entity_id, amount=amount,
+            )
         if not card.started_in_deck:
             player.generated_cards_played += 1
         if card.card_id in LOST_CITY_QUEST_IDS:

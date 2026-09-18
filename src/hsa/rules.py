@@ -98,6 +98,7 @@ DECLARATIVE_METADATA_ALIASES = {
 # New full-Standard rules are kept separate from the historical Dragon slice
 # so adding cards does not mutate the vocabulary of existing neural models.
 STANDARD_DECLARATIVE_IDS = {
+    "JAIL_909",  # Defias Wannabe
     "JAIL_321",  # Tricksy Improviser
     "JAIL_326",  # Judgment
     "JAIL_913",  # Hold Them Off!
@@ -7208,6 +7209,10 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "JAIL_321", {Hook.BATTLECRY: (CastRandomMageSecretsIfSpellCast(),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; spell-count event model", ("test_tricksy_improviser_prepared_secrets",)),
+        ),
+        CardRule(
+            "JAIL_909", {},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; combo play event model", ("test_defias_wannabe_prepare_combo",)),
         ),
         CardRule(
             "CATA_725t", {Hook.END_TURN: (HeraldDestroyRightAndGrow(),)},
