@@ -189,7 +189,8 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
-    "CATA_301", "CATA_477", "EDR_454", "EDR_520", "JAIL_877", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Location cards
+    "CATA_301", "CATA_477", "CATA_527", "EDR_454", "EDR_520", "JAIL_877", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Location cards
+    "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
     "UNG_934t1", "UNG_940t8", "UNG_942t", "UNG_954t1",
@@ -5522,6 +5523,33 @@ class ArmRubySanctum:
 
 
 @dataclass(frozen=True)
+class NespirahUnshackledAfterFel:
+    """After a Fel spell, add a random non-Colossal Naga at 1 cost."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        spell = (context.payload or {}).get("spell")
+        if spell is None or spell.definition.spell_school != "FEL":
+            return
+        pool = sorted(
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "MINION"
+            and "NAGA" in definition.races
+            and "COLOSSAL" not in definition.mechanics
+        )
+        if not pool or len(context.player.hand) >= 10:
+            return
+        card = game._entity(game.rng.choice(pool), created_by=context.card.card_id)
+        card.cost_delta = 1 - card.definition.cost
+        destination = game._add_generated(context.player, card)
+        game._event(
+            "nespirah_naga_generated", player=context.player.index,
+            source=context.card.card_id, spell=spell.card_id,
+            card=card.card_id, destination=destination,
+        )
+
+
+@dataclass(frozen=True)
 class BuffLocationTargetAndSleep:
     attack: int
     health: int
@@ -6362,6 +6390,14 @@ def build_rule_registry() -> RuleRegistry:
         ),
         CardRule(
             "CATA_301", {Hook.LOCATION: (ArmRubySanctum(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "CATA_527", {Hook.LOCATION: (DamageRandomEnemyCharacters(1, 1),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "CATA_527t2", {Hook.AFTER_PLAY: (NespirahUnshackledAfterFel(),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
         ),
         CardRule(

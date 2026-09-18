@@ -47,7 +47,7 @@ DIRECT_IDS = {
     "JAIL_384",
     "CAP_105",
     "CAP_107",
-    "CATA_301", "CATA_477", "EDR_454", "EDR_520", "JAIL_877", "JAIL_987", "MEND_044", "TIME_044", "TLC_449",
+    "CATA_301", "CATA_477", "CATA_527", "EDR_454", "EDR_520", "JAIL_877", "JAIL_987", "MEND_044", "TIME_044", "TLC_449",
     "TIME_436", "TIME_446", "TIME_810",
 }
 
@@ -6441,6 +6441,14 @@ class DragonMirrorGame:
         self, player: Player, spell: CardInstance
     ) -> None:
         """Dispatch controller-owned 'After you cast a spell' rules."""
+        if spell.definition.spell_school == "FEL":
+            for location in player.locations:
+                if location.card_id == "CATA_527" and location.durability > 0:
+                    location.cooldown = 0
+                    self._event(
+                        "nespirah_reopened", player=player.index,
+                        source=location.entity_id, spell=spell.card_id,
+                    )
         for minion in list(player.board):
             if (
                 minion not in player.board
@@ -8634,6 +8642,16 @@ class DragonMirrorGame:
                 "elise_bursting_geyser_deathrattle", player=player.index,
                 source=location.entity_id, amount=damage,
             )
+            return
+        if location.card_id == "CATA_527":
+            if len(player.board) + len(player.locations) < 7:
+                summoned = self._entity("CATA_527t2", created_by=location.card_id)
+                summoned.summoned_turn = self.turn
+                self._summon(player, summoned)
+                self._event(
+                    "nespirah_unshackled_summoned", player=player.index,
+                    source=location.entity_id, entity=summoned.entity_id,
+                )
             return
         if location.card_id != "TLC_433t2":
             return
