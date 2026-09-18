@@ -200,6 +200,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CAP_104", "CAP_106", "CORE_BT_187", "CORE_CATA_001", "CORE_EDR_003", "EDR_810",
     "JAIL_890", "TIME_606",
     "CAP_000", "CAP_003", "CAP_005",
+    "TIME_042", "TIME_042t",
     "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
@@ -526,6 +527,28 @@ class DrawIfOutcast:
             return
         for _ in range(self.count):
             game._draw(context.player)
+
+
+@dataclass(frozen=True)
+class DiscardHandGetInfiniteBanana:
+    """King Maluk: discard the whole hand, then create Infinite Banana."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        discarded = list(player.hand)
+        player.hand.clear()
+        for card in discarded:
+            game._event(
+                "discard", player=player.index, card=card.card_id,
+                entity=card.entity_id, source=context.card.card_id,
+            )
+        if len(player.hand) < 10:
+            banana = game._entity("TIME_042t", created_by=context.card.card_id)
+            player.hand.append(banana)
+            game._event(
+                "king_maluk_banana", player=player.index,
+                entity=banana.entity_id, card=banana.card_id,
+            )
 
 
 @dataclass(frozen=True)
@@ -9005,6 +9028,12 @@ def build_rule_registry() -> RuleRegistry:
         CardRule("CAP_005", {},
                  RuleSource("official_text_and_engine_verified", "attack-trigger engine",
                             verification=("test_mathias_shaw_discounts_after_stealth_attack",))),
+        CardRule("TIME_042", {Hook.BATTLECRY: (DiscardHandGetInfiniteBanana(),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                            verification=("test_king_maluk_discards_hand_for_infinite_banana",))),
+        CardRule("TIME_042t", {Hook.SPELL: (BuffActionTarget(1, 1, event="infinite_banana"),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                            verification=("test_king_maluk_discards_hand_for_infinite_banana",))),
         CardRule(
             "CATA_724", {
                 Hook.AFTER_PLAY: (Overload(3),),

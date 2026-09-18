@@ -5162,6 +5162,13 @@ class DragonMirrorGame:
                         "generated_burned", player=recipient.index,
                         card=copied.card_id, source=lorewalker.card_id,
                     )
+            if card.card_id == "TIME_042t" and len(player.hand) < 10:
+                banana = self._entity("TIME_042t", created_by="TIME_042t")
+                player.hand.append(banana)
+                self._event(
+                    "infinite_banana_returned", player=player.index,
+                    entity=banana.entity_id,
+                )
         if (
             player.map_followup_entity == card.entity_id
             and player.map_followup_turn == self.turn

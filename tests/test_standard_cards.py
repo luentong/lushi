@@ -362,6 +362,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._after_minion_attack(0, attacker, was_stealthed=True)
         self.assertEqual(held.definition.cost - 3, held.cost)
 
+    def test_king_maluk_discards_hand_for_infinite_banana(self):
+        game = self.game()
+        king = self.add_hand(game, "TIME_042")
+        game.players[0].hand.append(game._entity("CORE_CS2_023"))
+        game.step(Action("PLAY", king.entity_id))
+        self.assertEqual(["TIME_042t"], [card.card_id for card in game.players[0].hand])
+        target = self.add_board(game, "CORE_EX1_005", 0)
+        banana = game.players[0].hand[0]
+        game.step(Action("PLAY", banana.entity_id, target_player=0, target_entity=target.entity_id))
+        self.assertEqual(1, target.attack - target.definition.attack)
+        self.assertEqual(1, sum(card.card_id == "TIME_042t" for card in game.players[0].hand))
+
 
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
