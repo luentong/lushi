@@ -1173,6 +1173,20 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", swimmer.entity_id, 0, target.entity_id))
         self.assertEqual(26, game.players[0].health)
 
+    def test_tras_tath_gains_summoned_demon_stats(self):
+        game = self.game()
+        parasite = self.add_hand(game, "JAIL_721")
+        game.step(Action("PREPARE", parasite.entity_id))
+        game.step(Action("PLAY", parasite.entity_id))
+        before = (parasite.attack, parasite.max_health)
+        demon = game._entity("CORE_CS2_065")
+        demon.summoned_turn = game.turn
+        game._summon(game.players[0], demon)
+        self.assertEqual(
+            (before[0] + demon.attack, before[1] + demon.max_health),
+            (parasite.attack, parasite.max_health),
+        )
+
     def test_experimental_animation_heralds_and_damages_enemy_minions(self):
         game = self.game()
         enemy = self.add_board(game, "TLC_248", 1)

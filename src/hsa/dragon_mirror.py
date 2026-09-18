@@ -186,6 +186,7 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 }
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
+    "JAIL_721",  # Tras'tath, Soul Parasite
     "JAIL_395",  # Sewer Swimmer
     "JAIL_444",  # Sawbones
     "CATA_300",  # The Black Blood
@@ -1720,6 +1721,23 @@ class DragonMirrorGame:
             "summon", player=player.index, card=minion.card_id,
             entity=minion.entity_id,
         )
+        if minion.has_race("DEMON"):
+            parasites = [
+                candidate for candidate in player.board
+                if candidate.card_id == "JAIL_721"
+                and candidate.entity_id != minion.entity_id
+                and not candidate.silenced
+                and candidate.dormant_turns == 0
+                and candidate.health > 0
+            ]
+            for parasite in parasites:
+                parasite.attack_delta += minion.attack
+                parasite.health_delta += minion.max_health
+                self._event(
+                    "tras_tath_gain_stats", player=player.index,
+                    source=parasite.entity_id, summoned=minion.entity_id,
+                    attack=minion.attack, health=minion.max_health,
+                )
         if minion.card_id in {"TIME_009t1", "TIME_009t2"}:
             minion.aura_remaining_turns = 3
         if minion.has_race("MURLOC"):

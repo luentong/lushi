@@ -102,6 +102,7 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_913",  # Hold Them Off!
     "JAIL_444",  # Sawbones
     "JAIL_395",  # Sewer Swimmer
+    "JAIL_721",  # Tras'tath, Soul Parasite
     "TLC_828",  # Supreme Dinomancy
     "TLC_835",  # Story of Amara
     "TLC_901",  # Fumigate
@@ -7162,6 +7163,10 @@ def build_rule_registry() -> RuleRegistry:
             "JAIL_395", {Hook.BATTLECRY: (TriggerFriendlyDeathrattle(),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_sewer_swimmer_triggers_friendly_deathrattle",)),
             TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "JAIL_721", {},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; summon event model", ("test_tras_tath_gains_summoned_demon_stats",)),
         ),
         CardRule(
             "CATA_725t", {Hook.END_TURN: (HeraldDestroyRightAndGrow(),)},
