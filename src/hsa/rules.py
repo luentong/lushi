@@ -38,6 +38,7 @@ class TargetKind(StrEnum):
     ENEMY_CHARACTER = "enemy_character"
     FRIENDLY_HAND_MINION = "friendly_hand_minion"
     FRIENDLY_DRAGON = "friendly_dragon"
+    FRIENDLY_MINION_OR_HAND = "friendly_minion_or_hand"
 
 
 @dataclass(frozen=True)
@@ -189,7 +190,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
-    "CATA_301", "CATA_477", "CATA_527", "EDR_454", "EDR_520", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Location cards
+    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "EDR_454", "EDR_520", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Location cards
     "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
@@ -5565,6 +5566,34 @@ class NespirahUnshackledAfterFel:
 
 
 @dataclass(frozen=True)
+class BuffFriendlyMinionOrHandAttack:
+    """Set a friendly battlefield/hand minion's attack to source attack."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player != context.player.index:
+            raise ValueError("friendly minion target is required")
+        target = next(
+            (minion for minion in context.player.board
+             if minion.entity_id == context.action.target_entity),
+            None,
+        )
+        if target is None:
+            target = next(
+                (card for card in context.player.hand
+                 if card.entity_id == context.action.target_entity),
+                None,
+            )
+        if target is None or target.definition.card_type != "MINION":
+            raise ValueError("friendly minion target is required")
+        amount = max(0, context.card.attack - target.attack)
+        target.attack_delta += amount
+        game._event(
+            "gruesome_nightmare_attack", player=context.player.index,
+            source=context.card.card_id, target=target.entity_id, amount=amount,
+        )
+
+
+@dataclass(frozen=True)
 class BuffLocationTargetAndSleep:
     attack: int
     health: int
@@ -6410,6 +6439,11 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CATA_301", {Hook.LOCATION: (ArmRubySanctum(),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "CATA_161", {Hook.BATTLECRY: (BuffFriendlyMinionOrHandAttack(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+            TargetSpec(TargetKind.FRIENDLY_MINION_OR_HAND),
         ),
         CardRule(
             "CATA_527", {Hook.LOCATION: (DamageRandomEnemyCharacters(1, 1),)},

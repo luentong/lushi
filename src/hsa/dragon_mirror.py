@@ -47,7 +47,7 @@ DIRECT_IDS = {
     "JAIL_384",
     "CAP_105",
     "CAP_107",
-    "CATA_301", "CATA_477", "CATA_527", "EDR_454", "EDR_520", "JAIL_877", "JAIL_887", "JAIL_987", "MEND_044", "TIME_044", "TLC_449",
+    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "EDR_454", "EDR_520", "JAIL_877", "JAIL_887", "JAIL_987", "MEND_044", "TIME_044", "TLC_449",
     "TIME_436", "TIME_446", "TIME_810",
 }
 
@@ -4091,6 +4091,16 @@ class DragonMirrorGame:
                 (player.index, minion.entity_id)
                 for minion in player.board
                 if minion.dormant_turns == 0 and minion.has_race("DRAGON")
+            ]
+        if target_kind == TargetKind.FRIENDLY_MINION_OR_HAND:
+            return [
+                (player.index, minion.entity_id)
+                for minion in player.board
+                if minion.dormant_turns == 0
+            ] + [
+                (player.index, card.entity_id)
+                for card in player.hand
+                if card.definition.card_type == "MINION"
             ]
         if target_kind == TargetKind.FRIENDLY_UNDEAD:
             return [
