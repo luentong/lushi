@@ -6432,6 +6432,8 @@ class DragonMirrorGame:
             return "deck"
         elif len(player.hand) < 10:
             player.hand.append(card)
+            if card.card_id in {"TLC_817t3", "TLC_817t4"}:
+                self._combine_soletos(player)
             return "hand"
         return "burned"
 

@@ -2331,6 +2331,12 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", combined.entity_id))
         self.assertEqual(2, sum(c.card_id == "TLC_817t5" for c in game.players[0].board))
 
+    def test_generated_soletos_half_combine_outside_quest_reward(self):
+        game = self.game()
+        game._add_generated(game.players[0], game._entity("TLC_817t3"))
+        game._add_generated(game.players[0], game._entity("TLC_817t4"))
+        self.assertEqual(["TLC_817t5"], [c.card_id for c in game.players[0].hand])
+
     def test_underfel_rift_is_once_per_turn(self):
         game = self.game()
         first = self.add_hand(game, "TLC_446t")
