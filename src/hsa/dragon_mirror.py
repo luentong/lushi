@@ -47,7 +47,7 @@ DIRECT_IDS = {
     "JAIL_384",
     "CAP_105",
     "CAP_107",
-    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_520", "JAIL_877", "JAIL_887", "JAIL_987", "MEND_044", "TIME_044", "TLC_449",
+    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_570", "JAIL_877", "JAIL_887", "JAIL_987", "MEND_044", "TIME_044", "TLC_449",
     "TIME_436", "TIME_446", "TIME_810",
 }
 
@@ -4110,6 +4110,18 @@ class DragonMirrorGame:
             ]
         if target_kind == TargetKind.ENEMY_MINION:
             return enemy_minions
+        if target_kind == TargetKind.DAMAGED_MINION:
+            return [
+                (owner.index, minion.entity_id)
+                for owner in self.players
+                for minion in owner.board
+                if minion.dormant_turns == 0
+                and minion.damage > 0
+                and not minion.stealth
+                and not (
+                    card.definition.card_type == "SPELL" and minion.elusive
+                )
+            ]
         if target_kind == TargetKind.ANY_MINION:
             return friendly_minions + enemy_minions
         if target_kind == TargetKind.FRIENDLY_CHARACTER:

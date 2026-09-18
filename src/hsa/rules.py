@@ -30,6 +30,7 @@ class Hook(StrEnum):
 
 class TargetKind(StrEnum):
     ANY_MINION = "any_minion"
+    DAMAGED_MINION = "damaged_minion"
     FRIENDLY_MINION = "friendly_minion"
     ENEMY_MINION = "enemy_minion"
     ANY_CHARACTER = "any_character"
@@ -190,7 +191,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
-    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_520", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Standard mechanism tranche
+    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_570", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Standard mechanism tranche
     "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
@@ -3825,6 +3826,25 @@ class BuffActionTarget:
                 target_player=context.action.target_player,
                 target=target.entity_id,
             )
+
+
+@dataclass(frozen=True)
+class BuffActionTargetIfDamaged:
+    """Apply a buff only to a minion that already has damage."""
+
+    attack: int = 0
+    health: int = 0
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("damaged minion target is required")
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        if target.damage <= 0:
+            raise ValueError("target must already be damaged")
+        target.attack_delta += self.attack
+        target.health_delta += self.health
 
 
 @dataclass(frozen=True)
@@ -8660,6 +8680,26 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
                        verification=("test_morbid_swarm_choose_one",)),
             TargetSpec(TargetKind.ANY_MINION, optional=True),
+        ),
+        CardRule(
+            "EDR_490", {Hook.SPELL: (OfferEffectChoice((
+                ("summon_night_terrors", (Summon("EDR_490t", count=2),)),
+                ("destroy_enemy_minion", (DestroyActionTarget(),)),
+            )),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_sleep_paralysis_choose_one",)),
+            # The summon branch needs no target; the destroy branch needs an
+            # enemy minion.  Optional targeting exposes both legal forms.
+            TargetSpec(TargetKind.ENEMY_MINION, optional=True),
+        ),
+        CardRule(
+            "EDR_570", {Hook.SPELL: (OfferEffectChoice((
+                ("damage_all_minions", (DamageAllMinions(1),)),
+                ("buff_damaged_minion", (BuffActionTargetIfDamaged(2, 2),)),
+            )),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_ominous_nightmares_choose_one",)),
+            TargetSpec(TargetKind.DAMAGED_MINION, optional=True),
         ),
         CardRule(
             "EDR_815", {},

@@ -49,8 +49,31 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_standard_choose_one_batch_is_executable(self):
         game = self.game()
-        self.assertTrue({"EDR_233", "EDR_257", "EDR_263"}
+        self.assertTrue({"EDR_233", "EDR_257", "EDR_263", "EDR_490", "EDR_570"}
                         <= game.executable_card_ids)
+
+    def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
+        game = self.game()
+        spell = self.add_hand(game, "EDR_490")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(["summon_night_terrors", "destroy_enemy_minion"],
+                         game.snapshot()["pending_choice"]["options"])
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        self.assertEqual(2, len(game.players[0].board))
+        self.assertTrue(all(m.card_id == "EDR_490t" and m.cant_attack
+                            for m in game.players[0].board))
+
+    def test_ominous_nightmares_buffs_only_damaged_minion(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_CS2_172", 0)
+        target.damage = 1
+        spell = self.add_hand(game, "EDR_570")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(["damage_all_minions", "buff_damaged_minion"],
+                         game.snapshot()["pending_choice"]["options"])
+        game.step(Action("RULE_CHOICE_PICK", 1, 0, target.entity_id))
+        self.assertEqual(2, target.attack_delta)
+        self.assertEqual(2, target.health_delta)
 
     def test_chef_nethrek_is_executable(self):
         game = self.game()
