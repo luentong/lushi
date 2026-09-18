@@ -188,7 +188,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
-    "CATA_477", "JAIL_877", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Location cards
+    "CATA_477", "EDR_520", "JAIL_877", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Location cards
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
     "UNG_934t1", "UNG_940t8", "UNG_942t", "UNG_954t1",
     "UNG_999t2t1",
@@ -5463,6 +5463,51 @@ class AddRandomShamanMinionLocked:
 
 
 @dataclass(frozen=True)
+class SpendManaCastRandomSpell:
+    """Spend all current mana and cast a random spell of that cost."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        spent = max(0, context.player.mana)
+        context.player.mana = 0
+        if spent <= 0:
+            return
+        pool = sorted(
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "SPELL"
+            and definition.cost == spent
+        )
+        if not pool:
+            game._event(
+                "forbidden_shrine_no_spell", player=context.player.index,
+                source=context.card.card_id, spent=spent,
+            )
+            return
+        spell = game._entity(game.rng.choice(pool), created_by=context.card.card_id)
+        action_type = type(context.action) if context.action is not None else None
+        if action_type is None:
+            return
+        try:
+            game._cast_spell(context.player, spell, action_type("PLAY", spell.entity_id))
+        except ValueError:
+            for target_player, target_entity, _ in game._random_spell_target_candidates(
+                context.player.index, spell
+            ):
+                try:
+                    game._cast_spell(
+                        context.player, spell,
+                        action_type("PLAY", spell.entity_id, target_player, target_entity),
+                    )
+                    break
+                except ValueError:
+                    continue
+        game._event(
+            "forbidden_shrine_cast", player=context.player.index,
+            source=context.card.card_id, spell=spell.card_id, spent=spent,
+        )
+
+
+@dataclass(frozen=True)
 class BuffLocationTargetAndSleep:
     attack: int
     health: int
@@ -6275,6 +6320,10 @@ def build_rule_registry() -> RuleRegistry:
             "CATA_477", {Hook.LOCATION: (BuffFriendlyHandMinion(2, 2),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
             TargetSpec(TargetKind.FRIENDLY_HAND_MINION),
+        ),
+        CardRule(
+            "EDR_520", {Hook.LOCATION: (SpendManaCastRandomSpell(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
         ),
         CardRule(
             "JAIL_987", {Hook.LOCATION: (AddRandomShamanMinionLocked(),)},

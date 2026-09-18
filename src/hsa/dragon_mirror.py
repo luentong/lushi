@@ -47,7 +47,7 @@ DIRECT_IDS = {
     "JAIL_384",
     "CAP_105",
     "CAP_107",
-    "CATA_477", "JAIL_877", "JAIL_987", "MEND_044", "TIME_044", "TLC_449",
+    "CATA_477", "EDR_520", "JAIL_877", "JAIL_987", "MEND_044", "TIME_044", "TLC_449",
     "TIME_436", "TIME_446", "TIME_810",
 }
 
