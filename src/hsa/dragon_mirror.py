@@ -1053,6 +1053,11 @@ class Location:
 class Player:
     index: int
     card_class: str = "WARRIOR"
+    # Death Knight deck-building rune slots.  Non-DK players keep all slots
+    # at zero; the mapping is copied with the game state for search branches.
+    rune_counts: dict[str, int] = field(
+        default_factory=lambda: {"blood": 0, "frost": 0, "unholy": 0}
+    )
     deck: list[CardInstance] = field(default_factory=list)
     # Cards removed by Irida Sinseeker.  They are not a second deck: they can
     # only return through Irida's start-of-turn effect.
@@ -1243,6 +1248,7 @@ class DragonMirrorGame:
         deck_counts: tuple[dict[str, int], dict[str, int]] | None = None,
         player_classes: tuple[str, str] = ("WARRIOR", "WARRIOR"),
         beatrix_choices: tuple[str | None, str | None] | None = None,
+        rune_configs: tuple[dict[str, int] | None, dict[str, int] | None] | None = None,
     ):
         self.rng = random.Random(seed)
         self.seed = seed
@@ -1269,6 +1275,7 @@ class DragonMirrorGame:
                 + ", ".join(sorted(unsupported))
             )
         self.card_defs = self._load_defs(Path(cards_path))
+        self.rune_configs = self._resolve_rune_configs(rune_configs, player_classes)
         self.executable_card_ids = EXECUTABLE_CARD_IDS
         self.rule_registry = build_rule_registry()
         missing = (
@@ -1277,8 +1284,8 @@ class DragonMirrorGame:
         if missing:
             raise ValueError(f"missing card metadata: {sorted(missing)}")
         self.players = [
-            Player(0, card_class=player_classes[0]),
-            Player(1, card_class=player_classes[1]),
+            Player(0, card_class=player_classes[0], rune_counts=dict(self.rune_configs[0])),
+            Player(1, card_class=player_classes[1], rune_counts=dict(self.rune_configs[1])),
         ]
         for player in self.players:
             player.deck = self._new_deck(player.index)
@@ -1332,6 +1339,64 @@ class DragonMirrorGame:
                     armor=int(card.get("armor", 0)),
                 )
         return result
+
+    def _resolve_rune_configs(
+        self,
+        requested: tuple[dict[str, int] | None, dict[str, int] | None] | None,
+        player_classes: tuple[str, str],
+    ) -> tuple[dict[str, int], dict[str, int]]:
+        """Resolve and validate Death Knight rune slots at deck construction.
+
+        A DK has three rune slots total.  If no explicit configuration is
+        supplied, infer the minimum slots needed by the supplied deck; this
+        keeps existing simulations compatible while rejecting decks whose
+        cards cannot share one legal rune configuration.  Explicit configs are
+        useful for mulligan/search experiments and are validated strictly.
+        """
+        raw = requested or (None, None)
+        if len(raw) != 2:
+            raise ValueError("rune_configs must contain one config per player")
+        colors = ("blood", "frost", "unholy")
+        resolved: list[dict[str, int]] = []
+        for index, card_class in enumerate(player_classes):
+            supplied = raw[index]
+            if supplied is None:
+                config = {color: 0 for color in colors}
+                if card_class == "DEATHKNIGHT":
+                    for card_id in self.deck_counts[index]:
+                        definition = self.card_defs.get(card_id)
+                        if definition is None:
+                            continue
+                        for color in colors:
+                            config[color] = max(
+                                config[color],
+                                int(definition.rune_cost.get(color, 0)),
+                            )
+            else:
+                unknown = set(supplied) - set(colors)
+                if unknown:
+                    raise ValueError(f"unknown rune colors: {sorted(unknown)}")
+                config = {color: int(supplied.get(color, 0)) for color in colors}
+            if any(value < 0 or value > 3 for value in config.values()):
+                raise ValueError("each rune color must be between 0 and 3")
+            if sum(config.values()) > 3:
+                raise ValueError("a Death Knight can have at most three rune slots")
+            if card_class != "DEATHKNIGHT" and any(config.values()):
+                raise ValueError("only Death Knight decks may use rune slots")
+            if card_class == "DEATHKNIGHT":
+                for card_id in self.deck_counts[index]:
+                    definition = self.card_defs.get(card_id)
+                    if definition is None:
+                        continue
+                    for color in colors:
+                        required = int(definition.rune_cost.get(color, 0))
+                        if required > config[color]:
+                            raise ValueError(
+                                f"{card_id} requires {required} {color} rune(s), "
+                                f"but player {index} has {config[color]}"
+                            )
+            resolved.append(config)
+        return resolved[0], resolved[1]
 
     def _entity(
         self,
@@ -1879,6 +1944,7 @@ class DragonMirrorGame:
         result.winner = self.winner
         result.minions_died_this_turn = self.minions_died_this_turn
         result.deck_counts = self.deck_counts
+        result.rune_configs = self.rune_configs
         result.beatrix_choices = self.beatrix_choices
         result.card_defs = self.card_defs
         result.rule_registry = self.rule_registry
@@ -9835,6 +9901,7 @@ class DragonMirrorGame:
                 "hero_power_cost": self._hero_power_cost(player),
                 "hero_power_id": player.hero_power_id,
                 "hero_power_armor": player.hero_power_armor,
+                "rune_counts": dict(player.rune_counts),
                 "secrets": [card.card_id for card in player.secrets],
                 "pending_end_turn_returns": [
                     card.card_id for card in player.pending_end_turn_returns

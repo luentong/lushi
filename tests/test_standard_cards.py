@@ -186,8 +186,8 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual("PALADIN", generated[0].definition.card_class)
         self.assertEqual(-2, generated[0].cost_delta)
 
-    def game(self) -> DragonMirrorGame:
-        game = DragonMirrorGame(CARDS, 29)
+    def game(self, **kwargs) -> DragonMirrorGame:
+        game = DragonMirrorGame(CARDS, 29, **kwargs)
         game.current = 0
         for player in game.players:
             player.hand.clear()
@@ -3211,6 +3211,27 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             and game.card_defs[cid].rune_cost.get("frost", 0) > 0
             for cid in game.pending_choice["pool"]
         ))
+
+    def test_death_knight_rune_configuration_is_inferred_and_exposed(self):
+        game = self.game(
+            deck_counts=({"RLK_024": 30}, {"RLK_024": 30}),
+            player_classes=("DEATHKNIGHT", "DEATHKNIGHT"),
+        )
+        self.assertEqual({"blood": 1, "frost": 0, "unholy": 0},
+                         game.players[0].rune_counts)
+        self.assertEqual(game.players[0].rune_counts,
+                         game.snapshot()["players"][0]["rune_counts"])
+
+    def test_death_knight_rune_configuration_rejects_wrong_color(self):
+        with self.assertRaises(ValueError):
+            self.game(
+                deck_counts=({"RLK_024": 30}, {"RLK_024": 30}),
+                player_classes=("DEATHKNIGHT", "DEATHKNIGHT"),
+                rune_configs=(
+                    {"blood": 0, "frost": 1, "unholy": 0},
+                    {"blood": 1, "frost": 0, "unholy": 0},
+                ),
+            )
 
     def test_static_shock_damage_attack(self):
         game = self.game()
