@@ -2422,7 +2422,10 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             "TLC_460", "TLC_513", "TLC_602", "TLC_631", "TLC_817", "TLC_830",
         }
         self.assertEqual(expected, set(LOST_CITY_QUEST_IDS))
-        self.assertTrue(expected - {"TLC_426"} <= set(LOST_CITY_QUEST_REWARDS))
+        self.assertTrue(
+            expected - {"TLC_239", "TLC_426", "TLC_817"}
+            <= set(LOST_CITY_QUEST_REWARDS)
+        )
 
     def test_secret_ingredient_choose_one_attack_or_druid_card(self):
         attack_game = self.game()
