@@ -189,8 +189,6 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
     # Standard Quickdraw minions.
-    "WW_003", "WW_358", "WW_360", "WW_363", "WW_379", "WW_384", "SW_037",
-    "WW_417", "WW_434", "WW_808", "WW_900", "TTN_844", "YOG_402",
     # Standard Elusive cards with explicit rules below.
     "CATA_133", "CATA_185", "CATA_206", "EDR_462", "RLK_048", "TLC_246",
     "TLC_100",  # Elise the Navigator
@@ -365,8 +363,6 @@ PLAYABLE_ON_EITHER_SIDE_IDS = frozenset({
 # being exactly the Rewind cards, while this set will grow by school/pool.
 ADDITIONAL_PLAYABLE_SPELL_IDS = {
     # Standard Quickdraw spells.
-    "WW_325", "WW_348", "WW_365", "WW_377", "WW_403", "WW_411",
-    "WW_436", "WW_823", "TTN_841", "TOY_519", "DED_506",
     "RLK_048",  # Anti-Magic Shell
     "CAP_001",  # Silent Strike
     "CORE_BAR_541",  # Runed Orb
