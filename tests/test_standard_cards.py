@@ -1129,6 +1129,32 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual((3, 3), (target.damage, same_race.damage))
         self.assertEqual(0, other.damage)
 
+    def test_judgment_sets_all_minion_stats(self):
+        game = self.game()
+        source = self.add_board(game, "CATA_565", 0)
+        other = self.add_board(game, "CORE_CS2_065", 0)
+        spell = self.add_hand(game, "JAIL_326")
+        game.step(Action("PREPARE", spell.entity_id))
+        game.step(Action("PLAY", spell.entity_id, 0, source.entity_id))
+        self.assertEqual((source.attack, source.max_health), (other.attack, other.max_health))
+
+    def test_hold_them_off_buffs_lifesteal(self):
+        game = self.game()
+        target = self.add_board(game, "CATA_565", 0)
+        spell = self.add_hand(game, "JAIL_913")
+        game.step(Action("PREPARE", spell.entity_id))
+        game.step(Action("PLAY", spell.entity_id, 0, target.entity_id))
+        self.assertTrue(target.lifesteal)
+        self.assertEqual(5, target.attack_delta)
+
+    def test_prepare_discounts_jailbird_in_hand(self):
+        game = self.game()
+        prepared = self.add_hand(game, "JAIL_326")
+        jailbird = self.add_hand(game, "JAIL_453")
+        before = jailbird.cost
+        game.step(Action("PREPARE", prepared.entity_id))
+        self.assertLess(jailbird.cost, before)
+
     def test_experimental_animation_heralds_and_damages_enemy_minions(self):
         game = self.game()
         enemy = self.add_board(game, "TLC_248", 1)

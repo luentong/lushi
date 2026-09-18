@@ -98,6 +98,8 @@ DECLARATIVE_METADATA_ALIASES = {
 # New full-Standard rules are kept separate from the historical Dragon slice
 # so adding cards does not mutate the vocabulary of existing neural models.
 STANDARD_DECLARATIVE_IDS = {
+    "JAIL_326",  # Judgment
+    "JAIL_913",  # Hold Them Off!
     "TLC_828",  # Supreme Dinomancy
     "TLC_835",  # Story of Amara
     "TLC_901",  # Fumigate
@@ -3033,6 +3035,38 @@ class BuffActionTarget:
                 target_player=context.action.target_player,
                 target=target.entity_id,
             )
+
+
+@dataclass(frozen=True)
+class BuffActionTargetWithLifesteal:
+    attack: int = 0
+    health: int = 0
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("friendly minion target is required")
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        target.attack_delta += self.attack
+        target.health_delta += self.health
+        target.lifesteal = True
+
+
+@dataclass(frozen=True)
+class SetAllMinionStatsLikeTarget:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player != context.player.index:
+            raise ValueError("friendly minion target is required")
+        target = game._find_minion(context.player.index, context.action.target_entity)
+        for player in game.players:
+            for minion in player.board:
+                minion.attack_delta += target.attack - minion.attack
+                minion.health_delta += target.max_health - minion.max_health
+                minion.damage = min(minion.damage, max(0, minion.max_health))
+        game._event("judgment_set_stats", player=context.player.index,
+                    source=context.card.card_id, target=target.entity_id,
+                    attack=target.attack, health=target.max_health)
 
 
 @dataclass(frozen=True)
@@ -7075,6 +7109,16 @@ def build_rule_registry() -> RuleRegistry:
             "TLC_901", {Hook.SPELL: (DamageMinionAndSameRace(3),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_fumigate_hits_same_race",)),
             TargetSpec(TargetKind.ENEMY_MINION),
+        ),
+        CardRule(
+            "JAIL_326", {Hook.SPELL: (SetAllMinionStatsLikeTarget(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_judgment_sets_all_minion_stats",)),
+            TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "JAIL_913", {Hook.SPELL: (BuffActionTargetWithLifesteal(5, 5),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_hold_them_off_buffs_lifesteal",)),
+            TargetSpec(TargetKind.FRIENDLY_MINION),
         ),
         CardRule(
             "CATA_725t", {Hook.END_TURN: (HeraldDestroyRightAndGrow(),)},

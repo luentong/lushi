@@ -4072,6 +4072,17 @@ class DragonMirrorGame:
         card.cost_delta -= spent + 1
         card.prepared_turn = self.turn
         card.prepared = True
+        jailbirds = [
+            held for held in player.hand
+            if held.card_id == "JAIL_453" and held.entity_id != card.entity_id
+        ]
+        for jailbird in jailbirds:
+            jailbird.cost_delta -= spent + 1
+            self._event(
+                "prepare_jailbird_discount", player=player.index,
+                source=card.card_id, entity=jailbird.entity_id,
+                discount=spent + 1,
+            )
         self._event(
             "prepare", player=player.index, card=card.card_id,
             entity=card.entity_id, spent=spent, discount=spent + 1,
