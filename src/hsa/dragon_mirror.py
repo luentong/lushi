@@ -187,6 +187,7 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
     "JAIL_860",  # Chef Neth'rek
+    "JAIL_719",  # Irida Sinseeker
     "TLC_226",  # Conjured Bookkeeper
     "TLC_251",  # Primalfin Challenger
     "TLC_366",  # Pterrorwing Ravager
@@ -944,6 +945,9 @@ class Player:
     index: int
     card_class: str = "WARRIOR"
     deck: list[CardInstance] = field(default_factory=list)
+    # Cards removed by Irida Sinseeker.  They are not a second deck: they can
+    # only return through Irida's start-of-turn effect.
+    void_cards: list[CardInstance] = field(default_factory=list)
     hand: list[CardInstance] = field(default_factory=list)
     board: list[CardInstance] = field(default_factory=list)
     dead_minions: list[CardInstance] = field(default_factory=list)
@@ -1024,6 +1028,7 @@ class Player:
     # restriction was not satisfied; otherwise it counts down the owner's
     # turns and grants ten mana when it reaches zero.
     chef_nethrek_turns_remaining: int = -1
+    irida_active: bool = False
     minion_cost_increase_turn: int = -1
     minion_cost_increase_amount: int = 0
     recover_overdrawn_cards: bool = False
@@ -2496,6 +2501,23 @@ class DragonMirrorGame:
                     "rulebreaker_trigger", player=index,
                     card="JAIL_860", effect="set_mana_to_ten",
                 )
+        if player.irida_active and player.void_cards:
+            returned: list[str] = []
+            for _ in range(2):
+                if not player.void_cards:
+                    break
+                card_from_void = player.void_cards.pop(0)
+                if len(player.hand) < 10:
+                    player.hand.append(card_from_void)
+                    returned.append(card_from_void.card_id)
+                else:
+                    # A full hand burns the card rather than putting it back
+                    # into the normal deck, matching ordinary draw handling.
+                    returned.append(f"burned:{card_from_void.card_id}")
+            self._event(
+                "irida_void_draw", player=index,
+                cards=returned, remaining=len(player.void_cards),
+            )
         if player.start_turn_temporary_mana_charges:
             player.mana += 1
             player.start_turn_temporary_mana_charges -= 1
@@ -4643,6 +4665,25 @@ class DragonMirrorGame:
                     source=card.card_id, hand_count=hand_count,
                     deck_count=deck_count, pool_size=len(pool),
                 )
+            return
+        if card.card_id == "JAIL_719":
+            # Irida leaves exactly one random card in the normal deck and
+            # moves every other card into the Void.  Void cards retain their
+            # entities and accumulated cost changes; they are drawn back only
+            # by Irida's start-of-turn effect.
+            if player.deck:
+                original_deck = list(player.deck)
+                keep = self.rng.choice(original_deck)
+                player.deck = [keep]
+                player.void_cards.extend(
+                    card_in_void for card_in_void in original_deck
+                    if card_in_void is not keep
+                )
+            player.irida_active = True
+            self._event(
+                "irida_send_deck_to_void", player=player.index,
+                kept=len(player.deck), void=len(player.void_cards),
+            )
             return
         if card.card_id == "JAIL_430":
             # This Battlecry is distinct from the card's pre-game deck rebuild:
@@ -9014,6 +9055,8 @@ class DragonMirrorGame:
                 },
                 "hand": [card_state(card, player) for card in player.hand],
                 "deck_count": len(player.deck),
+                "void_count": len(player.void_cards),
+                "irida_active": player.irida_active,
                 "dead_minions": [card.card_id for card in player.dead_minions],
                 "board": [card_state(card, player) for card in player.board],
                 "locations": [

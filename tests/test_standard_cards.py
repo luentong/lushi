@@ -46,6 +46,10 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game = self.game()
         self.assertIn("JAIL_860", game.executable_card_ids)
 
+    def test_irida_sinseeker_is_executable(self):
+        game = self.game()
+        self.assertIn("JAIL_719", game.executable_card_ids)
+
     def game(self) -> DragonMirrorGame:
         game = DragonMirrorGame(CARDS, 29)
         game.current = 0
