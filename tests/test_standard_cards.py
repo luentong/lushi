@@ -971,6 +971,32 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertNotIn(right, game.players[0].board)
         self.assertEqual(before + 2, soldier.attack)
 
+    def test_herald_soldier_azshara_and_alakir_variants(self):
+        game = self.game()
+        game.players[0].herald_count = 3
+        soldier = game._entity("CATA_525t")
+        soldier.summoned_turn = game.turn
+        game._summon(game.players[0], soldier)
+        self.assertEqual(2, game.players[0].hero_attack_bonus)
+
+        game = self.game()
+        neighbor = self.add_board(game, "CATA_565", 0)
+        soldier = game._entity("CATA_565t")
+        soldier.herald_power = 4
+        soldier.summoned_turn = game.turn
+        game._summon(game.players[0], soldier)
+        self.assertEqual(4, neighbor.aura_attack_bonus)
+
+    def test_herald_soldier_onyxia_variant_generates_health_cost_card(self):
+        game = self.game()
+        game.players[0].herald_count = 1
+        soldier = game._entity("CATA_780t")
+        soldier.summoned_turn = game.turn
+        game._summon(game.players[0], soldier)
+        generated = [card for card in game.players[0].hand if card.created_by == "CATA_780t"]
+        self.assertEqual(1, len(generated))
+        self.assertEqual(game.turn, generated[0].costs_health_expiry_turn)
+
     def test_experimental_animation_heralds_and_damages_enemy_minions(self):
         game = self.game()
         enemy = self.add_board(game, "TLC_248", 1)
