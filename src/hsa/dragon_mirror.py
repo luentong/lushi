@@ -312,6 +312,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "CORE_RLK_083",  # Deathchiller
     "CORE_RLK_116",  # Necrotic Mortician
     "RLK_223",  # Thassarian
+    "TIME_613",  # Cryofrozen Champion
     "TLC_480",  # Krog, Crater King
     "CORE_EX1_005",  # Big Game Hunter
     "CORE_REV_023",  # Demolition Renovator
@@ -431,6 +432,8 @@ ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "CATA_530",  # Fel Infusion
     "CATA_561",  # Ritual of Power
     "END_017",  # Battle at the End Time
+    "TIME_612",  # Blood Draw
+    "TIME_611",  # Timestop
 }
 
 # Rotated Quickdraw cards retained for an optional Wild/historical ruleset.

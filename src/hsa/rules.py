@@ -183,6 +183,7 @@ STANDARD_DECLARATIVE_IDS = {
     "END_017", "END_017t",  # Battle at the End Time / Tick and Tock
     "TLC_987",  # Questing Assistant
     "CORE_RLK_083", "CORE_RLK_116", "RLK_223",  # DK rune cards
+    "TIME_611", "TIME_612", "TIME_613",  # DK rune cards
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
     "UNG_934t1", "UNG_940t8", "UNG_942t", "UNG_954t1",
     "UNG_999t2t1",
@@ -1298,6 +1299,25 @@ class OfferSpellDiscover:
 
 
 @dataclass(frozen=True)
+class OfferSpellDiscoverHealthCost:
+    """Blood Draw: discovered spells cost Health instead of Mana this turn."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._offer_spell_discover(
+            context.player, source_card_id=context.card.card_id
+        )
+        if game.pending_choice is None:
+            return
+        for option in game.pending_choice["options"]:
+            option.costs_health_expiry_turn = game.turn
+        game._event(
+            "health_cost_spell_discover", player=context.player.index,
+            source=context.card.card_id,
+            options=[option.card_id for option in game.pending_choice["options"]],
+        )
+
+
+@dataclass(frozen=True)
 class OfferContrabandBeastDiscover:
     """Discover an executable Beast, including Beasts from other classes."""
 
@@ -1849,6 +1869,22 @@ class ThassarianRandomEnemyDamage:
 
     def execute(self, game: Any, context: RuleContext) -> None:
         DamageRandomEnemyCharacters(2, 1).execute(game, context)
+
+
+@dataclass(frozen=True)
+class TimestopEffect:
+    """Timestop: damage the opposing hero and freeze two random minions."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._damage_hero(game.players[1 - context.player.index], 3, context.card)
+        candidates = game._random_enemy_minions(context.player.index)
+        chosen = game.rng.sample(candidates, min(2, len(candidates)))
+        for minion in chosen:
+            minion.frozen_turn = game.turn
+        game._event(
+            "timestop", player=context.player.index,
+            source=context.card.card_id, frozen=[m.entity_id for m in chosen],
+        )
 
 
 @dataclass(frozen=True)
@@ -5249,6 +5285,24 @@ class AddRandomLegendaryMinion:
 
 
 @dataclass(frozen=True)
+class AddRandomLegendaryMinionDiscounted:
+    """Cryofrozen Champion: add a random Legendary at one less Cost."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = [
+            card_id for card_id in game.executable_card_ids
+            if card_id in game.card_defs
+            and game.card_defs[card_id].card_type == "MINION"
+            and game.card_defs[card_id].rarity == "LEGENDARY"
+        ]
+        if not candidates:
+            return
+        card = game._entity(game.rng.choice(sorted(candidates)), created_by=context.card.card_id)
+        card.cost_delta -= 1
+        game._add_generated(context.player, card)
+
+
+@dataclass(frozen=True)
 class SummonRandomLegendaryMinion:
     """Summon one random executable Legendary minion if board space exists."""
 
@@ -8528,6 +8582,18 @@ def build_rule_registry() -> RuleRegistry:
                 Hook.BATTLECRY: (ThassarianRandomEnemyDamage(),),
                 Hook.DEATHRATTLE: (ThassarianRandomEnemyDamage(),),
             },
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "TIME_611", {Hook.SPELL: (TimestopEffect(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "TIME_612", {Hook.SPELL: (OfferSpellDiscoverHealthCost(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "TIME_613", {Hook.DEATHRATTLE: (AddRandomLegendaryMinionDiscounted(),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
         ),
         CardRule(

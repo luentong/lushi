@@ -3214,7 +3214,8 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_dk_rune_trigger_cards_are_executable(self):
         game = self.game()
-        self.assertTrue({"CORE_RLK_083", "CORE_RLK_116", "RLK_223"}
+        self.assertTrue({"CORE_RLK_083", "CORE_RLK_116", "RLK_223",
+                         "TIME_611", "TIME_612", "TIME_613"}
                         <= game.executable_card_ids)
 
     def test_death_knight_rune_configuration_is_inferred_and_exposed(self):
