@@ -4400,7 +4400,7 @@ class SummonRandomMinionWithCost:
             card_id for card_id in game.executable_card_ids
             if card_id in game.card_defs
             and game.card_defs[card_id].card_type == "MINION"
-            and game.card_defs[card_id].cost == requested_cost
+            and game.card_defs[card_id].cost == self.cost
         ]
         if not candidates:
             return
@@ -4992,6 +4992,13 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_pattern", "HearthstoneJSON 251332",
                 verification=("test_brightwing_adds_random_legendary",),
+            ),
+        ),
+        CardRule(
+            "CATA_723", {Hook.DEATHRATTLE: (SummonRandomMinionWithCost(4),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_drakeadon_mongrel_summons_random_four_cost",),
             ),
         ),
         CardRule(

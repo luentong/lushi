@@ -2685,6 +2685,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertGreaterEqual(summoned.definition.cost, 5)
         self.assertTrue(summoned.taunt)
 
+    def test_drakeadon_mongrel_summons_random_four_cost(self):
+        game = self.game()
+        drakeadon = self.add_board(game, "CATA_723", 0)
+        game._damage_minion(0, drakeadon, drakeadon.health)
+        game._resolve_deaths()
+        summoned = [
+            minion for minion in game.players[0].board
+            if minion.created_by == "CATA_723"
+        ]
+        self.assertEqual(2, len(summoned))
+        self.assertTrue(all(minion.definition.cost == 4 for minion in summoned))
+
     def test_harsh_sentence_applies_next_turn_tax_and_imp_formants(self):
         game = self.game()
         enemy_minion = game._entity("CORE_LOOT_137")
