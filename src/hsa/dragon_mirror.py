@@ -942,6 +942,11 @@ class Location:
     # A location enters play and becomes dormant for one full turn.
     cooldown: int = 2
     next_refresh: int = 1
+    # Custom locations (for example Elise's crafted location) retain the
+    # selected effect ids and tier as engine state.  Ordinary locations leave
+    # these fields empty, so their existing behavior is unchanged.
+    custom_effects: tuple[str, ...] = ()
+    custom_tier: int = 0
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "Location":
         result = copy.copy(self)
@@ -9307,7 +9312,9 @@ class DragonMirrorGame:
                 "locations": [
                     {"entity": x.entity_id, "id": x.card_id,
                      "durability": x.durability, "cooldown": x.cooldown,
-                     "next_refresh": x.next_refresh}
+                     "next_refresh": x.next_refresh,
+                     "custom_effects": list(x.custom_effects),
+                     "custom_tier": x.custom_tier}
                     for x in player.locations
                 ],
                 "fatigue": player.fatigue,
