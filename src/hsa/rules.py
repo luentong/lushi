@@ -1414,6 +1414,15 @@ class OfferDemonDiscoverMinCost:
             context.player, pool, dark_gift=False,
             source_card_id=context.card.card_id,
         )
+        if not any(
+            card.definition.card_type == "MINION"
+            for card in context.player.deck
+        ):
+            context.player.next_minion_cost_reduction = 99
+            game._event(
+                "eternal_hold_discount_armed", player=context.player.index,
+                source=context.card.card_id,
+            )
 
 
 @dataclass(frozen=True)

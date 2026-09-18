@@ -1147,6 +1147,7 @@ class Player:
     next_demon_free: bool = False
     next_beast_cost_reduction: int = 0
     next_murloc_cost_reduction: int = 0
+    next_minion_cost_reduction: int = 0
     kindred_triggers_twice: int = 0
     map_followup_options: list[str] = field(default_factory=list)
     map_followup_entity: int | None = None
@@ -3255,6 +3256,7 @@ class DragonMirrorGame:
         ):
             cost += player.minion_cost_increase_amount
         if card.definition.card_type == "MINION":
+            cost -= player.next_minion_cost_reduction
             cost += 2 * sum(
                 minion.card_id == "JAIL_890"
                 and not minion.silenced
@@ -3329,6 +3331,11 @@ class DragonMirrorGame:
             cost -= 2
         if card.has_race("DEMON") and player.next_demon_free:
             cost = 0
+        if (
+            card.definition.card_type == "MINION"
+            and player.next_minion_cost_reduction == 99
+        ):
+            cost = 1
         return max(0, cost)
 
     @staticmethod
@@ -4768,6 +4775,8 @@ class DragonMirrorGame:
             player.next_beast_cost_reduction = 0
         if card.has_race("MURLOC") and player.next_murloc_cost_reduction:
             player.next_murloc_cost_reduction = 0
+        if card.definition.card_type == "MINION" and player.next_minion_cost_reduction:
+            player.next_minion_cost_reduction = 0
         if card.definition.card_type == "SPELL" and player.next_spell_cost_reduction:
             player.next_spell_cost_reduction = 0
         controller = (
