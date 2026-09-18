@@ -190,6 +190,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "JAIL_719",  # Irida Sinseeker
     "JAIL_446",  # Blood Doctor Thal'ena
     "JAIL_800",  # Mug'Zee
+    "JAIL_504",  # Aya, Lotus Kingpin
     "TLC_226",  # Conjured Bookkeeper
     "TLC_251",  # Primalfin Challenger
     "TLC_366",  # Pterrorwing Ravager
@@ -1130,6 +1131,7 @@ class DragonMirrorGame:
         self.seed = seed
         self.turn = 0
         self.current = 0
+        self.first_player = 0
         self.next_entity_id = 1
         self.invalid_actions = 0
         self.events: list[dict[str, Any]] = []
@@ -1415,10 +1417,16 @@ class DragonMirrorGame:
 
     def _finish_mulligan(self) -> None:
         self.pending_choice = None
-        self.current = 0
-        self._give_coin(self.players[1], source="MULLIGAN")
+        aya_index = next(
+            (player.index for player in self.players
+             if any(card.card_id == "JAIL_504" for card in player.hand + player.deck)),
+            None,
+        )
+        self.first_player = 1 - aya_index if aya_index is not None else 0
+        self.current = self.first_player
+        self._give_coin(self.players[1 - self.first_player], source="MULLIGAN")
         self._start_of_game()
-        self._start_turn(0)
+        self._start_turn(self.first_player)
 
     def _start_of_game(self) -> None:
         # Start-of-game happens after initial hands. Hogger duplicates every other
@@ -9172,6 +9180,7 @@ class DragonMirrorGame:
         return {
             "turn": self.turn,
             "active_player": self.current + 1,
+            "first_player": self.first_player + 1,
             "finished": self.finished,
             "winner": None if self.winner is None else self.winner + 1,
             "pending_choice": pending,

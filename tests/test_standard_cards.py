@@ -58,6 +58,10 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game = self.game()
         self.assertIn("JAIL_800", game.executable_card_ids)
 
+    def test_aya_is_executable(self):
+        game = self.game()
+        self.assertIn("JAIL_504", game.executable_card_ids)
+
     def game(self) -> DragonMirrorGame:
         game = DragonMirrorGame(CARDS, 29)
         game.current = 0
