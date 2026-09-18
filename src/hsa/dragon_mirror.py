@@ -1321,6 +1321,24 @@ class DragonMirrorGame:
             [card.definition for card in player.deck] for player in self.players
         ]
         for player in self.players:
+            if any(card.card_id == "JAIL_397" for card in player.deck):
+                candidates = [
+                    card for card in player.deck
+                    if card.card_id != "JAIL_397"
+                    and card.definition.card_type == "MINION"
+                    and card.definition.cost == 2
+                ]
+                if candidates:
+                    chosen_id = candidates[0].card_id
+                    for _ in range(10):
+                        player.deck.append(
+                            self._entity(chosen_id, started_in_deck=True,
+                                         created_by="JAIL_397")
+                        )
+                    self._event(
+                        "beatrix_deck_choice", player=player.index,
+                        card="JAIL_397", chosen=chosen_id, copies=10,
+                    )
             if not any(card.card_id == "JAIL_430" for card in player.deck):
                 continue
             enemy_definitions = original_definitions[1 - player.index]
