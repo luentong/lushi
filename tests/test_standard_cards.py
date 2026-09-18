@@ -213,6 +213,51 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         for card_id in ("CATA_898", "CATA_613", "TLC_228"):
             self.assertIsNotNone(game.rule_registry.get(card_id))
 
+    def test_murloc_warleader_aura_buffs_other_murlocs_only(self):
+        game = self.game()
+        leader = self.add_board(game, "CORE_EX1_507", 0)
+        other = self.add_board(game, "CORE_EX1_507", 0)
+        game._refresh_continuous(game.players[0])
+        self.assertEqual(leader.definition.attack, leader.attack)
+        self.assertEqual(other.definition.attack + 2, other.attack)
+        leader.silenced = True
+        game._refresh_continuous(game.players[0])
+        self.assertEqual(other.definition.attack, other.attack)
+
+    def test_dire_wolf_aura_is_position_limited(self):
+        game = self.game()
+        left = self.add_board(game, "CORE_EX1_005", 0)
+        wolf = self.add_board(game, "CORE_EX1_162", 0)
+        right = self.add_board(game, "CORE_EX1_005", 0)
+        far = self.add_board(game, "CORE_EX1_005", 0)
+        game._refresh_continuous(game.players[0])
+        self.assertEqual(left.definition.attack + 1, left.attack)
+        self.assertEqual(right.definition.attack + 1, right.attack)
+        self.assertEqual(far.definition.attack, far.attack)
+        wolf.silenced = True
+        game._refresh_continuous(game.players[0])
+        self.assertEqual(left.definition.attack, left.attack)
+        self.assertEqual(right.definition.attack, right.attack)
+
+    def test_arachnathid_aura_grants_poisonous_and_clears(self):
+        game = self.game()
+        aura = self.add_board(game, "JAIL_459", 0)
+        target = self.add_board(game, "CORE_EX1_005", 0)
+        game._refresh_continuous(game.players[0])
+        self.assertTrue(aura.aura_poisonous)
+        self.assertTrue(target.aura_poisonous)
+        aura.silenced = True
+        game._refresh_continuous(game.players[0])
+        self.assertFalse(target.aura_poisonous)
+
+    def test_toreth_aura_expands_divine_shield(self):
+        game = self.game()
+        self.add_board(game, "EDR_258", 0)
+        shielded = self.add_board(game, "CORE_EX1_008", 0)
+        game._refresh_continuous(game.players[0])
+        self.assertTrue(shielded.divine_shield)
+        self.assertEqual(3, shielded.divine_shield_hits)
+
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
         spell = self.add_hand(game, "EDR_490")
