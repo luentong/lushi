@@ -212,7 +212,8 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game = self.game()
         for card_id in (
             "CATA_898", "CATA_613", "TLC_228", "CORE_WON_351", "JAIL_202",
-            "EDR_480", "TTN_844", "CATA_130",
+            "EDR_480", "TTN_844", "CATA_130", "CAP_104", "CORE_BT_187",
+            "CORE_CATA_001", "CORE_EDR_003", "EDR_810", "JAIL_890", "TIME_606",
         ):
             self.assertIsNotNone(game.rule_registry.get(card_id))
 
