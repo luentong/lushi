@@ -49,7 +49,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_standard_choose_one_batch_is_executable(self):
         game = self.game()
-        self.assertTrue({"CATA_569", "CATA_724", "CORE_AT_052", "CORE_EX1_250", "CORE_OG_044", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_490", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010", "END_028", "TIME_601", "TLC_227"}
+        self.assertTrue({"CATA_569", "CATA_724", "CORE_AT_052", "CORE_EX1_250", "CORE_OG_044", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "CS3_007", "EDR_233", "EDR_257", "EDR_263", "EDR_490", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010", "END_028", "TIME_601", "TLC_227"}
                         <= game.executable_card_ids)
 
     def test_boomkin_choose_one_deals_damage_or_heals(self):
@@ -165,6 +165,12 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertNotIn(low, game.players[0].board)
         self.assertIn(high, game.players[1].board)
         self.assertEqual(2, game.players[0].overload_next_turn)
+
+    def test_novice_zapper_overloads_after_play(self):
+        game = self.game()
+        zapper = self.add_hand(game, "CS3_007")
+        game.step(Action("PLAY", zapper.entity_id))
+        self.assertEqual(1, game.players[0].overload_next_turn)
 
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
