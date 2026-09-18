@@ -3837,6 +3837,23 @@ class BuffFriendlyMinionsAndShield:
 
 
 @dataclass(frozen=True)
+class BuffFriendlyMinionsAndElusive:
+    """Anti-Magic Shell: +1/+1 and targeted-spell immunity to all allies."""
+
+    attack: int = 1
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        affected = []
+        for minion in context.player.board:
+            minion.attack_delta += self.attack
+            minion.health_delta += self.attack
+            minion.elusive = True
+            affected.append(minion.entity_id)
+        game._event("anti_magic_shell", player=context.player.index,
+                    source=context.card.card_id, affected=affected)
+
+
+@dataclass(frozen=True)
 class GrantDeathrattleSummon:
     """Give friendly minions a simple summon-on-death effect."""
 
@@ -3874,6 +3891,158 @@ class BuffActionTargetElusive:
             source=context.card.card_id, target=target.entity_id,
             attack=self.attack, health=self.health,
         )
+
+
+@dataclass(frozen=True)
+class GrantKeyword:
+    """Grant one printed keyword to the card that caused this trigger."""
+
+    keyword: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        setattr(context.card, self.keyword, True)
+        if self.keyword == "divine_shield":
+            context.card.divine_shield_hits = max(1, context.card.divine_shield_hits)
+        game._event("grant_keyword", player=context.player.index,
+                    source=context.card.card_id, keyword=self.keyword,
+                    entity=context.card.entity_id)
+
+
+@dataclass(frozen=True)
+class FlitterwingEndTurn:
+    """Iridescent Flitterwing buffs every other friendly minion."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        affected = []
+        for minion in context.player.board:
+            if minion.entity_id == context.card.entity_id or minion.dormant_turns > 0:
+                continue
+            minion.attack_delta += 1
+            minion.health_delta += 1
+            affected.append(minion.entity_id)
+        game._event("flitterwing_end_turn", player=context.player.index,
+                    source=context.card.entity_id, affected=affected)
+
+
+@dataclass(frozen=True)
+class AddRandomDragon:
+    """Add an executable Standard Dragon to hand."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = sorted(
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "MINION"
+            and "DRAGON" in definition.races
+        )
+        if not candidates:
+            return
+        card = game._entity(game.rng.choice(candidates), created_by=context.card.card_id)
+        destination = game._add_generated(context.player, card)
+        game._event("random_dragon", player=context.player.index,
+                    source=context.card.card_id, card=card.card_id,
+                    destination=destination)
+
+
+@dataclass(frozen=True)
+class DiscoverNatureSpell:
+    """Farseer Wo's post-cast Discover from the executable Nature pool."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = sorted(
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "SPELL"
+            and definition.spell_school == "NATURE"
+        )
+        if candidates:
+            game._offer_discover(context.player, candidates, dark_gift=False,
+                                 source_card_id=context.card.card_id)
+
+
+@dataclass(frozen=True)
+class TwistedMonstrosityRotate:
+    """Choose two bonus effects once, then alternate them while held."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        effects = ("divine_shield", "lifesteal", "poisonous", "rush",
+                   "taunt", "windfury", "elusive")
+        if context.card.bonus_effect_options is None:
+            context.card.bonus_effect_options = tuple(game.rng.sample(effects, 2))
+        options = context.card.bonus_effect_options
+        active = options[0] if context.card.bonus_effect_active != options[0] else options[1]
+        for keyword in effects:
+            if keyword == active:
+                continue
+            setattr(context.card, keyword, False)
+        setattr(context.card, active, True)
+        context.card.bonus_effect_active = active
+        game._event("twisted_monstrosity_bonus", player=context.player.index,
+                    source=context.card.entity_id, effect=active,
+                    options=list(options))
+
+
+@dataclass(frozen=True)
+class LivingParadoxBattlecry:
+    """Summon two 2/1 Elusive paradoxes without replaying a Battlecry."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for _ in range(2):
+            if len(context.player.board) + len(context.player.locations) >= 7:
+                break
+            token = context.card.clone(game.next_entity_id)
+            game.next_entity_id += 1
+            token.attack_delta = 2 - token.definition.attack
+            token.health_delta = 1 - token.definition.health
+            token.damage = 0
+            token.summoned_turn = game.turn
+            token.created_by = context.card.card_id
+            token.elusive = True
+            game._summon(context.player, token)
+        game._event("living_paradox_battlecry", player=context.player.index,
+                    source=context.card.card_id)
+
+
+@dataclass(frozen=True)
+class EpochStalkerBattlecry:
+    """Summon a copy of Epoch Stalker; summoned copies do not replay Battlecry."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if len(context.player.board) + len(context.player.locations) >= 7:
+            return
+        copy = context.card.clone(game.next_entity_id)
+        game.next_entity_id += 1
+        copy.damage = 0
+        copy.summoned_turn = game.turn
+        copy.created_by = context.card.card_id
+        game._summon(context.player, copy)
+        game._event("epoch_stalker_copy", player=context.player.index,
+                    source=context.card.card_id, entity=copy.entity_id)
+
+
+@dataclass(frozen=True)
+class FacelessReplicatorDeathrattle:
+    """Transform the minion that dealt the lethal combat blow."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        killer_id = getattr(context.card, "killed_by_entity", None)
+        if killer_id is None:
+            return
+        killer = next(
+            (minion for player in game.players for minion in player.board
+             if minion.entity_id == killer_id),
+            None,
+        )
+        if killer is None:
+            return
+        killer.definition = game.card_defs.get("CATA_185", killer.definition)
+        killer.attack_delta = 0
+        killer.health_delta = 0
+        killer.damage = 0
+        killer.elusive = True
+        killer.silenced = False
+        game._event("faceless_replicator_transform", player=context.player.index,
+                    source=context.card.card_id, target=killer.entity_id)
 
 
 @dataclass(frozen=True)
@@ -5331,6 +5500,55 @@ def build_rule_registry() -> RuleRegistry:
     rosetta = "vendor/RosettaStone@e10749b5f0c08d3a6135bce317cb11d1738846ad"
     local = "HearthstoneJSON build 251332 + local rule tests"
     return RuleRegistry((
+        CardRule(
+            "CATA_133", {Hook.END_TURN: (FlitterwingEndTurn(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                       verification=("test_elusive_flitterwing_end_turn_buff",)),
+        ),
+        CardRule(
+            "CATA_185", {Hook.DEATHRATTLE: (FacelessReplicatorDeathrattle(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                       verification=("test_faceless_replicator_transforms_lethal_killer",)),
+        ),
+        CardRule(
+            "CATA_206", {Hook.START_TURN: (TwistedMonstrosityRotate(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                       verification=("test_twisted_monstrosity_rotates_hand_bonus",)),
+        ),
+        CardRule(
+            "EDR_462", {Hook.END_TURN: (AddRandomDragon(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                       verification=("test_selenic_drake_adds_random_dragon",)),
+        ),
+        CardRule(
+            "TIME_013", {Hook.AFTER_PLAY: (DiscoverNatureSpell(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                       verification=("test_farseer_wo_discovers_after_spell",)),
+        ),
+        CardRule(
+            "TIME_059", {Hook.BATTLECRY: (LivingParadoxBattlecry(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                       verification=("test_living_paradox_summons_two_elusive_tokens",)),
+        ),
+        CardRule(
+            "TIME_605", {Hook.BATTLECRY: (EpochStalkerBattlecry(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                       verification=("test_epoch_stalker_summons_copy",)),
+        ),
+        CardRule(
+            "RLK_048", {Hook.SPELL: (BuffFriendlyMinionsAndElusive(1),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                       verification=("test_anti_magic_shell_grants_elusive",)),
+        ),
+        CardRule(
+            "TLC_246", {Hook.BATTLECRY: (OfferEffectChoice((
+                ("stealth", (GrantKeyword("stealth"),)),
+                ("elusive", (GrantKeyword("elusive"),)),
+                ("windfury", (GrantKeyword("windfury"),)),
+            )),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                       verification=("test_ancient_pterrordax_keyword_choice",)),
+        ),
         CardRule(
             "GAME_005", {Hook.SPELL: (GainMana(1),)},
             RuleSource(

@@ -188,6 +188,8 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 }
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
+    # Standard Elusive cards with explicit rules below.
+    "CATA_133", "CATA_185", "CATA_206", "EDR_462", "RLK_048", "TLC_246",
     "TLC_100",  # Elise the Navigator
     "MEND_046",  # Bashana Runetotem
     "JAIL_860",  # Chef Neth'rek
@@ -359,6 +361,7 @@ PLAYABLE_ON_EITHER_SIDE_IDS = frozenset({
 # separate from the Rewind tranche: the generation audit relies on the latter
 # being exactly the Rewind cards, while this set will grow by school/pool.
 ADDITIONAL_PLAYABLE_SPELL_IDS = {
+    "RLK_048",  # Anti-Magic Shell
     "CAP_001",  # Silent Strike
     "CORE_BAR_541",  # Runed Orb
     "TLC_435",  # Crypt Map
@@ -469,6 +472,12 @@ BASIC_AUXILIARY_IDS = {
 STANDARD_VANILLA_IDS = {
     # Keyword-only A0 tranche (no Battlecry/Deathrattle/random text).
     "RLK_067", "CORE_BT_921", "EDR_272", "CORE_CS2_179",
+    # Standard keyword-only Elusive minions.  Elusive itself is enforced by
+    # target legality below; these IDs make the cards available to normal
+    # deck construction and generated pools.
+    "CATA_558", "CORE_DRG_079", "CORE_NEW1_023", "EDR_598",
+    "END_033", "END_030", "MEND_506", "TIME_013", "TIME_059",
+    "TIME_605",
     "CORE_EX1_028", "CS3_038", "EDR_598", "FIR_901t", "JAIL_454t",
     "RLK_077t", "RLK_705t", "TLC_443t", "CATA_528t", "DINO_136t",
     "TLC_903t", "CATA_132t", "EDR_209t5", "CATA_551t", "EDR_850pe",
@@ -886,6 +895,7 @@ class CardInstance:
     copied_from_opponent: bool = False
     deathrattle_copy_card_id: str | None = None
     deathrattle_summon_card_id: str | None = None
+    killed_by_entity: int | None = None
     high_kings_hammer_claimed: bool = False
     temporary: bool = False
     spell_casts_twice: bool = False
@@ -896,6 +906,8 @@ class CardInstance:
     avatar_form_pending: bool = False
     temporary_health_modifiers: list[tuple[int, int]] = field(default_factory=list)
     temporary_immune_expiry_turn: int = -1
+    bonus_effect_options: tuple[str, str] | None = None
+    bonus_effect_active: str | None = None
     destroy_at_turn_start: int = -1
     costs_health_expiry_turn: int = -1
     # Colossal appendages retain their parent entity rather than merely their
@@ -2745,6 +2757,13 @@ class DragonMirrorGame:
                 minion.dormant_turns -= 1
                 if minion.dormant_turns == 0:
                     self._event("awaken", player=index, card=minion.card_id, entity=minion.entity_id)
+        # Rotate hand-held bonus effects before the draw for cards such as
+        # Twisted Monstrosity.
+        for held in list(player.hand):
+            self.rule_registry.dispatch(
+                Hook.START_TURN, held.card_id, self,
+                RuleContext(player=player, card=held),
+            )
         for location in player.locations:
             location.cooldown = max(0, location.cooldown - 1)
         if player.geddon_draw:
@@ -6360,6 +6379,8 @@ class DragonMirrorGame:
         attacker.attacking_now = True
         self._damage_minion(defender_owner, defender, attacker_damage, attacker)
         attacker.attacking_now = False
+        if defender.health <= 0:
+            defender.killed_by_entity = attacker.entity_id
         self._damage_minion(attacker_owner, attacker, defender_damage, defender)
         self._finja_kill(attacker_owner, attacker, defender)
         self._after_minion_attacked(defender_owner, defender)
@@ -8443,6 +8464,8 @@ class DragonMirrorGame:
             attacker.attacking_now = True
             self._damage_minion(action.target_player, defender, attacker.attack, attacker)
             attacker.attacking_now = False
+            if defender.health <= 0:
+                defender.killed_by_entity = attacker.entity_id
             self._damage_minion(self.current, attacker, defender.attack, defender)
             self._finja_kill(self.current, attacker, defender)
             self._after_minion_attacked(action.target_player, defender)
@@ -8763,6 +8786,10 @@ class DragonMirrorGame:
             return
         health_before_damage = max(0, minion.health)
         minion.damage += amount
+        if minion.health <= 0 and source is not None:
+            # Preserve the lethal minion for deathrattles such as Faceless
+            # Replicator, including non-combat damage caused by a minion.
+            minion.killed_by_entity = source.entity_id
         if minion.illusion_fake and not minion.silenced:
             minion.damage = max(minion.damage, minion.max_health)
             self._event(
