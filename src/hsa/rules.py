@@ -1438,6 +1438,47 @@ class DamageRandomSplitEnemyMinionsLifesteal:
 
 
 @dataclass(frozen=True)
+class RevealSpellThenSplitEnemyMinions:
+    threshold: int
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        spells = [
+            card for card in context.player.deck
+            if card.definition.card_type == "SPELL"
+        ]
+        if not spells:
+            game._event(
+                "reveal_spell", player=context.player.index,
+                source=context.card.card_id, card=None, triggered=False,
+            )
+            return
+        revealed = game.rng.choice(spells)
+        triggered = revealed.definition.cost >= self.threshold
+        game._event(
+            "reveal_spell", player=context.player.index,
+            source=context.card.card_id, card=revealed.card_id,
+            cost=revealed.definition.cost, triggered=triggered,
+        )
+        if not triggered:
+            return
+        enemy = game.players[1 - context.player.index]
+        targets = []
+        for _ in range(self.amount):
+            living = [minion for minion in enemy.board if minion.health > 0]
+            if not living:
+                break
+            target = game.rng.choice(living)
+            game._damage_minion(enemy.index, target, 1, context.card)
+            targets.append(target.entity_id)
+        game._resolve_deaths()
+        game._event(
+            "reveal_spell_split_damage", player=context.player.index,
+            source=context.card.card_id, amount=self.amount, targets=targets,
+        )
+
+
+@dataclass(frozen=True)
 class DrawZeroAttackMinion:
     def execute(self, game: Any, context: RuleContext) -> None:
         game._draw_matching(
@@ -6237,6 +6278,15 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "official_text_and_engine_pattern", "HearthstoneJSON 251332",
                 verification=("test_scramble_for_gear_gains_armor_and_shuffles_gear",),
+            ),
+        ),
+        CardRule(
+            "JAIL_379", {Hook.BATTLECRY: (
+                RevealSpellThenSplitEnemyMinions(threshold=5, amount=5),
+            )},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_spire_security_reveals_and_splits_damage",),
             ),
         ),
         CardRule(

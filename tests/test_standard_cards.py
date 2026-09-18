@@ -1835,6 +1835,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._draw(game.players[0])
         self.assertEqual(before + 2, game.players[0].armor)
 
+    def test_spire_security_reveals_and_splits_damage(self):
+        game = self.game()
+        game.players[0].deck = [game._entity("CORE_CFM_604", started_in_deck=True)]
+        enemies = [self.add_board(game, "CORE_LOOT_137", 1) for _ in range(3)]
+        security = self.add_hand(game, "JAIL_379")
+        game.step(Action("PLAY", security.entity_id))
+        self.assertEqual(5, sum(minion.damage for minion in enemies))
+        reveal = next(event for event in reversed(game.events)
+                      if event["kind"] == "reveal_spell")
+        self.assertEqual("CORE_CFM_604", reveal["card"])
+        self.assertTrue(reveal["triggered"])
+
     def test_overheal_core_minions(self):
         game = self.game()
         player = game.players[0]

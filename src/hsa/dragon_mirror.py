@@ -259,6 +259,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "JAIL_035",  # Vigilant Sentry
     "JAIL_328",  # Scarlet Bruiser
     "JAIL_386",  # Scramble for Gear
+    "JAIL_379",  # Spire Security
     "CORE_AT_011",  # Holy Champion
     "CORE_CFM_606",  # Mana Geode
     "CORE_CS3_014",  # Crimson Clergy
