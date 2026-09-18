@@ -4167,6 +4167,11 @@ class DragonMirrorGame:
                 "snapping_plants", "nesting_grounds", "lava_stream",
                 "radiant_crystals",
             )
+            if cost == 1:
+                effect_ids = tuple(
+                    effect for effect in effect_ids
+                    if effect != "radiant_crystals"
+                )
             self.pending_choice = {
                 "kind": "RULE_CHOICE", "stage": "ELISE_EFFECTS",
                 "player": player.index, "card": pending["card"],
