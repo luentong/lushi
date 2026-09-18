@@ -49,8 +49,24 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_standard_choose_one_batch_is_executable(self):
         game = self.game()
-        self.assertTrue({"EDR_233", "EDR_257", "EDR_263", "EDR_490", "EDR_570"}
+        self.assertTrue({"CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_490", "EDR_570"}
                         <= game.executable_card_ids)
+
+    def test_boomkin_choose_one_deals_damage_or_heals(self):
+        game = self.game()
+        game.players[0].health = 20
+        minion = self.add_hand(game, "CORE_ONY_018")
+        game.step(Action("PLAY", minion.entity_id))
+        game.step(Action("RULE_CHOICE_PICK", 1))
+        self.assertEqual(26, game.players[1].health)
+
+    def test_flipper_friends_choose_one_summons_orca_or_otters(self):
+        game = self.game()
+        spell = self.add_hand(game, "CORE_TSC_650")
+        game.step(Action("PLAY", spell.entity_id))
+        game.step(Action("RULE_CHOICE_PICK", 1))
+        self.assertEqual(6, len(game.players[0].board))
+        self.assertTrue(all(m.card_id == "TSC_650t4" for m in game.players[0].board))
 
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()

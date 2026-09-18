@@ -191,7 +191,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
-    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_570", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Standard mechanism tranche
+    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_570", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Standard mechanism tranche
     "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
@@ -8680,6 +8680,22 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
                        verification=("test_morbid_swarm_choose_one",)),
             TargetSpec(TargetKind.ANY_MINION, optional=True),
+        ),
+        CardRule(
+            "CORE_ONY_018", {Hook.BATTLECRY: (OfferEffectChoice((
+                ("restore_hero", (HealHero(8),)),
+                ("deal_damage", (DamageHero(4, "opponent"),)),
+            )),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_boomkin_choose_one",)),
+        ),
+        CardRule(
+            "CORE_TSC_650", {Hook.SPELL: (OfferEffectChoice((
+                ("summon_orca", (Summon("TSC_650t"),)),
+                ("summon_otters", (Summon("TSC_650t4", count=6),)),
+            )),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_flipper_friends_choose_one",)),
         ),
         CardRule(
             "EDR_490", {Hook.SPELL: (OfferEffectChoice((
