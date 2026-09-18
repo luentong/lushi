@@ -1075,7 +1075,7 @@ class DrawCostRepeatExcess:
                 break
             card = drawn[-1]
             applied = min(remaining, card.cost)
-            card.cost_delta -= self.discount
+            card.cost_delta -= remaining
             remaining -= applied
             if applied == 0:
                 break
