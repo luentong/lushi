@@ -300,6 +300,8 @@ ADDITIONAL_PLAYABLE_CARD_IDS = {
 # separate from the Rewind tranche: the generation audit relies on the latter
 # being exactly the Rewind cards, while this set will grow by school/pool.
 ADDITIONAL_PLAYABLE_SPELL_IDS = {
+    "CAP_001",  # Silent Strike
+    "CORE_BAR_541",  # Runed Orb
     "CAP_407",  # Wanted Poster
     "JAIL_735",  # Code Violet
     "CORE_CS2_013", "CORE_EX1_164", "CORE_CS2_075",
