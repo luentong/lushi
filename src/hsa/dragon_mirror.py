@@ -4926,19 +4926,28 @@ class DragonMirrorGame:
                 )
             return
         if card.card_id == "MEND_046":
-            nature = [
-                (card_id, definition.cost)
-                for card_id, definition in self.card_defs.items()
-                if card_id in EXECUTABLE_CARD_IDS
-                and definition.card_type == "SPELL"
-                and definition.spell_school == "NATURE"
-                and 1 <= definition.cost <= 10
+            nature_by_cost: dict[int, list[str]] = {}
+            for card_id, definition in self.card_defs.items():
+                if (
+                    card_id in EXECUTABLE_CARD_IDS
+                    and definition.card_type == "SPELL"
+                    and definition.spell_school == "NATURE"
+                    and 1 <= definition.cost <= 10
+                ):
+                    nature_by_cost.setdefault(definition.cost, []).append(card_id)
+            costs = sorted(nature_by_cost)
+            cost_triples = [
+                (a, b, c)
+                for a in costs for b in costs if b >= a
+                for c in costs if c >= b and a + b + c == 12
             ]
-            triples = [
-                (a, b, c) for a, ca in nature for b, cb in nature
-                for c, cc in nature if ca + cb + cc == 12
-            ]
-            chosen = self.rng.choice(triples) if triples else None
+            chosen = None
+            if cost_triples:
+                chosen_costs = self.rng.choice(cost_triples)
+                chosen = tuple(
+                    self.rng.choice(nature_by_cost[cost])
+                    for cost in chosen_costs
+                )
             for index in range(3):
                 if len(player.board) + len(player.locations) >= 7:
                     break
