@@ -8585,6 +8585,7 @@ class DragonMirrorGame:
                 "max_mana": player.max_mana,
                 "hero_attack": player.attack,
                 "hero_attacks_this_game": player.hero_attacks_this_game,
+                "hero_lifesteal_turn": player.hero_lifesteal_turn,
                 "hero_power_cost": self._hero_power_cost(player),
                 "hero_power_id": player.hero_power_id,
                 "hero_power_armor": player.hero_power_armor,
