@@ -2320,6 +2320,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertGreaterEqual(minion.attack, minion.definition.attack)
         self.assertGreaterEqual(minion.max_health, minion.definition.health)
 
+    def test_reach_equilibrium_combines_soletos_halves(self):
+        game = self.game()
+        game.players[0].active_quests["TLC_817"] = {
+            "progress": 0, "turns": 0, "flags": set(), "holy": 4, "shadow": 4,
+        }
+        game._complete_lost_city_quest(game.players[0], "TLC_817")
+        self.assertEqual(["TLC_817t5"], [c.card_id for c in game.players[0].hand])
+        combined = game.players[0].hand[0]
+        game.step(Action("PLAY", combined.entity_id))
+        self.assertEqual(2, sum(c.card_id == "TLC_817t5" for c in game.players[0].board))
+
     def test_secret_ingredient_choose_one_attack_or_druid_card(self):
         attack_game = self.game()
         ingredient = self.add_hand(attack_game, "JAIL_201")

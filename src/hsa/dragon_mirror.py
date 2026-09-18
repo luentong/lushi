@@ -1464,6 +1464,7 @@ class DragonMirrorGame:
             for reward_id in ("TLC_817t3", "TLC_817t4"):
                 if reward_id in self.card_defs and len(player.hand) < 10:
                     self._add_generated(player, self._entity(reward_id, created_by=quest_id))
+            self._combine_soletos(player)
             self._event("quest_completed", player=player.index, card=quest_id,
                         reward=["TLC_817t3", "TLC_817t4"])
             return
@@ -1476,6 +1477,21 @@ class DragonMirrorGame:
         if reward_id in self.card_defs and len(player.hand) < 10:
             self._add_generated(player, self._entity(reward_id, created_by=quest_id))
         self._event("quest_completed", player=player.index, card=quest_id, reward=reward_id)
+
+    def _combine_soletos(self, player: Player) -> None:
+        """Combine both Reach Equilibrium rewards when they are held together."""
+        life = next((c for c in player.hand if c.card_id == "TLC_817t3"), None)
+        touch = next((c for c in player.hand if c.card_id == "TLC_817t4"), None)
+        if life is None or touch is None or "TLC_817t5" not in self.card_defs:
+            return
+        player.hand.remove(life)
+        player.hand.remove(touch)
+        combined = self._entity("TLC_817t5", created_by="TLC_817")
+        player.hand.append(combined)
+        self._event(
+            "soletos_combined", player=player.index,
+            source=[life.entity_id, touch.entity_id], entity=combined.entity_id,
+        )
 
     def _activate_lost_city_quest(self, player: Player, card: CardInstance) -> None:
         """Move a Lost City quest from hand into the quest state zone."""
@@ -4207,6 +4223,14 @@ class DragonMirrorGame:
         times = 2 if card.battlecry_twice else 1
         if card.card_id == "TLC_229t14":
             self._offer_ashalon_adapt(player, remaining=2)
+            return
+        if card.card_id == "TLC_817t5":
+            if len(player.board) + len(player.locations) < 7:
+                copy_card = card.clone(self.next_entity_id)
+                self.next_entity_id += 1
+                copy_card.created_by = card.card_id
+                copy_card.summoned_turn = self.turn
+                self._summon(player, copy_card)
             return
         if card.card_id == "TLC_631t":
             player.gorishi_double_damage = True
@@ -7863,6 +7887,16 @@ class DragonMirrorGame:
                 self._event(
                     "terror_grave_blocked", player=player.index,
                     source=minion.entity_id,
+                )
+        if minion.card_id == "TLC_817t5":
+            targets = self._random_enemy_characters(player.index)
+            if targets:
+                self._deal_to_target(
+                    player.index, self.rng.choice(targets), 5, source=minion
+                )
+                self._event(
+                    "soletos_deathrattle", player=player.index,
+                    source=minion.entity_id, damage=5,
                 )
         if minion.card_id == "JAIL_720":
             coin = self._entity("JAIL_COIN1", created_by=minion.card_id)
