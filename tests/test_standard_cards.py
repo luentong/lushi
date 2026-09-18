@@ -32,6 +32,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game = self.game()
         self.assertTrue(prepare_ids <= game.executable_card_ids)
 
+    def test_kindred_and_map_rule_cards_are_executable(self):
+        rule_ids = {
+            "TLC_226", "TLC_251", "TLC_366", "TLC_428", "TLC_429",
+            "TLC_435", "TLC_440", "TLC_442", "TLC_447", "TLC_454",
+            "TLC_464", "TLC_519", "TLC_815", "TLC_816", "TLC_824",
+            "TLC_900", "TLC_903",
+        }
+        game = self.game()
+        self.assertTrue(rule_ids <= game.executable_card_ids)
+
     def game(self) -> DragonMirrorGame:
         game = DragonMirrorGame(CARDS, 29)
         game.current = 0
