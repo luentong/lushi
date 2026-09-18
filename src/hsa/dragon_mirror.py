@@ -8091,9 +8091,9 @@ class DragonMirrorGame:
         attack = {1: 1, 5: 2, 10: 4}[tier]
         for effect in location.custom_effects:
             if effect == "bursting_geyser":
-                for target in self._random_enemy_characters(player.index):
-                    self._deal_to_target(player.index, target, geyser_damage, source=source)
-                self._resolve_deaths()
+                # Bursting Geyser is the location's Deathrattle; it resolves
+                # when the location is removed, not on every activation.
+                continue
             elif effect == "lava_stream":
                 self._gain_armor(player, armor)
             elif effect == "snapping_plants":
@@ -8137,6 +8137,17 @@ class DragonMirrorGame:
 
     def _location_deathrattle(self, player: Player, location: Location) -> None:
         """Resolve location deathrattles when durability or an effect destroys it."""
+        if "bursting_geyser" in location.custom_effects:
+            damage = {1: 1, 5: 3, 10: 5}[location.custom_tier]
+            source = CardInstance(location.entity_id, self.card_defs[location.card_id])
+            for target in self._random_enemy_characters(player.index):
+                self._deal_to_target(player.index, target, damage, source=source)
+            self._resolve_deaths()
+            self._event(
+                "elise_bursting_geyser_deathrattle", player=player.index,
+                source=location.entity_id, amount=damage,
+            )
+            return
         if location.card_id != "TLC_433t2":
             return
         if len(player.board) + len(player.locations) >= 7:

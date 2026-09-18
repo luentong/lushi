@@ -140,6 +140,9 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         location.cooldown = 0
         game.players[1].health = 30
         game.step(Action("LOCATION", location.entity_id))
+        self.assertEqual(30, game.players[1].health)
+        location.cooldown = 0
+        game.step(Action("LOCATION", location.entity_id))
         self.assertEqual(29, game.players[1].health)
 
     def test_bashana_carves_nature_spells(self):
