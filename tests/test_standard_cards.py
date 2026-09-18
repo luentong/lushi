@@ -49,7 +49,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_standard_choose_one_batch_is_executable(self):
         game = self.game()
-        self.assertTrue({"CORE_OG_044", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_490", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010"}
+        self.assertTrue({"CORE_OG_044", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_490", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010", "TIME_601"}
                         <= game.executable_card_ids)
 
     def test_boomkin_choose_one_deals_damage_or_heals(self):
@@ -139,6 +139,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", driver.entity_id))
         self.assertTrue(driver.charge)
         self.assertEqual(2, len(game.players[0].hand))
+
+    def test_arrow_retriever_draws_until_three_cards(self):
+        game = self.game()
+        game.players[0].deck = [game._entity("CORE_EX1_005") for _ in range(4)]
+        retriever = self.add_hand(game, "TIME_601")
+        game.step(Action("PLAY", retriever.entity_id))
+        self.assertEqual(3, len(game.players[0].hand))
 
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
