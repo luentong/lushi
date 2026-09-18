@@ -971,6 +971,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertNotIn(right, game.players[0].board)
         self.assertEqual(before + 2, soldier.attack)
 
+        game = self.game()
+        soldier = game._entity("CATA_725t")
+        soldier.summoned_turn = game.turn - 1
+        game._summon(game.players[0], soldier)
+        dormant = self.add_board(game, "CATA_565", 0)
+        dormant.dormant_turns = 2
+        game._end_turn()
+        self.assertNotIn(dormant, game.players[0].board)
+
     def test_herald_soldier_azshara_and_alakir_variants(self):
         game = self.game()
         game.players[0].herald_count = 3
