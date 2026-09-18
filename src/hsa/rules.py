@@ -184,6 +184,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TLC_987",  # Questing Assistant
     "CORE_RLK_083", "CORE_RLK_116", "RLK_223",  # DK rune cards
     "TIME_611", "TIME_612", "TIME_613",  # DK rune cards
+    "TIME_617", "CORE_RLK_706",  # DK rune cards
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
     "UNG_934t1", "UNG_940t8", "UNG_942t", "UNG_954t1",
     "UNG_999t2t1",

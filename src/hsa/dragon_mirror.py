@@ -313,6 +313,8 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "CORE_RLK_116",  # Necrotic Mortician
     "RLK_223",  # Thassarian
     "TIME_613",  # Cryofrozen Champion
+    "TIME_617",  # Chronochiller
+    "CORE_RLK_706",  # Alexandros Mograine
     "TLC_480",  # Krog, Crater King
     "CORE_EX1_005",  # Big Game Hunter
     "CORE_REV_023",  # Demolition Renovator
@@ -1099,6 +1101,7 @@ class Player:
     hero_power_id: str | None = None
     hero_power_imbues: int = 0
     undead_died_after_last_turn: bool = False
+    mograine_active: bool = False
     # Endtime Murozond skips the controller's next turn.  This is a turn-level
     # flag rather than a card-local effect so it survives state cloning and
     # resolves before start-of-turn draws/mana refresh.
@@ -2891,6 +2894,13 @@ class DragonMirrorGame:
             location.cooldown = max(0, location.cooldown - 1)
         if player.geddon_draw:
             self._offer_geddon_draw(player)
+        elif any(
+            minion.card_id == "TIME_617"
+            and not minion.silenced
+            and minion.dormant_turns == 0
+            for minion in player.board
+        ):
+            self._event("chronochiller_skip_draw", player=index)
         else:
             self._draw(player)
         self._event("turn_start", player=index)
@@ -3106,6 +3116,9 @@ class DragonMirrorGame:
                 )
         self._resolve_deaths()
         self._trigger_end_turn_secrets(player)
+        if player.mograine_active:
+            self._damage_hero(self.players[1 - player.index], 3)
+            self._event("mograine_end_turn_damage", player=player.index, amount=3)
         # Time Skipper observes every player's end step, regardless of which
         # side controls it. Each surviving copy gives the active player a Coin.
         skippers = [
@@ -5075,6 +5088,13 @@ class DragonMirrorGame:
 
     def _battlecry(self, player: Player, card: CardInstance, action: Action) -> None:
         times = 2 if card.battlecry_twice else 1
+        if card.card_id == "CORE_RLK_706":
+            player.mograine_active = True
+            self._event(
+                "mograine_active", player=player.index,
+                source=card.entity_id, damage=3,
+            )
+            return
         if card.card_id == "END_017t":
             # Tick and Tock draws only while there is room in hand.  If the
             # deck is empty, stop rather than repeatedly applying fatigue.
@@ -9915,6 +9935,7 @@ class DragonMirrorGame:
                 "hero_power_armor": player.hero_power_armor,
                 "rune_counts": dict(player.rune_counts),
                 "undead_died_after_last_turn": player.undead_died_after_last_turn,
+                "mograine_active": player.mograine_active,
                 "secrets": [card.card_id for card in player.secrets],
                 "pending_end_turn_returns": [
                     card.card_id for card in player.pending_end_turn_returns
