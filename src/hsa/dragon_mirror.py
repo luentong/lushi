@@ -186,6 +186,7 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 }
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
+    "JAIL_407",  # Vanessa the Ringleader
     "JAIL_718",  # Black Market Auctioneer
     "JAIL_721",  # Tras'tath, Soul Parasite
     "JAIL_395",  # Sewer Swimmer
@@ -4183,6 +4184,34 @@ class DragonMirrorGame:
         )
         player.cards_played_this_turn += 1
         player.played_card_counts[card.card_id] = player.played_card_counts.get(card.card_id, 0) + 1
+        if card.card_id != "JAIL_407":
+            vanessas = [
+                minion for minion in player.board
+                if minion.card_id == "JAIL_407"
+                and minion.prepared
+                and not minion.silenced
+                and minion.dormant_turns == 0
+                and minion.health > 0
+            ]
+            for vanessa in vanessas:
+                candidates = [
+                    card_id for card_id in self.executable_card_ids
+                    if card_id in self.card_defs
+                    and self.card_defs[card_id].card_type == "MINION"
+                    and "BATTLECRY" in self.card_defs[card_id].mechanics
+                ]
+                if candidates:
+                    generated = self._entity(
+                        self.rng.choice(sorted(candidates)),
+                        created_by=vanessa.card_id,
+                    )
+                    generated.cost_delta -= 2
+                    self._add_generated(player, generated)
+                    self._event(
+                        "vanessa_battlecry_minion", player=player.index,
+                        source=vanessa.entity_id, card=generated.card_id,
+                        discount=2,
+                    )
         if card.definition.card_type == "SPELL":
             auctioneers = [
                 minion for minion in player.board

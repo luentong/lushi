@@ -1197,6 +1197,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", spell.entity_id))
         self.assertGreaterEqual(len(game.players[0].hand), hand_before)
 
+    def test_vanessa_generates_discounted_battlecry_minion(self):
+        game = self.game()
+        vanessa = self.add_hand(game, "JAIL_407")
+        game.step(Action("PREPARE", vanessa.entity_id))
+        game.step(Action("PLAY", vanessa.entity_id))
+        spell = self.add_hand(game, "CORE_CS2_023")
+        game.step(Action("PLAY", spell.entity_id))
+        generated = [card for card in game.players[0].hand if card.created_by == "JAIL_407"]
+        self.assertEqual(1, len(generated))
+        self.assertIn("BATTLECRY", generated[0].definition.mechanics)
+        self.assertLessEqual(generated[0].cost, generated[0].definition.cost - 2)
+
     def test_experimental_animation_heralds_and_damages_enemy_minions(self):
         game = self.game()
         enemy = self.add_board(game, "TLC_248", 1)
