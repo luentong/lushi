@@ -97,6 +97,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("RULE_CHOICE_PICK", 1))
         self.assertEqual("CORE_EX1_005", game.players[0].hand[-1].card_id)
 
+    def test_reforestation_upgrades_after_three_turns_held(self):
+        game = self.game()
+        spell = self.add_hand(game, "EDR_843")
+        for _ in range(3):
+            game._start_turn(0)
+        self.assertEqual("EDR_843t1", spell.card_id)
+
     def test_twilight_timereaver_choose_one_sets_other_minion_stat(self):
         game = self.game()
         source = self.add_hand(game, "END_010")

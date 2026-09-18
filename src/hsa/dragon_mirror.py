@@ -927,6 +927,7 @@ class CardInstance:
     minion_played_while_held: bool = False
     higher_cost_card_played_while_held: bool = False
     opponent_card_copy_played_while_held: bool = False
+    held_turns: int = 0
     copied_from_opponent: bool = False
     deathrattle_copy_card_id: str | None = None
     deathrattle_summon_card_id: str | None = None
@@ -2764,6 +2765,14 @@ class DragonMirrorGame:
             for card in owner.hand:
                 if card.costs_health_expiry_turn == index:
                     card.costs_health_expiry_turn = -1
+                if card.card_id == "EDR_843":
+                    card.held_turns += 1
+                    if card.held_turns >= 3 and "EDR_843t1" in self.card_defs:
+                        card.definition = self.card_defs["EDR_843t1"]
+                        self._event(
+                            "reforestation_upgraded", player=owner.index,
+                            entity=card.entity_id, card=card.card_id,
+                        )
                     self._event(
                         "health_cost_expire", player=owner.index,
                         card=card.card_id, entity=card.entity_id,
