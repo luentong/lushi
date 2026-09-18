@@ -186,6 +186,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_611", "TIME_612", "TIME_613",  # DK rune cards
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
+    "TIME_615",  # DK rune card
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
     "UNG_934t1", "UNG_940t8", "UNG_942t", "UNG_954t1",
     "UNG_999t2t1",
@@ -5345,6 +5346,29 @@ class AddRandomLegendaryMinionDiscounted:
 
 
 @dataclass(frozen=True)
+class FillHandRandomUndeadHealthCost:
+    """Forgotten Millennium fills the hand with Undead costing Health."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        pool = [
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "MINION"
+            and "UNDEAD" in definition.races
+        ]
+        added = []
+        while len(context.player.hand) < 10 and pool:
+            card = game._entity(game.rng.choice(sorted(pool)), created_by=context.card.card_id)
+            card.costs_health_expiry_turn = game.turn
+            context.player.hand.append(card)
+            added.append(card.card_id)
+        game._event(
+            "forgotten_millennium_fill", player=context.player.index,
+            source=context.card.card_id, cards=added,
+        )
+
+
+@dataclass(frozen=True)
 class SummonRandomLegendaryMinion:
     """Summon one random executable Legendary minion if board space exists."""
 
@@ -8646,6 +8670,10 @@ def build_rule_registry() -> RuleRegistry:
             "JAIL_454", {Hook.SPELL: (SummonNecronursesAttackTarget(),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
             TargetSpec(TargetKind.ENEMY_MINION),
+        ),
+        CardRule(
+            "TIME_615", {Hook.SPELL: (FillHandRandomUndeadHealthCost(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
         ),
         CardRule(
             "CATA_156", {Hook.SPELL: (HeraldRagnaros(), DamageEnemyMinions(4),)},

@@ -439,6 +439,7 @@ ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "TIME_611",  # Timestop
     "JAIL_445",  # Bone Flurry
     "JAIL_454",  # Emergency Surgery
+    "TIME_615",  # Forgotten Millennium
 }
 
 # Rotated Quickdraw cards retained for an optional Wild/historical ruleset.
