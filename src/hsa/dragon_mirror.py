@@ -7185,6 +7185,29 @@ class DragonMirrorGame:
                 gifts=list(copied.gifts), source=pending["source_card_id"],
                 destination=copy_destination,
             )
+        elif pending["after_pick"] == "keep_all_undead":
+            if player.corpses >= 5:
+                player.corpses -= 5
+                for other in pending["options"]:
+                    if other.entity_id == option.entity_id:
+                        continue
+                    copy = other.clone(self.next_entity_id)
+                    self.next_entity_id += 1
+                    copy.created_by = pending["source_card_id"]
+                    self._add_generated(player, copy)
+                self._event("paleomancy_keep_all", player=player.index,
+                            source=pending["source_card_id"], amount=5)
+        elif pending["after_pick"] == "corpse_copy_5":
+            if player.corpses >= 5 and len(player.board) + len(player.locations) < 7:
+                player.corpses -= 5
+                copy = option.clone(self.next_entity_id)
+                self.next_entity_id += 1
+                copy.created_by = pending["source_card_id"]
+                copy.damage = 0
+                copy.summoned_turn = self.turn
+                self._summon(player, copy)
+                self._event("blood_clone_summon", player=player.index,
+                            source=pending["source_card_id"], card=copy.card_id)
         repeats_left = pending["repeats_left"]
         if repeats_left:
             self._offer_discover(

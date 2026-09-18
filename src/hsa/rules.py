@@ -630,6 +630,30 @@ class SpendCorpsesDiscoverRune:
 
 
 @dataclass(frozen=True)
+class OfferUndeadDiscoverWithCorpseKeep:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        pool = [card_id for card_id, definition in game.card_defs.items()
+                if card_id in game.executable_card_ids
+                and definition.card_type == "MINION"
+                and "UNDEAD" in definition.races]
+        game._offer_discover(context.player, pool, dark_gift=False,
+                             after_pick="keep_all_undead",
+                             source_card_id=context.card.card_id)
+
+
+@dataclass(frozen=True)
+class OfferFiveCostCorpseCopy:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        pool = [card_id for card_id, definition in game.card_defs.items()
+                if card_id in game.executable_card_ids
+                and definition.card_type == "MINION"
+                and definition.cost == 5]
+        game._offer_discover(context.player, pool, dark_gift=False,
+                             after_pick="corpse_copy_5",
+                             source_card_id=context.card.card_id)
+
+
+@dataclass(frozen=True)
 class SpendCorpsesBuffHand:
     base_attack: int = 1
     base_health: int = 1
@@ -717,6 +741,30 @@ class SpendCorpsesRandomMinion:
         game._summon_random_executable_minion(
             context.player, source_card_id=context.card.card_id, cost=spent,
         )
+
+
+@dataclass(frozen=True)
+class SpendCorpseDamageActionTarget:
+    spend: int
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("minion target is required")
+        if context.player.corpses < self.spend:
+            return
+        target = game._find_minion(context.action.target_player,
+                                   context.action.target_entity)
+        context.player.corpses -= self.spend
+        game._damage_minion(context.action.target_player, target,
+                            game._spell_effect_amount(context.player,
+                                                       context.card,
+                                                       self.amount),
+                            context.card)
+        game._resolve_deaths()
+        game._event("spend_corpses_target_damage", player=context.player.index,
+                    source=context.card.card_id, target=target.entity_id,
+                    amount=self.spend)
 
 
 @dataclass(frozen=True)
@@ -7419,6 +7467,25 @@ def build_rule_registry() -> RuleRegistry:
             "RLK_061", {Hook.END_TURN: (RaiseOneCorpseEndTurn(),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
                        verification=("test_battlefield_necromancer_raises_footman",)),
+        ),
+        CardRule(
+            "JAIL_451", {Hook.SPELL: (OfferFiveCostCorpseCopy(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_blood_clone_corpse_copy",)),
+        ),
+        CardRule(
+            "TLC_434", {Hook.SPELL: (OfferUndeadDiscoverWithCorpseKeep(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_paleomancy_keeps_undead_options",)),
+        ),
+        CardRule(
+            "EDR_813", {Hook.SPELL: (OfferEffectChoice((
+                ("summon_ants", (Summon("EDR_813at", count=2),)),
+                ("corpse_damage", (SpendCorpseDamageActionTarget(2, 4),)),
+            )),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_morbid_swarm_choose_one",)),
+            TargetSpec(TargetKind.ANY_MINION, optional=True),
         ),
         CardRule(
             "CORE_CATA_009", {Hook.SPELL: (FreezeActionTarget(), OfferSpellDiscover())},
