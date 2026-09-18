@@ -258,6 +258,25 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertTrue(shielded.divine_shield)
         self.assertEqual(3, shielded.divine_shield_hits)
 
+    def test_ido_spell_lifecycle(self):
+        game = self.game()
+        ido = self.add_board(game, "TLC_241", 0)
+        game._refresh_continuous(game.players[0])
+        self.assertEqual(1, sum(card.card_id == "TLC_241t" for card in game.players[0].hand))
+        ido.silenced = True
+        game._refresh_continuous(game.players[0])
+        self.assertFalse(any(card.card_id == "TLC_241t" for card in game.players[0].hand))
+
+    def test_naralex_first_dragon_discount(self):
+        game = self.game()
+        game.players[0].board = [self.add_board(game, "EDR_844", 0)]
+        dragon = game._entity("CORE_EX1_284")
+        game.players[0].hand = [dragon]
+        game._refresh_continuous(game.players[0])
+        self.assertEqual(1, game._effective_cost(game.players[0], dragon))
+        game.players[0].dragons_played_this_turn = 1
+        self.assertGreater(game._effective_cost(game.players[0], dragon), 1)
+
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
         spell = self.add_hand(game, "EDR_490")

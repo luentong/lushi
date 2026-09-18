@@ -195,6 +195,7 @@ STANDARD_DECLARATIVE_IDS = {
     # Continuous-aura entities already handled by the engine refresh pass.
     "CORE_NEW1_027", "CORE_CS2_122", "CORE_CS2_222", "CORE_EX1_507",
     "CORE_EX1_162", "JAIL_459", "EDR_258", "CATA_153t", "CATA_153t1", "CATA_565t",
+    "EDR_844", "TLC_241", "TLC_241t",
     "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
@@ -8949,6 +8950,15 @@ def build_rule_registry() -> RuleRegistry:
         CardRule("CATA_565t", {},
                  RuleSource("official_text_and_engine_verified", "continuous aura engine",
                             verification=("test_herald_neighbor_attack_aura",))),
+        CardRule("EDR_844", {},
+                 RuleSource("official_text_and_engine_verified", "continuous aura engine",
+                            verification=("test_naralex_first_dragon_discount",))),
+        CardRule("TLC_241", {},
+                 RuleSource("official_text_and_engine_verified", "continuous aura engine",
+                            verification=("test_ido_spell_lifecycle",))),
+        CardRule("TLC_241t", {},
+                 RuleSource("official_text_and_engine_verified", "continuous aura engine",
+                            verification=("test_ido_spell_lifecycle",))),
         CardRule(
             "CATA_724", {
                 Hook.AFTER_PLAY: (Overload(3),),
