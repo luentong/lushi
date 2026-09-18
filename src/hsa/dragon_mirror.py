@@ -193,6 +193,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "JAIL_504",  # Aya, Lotus Kingpin
     "JAIL_397",  # Commander Beatrix
     "JAIL_882",  # R4T-C4TCH3R
+    "JAIL_831",  # King of the Underbelly
     "TLC_226",  # Conjured Bookkeeper
     "TLC_251",  # Primalfin Challenger
     "TLC_366",  # Pterrorwing Ravager

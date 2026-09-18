@@ -847,6 +847,26 @@ class OfferSpellDiscover:
 
 
 @dataclass(frozen=True)
+class OfferContrabandBeastDiscover:
+    """Discover an executable Beast, including Beasts from other classes."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        pool = [
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "MINION"
+            and "BEAST" in definition.races
+        ]
+        game._offer_discover(
+            context.player, pool, dark_gift=False,
+            source_card_id=context.card.card_id,
+        )
+        if game.pending_choice is not None:
+            for option in game.pending_choice["options"]:
+                option.cost_delta -= 3
+
+
+@dataclass(frozen=True)
 class OfferLegendaryWildGodDiscover:
     """Discover from the executable Legendary minion Wild God proxy pool."""
 
@@ -5005,6 +5025,10 @@ def build_rule_registry() -> RuleRegistry:
         ),
         CardRule(
             "JAIL_882", {Hook.DEATHRATTLE: (Draw(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+        ),
+        CardRule(
+            "JAIL_831", {Hook.BATTLECRY: (OfferContrabandBeastDiscover(),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
         ),
         CardRule("TLC_440", {Hook.SPELL: (CryosleepKindred(),)},
