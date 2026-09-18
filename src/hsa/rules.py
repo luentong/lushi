@@ -158,6 +158,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TLC_435", "TLC_442", "TLC_464", "TLC_515", "TLC_824", "TLC_900",
     # Classic League of Explorers map chain.
     "CORE_LOE_079", "LOE_019t", "LOE_019t2",
+    "DINO_419", "DINO_421",
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "CS2_tk1",
@@ -2914,6 +2915,23 @@ class BuffActionTarget:
 
 
 @dataclass(frozen=True)
+class BuffFriendlyBeastWithRush:
+    """Give a selected friendly Beast +2/+2 and Rush."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player != context.player.index:
+            raise ValueError("friendly Beast target is required")
+        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        if not target.has_race("BEAST"):
+            raise ValueError("target must be a Beast")
+        target.attack_delta += 2
+        target.health_delta += 2
+        target.rush = True
+        game._event("herbivore_assistant_buff", player=context.player.index,
+                    source=context.card.card_id, target=target.entity_id)
+
+
+@dataclass(frozen=True)
 class SilentStrike:
     """Give a minion +3 Attack; stealth targets also fire their attack damage."""
 
@@ -4896,6 +4914,18 @@ def build_rule_registry() -> RuleRegistry:
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
         CardRule("TLC_900", {Hook.SPELL: (MapDiscover(spell_school="FEL"),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule(
+            "DINO_419", {Hook.BATTLECRY: (BuffFriendlyBeastWithRush(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+            targeting=TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "DINO_421", {Hook.DEATHRATTLE: (
+                BuffZone("hand", attack=3, health=3, card_types=("MINION",)),
+                BuffZone("deck", attack=3, health=3, card_types=("MINION",)),
+            )},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+        ),
         CardRule(
             "CORE_EDR_004_2026", {Hook.BATTLECRY: (OfferRaptorHeraldDiscover(),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332; versioned Raptor Herald entity", ("test_raptor_herald_dark_gift_discover",)),
