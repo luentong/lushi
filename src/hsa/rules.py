@@ -98,6 +98,7 @@ DECLARATIVE_METADATA_ALIASES = {
 # New full-Standard rules are kept separate from the historical Dragon slice
 # so adding cards does not mutate the vocabulary of existing neural models.
 STANDARD_DECLARATIVE_IDS = {
+    "JAIL_735",  # Code Violet
     "JAIL_909",  # Defias Wannabe
     "JAIL_321",  # Tricksy Improviser
     "JAIL_326",  # Judgment
@@ -3132,6 +3133,17 @@ class CastRandomMageSecretsIfSpellCast:
             game._arm_secret(context.player, secret)
         game._event("tricksy_improviser_secrets", player=context.player.index,
                     source=context.card.card_id, count=self.count)
+
+
+@dataclass(frozen=True)
+class CodeVioletSummon:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        # The spell itself is already included in the counter, hence three
+        # other spells means at least four total spells this turn.
+        count = 2 if context.player.spells_cast_this_turn >= 4 else 1
+        SummonRandomExecutableMinion(cost=8, count=count).execute(game, context)
+        game._event("code_violet_summon", player=context.player.index,
+                    source=context.card.card_id, count=count)
 
 
 @dataclass(frozen=True)
@@ -7213,6 +7225,10 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "JAIL_909", {},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; combo play event model", ("test_defias_wannabe_prepare_combo",)),
+        ),
+        CardRule(
+            "JAIL_735", {Hook.SPELL: (CodeVioletSummon(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; spell-count event model", ("test_code_violet_repeats_after_three_other_spells",)),
         ),
         CardRule(
             "CATA_725t", {Hook.END_TURN: (HeraldDestroyRightAndGrow(),)},

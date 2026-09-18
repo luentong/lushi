@@ -1228,6 +1228,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", wannabe.entity_id))
         self.assertEqual((before[0] + 1, before[1] + 1), (wannabe.attack, wannabe.max_health))
 
+    def test_code_violet_repeats_after_three_other_spells(self):
+        game = self.game()
+        game.players[0].max_mana = game.players[0].mana = 10
+        for _ in range(3):
+            coin = self.add_hand(game, "JAIL_COIN1")
+            game.step(Action("PLAY", coin.entity_id))
+        spell = self.add_hand(game, "JAIL_735")
+        game.step(Action("PREPARE", spell.entity_id))
+        game.step(Action("PLAY", spell.entity_id))
+        summoned = [m for m in game.players[0].board if m.created_by == "JAIL_735"]
+        self.assertEqual(2, len(summoned))
+
     def test_experimental_animation_heralds_and_damages_enemy_minions(self):
         game = self.game()
         enemy = self.add_board(game, "TLC_248", 1)
