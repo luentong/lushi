@@ -2306,6 +2306,20 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertNotIn(location, game.players[0].locations)
         self.assertTrue(any(card.card_id == "TLC_433t" for card in game.players[0].board))
 
+    def test_ashalon_adapts_twice_and_persists_on_played_minions(self):
+        game = self.game()
+        ashalon = self.add_hand(game, "TLC_229t14")
+        game.step(Action("PLAY", ashalon.entity_id))
+        self.assertEqual("ASHALON_ADAPT", game.pending_choice["kind"])
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        self.assertEqual("ASHALON_ADAPT", game.pending_choice["kind"])
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        self.assertEqual(2, len(game.players[0].ashalon_adaptations))
+        minion = self.add_hand(game, "CORE_LOOT_137")
+        game.step(Action("PLAY", minion.entity_id))
+        self.assertGreaterEqual(minion.attack, minion.definition.attack)
+        self.assertGreaterEqual(minion.max_health, minion.definition.health)
+
     def test_secret_ingredient_choose_one_attack_or_druid_card(self):
         attack_game = self.game()
         ingredient = self.add_hand(attack_game, "JAIL_201")

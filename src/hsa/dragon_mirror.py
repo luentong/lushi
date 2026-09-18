@@ -961,6 +961,7 @@ class Player:
     murloc_quest_buff: bool = False
     gorishi_double_damage: bool = False
     ninja_shuffle_active: bool = False
+    ashalon_adaptations: list[str] = field(default_factory=list)
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "Player":
         """Fast branch copy for the mutable player state used by MCTS."""
@@ -987,6 +988,7 @@ class Player:
         result.damaged_characters_this_turn = set(self.damaged_characters_this_turn)
         result.played_card_counts = dict(self.played_card_counts)
         result.map_followup_options = list(self.map_followup_options)
+        result.ashalon_adaptations = list(self.ashalon_adaptations)
         result.active_quests = copy.deepcopy(self.active_quests, memo)
         result.completed_quests = set(self.completed_quests)
         return result
@@ -3382,6 +3384,11 @@ class DragonMirrorGame:
                     Action("DISCOVER_PICK", option.entity_id)
                     for option in self.pending_choice["options"]
                 ]
+            if self.pending_choice["kind"] == "ASHALON_ADAPT":
+                return [
+                    Action("RULE_CHOICE_PICK", index)
+                    for index in range(len(self.pending_choice["options"]))
+                ]
             if self.pending_choice["kind"] == "EARTHEN_ROAR_PICK":
                 return [Action("EARTHEN_ROAR_PICK", option.entity_id) for option in self.pending_choice["options"]]
             if self.pending_choice["kind"] == "REWIND":
@@ -3708,14 +3715,24 @@ class DragonMirrorGame:
 
     def _resolve_rule_choice(self, option_index: int | None) -> None:
         pending = self.pending_choice
-        if pending is None or pending["kind"] != "RULE_CHOICE":
+        if pending is None or pending["kind"] not in {"RULE_CHOICE", "ASHALON_ADAPT"}:
             raise ValueError("no rule choice is pending")
         if option_index is None or not 0 <= option_index < len(pending["options"]):
             raise ValueError("invalid rule choice")
-        label, effects = pending["options"][option_index]
         player = self.players[pending["player"]]
-        card = pending["card"]
         self.pending_choice = None
+        if pending["kind"] == "ASHALON_ADAPT":
+            adaptation = pending["options"][option_index]
+            player.ashalon_adaptations.append(adaptation)
+            self._event(
+                "ashalon_adaptation_pick", player=player.index,
+                adaptation=adaptation, picks=len(player.ashalon_adaptations),
+            )
+            if pending["remaining"] > 1:
+                self._offer_ashalon_adapt(player, remaining=pending["remaining"] - 1)
+            return
+        label, effects = pending["options"][option_index]
+        card = pending["card"]
         context = RuleContext(
             player=player, card=card, action=pending.get("action")
         )
@@ -3972,6 +3989,8 @@ class DragonMirrorGame:
             if card.card_id == "TIME_063":
                 card.dormant_turns = 5
             self._summon(controller, card)
+            if controller.ashalon_adaptations and card.card_id != "TLC_229t14":
+                self._apply_ashalon_adaptations(controller, card)
             if card.card_id == "TLC_107" and self._kindred_repeats(controller, card):
                 card.rush = True
             if card.card_id == "DINO_435" and self._kindred_repeats(controller, card):
@@ -4186,11 +4205,15 @@ class DragonMirrorGame:
 
     def _battlecry(self, player: Player, card: CardInstance, action: Action) -> None:
         times = 2 if card.battlecry_twice else 1
+        if card.card_id == "TLC_229t14":
+            self._offer_ashalon_adapt(player, remaining=2)
+            return
         if card.card_id == "TLC_631t":
             player.gorishi_double_damage = True
             self._event("gorishi_colossus_active", player=player.index,
                         source=card.card_id)
             return
+
         if card.card_id == "TLC_830t":
             pool = [
                 card_id for card_id, definition in self.card_defs.items()
@@ -4974,6 +4997,51 @@ class DragonMirrorGame:
                     self.next_entity_id += 1
                     copied.created_by = card.card_id
                     player.hand.append(copied)
+
+    def _offer_ashalon_adapt(self, player: Player, *, remaining: int) -> None:
+        """Offer one of three Adaptations, preserving the two-pick chain."""
+        pool = [
+            "attack_health", "attack", "health", "divine_shield", "taunt",
+            "windfury", "poisonous", "stealth", "elusive",
+        ]
+        self.rng.shuffle(pool)
+        self.pending_choice = {
+            "kind": "ASHALON_ADAPT", "player": player.index,
+            "options": pool[:3], "remaining": remaining,
+        }
+        self._event(
+            "ashalon_adaptation_offer", player=player.index,
+            options=pool[:3], remaining=remaining,
+        )
+
+    def _apply_ashalon_adaptations(self, player: Player, minion: CardInstance) -> None:
+        for adaptation in player.ashalon_adaptations:
+            if adaptation == "attack_health":
+                minion.attack_delta += 1
+                minion.health_delta += 1
+            elif adaptation == "attack":
+                minion.attack_delta += 3
+            elif adaptation == "health":
+                minion.health_delta += 3
+            elif adaptation == "divine_shield":
+                minion.divine_shield = True
+                minion.divine_shield_hits = max(1, minion.divine_shield_hits)
+            elif adaptation == "taunt":
+                minion.taunt = True
+            elif adaptation == "windfury":
+                minion.windfury = True
+            elif adaptation == "poisonous":
+                minion.poisonous = True
+            elif adaptation == "stealth":
+                minion.stealth = True
+            elif adaptation == "elusive":
+                minion.elusive = True
+        if player.ashalon_adaptations:
+            self._event(
+                "ashalon_adaptations_applied", player=player.index,
+                entity=minion.entity_id,
+                adaptations=list(player.ashalon_adaptations),
+            )
 
     def _cast_spell(self, player: Player, card: CardInstance, action: Action) -> None:
         opponent = self.players[1 - player.index]
@@ -8366,6 +8434,7 @@ class DragonMirrorGame:
                 "murloc_quest_buff": player.murloc_quest_buff,
                 "gorishi_double_damage": player.gorishi_double_damage,
                 "ninja_shuffle_active": player.ninja_shuffle_active,
+                "ashalon_adaptations": list(player.ashalon_adaptations),
                 "weapon": None if player.weapon is None else {
                     "card": player.weapon.card_id,
                     "name": player.weapon.name,
