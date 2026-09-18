@@ -1129,6 +1129,7 @@ class DragonMirrorGame:
         manual_mulligan: bool = False,
         deck_counts: tuple[dict[str, int], dict[str, int]] | None = None,
         player_classes: tuple[str, str] = ("WARRIOR", "WARRIOR"),
+        beatrix_choices: tuple[str | None, str | None] | None = None,
     ):
         self.rng = random.Random(seed)
         self.seed = seed
@@ -1146,6 +1147,7 @@ class DragonMirrorGame:
         self.pending_choice: dict[str, Any] | None = None
         self.minions_died_this_turn = 0
         self.deck_counts = deck_counts or (DRAGON_DECK_COUNTS, DRAGON_DECK_COUNTS)
+        self.beatrix_choices = beatrix_choices or (None, None)
         requested_ids = set(self.deck_counts[0]) | set(self.deck_counts[1])
         unsupported = requested_ids - EXECUTABLE_CARD_IDS
         if unsupported:
@@ -1328,8 +1330,15 @@ class DragonMirrorGame:
                     and card.definition.card_type == "MINION"
                     and card.definition.cost == 2
                 ]
-                if candidates:
-                    chosen_id = candidates[0].card_id
+                requested = self.beatrix_choices[player.index]
+                requested_candidate = next(
+                    (card for card in candidates if card.card_id == requested), None
+                )
+                if requested_candidate is not None or candidates:
+                    chosen_id = (
+                        requested_candidate.card_id
+                        if requested_candidate is not None else candidates[0].card_id
+                    )
                     for _ in range(10):
                         player.deck.append(
                             self._entity(chosen_id, started_in_deck=True,
@@ -1338,6 +1347,7 @@ class DragonMirrorGame:
                     self._event(
                         "beatrix_deck_choice", player=player.index,
                         card="JAIL_397", chosen=chosen_id, copies=10,
+                        choice_source="explicit" if requested_candidate is not None else "fallback",
                     )
             if not any(card.card_id == "JAIL_430" for card in player.deck):
                 continue
@@ -1735,6 +1745,7 @@ class DragonMirrorGame:
         result.seed = self.seed
         result.turn = self.turn
         result.current = self.current
+        result.first_player = self.first_player
         result.next_entity_id = self.next_entity_id
         result.invalid_actions = self.invalid_actions
         result.events = []
@@ -1746,6 +1757,7 @@ class DragonMirrorGame:
         result.winner = self.winner
         result.minions_died_this_turn = self.minions_died_this_turn
         result.deck_counts = self.deck_counts
+        result.beatrix_choices = self.beatrix_choices
         result.card_defs = self.card_defs
         result.rule_registry = self.rule_registry
         result.players = copy.deepcopy(self.players, memo)
