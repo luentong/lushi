@@ -172,6 +172,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", zapper.entity_id))
         self.assertEqual(1, game.players[0].overload_next_turn)
 
+    def test_overload_hardcoded_cards_are_registered_for_audit(self):
+        game = self.game()
+        self.assertIn("JAIL_452", game.executable_card_ids)
+        self.assertIn("TIME_014", game.executable_card_ids)
+        self.assertIsNotNone(game.rule_registry.get("JAIL_452"))
+        self.assertIsNotNone(game.rule_registry.get("TIME_014"))
+
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
         spell = self.add_hand(game, "EDR_490")

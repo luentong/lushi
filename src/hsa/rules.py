@@ -8888,6 +8888,16 @@ def build_rule_registry() -> RuleRegistry:
                        verification=("test_novice_zapper_overload",)),
         ),
         CardRule(
+            "JAIL_452", {},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332 + placement engine",
+                       verification=("test_disguised_detective_overloads_receiving_side",)),
+        ),
+        CardRule(
+            "TIME_014", {},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332 + rewind engine",
+                       verification=("test_instant_multiverse_overload",)),
+        ),
+        CardRule(
             "CATA_724", {
                 Hook.AFTER_PLAY: (Overload(3),),
                 Hook.DEATHRATTLE: (UnlockOverloadedMana(),),
