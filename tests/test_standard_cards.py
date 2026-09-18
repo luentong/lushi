@@ -74,6 +74,23 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game = self.game()
         self.assertIn("JAIL_831", game.executable_card_ids)
 
+    def test_holmes_investigation_is_an_explicit_hand_guess(self):
+        game = self.game()
+        holmes = self.add_hand(game, "JAIL_851")
+        opponent_card = game._entity("CORE_CS2_013")
+        game.players[1].hand.append(opponent_card)
+
+        game.step(Action("PLAY", holmes.entity_id))
+
+        self.assertEqual("RULE_CHOICE", game.pending_choice["kind"])
+        self.assertEqual(1, len(game.pending_choice["options"]))
+        self.assertEqual(
+            [Action("RULE_CHOICE_PICK", 0).key()],
+            [action.key() for action in game.legal_actions()],
+        )
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        self.assertEqual("CORE_CS2_013", game.players[0].holmes_target_card_id)
+
     def game(self) -> DragonMirrorGame:
         game = DragonMirrorGame(CARDS, 29)
         game.current = 0
