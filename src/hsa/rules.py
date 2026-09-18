@@ -2300,6 +2300,20 @@ class AyaCoinChoice:
 
 
 @dataclass(frozen=True)
+class HolmesInspect:
+    card_id: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.holmes_target_card_id = self.card_id
+        context.player.holmes_watch_turn = game.turn + 1
+        game._event(
+            "holmes_investigate", player=context.player.index,
+            source=context.card.card_id, inspected=self.card_id,
+            watch_turn=context.player.holmes_watch_turn,
+        )
+
+
+@dataclass(frozen=True)
 class DrawThreeThenGiveOne:
     def execute(self, game: Any, context: RuleContext) -> None:
         drawn = []

@@ -20,6 +20,7 @@ from .rules import (
     DECLARATIVE_METADATA_ALIASES,
     DECLARATIVE_METADATA_IDS,
     Hook,
+    HolmesInspect,
     RuleContext,
     STANDARD_DECLARATIVE_IDS,
     TargetKind,
@@ -194,6 +195,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "JAIL_397",  # Commander Beatrix
     "JAIL_882",  # R4T-C4TCH3R
     "JAIL_831",  # King of the Underbelly
+    "JAIL_851",  # Inspector Murloc Holmes
     "TLC_226",  # Conjured Bookkeeper
     "TLC_251",  # Primalfin Challenger
     "TLC_366",  # Pterrorwing Ravager
@@ -1037,6 +1039,8 @@ class Player:
     chef_nethrek_turns_remaining: int = -1
     irida_active: bool = False
     coin_replacement_id: str | None = None
+    holmes_target_card_id: str | None = None
+    holmes_watch_turn: int = -1
     mug_magic_active: bool = False
     mug_magic_used_this_turn: bool = False
     zee_might_active: bool = False
@@ -2472,6 +2476,13 @@ class DragonMirrorGame:
         self.turn += 1
         self.minions_died_this_turn = 0
         player = self.players[index]
+        if player.holmes_watch_turn >= 0 and player.holmes_watch_turn < self.turn:
+            self._event(
+                "holmes_expire", player=player.index,
+                target=player.holmes_target_card_id,
+            )
+            player.holmes_target_card_id = None
+            player.holmes_watch_turn = -1
         if player.skip_next_turn:
             player.skip_next_turn = False
             self._event("turn_skipped", player=index, source="END_037")
@@ -4342,6 +4353,20 @@ class DragonMirrorGame:
             player.zee_might_minions_played += 1
             held.battlecry_twice = player.zee_might_minions_played % 5 == 0
         card = self._pop_hand(player, action.source)
+        watcher = self.players[1 - player.index]
+        if (
+            watcher.holmes_target_card_id == card.card_id
+            and watcher.holmes_watch_turn == self.turn
+        ):
+            for _ in range(3):
+                self._give_coin(watcher, source="JAIL_851")
+            self._event(
+                "holmes_match", player=watcher.index,
+                source="JAIL_851", matched=card.card_id,
+                coins=3,
+            )
+            watcher.holmes_target_card_id = None
+            watcher.holmes_watch_turn = -1
         # "While holding this" uses the card's displayed Cost.  Capture it
         # before resolving play effects that could mutate the remaining hand.
         for other in player.hand:
@@ -4792,6 +4817,31 @@ class DragonMirrorGame:
                 "rulebreaker_hero_power", player=player.index,
                 source=card.card_id, hero_power="JAIL_446hp",
             )
+            return
+        if card.card_id == "JAIL_851":
+            opponent = self.players[1 - player.index]
+            if opponent.hand:
+                # Holmes is an explicit guess, not a random inspection.  Keep
+                # one option per hand entity so duplicate cards remain
+                # individually selectable in replay/training traces.
+                options = tuple(
+                    (
+                        f"Guess {held.definition.name}"
+                        f" [entity {held.entity_id}]",
+                        (HolmesInspect(held.card_id),),
+                    )
+                    for held in opponent.hand
+                )
+                self.pending_choice = {
+                    "kind": "RULE_CHOICE", "player": player.index,
+                    "card": card, "action": action,
+                    "options": options,
+                }
+                self._event(
+                    "holmes_investigate_offer", player=player.index,
+                    source=card.card_id,
+                    options=[held.card_id for held in opponent.hand],
+                )
             return
         if card.card_id == "JAIL_882":
             spell_ids = [
@@ -9229,6 +9279,8 @@ class DragonMirrorGame:
                 "void_count": len(player.void_cards),
                 "irida_active": player.irida_active,
                 "coin_replacement_id": player.coin_replacement_id,
+                "holmes_target_card_id": player.holmes_target_card_id,
+                "holmes_watch_turn": player.holmes_watch_turn,
                 "mug_magic_active": player.mug_magic_active,
                 "zee_might_active": player.zee_might_active,
                 "zee_might_minions_played": player.zee_might_minions_played,
