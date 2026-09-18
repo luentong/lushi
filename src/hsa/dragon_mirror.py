@@ -912,6 +912,8 @@ class CardInstance:
     deathrattle_copy_card_id: str | None = None
     deathrattle_summon_card_id: str | None = None
     killed_by_entity: int | None = None
+    devoured_cards: list[CardInstance] = field(default_factory=list)
+    imprisoned_entity_id: int | None = None
     high_kings_hammer_claimed: bool = False
     temporary: bool = False
     spell_casts_twice: bool = False
@@ -2788,6 +2790,10 @@ class DragonMirrorGame:
                 minion.dormant_turns -= 1
                 if minion.dormant_turns == 0:
                     self._event("awaken", player=index, card=minion.card_id, entity=minion.entity_id)
+                    if minion.card_id == "EDR_840t":
+                        player.hero_attack_bonus += 3
+                        self._event("hound_dreadseed_awaken", player=index,
+                                    entity=minion.entity_id, attack=3)
         # Rotate hand-held bonus effects before the draw for cards such as
         # Twisted Monstrosity.
         for held in list(player.hand):

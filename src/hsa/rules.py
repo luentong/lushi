@@ -4349,13 +4349,89 @@ class SummonDormant:
 class SummonRandomDreadseed:
     """Summon one random Dormant Dreadseed from the current seed pool."""
 
+    count: int = 1
+
     def execute(self, game: Any, context: RuleContext) -> None:
         # Hearthstone's Dreadseed pool has three distinct tokens with
         # different dormant durations and keywords.  Keep the pool explicit
         # so seeded simulations and audit reports remain reproducible.
-        card_id = game.rng.choice(("EDR_840t", "EDR_840t1", "EDR_840t2"))
-        dormant = {"EDR_840t": 2, "EDR_840t1": 1, "EDR_840t2": 3}[card_id]
-        SummonDormant(card_id, dormant).execute(game, context)
+        for _ in range(self.count):
+            card_id = game.rng.choice(("EDR_840t", "EDR_840t1", "EDR_840t2"))
+            dormant = {"EDR_840t": 2, "EDR_840t1": 1, "EDR_840t2": 3}[card_id]
+            SummonDormant(card_id, dormant).execute(game, context)
+
+
+@dataclass(frozen=True)
+class IsorathDevour:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        opponent = game.players[1 - context.player.index]
+        context.card.devoured_cards = []
+        for card in game.rng.sample(opponent.hand, min(2, len(opponent.hand))):
+            opponent.hand.remove(card)
+            context.card.devoured_cards.append(card)
+        context.card.dormant_turns = 2
+        game._event("isorath_devour", player=context.player.index,
+                    source=context.card.entity_id,
+                    cards=[card.card_id for card in context.card.devoured_cards])
+
+
+@dataclass(frozen=True)
+class IsorathReturn:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        returned = []
+        for card in list(context.card.devoured_cards):
+            if len(context.player.hand) >= 10:
+                break
+            context.player.hand.append(card)
+            returned.append(card.card_id)
+        context.card.devoured_cards.clear()
+        game._event("isorath_return", player=context.player.index,
+                    source=context.card.entity_id, cards=returned)
+
+
+@dataclass(frozen=True)
+class TimewayImprison:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("enemy minion target is required")
+        target = game._find_minion(context.action.target_player,
+                                   context.action.target_entity)
+        target.dormant_turns = 10_000
+        context.card.imprisoned_entity_id = target.entity_id
+        game._event("timeway_imprison", player=context.player.index,
+                    source=context.card.entity_id, target=target.entity_id)
+
+
+@dataclass(frozen=True)
+class TimewayAwaken:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        target_id = context.card.imprisoned_entity_id
+        if target_id is None:
+            return
+        target = next((minion for player in game.players for minion in player.board
+                       if minion.entity_id == target_id), None)
+        if target is not None:
+            target.dormant_turns = 0
+            game._event("timeway_awaken", player=context.player.index,
+                        source=context.card.entity_id, target=target.entity_id)
+
+
+@dataclass(frozen=True)
+class SummonRandomDormantCost:
+    cost: int = 2
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = [card_id for card_id, definition in game.card_defs.items()
+                      if card_id in game.executable_card_ids
+                      and definition.card_type == "MINION"
+                      and definition.cost == self.cost
+                      and ("DORMANT" in definition.mechanics or card_id.startswith("EDR_840t"))]
+        if not candidates or len(context.player.board) + len(context.player.locations) >= 7:
+            return
+        minion = game._entity(game.rng.choice(sorted(candidates)), created_by=context.card.card_id)
+        minion.summoned_turn = game.turn
+        minion.dormant_turns = 2
+        game._summon(context.player, minion)
 
 
 @dataclass(frozen=True)
@@ -6784,6 +6860,33 @@ def build_rule_registry() -> RuleRegistry:
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_grim_harvest_draws_and_summons_dreadseed",),
             ),
+        ),
+        CardRule(
+            "CATA_481", {Hook.BATTLECRY: (IsorathDevour(),),
+                         Hook.DEATHRATTLE: (IsorathReturn(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+        ),
+        CardRule(
+            "EDR_841", {Hook.BATTLECRY: (SummonRandomDreadseed(),),
+                         Hook.DEATHRATTLE: (SummonRandomDreadseed(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+        ),
+        CardRule(
+            "EDR_820", {Hook.SPELL: (OfferEffectChoice((
+                ("dreadseeds", (SummonRandomDreadseed(count=2),)),
+                ("damage_all", (DamageAllMinions(2),)),
+            )),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+        ),
+        CardRule(
+            "TIME_058", {Hook.DEATHRATTLE: (SummonRandomDormantCost(2),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+        ),
+        CardRule(
+            "TIME_442", {Hook.BATTLECRY: (TimewayImprison(),),
+                          Hook.DEATHRATTLE: (TimewayAwaken(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+            TargetSpec(TargetKind.ENEMY_MINION),
         ),
         CardRule(
             "EDR_523", {Hook.SPELL: (ReturnFriendlyAndSummonSpider(),)},
