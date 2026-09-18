@@ -314,6 +314,19 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._resolve_deaths()
         self.assertEqual(2, game.players[0].corpses)
 
+    def test_captive_nathrezim_global_cost_aura_affects_both_hands(self):
+        game = self.game()
+        self.add_board(game, "JAIL_890", 0)
+        own = game._entity("CORE_EX1_005")
+        enemy = game._entity("CORE_EX1_005")
+        game.players[0].hand = [own]
+        game.players[1].hand = [enemy]
+        self.assertEqual(4, game._effective_cost(game.players[0], own))
+        self.assertEqual(4, game._effective_cost(game.players[1], enemy))
+        game.players[0].board[0].silenced = True
+        self.assertEqual(2, game._effective_cost(game.players[0], own))
+
+
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
         spell = self.add_hand(game, "EDR_490")
