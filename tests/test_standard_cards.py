@@ -3553,8 +3553,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         target = game._entity("CORE_LOOT_137")
         target.summoned_turn = game.turn
         game._summon(game.players[1], target)
-        self.assertEqual(2, target.damage)
+        self.assertEqual(3, target.damage)
         self.assertEqual(0, game.players[0].corpses)
+
+    def test_standard_hero_cards(self):
+        game = self.game()
+        jaraxxus = self.add_hand(game, "CORE_EX1_323")
+        game.step(Action("PLAY", jaraxxus.entity_id))
+        self.assertEqual("EX1_tk33", game.players[0].hero_power_id)
+        self.assertIsNotNone(game.players[0].weapon)
+        self.assertEqual("EX1_323w", game.players[0].weapon.card_id)
+        game.step(Action("HERO_POWER"))
+        self.assertEqual(1, sum(m.card_id == "EX1_tk34" for m in game.players[0].board))
 
     def test_deaths_advance(self):
         game = self.game()

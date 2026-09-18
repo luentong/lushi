@@ -861,6 +861,18 @@ class ArmCorpseRebirth:
 
 
 @dataclass(frozen=True)
+class JaraxxusInferno:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if len(context.player.board) + len(context.player.locations) >= 7:
+            return
+        infernal = game._entity("EX1_tk34", created_by=context.card.card_id)
+        infernal.summoned_turn = game.turn
+        game._summon(context.player, infernal)
+        game._event("jaraxxus_inferno", player=context.player.index,
+                    entity=infernal.entity_id)
+
+
+@dataclass(frozen=True)
 class DrawThenShuffleSource:
     """Draw a card, then shuffle the played source card back into its deck."""
 
@@ -7504,6 +7516,11 @@ def build_rule_registry() -> RuleRegistry:
             "TIME_618", {Hook.BATTLECRY: (ArmCorpseRebirth(),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
                        verification=("test_husk_arms_corpse_rebirth",)),
+        ),
+        CardRule(
+            "EX1_tk33", {Hook.HERO_POWER: (JaraxxusInferno(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_jaraxxus_inferno_hero_power",)),
         ),
         CardRule(
             "CORE_CATA_009", {Hook.SPELL: (FreezeActionTarget(), OfferSpellDiscover())},

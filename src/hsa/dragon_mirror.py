@@ -320,6 +320,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
 # Closed Rewind cards whose random outcomes can be played from hand without
 # opening another generated-card pool.
 ADDITIONAL_PLAYABLE_CARD_IDS = {
+    "CORE_EX1_323",  # Lord Jaraxxus Hero card
     "TIME_000",  # Semi-Stable Portal
     "TIME_001",  # Chrono Daggers
     "TIME_002",  # Aeon Wizard
@@ -4354,6 +4355,16 @@ class DragonMirrorGame:
             self._event(
                 "deathwing_transform", player=player.index, card=card.card_id,
                 armor=card.definition.armor, cataclysms=choices,
+            )
+        elif card.card_id == "CORE_EX1_323":
+            player.hero_power_id = "EX1_tk33"
+            self._equip_weapon(
+                player,
+                Weapon("EX1_323w", "Blood Fury", 3, 8),
+            )
+            self._event(
+                "jaraxxus_transform", player=player.index,
+                armor=card.definition.armor, hero_power="EX1_tk33",
             )
         elif card.card_id == "TLC_513t":
             player.ninja_shuffle_active = True
