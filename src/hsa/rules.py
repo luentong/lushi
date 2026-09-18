@@ -6293,6 +6293,15 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule(
+            "JAIL_851", {},
+            RuleSource(
+                "local_spec", local,
+                verification=(
+                    "test_holmes_investigation_is_an_explicit_hand_guess",
+                ),
+            ),
+        ),
+        CardRule(
             "CORE_SW_068", {Hook.DEATHRATTLE: (GainArmor(8),)},
             RuleSource(
                 "upstream_adapted", rosetta, "CORE_SW_068", "AGPL-3.0",
