@@ -191,7 +191,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
-    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Standard mechanism tranche
+    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "CORE_OG_044", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Standard mechanism tranche
     "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
@@ -3717,6 +3717,22 @@ class OfferEffectChoice:
     options: tuple[tuple[str, tuple[Effect, ...]], ...]
 
     def execute(self, game: Any, context: RuleContext) -> None:
+        fandral_active = any(
+            minion.card_id == "CORE_OG_044"
+            and not minion.silenced
+            and minion.dormant_turns == 0
+            for minion in context.player.board
+        )
+        if fandral_active:
+            for _label, effects in self.options:
+                for effect in effects:
+                    effect.execute(game, context)
+            game._event(
+                "choose_one_combined", player=context.player.index,
+                card=context.card.card_id,
+                options=[label for label, _effects in self.options],
+            )
+            return
         game.pending_choice = {
             "kind": "RULE_CHOICE",
             "player": context.player.index,

@@ -49,7 +49,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_standard_choose_one_batch_is_executable(self):
         game = self.game()
-        self.assertTrue({"Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_490", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010"}
+        self.assertTrue({"CORE_OG_044", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_490", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010"}
                         <= game.executable_card_ids)
 
     def test_boomkin_choose_one_deals_damage_or_heals(self):
@@ -118,6 +118,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", thorn.entity_id))
         game.step(Action("RULE_CHOICE_PICK", 0))
         self.assertEqual(game.turn, game.players[0].hero_poisonous_until_turn)
+
+    def test_fandral_combines_choose_one_effects(self):
+        game = self.game()
+        fandral = self.add_board(game, "CORE_OG_044", 0)
+        self.assertEqual("CORE_OG_044", fandral.card_id)
+        game.players[0].health = 20
+        boomkin = self.add_hand(game, "CORE_ONY_018")
+        game.step(Action("PLAY", boomkin.entity_id))
+        self.assertIsNone(game.pending_choice)
+        self.assertEqual(28, game.players[0].health)
+        self.assertEqual(26, game.players[1].health)
 
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
