@@ -2249,8 +2249,34 @@ class GiveHeldCardToOpponent:
             if card.entity_id == self.entity_id:
                 context.player.hand.pop(index)
                 if len(opponent.hand) < 10:
-                    opponent.hand.append(card)
+                opponent.hand.append(card)
                 return
+
+
+@dataclass(frozen=True)
+class SetCoinReplacement:
+    coin_id: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.coin_replacement_id = self.coin_id
+        game._event(
+            "aya_coin_choice", player=context.player.index,
+            source=context.card.card_id, coin=self.coin_id,
+        )
+
+
+@dataclass(frozen=True)
+class AyaCoinChoice:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game.pending_choice = {
+            "kind": "RULE_CHOICE", "player": context.player.index,
+            "card": context.card, "action": context.action,
+            "options": (
+                ("Jade Coin", (SetCoinReplacement("JAIL_504t"),)),
+                ("Grimy Coin", (SetCoinReplacement("JAIL_504t2"),)),
+                ("Kabal Coin", (SetCoinReplacement("JAIL_504t3"),)),
+            ),
+        }
 
 
 @dataclass(frozen=True)
@@ -4968,6 +4994,10 @@ def build_rule_registry() -> RuleRegistry:
             "JAIL_446hp", {Hook.HERO_POWER: (BuffActionTarget(3, 0),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
             targeting=TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "JAIL_504", {Hook.BATTLECRY: (AyaCoinChoice(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
         ),
         CardRule("TLC_440", {Hook.SPELL: (CryosleepKindred(),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),

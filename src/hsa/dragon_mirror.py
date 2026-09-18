@@ -1032,6 +1032,7 @@ class Player:
     # turns and grants ten mana when it reaches zero.
     chef_nethrek_turns_remaining: int = -1
     irida_active: bool = False
+    coin_replacement_id: str | None = None
     mug_magic_active: bool = False
     mug_magic_used_this_turn: bool = False
     zee_might_active: bool = False
@@ -3293,9 +3294,13 @@ class DragonMirrorGame:
         if len(player.hand) >= 10:
             self._event("generated_burned", player=player.index, card="GAME_005", source=source)
             return
-        coin = self._entity("GAME_005", created_by=source)
+        coin_id = player.coin_replacement_id or "GAME_005"
+        coin = self._entity(coin_id, created_by=source)
         player.hand.append(coin)
-        self._event("coin_given", player=player.index, source=source, entity=coin.entity_id)
+        self._event(
+            "coin_given", player=player.index, source=source,
+            card=coin_id, entity=coin.entity_id,
+        )
 
     def _tick_burning_minions(self, player: Player) -> None:
         for card in list(player.hand):
@@ -9134,6 +9139,7 @@ class DragonMirrorGame:
                 "deck_count": len(player.deck),
                 "void_count": len(player.void_cards),
                 "irida_active": player.irida_active,
+                "coin_replacement_id": player.coin_replacement_id,
                 "mug_magic_active": player.mug_magic_active,
                 "zee_might_active": player.zee_might_active,
                 "zee_might_minions_played": player.zee_might_minions_played,
