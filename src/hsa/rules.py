@@ -191,7 +191,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
-    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "CORE_OG_044", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010", "JAIL_462", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_601", "TIME_810", "TLC_449",  # Standard mechanism tranche
+    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "CATA_724", "CORE_AT_052", "CORE_EX1_250", "CORE_OG_044", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010", "JAIL_462", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_601", "TIME_810", "TLC_449",  # Standard mechanism tranche
     "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
@@ -2272,6 +2272,16 @@ class Overload:
 
 
 @dataclass(frozen=True)
+class UnlockOverloadedMana:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        unlocked = context.player.locked_mana
+        context.player.locked_mana = 0
+        context.player.mana = min(context.player.max_mana, context.player.mana + unlocked)
+        game._event("overload_unlocked", player=context.player.index,
+                    source=context.card.card_id, amount=unlocked)
+
+
+@dataclass(frozen=True)
 class DiscountNextSpell:
     amount: int
 
@@ -3129,6 +3139,18 @@ class DestroyMinionsByAttack:
             for minion in list(player.board):
                 if minion.dormant_turns <= 0 and minion.attack >= self.minimum:
                     minion.damage = minion.max_health
+
+
+@dataclass(frozen=True)
+class DestroyMinionsByAttackAtMost:
+    maximum: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for player in game.players:
+            for minion in list(player.board):
+                if minion.dormant_turns <= 0 and minion.attack <= self.maximum:
+                    minion.damage = minion.max_health
+        game._resolve_deaths()
 
 
 @dataclass(frozen=True)
@@ -8834,6 +8856,24 @@ def build_rule_registry() -> RuleRegistry:
             )),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
                        verification=("test_twilight_timereaver_choose_one_stats",)),
+        ),
+        CardRule(
+            "CORE_AT_052", {Hook.AFTER_PLAY: (Overload(1),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_totem_golem_overload",)),
+        ),
+        CardRule(
+            "CORE_EX1_250", {Hook.AFTER_PLAY: (Overload(2),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_earth_elemental_overload",)),
+        ),
+        CardRule(
+            "CATA_724", {
+                Hook.AFTER_PLAY: (Overload(3),),
+                Hook.DEATHRATTLE: (UnlockOverloadedMana(),),
+            },
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_stormbinder_unlocks_overload",)),
         ),
         CardRule(
             "EDR_525", {Hook.BATTLECRY: (OfferEffectChoice((
