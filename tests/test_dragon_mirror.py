@@ -2146,6 +2146,30 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertEqual(2, game.players[1].overload_next_turn)
         self.assertEqual(0, game.players[0].overload_next_turn)
 
+    def test_rulebreaker_doctor_on_enemy_side_puts_blights_in_receivers_deck(self):
+        game = self.game(280)
+        doctor = self.add_hand(game, "JAIL_442")
+        self.play(game, doctor, 1, None)
+        self.assertIn(doctor, game.players[1].board)
+        game._damage_minion(1, doctor, doctor.health)
+        game._resolve_deaths()
+        self.assertEqual(4, sum(
+            card.card_id == "JAIL_442t" for card in game.players[1].deck
+        ))
+        self.assertEqual(0, sum(
+            card.card_id == "JAIL_442t" for card in game.players[0].deck
+        ))
+
+    def test_rulebreaker_operator_enemy_side_draws_for_the_receiver_opponent(self):
+        game = self.game(281)
+        operator = self.add_hand(game, "CAP_004")
+        before = len(game.players[0].hand)
+        self.play(game, operator, 1, None)
+        self.assertIn(operator, game.players[1].board)
+        game._damage_minion(1, operator, operator.health)
+        game._resolve_deaths()
+        self.assertEqual(before + 2, len(game.players[0].hand))
+
     def test_rulebreaker_executioner_destroys_random_adjacent_minion(self):
         game = self.game(279)
         left = self.add_board(game, "CORE_NEW1_023", 1)
