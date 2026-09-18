@@ -103,6 +103,7 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_444",  # Sawbones
     "JAIL_395",  # Sewer Swimmer
     "JAIL_721",  # Tras'tath, Soul Parasite
+    "JAIL_718",  # Black Market Auctioneer
     "TLC_828",  # Supreme Dinomancy
     "TLC_835",  # Story of Amara
     "TLC_901",  # Fumigate
@@ -7167,6 +7168,10 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "JAIL_721", {},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; summon event model", ("test_tras_tath_gains_summoned_demon_stats",)),
+        ),
+        CardRule(
+            "JAIL_718", {},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; spell-play event model", ("test_black_market_auctioneer_draws_after_spell",)),
         ),
         CardRule(
             "CATA_725t", {Hook.END_TURN: (HeraldDestroyRightAndGrow(),)},

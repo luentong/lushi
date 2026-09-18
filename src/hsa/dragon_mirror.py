@@ -186,6 +186,7 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 }
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
+    "JAIL_718",  # Black Market Auctioneer
     "JAIL_721",  # Tras'tath, Soul Parasite
     "JAIL_395",  # Sewer Swimmer
     "JAIL_444",  # Sawbones
@@ -4182,6 +4183,21 @@ class DragonMirrorGame:
         )
         player.cards_played_this_turn += 1
         player.played_card_counts[card.card_id] = player.played_card_counts.get(card.card_id, 0) + 1
+        if card.definition.card_type == "SPELL":
+            auctioneers = [
+                minion for minion in player.board
+                if minion.card_id == "JAIL_718"
+                and minion.prepared
+                and not minion.silenced
+                and minion.dormant_turns == 0
+                and minion.health > 0
+            ]
+            for auctioneer in auctioneers:
+                self._draw(player)
+                self._event(
+                    "black_market_auctioneer_draw", player=player.index,
+                    source=auctioneer.entity_id, spell=card.card_id,
+                )
         if getattr(player, "rafaam_next_discount", False) and "rafaam" in card.definition.name.casefold():
             player.rafaam_next_discount = False
             self._event("rafaam_discount_consumed", player=player.index, card=card.card_id)

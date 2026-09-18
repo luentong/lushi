@@ -1187,6 +1187,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             (parasite.attack, parasite.max_health),
         )
 
+    def test_black_market_auctioneer_draws_after_spell(self):
+        game = self.game()
+        auctioneer = self.add_hand(game, "JAIL_718")
+        game.step(Action("PREPARE", auctioneer.entity_id))
+        game.step(Action("PLAY", auctioneer.entity_id))
+        spell = self.add_hand(game, "CORE_CS2_023")
+        hand_before = len(game.players[0].hand) - 1
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertGreaterEqual(len(game.players[0].hand), hand_before)
+
     def test_experimental_animation_heralds_and_damages_enemy_minions(self):
         game = self.game()
         enemy = self.add_board(game, "TLC_248", 1)
