@@ -25,6 +25,7 @@ class Hook(StrEnum):
     START_TURN = "start_turn"
     END_TURN = "end_turn"
     SHATTER = "shatter"
+    OVERHEAL = "overheal"
 
 
 class TargetKind(StrEnum):
@@ -4620,6 +4621,40 @@ class IncreaseOpponentMinionCostNextTurn:
 
 
 @dataclass(frozen=True)
+class OverhealGainAttack:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.card.attack_delta += self.amount
+        game._event(
+            "overheal_trigger", player=context.player.index,
+            source=context.card.card_id, effect="attack",
+            amount=self.amount,
+        )
+
+
+@dataclass(frozen=True)
+class OverhealDraw:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        Draw().execute(game, context)
+
+
+@dataclass(frozen=True)
+class OverhealSummonCrystal:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if len(context.player.board) + len(context.player.locations) >= 7:
+            return
+        crystal = game._entity("CORE_CFM_606t", created_by=context.card.card_id)
+        crystal.summoned_turn = game.turn
+        game._summon(context.player, crystal)
+        game._event(
+            "overheal_trigger", player=context.player.index,
+            source=context.card.card_id, effect="summon_crystal",
+            entity=crystal.entity_id,
+        )
+
+
+@dataclass(frozen=True)
 class HealHero:
     amount: int
     side: str = "controller"
@@ -4627,10 +4662,7 @@ class HealHero:
     def execute(self, game: Any, context: RuleContext) -> None:
         player = _recipient(game, context, self.side)
         amount = game._spell_effect_amount(context.player, context.card, self.amount)
-        restored = min(amount, max(0, player.max_health - player.health))
-        player.health += restored
-        if restored:
-            game._black_blood_after_restore(player, source=context.card)
+        game._apply_heal(player, player, amount, source=context.card)
 
 
 @dataclass(frozen=True)
@@ -4643,18 +4675,14 @@ class HealActionTarget:
         amount = game._spell_effect_amount(context.player, context.card, self.amount)
         if context.action.target_entity is None:
             target = game.players[context.action.target_player]
-            restored = min(amount, max(0, target.max_health - target.health))
-            target.health += restored
+            owner = target
+            game._apply_heal(owner, target, amount, source=context.card)
         else:
+            owner = game.players[context.action.target_player]
             target = game._find_minion(
                 context.action.target_player, context.action.target_entity
             )
-            restored = min(amount, target.damage)
-            target.damage -= restored
-        if restored:
-            game._black_blood_after_restore(
-                game.players[context.action.target_player], source=context.card
-            )
+            game._apply_heal(owner, target, amount, source=context.card)
 
 
 @dataclass(frozen=True)
@@ -4669,12 +4697,8 @@ class HealActionTargetToFull:
         target = game._find_minion(
             context.action.target_player, context.action.target_entity
         )
-        restored = target.damage
-        target.damage = 0
-        if restored:
-            game._black_blood_after_restore(
-                game.players[context.action.target_player], source=context.card
-            )
+        owner = game.players[context.action.target_player]
+        game._apply_heal(owner, target, target.damage, source=context.card)
 
 
 @dataclass(frozen=True)
@@ -4684,11 +4708,15 @@ class HealFriendlyCharacters:
     def execute(self, game: Any, context: RuleContext) -> None:
         player = context.player
         amount = game._spell_effect_amount(context.player, context.card, self.amount)
-        restored = min(amount, max(0, player.max_health - player.health))
-        player.health += restored
+        restored = game._apply_heal(
+            player, player, amount, source=context.card,
+            trigger_black_blood=False,
+        )
         for minion in player.board:
-            restored += min(amount, minion.damage)
-            minion.damage = max(0, minion.damage - amount)
+            restored += game._apply_heal(
+                player, minion, amount, source=context.card,
+                trigger_black_blood=False,
+            )
         if restored:
             game._black_blood_after_restore(player, source=context.card)
 
@@ -4711,11 +4739,7 @@ class HealRandomFriendlyCharacters:
             if not eligible:
                 break
             kind, target = game.rng.choice(eligible)
-            if kind == "hero":
-                target.health = min(target.max_health, target.health + 1)
-            else:
-                target.damage = max(0, target.damage - 1)
-            game._black_blood_after_restore(player, source=context.card)
+            game._apply_heal(player, target, 1, source=context.card)
         game._event("random_friendly_heal", player=player.index,
                     source=context.card.card_id, amount=self.amount)
 
@@ -7004,6 +7028,27 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "upstream_adapted", rosetta, "EX1_606", "AGPL-3.0",
                 ("test_standard_basic_damage_draw",),
+            ),
+        ),
+        CardRule(
+            "CORE_AT_011", {Hook.OVERHEAL: (OverhealGainAttack(2),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_overheal_core_minions",),
+            ),
+        ),
+        CardRule(
+            "CORE_CFM_606", {Hook.OVERHEAL: (OverhealSummonCrystal(),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_overheal_core_minions",),
+            ),
+        ),
+        CardRule(
+            "CORE_CS3_014", {Hook.OVERHEAL: (OverhealDraw(),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_overheal_core_minions",),
             ),
         ),
         CardRule(

@@ -1835,6 +1835,20 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._draw(game.players[0])
         self.assertEqual(before + 2, game.players[0].armor)
 
+    def test_overheal_core_minions(self):
+        game = self.game()
+        player = game.players[0]
+        source = game._entity("CORE_CFM_604")
+        champion = self.add_board(game, "CORE_AT_011")
+        geode = self.add_board(game, "CORE_CFM_606")
+        clergy = self.add_board(game, "CORE_CS3_014")
+        player.deck = [game._entity("GAME_005", started_in_deck=True)]
+        player.hand.clear()
+        game._apply_heal(player, player, 3, source=source)
+        self.assertEqual(2, champion.attack_delta)
+        self.assertTrue(any(m.created_by == "CORE_CFM_606" for m in player.board))
+        self.assertEqual(1, len(player.hand))
+
     def test_lava_flow_retargets_lowest_health_enemy(self):
         game = self.game()
         target = self.add_board(game, "CAP_107t", 1)

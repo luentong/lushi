@@ -259,6 +259,9 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "JAIL_035",  # Vigilant Sentry
     "JAIL_328",  # Scarlet Bruiser
     "JAIL_386",  # Scramble for Gear
+    "CORE_AT_011",  # Holy Champion
+    "CORE_CFM_606",  # Mana Geode
+    "CORE_CS3_014",  # Crimson Clergy
     "CAP_004",  # Disguised Operator
     "JAIL_442",  # Disguised Doctor
     "JAIL_452",  # Disguised Detective
@@ -6299,6 +6302,43 @@ class DragonMirrorGame:
             self._forced_minion_attack(
                 player.index, body, 1 - player.index, target,
             )
+
+    def _apply_heal(
+        self, owner: Player, target: Any, amount: int,
+        *, source: CardInstance | None = None,
+        trigger_black_blood: bool = True,
+    ) -> int:
+        """Apply healing and dispatch Overheal only for actual excess."""
+        amount = max(0, int(amount))
+        missing = (
+            max(0, target.max_health - target.health)
+            if isinstance(target, Player) else max(0, target.damage)
+        )
+        restored = min(amount, missing)
+        if isinstance(target, Player):
+            target.health += restored
+        else:
+            target.damage = max(0, target.damage - restored)
+        if restored and trigger_black_blood:
+            self._black_blood_after_restore(owner, source=source)
+        excess = amount - restored
+        if excess and source is not None:
+            for minion in list(owner.board):
+                if minion.silenced or minion.dormant_turns > 0 or minion.health <= 0:
+                    continue
+                self.rule_registry.dispatch(
+                    Hook.OVERHEAL, minion.card_id, self,
+                    RuleContext(
+                        player=owner, card=minion,
+                        payload={"amount": excess, "target": target, "source": source},
+                    ),
+                )
+            self._event(
+                "overheal", player=owner.index, source=source.card_id,
+                target=(None if isinstance(target, Player) else target.entity_id),
+                amount=excess,
+            )
+        return restored
 
     def _finja_kill(
         self, attacker_owner: int, attacker: CardInstance,
