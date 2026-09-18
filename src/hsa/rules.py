@@ -36,6 +36,7 @@ class TargetKind(StrEnum):
     FRIENDLY_CHARACTER = "friendly_character"
     FRIENDLY_UNDEAD = "friendly_undead"
     ENEMY_CHARACTER = "enemy_character"
+    FRIENDLY_HAND_MINION = "friendly_hand_minion"
 
 
 @dataclass(frozen=True)
@@ -187,7 +188,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
-    "JAIL_877", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Location cards
+    "CATA_477", "JAIL_877", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Location cards
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
     "UNG_934t1", "UNG_940t8", "UNG_942t", "UNG_954t1",
     "UNG_999t2t1",
@@ -5484,6 +5485,30 @@ class BuffLocationTargetAndSleep:
 
 
 @dataclass(frozen=True)
+class BuffFriendlyHandMinion:
+    attack: int
+    health: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player != context.player.index:
+            raise ValueError("friendly hand minion target is required")
+        target = next(
+            (card for card in context.player.hand
+             if card.entity_id == context.action.target_entity),
+            None,
+        )
+        if target is None or target.definition.card_type != "MINION":
+            raise ValueError("friendly hand minion target is required")
+        target.attack_delta += self.attack
+        target.health_delta += self.health
+        game._event(
+            "location_hand_buff", player=context.player.index,
+            source=context.card.card_id, target=target.entity_id,
+            attack=self.attack, health=self.health,
+        )
+
+
+@dataclass(frozen=True)
 class DiscoverTemporaryOneCostMinion:
     def execute(self, game: Any, context: RuleContext) -> None:
         pool = [
@@ -6245,6 +6270,11 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "JAIL_877", {Hook.LOCATION: (SummonLocationRat(),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "CATA_477", {Hook.LOCATION: (BuffFriendlyHandMinion(2, 2),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+            TargetSpec(TargetKind.FRIENDLY_HAND_MINION),
         ),
         CardRule(
             "JAIL_987", {Hook.LOCATION: (AddRandomShamanMinionLocked(),)},
