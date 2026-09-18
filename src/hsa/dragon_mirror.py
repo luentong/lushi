@@ -186,6 +186,7 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 }
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
+    "JAIL_860",  # Chef Neth'rek
     "TLC_226",  # Conjured Bookkeeper
     "TLC_251",  # Primalfin Challenger
     "TLC_366",  # Pterrorwing Ravager
@@ -1019,6 +1020,10 @@ class Player:
     turns_taken: int = 0
     dragons_played_this_turn: int = 0
     start_turn_temporary_mana_charges: int = 0
+    # Chef Neth'rek's Start of Game condition.  A value of -1 means the
+    # restriction was not satisfied; otherwise it counts down the owner's
+    # turns and grants ten mana when it reaches zero.
+    chef_nethrek_turns_remaining: int = -1
     minion_cost_increase_turn: int = -1
     minion_cost_increase_amount: int = 0
     recover_overdrawn_cards: bool = False
@@ -1454,6 +1459,21 @@ class DragonMirrorGame:
                 player.deck.append(self._entity("JAIL_421"))
                 self.rng.shuffle(player.deck)
                 self._event("start_of_game", player=player.index, card="JAIL_384", duplicated="JAIL_421")
+            # Chef Neth'rek: the deck-building restriction is evaluated from
+            # the complete starting deck, including cards already moved to the
+            # opening hand.  The bonus is granted after five of this player's
+            # turns, not five global turns.
+            if any(c.card_id == "JAIL_860" for c in player.hand + player.deck):
+                starting_cards = [
+                    c for c in player.hand + player.deck
+                    if c.card_id != "JAIL_860"
+                ]
+                if starting_cards and all(c.definition.cost <= 3 for c in starting_cards):
+                    player.chef_nethrek_turns_remaining = 5
+                    self._event(
+                        "start_of_game", player=player.index,
+                        card="JAIL_860", effect="ten_mana_after_five_turns",
+                    )
             if any(c.card_id == "JAIL_509" for c in player.hand + player.deck):
                 player.recover_overdrawn_cards = True
                 self._event("start_of_game", player=player.index, card="JAIL_509", effect="recover_overdrawn")
@@ -2466,6 +2486,16 @@ class DragonMirrorGame:
         player.locked_mana = min(player.max_mana, player.overload_next_turn)
         player.overload_next_turn = 0
         player.mana = player.max_mana - player.locked_mana
+        if player.chef_nethrek_turns_remaining > 0:
+            player.chef_nethrek_turns_remaining -= 1
+            if player.chef_nethrek_turns_remaining == 0:
+                player.max_mana = 10
+                player.locked_mana = 0
+                player.mana = 10
+                self._event(
+                    "rulebreaker_trigger", player=index,
+                    card="JAIL_860", effect="set_mana_to_ten",
+                )
         if player.start_turn_temporary_mana_charges:
             player.mana += 1
             player.start_turn_temporary_mana_charges -= 1
@@ -8955,6 +8985,7 @@ class DragonMirrorGame:
                 "overloaded_mana_this_game": player.overloaded_mana_this_game,
                 "overload_next_turn": player.overload_next_turn,
                 "locked_mana": player.locked_mana,
+                "chef_nethrek_turns_remaining": player.chef_nethrek_turns_remaining,
                 "next_demon_free": player.next_demon_free,
                 "hero_divine_shield": player.hero_divine_shield,
                 "hero_divine_shield_hits": player.hero_divine_shield_hits,

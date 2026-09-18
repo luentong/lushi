@@ -42,6 +42,10 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game = self.game()
         self.assertTrue(rule_ids <= game.executable_card_ids)
 
+    def test_chef_nethrek_is_executable(self):
+        game = self.game()
+        self.assertIn("JAIL_860", game.executable_card_ids)
+
     def game(self) -> DragonMirrorGame:
         game = DragonMirrorGame(CARDS, 29)
         game.current = 0
