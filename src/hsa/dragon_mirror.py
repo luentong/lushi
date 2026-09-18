@@ -9320,6 +9320,8 @@ class DragonMirrorGame:
             elif self.pending_choice["kind"] == "REWIND":
                 pending["options"] = ["REWIND_KEEP", "REWIND_RETRY"]
             elif self.pending_choice["kind"] == "RULE_CHOICE":
+                pending["player"] = self.pending_choice["player"] + 1
+                pending["source_card"] = self.pending_choice["card"].card_id
                 pending["options"] = [
                     label for label, _ in self.pending_choice["options"]
                 ]
