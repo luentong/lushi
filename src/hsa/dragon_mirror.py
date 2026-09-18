@@ -186,6 +186,9 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 }
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
+    "JAIL_998",  # Defias Smuggler
+    "JAIL_912",  # Soothsayer
+    "JAIL_453",  # Jailbird
     "JAIL_909",  # Defias Wannabe
     "JAIL_321",  # Tricksy Improviser
     "JAIL_407",  # Vanessa the Ringleader
