@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from hsa.dragon_mirror import (
-    Action, DragonMirrorGame, Location, LOST_CITY_QUEST_IDS,
+    Action, DragonMirrorGame, HERALD_COLLECTIBLE_IDS, Location, LOST_CITY_QUEST_IDS,
     LOST_CITY_QUEST_REWARDS, STANDARD_VANILLA_IDS, Weapon,
 )
 
@@ -18,6 +18,10 @@ CARDS = ROOT / "cards.251332.enUS.json"
 
 
 class FirstStandardCardBatchTests(unittest.TestCase):
+    def test_all_current_standard_herald_cards_are_executable(self):
+        game = self.game()
+        self.assertTrue(HERALD_COLLECTIBLE_IDS <= game.executable_card_ids)
+
     def game(self) -> DragonMirrorGame:
         game = DragonMirrorGame(CARDS, 29)
         game.current = 0

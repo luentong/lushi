@@ -522,6 +522,16 @@ SUPPORTED_IDS = (
 )
 EXECUTABLE_CARD_IDS = SUPPORTED_IDS | STANDARD_DECLARATIVE_IDS
 
+# Current Standard collectible cards carrying the Herald keyword.  Keeping
+# this manifest separate from generated Soldier entities lets the generation
+# audit detect a newly added Herald card that is missing from the executable
+# surface.
+HERALD_COLLECTIBLE_IDS = frozenset({
+    "CATA_156", "CATA_158", "CATA_160", "CATA_190h", "CATA_492",
+    "CATA_497", "CATA_525", "CATA_530", "CATA_561", "CATA_565",
+    "CATA_580", "CATA_722", "CATA_725", "CATA_780", "CATA_785",
+})
+
 # The fixed Dragon Warrior deck starts with no Herald-related or Fabled card.
 # Constructed generation therefore excludes these cards even though they are
 # collectible class/tribe matches in the raw Standard catalog.
