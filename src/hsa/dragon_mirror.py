@@ -47,7 +47,7 @@ DIRECT_IDS = {
     "JAIL_384",
     "CAP_105",
     "CAP_107",
-    "CATA_477", "EDR_454", "EDR_520", "JAIL_877", "JAIL_987", "MEND_044", "TIME_044", "TLC_449",
+    "CATA_301", "CATA_477", "EDR_454", "EDR_520", "JAIL_877", "JAIL_987", "MEND_044", "TIME_044", "TLC_449",
     "TIME_436", "TIME_446", "TIME_810",
 }
 
@@ -1149,6 +1149,7 @@ class Player:
     next_beast_cost_reduction: int = 0
     next_murloc_cost_reduction: int = 0
     next_minion_cost_reduction: int = 0
+    ruby_sanctum_turn: int = -1
     kindred_triggers_twice: int = 0
     map_followup_options: list[str] = field(default_factory=list)
     map_followup_entity: int | None = None
@@ -6632,6 +6633,19 @@ class DragonMirrorGame:
     ) -> int:
         """Apply healing and dispatch Overheal only for actual excess."""
         amount = max(0, int(amount))
+        if owner.ruby_sanctum_turn == self.turn and amount:
+            owner.ruby_sanctum_turn = -1
+            if isinstance(target, Player):
+                self._damage_hero(owner, amount, source)
+            else:
+                self._damage_minion(owner.index, target, amount, source)
+                self._resolve_deaths()
+            self._event(
+                "ruby_sanctum_replaced_heal", player=owner.index,
+                source=None if source is None else source.card_id,
+                amount=amount,
+            )
+            return 0
         missing = (
             max(0, target.max_health - target.health)
             if isinstance(target, Player) else max(0, target.damage)

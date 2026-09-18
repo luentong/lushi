@@ -189,7 +189,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
-    "CATA_477", "EDR_454", "EDR_520", "JAIL_877", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Location cards
+    "CATA_301", "CATA_477", "EDR_454", "EDR_520", "JAIL_877", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Location cards
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
     "UNG_934t1", "UNG_940t8", "UNG_942t", "UNG_954t1",
@@ -5510,6 +5510,18 @@ class SpendManaCastRandomSpell:
 
 
 @dataclass(frozen=True)
+class ArmRubySanctum:
+    """Convert the controller's next healing effect this turn into damage."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.ruby_sanctum_turn = game.turn
+        game._event(
+            "ruby_sanctum_armed", player=context.player.index,
+            source=context.card.card_id, turn=game.turn,
+        )
+
+
+@dataclass(frozen=True)
 class BuffLocationTargetAndSleep:
     attack: int
     health: int
@@ -6347,6 +6359,10 @@ def build_rule_registry() -> RuleRegistry:
             "CATA_477", {Hook.LOCATION: (BuffFriendlyHandMinion(2, 2),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
             TargetSpec(TargetKind.FRIENDLY_HAND_MINION),
+        ),
+        CardRule(
+            "CATA_301", {Hook.LOCATION: (ArmRubySanctum(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
         ),
         CardRule(
             "EDR_520", {Hook.LOCATION: (SpendManaCastRandomSpell(),)},
