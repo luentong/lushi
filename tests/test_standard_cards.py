@@ -281,6 +281,22 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.players[0].dragons_played_this_turn = 1
         self.assertGreater(game._effective_cost(game.players[0], dragon), 1)
 
+    def test_blastpowder_engineer_adds_pirate_damage_only_on_own_turn(self):
+        game = self.game()
+        self.add_board(game, "CAP_104", 0)
+        pirate = self.add_board(game, "CORE_NEW1_027", 0)
+        self.assertEqual(2, game._modified_damage(1, pirate))
+        game.current = 1
+        self.assertEqual(1, game._modified_damage(1, pirate))
+
+    def test_quel_dorei_fletcher_hero_power_threshold(self):
+        game = self.game()
+        game.players[0].hand = [game._entity("CORE_CS2_023") for _ in range(3)]
+        self.add_board(game, "TIME_606", 0)
+        self.assertEqual(0, game._hero_power_cost(game.players[0]))
+        game.players[0].hand.append(game._entity("CORE_CS2_023"))
+        self.assertGreater(game._hero_power_cost(game.players[0]), 0)
+
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
         spell = self.add_hand(game, "EDR_490")
