@@ -4174,6 +4174,21 @@ class DragonMirrorGame:
             self._event("gorishi_colossus_active", player=player.index,
                         source=card.card_id)
             return
+        if card.card_id == "TLC_830t":
+            pool = [
+                card_id for card_id, definition in self.card_defs.items()
+                if card_id in EXECUTABLE_CARD_IDS
+                and definition.card_type == "MINION"
+                and "BEAST" in definition.races
+                and definition.attack in {4, 6, 8}
+            ]
+            self._offer_discover(
+                player, pool, dark_gift=False, source_card_id=card.card_id,
+            )
+            if self.pending_choice is not None:
+                for option in self.pending_choice["options"]:
+                    option.cost_delta = 2 - option.definition.cost
+            return
         if card.card_id == "CORE_LOE_079":
             # Elise's map is a real deck card and is shuffled immediately;
             # this is intentionally not a hand generation shortcut.
