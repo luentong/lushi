@@ -959,6 +959,7 @@ class Player:
     active_quests: dict[str, dict[str, Any]] = field(default_factory=dict)
     completed_quests: set[str] = field(default_factory=set)
     murloc_quest_buff: bool = False
+    gorishi_double_damage: bool = False
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "Player":
         """Fast branch copy for the mutable player state used by MCTS."""
@@ -4168,6 +4169,11 @@ class DragonMirrorGame:
 
     def _battlecry(self, player: Player, card: CardInstance, action: Action) -> None:
         times = 2 if card.battlecry_twice else 1
+        if card.card_id == "TLC_631t":
+            player.gorishi_double_damage = True
+            self._event("gorishi_colossus_active", player=player.index,
+                        source=card.card_id)
+            return
         if card.card_id == "CORE_LOE_079":
             # Elise's map is a real deck card and is shuffled immediately;
             # this is intentionally not a hand generation shortcut.
@@ -7251,6 +7257,9 @@ class DragonMirrorGame:
                 )
 
     def _damage_hero(self, player: Player, amount: int, source: CardInstance | None = None) -> None:
+        attacker = self.players[1 - player.index]
+        if amount == 2 and attacker.gorishi_double_damage and self.current == attacker.index:
+            amount = 4
         amount = self._modified_damage(amount, source)
         if amount <= 0:
             return
@@ -7309,6 +7318,9 @@ class DragonMirrorGame:
 
     def _damage_minion(self, player_index: int, minion: CardInstance, amount: int,
                        source: CardInstance | None = None) -> None:
+        attacker = self.players[1 - player_index]
+        if amount == 2 and attacker.gorishi_double_damage and self.current == attacker.index:
+            amount = 4
         # Fyrakk's printed immunity is specifically to damage originating from
         # a Fire *spell*, not to combat or to Fire-named minions.  Do this
         # before damage modifiers and shields so the trace records the real
@@ -8230,6 +8242,7 @@ class DragonMirrorGame:
                 },
                 "completed_quests": sorted(player.completed_quests),
                 "murloc_quest_buff": player.murloc_quest_buff,
+                "gorishi_double_damage": player.gorishi_double_damage,
                 "weapon": None if player.weapon is None else {
                     "card": player.weapon.card_id,
                     "name": player.weapon.name,
