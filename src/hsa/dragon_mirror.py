@@ -6258,6 +6258,19 @@ class DragonMirrorGame:
             for option in options:
                 if option.entity_id == chosen_entity:
                     continue
+                player.cards_played_this_turn += 1
+                player.played_card_counts[option.card_id] = (
+                    player.played_card_counts.get(option.card_id, 0) + 1
+                )
+                option.combo_active = player.cards_played_this_turn > 1
+                if not option.started_in_deck:
+                    player.generated_cards_played += 1
+                self._event(
+                    "play", player=player.index, card=option.card_id,
+                    controller=player.index, entity=option.entity_id,
+                    started_in_deck=option.started_in_deck,
+                    created_by=option.created_by, origin_stone=True,
+                )
                 action = Action("PLAY", option.entity_id)
                 target_spec = self.rule_registry.targeting(option.card_id)
                 if target_spec is not None:

@@ -2354,6 +2354,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("DISCOVER_PICK", chosen.entity_id))
         self.assertEqual(3, game.players[0].weapon.durability)
         self.assertTrue(any(card.card_id == "CORE_LOOT_137" for card in game.players[0].board))
+        self.assertEqual(2, game.players[0].cards_played_this_turn)
 
     def test_origin_stone_reward_can_be_equipped_from_quest(self):
         game = self.game()
