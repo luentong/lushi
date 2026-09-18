@@ -1130,6 +1130,9 @@ class Player:
     minion_played_this_turn: bool = False
     minion_played_last_turn: bool = False
     damaged_characters_this_turn: set[str] = field(default_factory=set)
+    hero_health_changed_this_turn: bool = False
+    sigil_of_cinder_turn: int = -1
+    sigil_of_cinder_damage: int = 0
     herald_count: int = 0
     geddon_draw: bool = False
     ysondre_deaths: int = 0
@@ -2040,6 +2043,32 @@ class DragonMirrorGame:
         result["information_mode"] = "player_observation_v1"
         return result
 
+    def _summon_frail_ghoul(
+        self, player: Player, *, source_card_id: str
+    ) -> CardInstance | None:
+        """Create the Frail Ghoul token used by Tower of Ghouls.
+
+        The token is a generated entity and is intentionally not part of the
+        collectible card metadata JSON.  Keeping its definition here avoids
+        making generated-only tokens look like playable Standard cards.
+        """
+        if len(player.board) + len(player.locations) >= 7:
+            return None
+        token = CardInstance(
+            self.next_entity_id,
+            CardDef(
+                "JAIL_450t", "Frail Ghoul", "MINION", 1, 1, 1,
+                "UNDEAD", ("CHARGE",), "DEATHKNIGHT", ("UNDEAD",),
+                "ESCAPE_FROM_VIOLET_HOLD",
+            ),
+            created_by=source_card_id,
+            charge=True,
+            summoned_turn=self.turn,
+        )
+        self.next_entity_id += 1
+        self._summon(player, token)
+        return token
+
     def _summon(
         self, player: Player, minion: CardInstance, *, position: int | None = None
     ) -> None:
@@ -2704,6 +2733,24 @@ class DragonMirrorGame:
         self.turn += 1
         self.minions_died_this_turn = 0
         player = self.players[index]
+        if player.sigil_of_cinder_turn == self.turn:
+            amount = max(0, player.sigil_of_cinder_damage)
+            player.sigil_of_cinder_turn = -1
+            player.sigil_of_cinder_damage = 0
+            hits = 0
+            for _ in range(amount):
+                targets = self._random_enemy_characters(player.index)
+                if not targets:
+                    break
+                self._deal_to_target(
+                    player.index, self.rng.choice(targets), 1,
+                )
+                hits += 1
+                self._resolve_deaths()
+            self._event(
+                "sigil_of_cinder_trigger", player=player.index,
+                amount=amount, hits=hits,
+            )
         player.friendly_minions_died_this_turn = 0
         if player.hero_immune_expiry_turn == self.turn:
             player.hero_immune = False
@@ -2871,6 +2918,7 @@ class DragonMirrorGame:
         player.mug_magic_used_this_turn = False
         player.dragons_played_this_turn = 0
         player.damaged_characters_this_turn.clear()
+        player.hero_health_changed_this_turn = False
         self._reform_nythendra(player)
         for minion in player.board:
             if minion.card_id == "TLC_253" and minion.dormant_turns > 0 and not minion.silenced:
@@ -6794,6 +6842,8 @@ class DragonMirrorGame:
         restored = min(amount, missing)
         if isinstance(target, Player):
             target.health += restored
+            if restored > 0:
+                target.hero_health_changed_this_turn = True
         else:
             target.damage = max(0, target.damage - restored)
         if restored and trigger_black_blood:
@@ -9163,6 +9213,8 @@ class DragonMirrorGame:
             )
             return
         player.health -= health_loss
+        if health_loss > 0:
+            player.hero_health_changed_this_turn = True
         if player.health <= 0 and player.corpse_rebirth_pending:
             amount = min(20, player.corpses)
             if amount > 0:
@@ -9311,6 +9363,14 @@ class DragonMirrorGame:
             self._event(
                 "acolyte_of_pain_draw", player=player_index,
                 entity=minion.entity_id,
+            )
+        if minion in self.players[player_index].board:
+            self.rule_registry.dispatch(
+                Hook.AFTER_DAMAGE, minion.card_id, self,
+                RuleContext(
+                    player=self.players[player_index], card=minion,
+                    payload={"amount": amount, "source": source},
+                ),
             )
         self._check_warptooth(player_index)
 

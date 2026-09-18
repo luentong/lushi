@@ -20,6 +20,7 @@ class Hook(StrEnum):
     AFTER_PLAY = "after_play"
     AFTER_ATTACK = "after_attack"
     AFTER_HERO_ATTACK = "after_hero_attack"
+    AFTER_DAMAGE = "after_damage"
     LOCATION = "location"
     HERO_POWER = "hero_power"
     START_TURN = "start_turn"
@@ -205,6 +206,8 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_721",
     "CORE_RLK_087", "TIME_216", "FIR_929", "TIME_858", "TIME_037",
     "EDR_234", "TIME_750", "CATA_568", "CATA_570", "TIME_213",
+    "TIME_715", "END_020", "CORE_WC_701", "TIME_031", "TIME_032",
+    "TIME_614", "RLK_720", "FIR_902", "JAIL_440", "TLC_630",
     "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
@@ -1082,6 +1085,214 @@ class DrawCostRepeatExcess:
 
 
 @dataclass(frozen=True)
+class DamageThenDrawOrSummonOneCost:
+    """Eternal Toil: damage a minion, then draw or summon on death."""
+
+    amount: int = 1
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("minion target is required")
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        game._damage_minion(
+            context.action.target_player, target,
+            game._spell_effect_amount(context.player, context.card, self.amount),
+            context.card,
+        )
+        died = target.health <= 0
+        game._resolve_deaths()
+        if died:
+            game._summon_random_executable_minion(
+                context.player, source_card_id=context.card.card_id, cost=1,
+            )
+        else:
+            game._draw(context.player)
+
+
+@dataclass(frozen=True)
+class DrawDifferentCosts:
+    """Draw up to ``count`` cards with distinct printed costs."""
+
+    count: int = 3
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        used_costs: set[int] = set()
+        drawn: list[str] = []
+        for _ in range(self.count):
+            candidates = [
+                card for card in context.player.deck
+                if card.definition.cost not in used_costs
+            ]
+            if not candidates:
+                break
+            card = game.rng.choice(candidates)
+            context.player.deck.remove(card)
+            game._refresh_scrappy(context.player)
+            used_costs.add(card.definition.cost)
+            game._receive_drawn_card(context.player, card)
+            drawn.append(card.card_id)
+        game._event(
+            "draw_different_costs", player=context.player.index,
+            source=context.card.card_id, cards=drawn,
+        )
+
+
+@dataclass(frozen=True)
+class ChronogorDrawHighestGiveLowest:
+    """Draw two highest-cost cards and give two lowest-cost deck cards to enemy."""
+
+    count: int = 2
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        enemy = game.players[1 - player.index]
+        highest: list[Any] = []
+        remaining = list(player.deck)
+        for _ in range(min(self.count, len(remaining))):
+            cost = max(game._effective_cost(player, card) for card in remaining)
+            choices = [card for card in remaining
+                       if game._effective_cost(player, card) == cost]
+            card = game.rng.choice(choices)
+            remaining.remove(card)
+            player.deck.remove(card)
+            game._refresh_scrappy(player)
+            game._receive_drawn_card(player, card)
+            highest.append(card.card_id)
+        lowest: list[str] = []
+        for _ in range(min(self.count, len(player.deck))):
+            cost = min(game._effective_cost(player, card) for card in player.deck)
+            choices = [card for card in player.deck
+                       if game._effective_cost(player, card) == cost]
+            card = game.rng.choice(choices)
+            player.deck.remove(card)
+            if len(enemy.hand) < 10:
+                enemy.hand.append(card)
+                destination = "opponent_hand"
+            else:
+                destination = "burned"
+            lowest.append(card.card_id)
+            game._event(
+                "chronogor_give_lowest", player=player.index,
+                recipient=enemy.index, card=card.card_id, destination=destination,
+            )
+        game._event(
+            "chronogor_draw", player=player.index,
+            highest=highest, lowest=lowest,
+        )
+
+
+@dataclass(frozen=True)
+class LiferenderIfHeroHealthChanged:
+    amount: int = 6
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if not getattr(context.player, "hero_health_changed_this_turn", False):
+            return
+        if context.action is None or context.action.target_player is None:
+            return
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        game._damage_minion(
+            context.action.target_player, target,
+            game._spell_effect_amount(context.player, context.card, self.amount),
+            context.card,
+        )
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class GnomeMuncherEndTurn:
+    """Attack the lowest-health enemy character, including the enemy hero."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        targets: list[tuple[int, int | None, int]] = [(enemy.index, None, enemy.health)]
+        targets.extend((enemy.index, minion.entity_id, minion.health)
+                       for minion in enemy.board
+                       if minion.health > 0 and minion.dormant_turns == 0)
+        if not targets or context.card.health <= 0:
+            return
+        lowest = min(health for _, _, health in targets)
+        target_player, target_entity, _ = game.rng.choice(
+            [target for target in targets if target[2] == lowest]
+        )
+        if target_entity is None:
+            context.card.attacks_this_turn += 1
+            context.card.stealth = False
+            game._damage_hero(enemy, context.card.attack, context.card)
+            game._after_minion_attack(
+                context.player.index, context.card, attacked_minion=False,
+            )
+        else:
+            target = game._find_minion(target_player, target_entity)
+            game._forced_minion_attack(
+                context.player.index, context.card, target_player, target,
+            )
+        game._event(
+            "gnome_muncher_attack", player=context.player.index,
+            source=context.card.entity_id, target_player=target_player,
+            target_entity=target_entity,
+        )
+
+
+@dataclass(frozen=True)
+class ArmSigilOfCinder:
+    damage: int = 6
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.sigil_of_cinder_turn = game.turn + 1
+        context.player.sigil_of_cinder_damage = self.damage
+        game._event(
+            "sigil_of_cinder_armed", player=context.player.index,
+            source=context.card.card_id, trigger_turn=game.turn + 1,
+            damage=self.damage,
+        )
+
+
+@dataclass(frozen=True)
+class SummonFrailGhoulsAfterDamage:
+    count: int = 2
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        # Damage triggers resolve before the engine's death pass, so a lethal
+        # hit still creates both tokens while the Tower occupies its board
+        # slot.  The same ordering is used by Acolyte of Pain and other
+        # "takes damage" effects.
+        if context.card not in context.player.board:
+            return
+        summoned: list[int] = []
+        for _ in range(self.count):
+            if len(context.player.board) + len(context.player.locations) >= 7:
+                break
+            token = game._summon_frail_ghoul(
+                context.player, source_card_id=context.card.card_id,
+            )
+            if token is not None:
+                summoned.append(token.entity_id)
+        game._event(
+            "tower_of_ghouls", player=context.player.index,
+            source=context.card.entity_id, summoned=summoned,
+        )
+
+
+@dataclass(frozen=True)
+class GorishiStingerAfterDamage:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.card not in context.player.board:
+            return
+        stinger = game._entity("TLC_630t", created_by=context.card.card_id)
+        destination = game._add_generated(context.player, stinger)
+        game._event(
+            "gorishi_stinger", player=context.player.index,
+            source=context.card.entity_id, card=stinger.card_id,
+            destination=destination,
+        )
+
+
+@dataclass(frozen=True)
 class NatureHeldBuffDraw:
     def execute(self, game: Any, context: RuleContext) -> None:
         nature_held = any(
@@ -1820,6 +2031,15 @@ class AddDeathrattleCopyToHand:
 class CostMinusPerHandCard:
     def adjustment(self, game: Any, player: Any, card: Any) -> int:
         return -len(player.hand)
+
+
+@dataclass(frozen=True)
+class CostMinusEnemyMinions:
+    """Dynamic spell cost reduction from the opponent's live board."""
+
+    def adjustment(self, game: Any, player: Any, card: Any) -> int:
+        opponent = game.players[1 - player.index]
+        return -len(opponent.board)
 
 
 @dataclass(frozen=True)
@@ -3164,7 +3384,7 @@ class GiveHeldCardToOpponent:
             if card.entity_id == self.entity_id:
                 context.player.hand.pop(index)
                 if len(opponent.hand) < 10:
-                opponent.hand.append(card)
+                    opponent.hand.append(card)
                 return
 
 
@@ -6540,7 +6760,7 @@ def build_rule_registry() -> RuleRegistry:
                        verification=("test_azerite_chain_gang_quickdraw_copy",)),
         ),
         CardRule(
-            "WW_434", {Hook.BATTLECRY: (IfQuickdraw((DamageRandomEnemyCharacters(6),)),)},
+            "WW_434", {Hook.BATTLECRY: (IfQuickdraw((DamageRandomEnemyCharacters(6, 1),)),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
                        verification=("test_sunspot_dragon_quickdraw",)),
         ),
@@ -8252,15 +8472,6 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "upstream_adapted", rosetta, "EX1_014t", "AGPL-3.0",
                 ("test_thalnos_spell_damage_draw_and_mukla_bananas",),
-            ),
-        ),
-        CardRule(
-            "JAIL_882", {Hook.DEATHRATTLE: (Draw(),)},
-            RuleSource(
-                "local_spec", local,
-                verification=(
-                    "test_steamcleaner_pickpocket_and_ratcatcher_deck_rules",
-                ),
             ),
         ),
         CardRule(
@@ -10004,5 +10215,80 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "TLC_439", {Hook.SPELL: (DamageEnemyMinions(2), IncreaseOpponentMinionCostNextTurn(2))},
             RuleSource("upstream_adapted", rosetta, "TLC_439", "AGPL-3.0", ("test_wave_of_tar",)),
+        ),
+        CardRule(
+            "TIME_715", {Hook.SPELL: (Draw(2),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_for_glory_costs_less_per_enemy_minion",),
+            ),
+            cost_modifier=CostMinusEnemyMinions(),
+        ),
+        CardRule(
+            "END_020", {Hook.SPELL: (DamageThenDrawOrSummonOneCost(),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_eternal_toil_draw_or_summon",),
+            ),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "CORE_WC_701", {
+                Hook.DEATHRATTLE: (SetDeathrattleDamageAllEnemies(1),),
+            },
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_felrattler_deathrattle_damages_enemy_minions",),
+            ),
+        ),
+        CardRule(
+            "TIME_031", {Hook.SPELL: (DrawDifferentCosts(3),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_rafaam_ladder_draws_different_costs",),
+            ),
+        ),
+        CardRule(
+            "TIME_032", {Hook.BATTLECRY: (ChronogorDrawHighestGiveLowest(2),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_chronogor_draws_highest_and_gives_lowest",),
+            ),
+        ),
+        CardRule(
+            "TIME_614", {Hook.BATTLECRY: (LiferenderIfHeroHealthChanged(6),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_liferender_requires_hero_health_change",),
+            ),
+            TargetSpec(TargetKind.ENEMY_MINION, optional=True),
+        ),
+        CardRule(
+            "RLK_720", {Hook.END_TURN: (GnomeMuncherEndTurn(),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_gnome_muncher_attacks_lowest_health_enemy",),
+            ),
+        ),
+        CardRule(
+            "FIR_902", {Hook.SPELL: (ArmSigilOfCinder(),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_sigil_of_cinder_triggers_next_turn",),
+            ),
+        ),
+        CardRule(
+            "JAIL_440", {Hook.AFTER_DAMAGE: (SummonFrailGhoulsAfterDamage(),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_tower_of_ghouls_summons_after_damage",),
+            ),
+        ),
+        CardRule(
+            "TLC_630", {Hook.AFTER_DAMAGE: (GorishiStingerAfterDamage(),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_gorishi_wasp_generates_stinger_after_damage",),
+            ),
         ),
     ))

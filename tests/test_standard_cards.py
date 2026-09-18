@@ -484,6 +484,111 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(1, overseer.attack_delta)
         self.assertEqual(2, len(game.players[0].hand))
 
+    def test_for_glory_costs_less_per_enemy_minion(self):
+        game = self.game()
+        self.add_board(game, "CORE_EX1_005", 1)
+        self.add_board(game, "CORE_EX1_005", 1)
+        spell = self.add_hand(game, "TIME_715")
+        self.assertEqual(3, game._effective_cost(game.players[0], spell))
+
+    def test_eternal_toil_draws_if_target_survives(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_EX1_005", 1)
+        game.players[0].deck = [game._entity("CORE_CS2_023")]
+        spell = self.add_hand(game, "END_020")
+        game.step(Action("PLAY", spell.entity_id,
+                         target_player=1, target_entity=target.entity_id))
+        self.assertEqual(1, len(game.players[0].hand))
+        self.assertIn(target, game.players[1].board)
+
+    def test_felrattler_deathrattle_damages_enemy_minions(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_EX1_005", 1)
+        rattler = self.add_board(game, "CORE_WC_701", 0)
+        rattler.damage = rattler.max_health
+        game._resolve_deaths()
+        self.assertEqual(1, target.damage)
+
+    def test_rafaam_ladder_draws_different_costs(self):
+        game = self.game()
+        game.players[0].deck = [
+            game._entity("CORE_CS2_023"),
+            game._entity("CORE_EX1_005"),
+            game._entity("CORE_CS2_024"),
+        ]
+        game.players[0].deck[0].definition = game.card_defs["CORE_CS2_023"]
+        spell = self.add_hand(game, "TIME_031")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(3, len(game.players[0].hand))
+        self.assertEqual(3, len({card.definition.cost for card in game.players[0].hand}))
+
+    def test_chronogor_draws_highest_and_gives_lowest(self):
+        game = self.game()
+        deck = [
+            game._entity("CORE_CS2_023"),
+            game._entity("CORE_EX1_005"),
+            game._entity("CORE_CS2_029"),
+            game._entity("CORE_CS2_062"),
+        ]
+        game.players[0].deck = deck
+        construct = self.add_hand(game, "TIME_032")
+        game.step(Action("PLAY", construct.entity_id))
+        self.assertEqual(2, len(game.players[0].hand))
+        self.assertEqual(2, len(game.players[1].hand))
+
+    def test_liferender_requires_hero_health_change(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_EX1_005", 1)
+        target.health_delta = 10
+        liferender = self.add_hand(game, "TIME_614")
+        game.players[0].hero_health_changed_this_turn = True
+        game.step(Action("PLAY", liferender.entity_id,
+                         target_player=1, target_entity=target.entity_id))
+        self.assertEqual(6, target.health)
+
+    def test_gnome_muncher_attacks_lowest_health_enemy(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_EX1_005", 1)
+        target.damage = target.max_health - 1
+        muncher = self.add_hand(game, "RLK_720")
+        game.step(Action("PLAY", muncher.entity_id))
+        game.step(Action("END_TURN"))
+        self.assertNotIn(target, game.players[1].board)
+
+    def test_sigil_of_cinder_triggers_next_turn(self):
+        game = self.game()
+        spell = self.add_hand(game, "FIR_902")
+        game.step(Action("PLAY", spell.entity_id))
+        before = game.players[1].health
+        game._start_turn(0)
+        self.assertLess(game.players[1].health, before)
+
+    def test_tower_of_ghouls_summons_after_damage(self):
+        game = self.game()
+        tower = self.add_board(game, "JAIL_440", 0)
+        game._damage_minion(0, tower, 1)
+        self.assertEqual(2, sum(card.card_id == "JAIL_450t" for card in game.players[0].board))
+
+    def test_tower_of_ghouls_triggers_before_lethal_death_processing(self):
+        game = self.game()
+        tower = self.add_board(game, "JAIL_440", 0)
+        game._damage_minion(0, tower, tower.health)
+        self.assertEqual(2, sum(card.card_id == "JAIL_450t" for card in game.players[0].board))
+        game._resolve_deaths()
+        self.assertEqual(2, sum(card.card_id == "JAIL_450t" for card in game.players[0].board))
+
+    def test_gorishi_wasp_generates_stinger_after_damage(self):
+        game = self.game()
+        wasp = self.add_board(game, "TLC_630", 0)
+        game._damage_minion(0, wasp, 1)
+        self.assertTrue(any(card.card_id == "TLC_630t" for card in game.players[0].hand))
+
+    def test_gorishi_wasp_generates_stinger_before_lethal_death_processing(self):
+        game = self.game()
+        wasp = self.add_board(game, "TLC_630", 0)
+        game._damage_minion(0, wasp, wasp.health)
+        self.assertTrue(any(card.card_id == "TLC_630t" for card in game.players[0].hand))
+
 
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
