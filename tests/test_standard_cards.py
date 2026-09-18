@@ -2365,6 +2365,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         reward = next(card for card in game.players[0].hand if card.card_id == "TLC_460t")
         game.step(Action("PLAY", reward.entity_id))
         self.assertEqual("TLC_460t", game.players[0].weapon.card_id)
+        self.assertEqual(8, game.players[0].weapon.durability)
 
     def test_ashalon_plants_adaptation_summons_two_plants(self):
         game = self.game()

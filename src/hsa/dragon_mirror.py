@@ -4106,7 +4106,11 @@ class DragonMirrorGame:
         elif card.definition.card_type == "LOCATION":
             player.locations.append(Location(card.entity_id, card.card_id, card.definition.health, 2))
         elif card.definition.card_type == "WEAPON":
-            durability = getattr(card.definition, "durability", 0) or 2
+            durability = (
+                card.definition.health
+                if card.card_id == "TLC_460t"
+                else getattr(card.definition, "durability", 0) or 2
+            )
             self._equip_weapon(
                 player,
                 Weapon(card.card_id, card.definition.name, card.definition.attack, durability),
@@ -6316,7 +6320,11 @@ class DragonMirrorGame:
                                 )
                     self._dispatch_after_spell_cast(player, option)
                 elif option.definition.card_type == "WEAPON":
-                    durability = getattr(option.definition, "durability", 0) or 2
+                    durability = (
+                        option.definition.health
+                        if option.card_id == "TLC_460t"
+                        else getattr(option.definition, "durability", 0) or 2
+                    )
                     self._equip_weapon(
                         player, Weapon(option.card_id, option.definition.name,
                                        option.definition.attack, durability),
