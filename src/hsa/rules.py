@@ -192,6 +192,9 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
     "CATA_161", "CATA_301", "CATA_477", "CATA_527", "CATA_569", "CATA_724", "CORE_AT_052", "CORE_EX1_250", "CORE_OG_044", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "CS3_007", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010", "END_028", "JAIL_380", "JAIL_462", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_601", "TIME_810", "TLC_227", "TLC_449",  # Standard mechanism tranche
+    # Continuous-aura entities already handled by the engine refresh pass.
+    "CORE_NEW1_027", "CORE_CS2_122", "CORE_CS2_222", "CORE_EX1_507",
+    "CORE_EX1_162", "JAIL_459", "EDR_258", "CATA_153t", "CATA_153t1", "CATA_565t",
     "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
@@ -8912,6 +8915,40 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332 + continuous aura engine",
                        verification=("test_bralma_elemental_damage_aura",)),
         ),
+        # These are audit markers rather than duplicate play hooks.  Their
+        # static effects are recalculated by Game._refresh_continuous so the
+        # same implementation covers silence, death, dormancy and summon
+        # ordering without adding one-off registry actions.
+        CardRule("CORE_NEW1_027", {},
+                 RuleSource("official_text_and_engine_verified", "continuous aura engine",
+                            verification=("test_raid_leader_aura_buffs_other_minions_only",))),
+        CardRule("CORE_CS2_122", {},
+                 RuleSource("official_text_and_engine_verified", "continuous aura engine",
+                            verification=("test_raid_leader_aura_buffs_other_minions_only",))),
+        CardRule("CORE_CS2_222", {},
+                 RuleSource("official_text_and_engine_verified", "continuous aura engine",
+                            verification=("test_raid_leader_aura_buffs_other_minions_only",))),
+        CardRule("CORE_EX1_507", {},
+                 RuleSource("official_text_and_engine_verified", "continuous aura engine",
+                            verification=("test_raid_leader_aura_buffs_other_minions_only",))),
+        CardRule("CORE_EX1_162", {},
+                 RuleSource("official_text_and_engine_verified", "continuous aura engine",
+                            verification=("test_raid_leader_aura_buffs_other_minions_only",))),
+        CardRule("JAIL_459", {},
+                 RuleSource("official_text_and_engine_verified", "continuous aura engine",
+                            verification=("test_arachnathid_aura_grants_poisonous",))),
+        CardRule("EDR_258", {},
+                 RuleSource("official_text_and_engine_verified", "continuous aura engine",
+                            verification=("test_toreth_aura_expands_divine_shield",))),
+        CardRule("CATA_153t", {},
+                 RuleSource("official_text_and_engine_verified", "continuous aura engine",
+                            verification=("test_herald_neighbor_attack_aura",))),
+        CardRule("CATA_153t1", {},
+                 RuleSource("official_text_and_engine_verified", "continuous aura engine",
+                            verification=("test_herald_neighbor_attack_aura",))),
+        CardRule("CATA_565t", {},
+                 RuleSource("official_text_and_engine_verified", "continuous aura engine",
+                            verification=("test_herald_neighbor_attack_aura",))),
         CardRule(
             "CATA_724", {
                 Hook.AFTER_PLAY: (Overload(3),),
