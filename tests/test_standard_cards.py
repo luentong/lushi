@@ -190,6 +190,24 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual("CORE_CS2_013", game.players[0].hand[0].card_id)
         self.assertEqual(1, len(game.players[0].deck))
 
+    def test_scaled_lancer_aura_adds_enemy_taunt_and_clears_on_silence(self):
+        game = self.game()
+        aura = self.add_board(game, "CATA_898", 0)
+        enemy = self.add_board(game, "CORE_EX1_005", 1)
+        self.assertTrue(game._has_taunt(1, enemy))
+        aura.silenced = True
+        game._refresh_continuous(game.players[0])
+        self.assertFalse(game._has_taunt(1, enemy))
+
+    def test_raid_leader_aura_buffs_other_minions_only(self):
+        game = self.game()
+        leader = self.add_board(game, "CORE_CS2_122", 0)
+        other = self.add_board(game, "CORE_EX1_005", 0)
+        game._refresh_continuous(game.players[0])
+        base = other.definition.attack
+        self.assertEqual(base + 1, other.attack)
+        self.assertEqual(leader.definition.attack, leader.attack)
+
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
         spell = self.add_hand(game, "EDR_490")
