@@ -186,6 +186,7 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 }
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
+    "JAIL_906",  # Moragg
     "JAIL_998",  # Defias Smuggler
     "JAIL_912",  # Soothsayer
     "JAIL_453",  # Jailbird
