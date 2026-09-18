@@ -1064,6 +1064,37 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertTrue(all(card.definition.spell_school == "FIRE" for card in generated))
         self.assertTrue(all(card.cost <= 0 for card in generated))
 
+    def test_black_blood_colossal_bodies(self):
+        game = self.game()
+        black_blood = self.add_hand(game, "CATA_300")
+        game.step(Action("PLAY", black_blood.entity_id))
+        bodies = [m for m in game.players[0].board if m.card_id.startswith("CATA_300t")]
+        self.assertEqual(3, len(bodies))
+
+    def test_chromatus_heads_remove_keywords(self):
+        game = self.game()
+        chromatus = self.add_hand(game, "CATA_432")
+        game.step(Action("PLAY", chromatus.entity_id))
+        heads = [m for m in game.players[0].board if m.card_id.startswith("CATA_432t")]
+        self.assertEqual(4, len(heads))
+        self.assertTrue(chromatus.taunt and chromatus.lifesteal and chromatus.elusive)
+        head = next(m for m in heads if m.card_id == "CATA_432t1")
+        head.damage = head.max_health
+        game._resolve_deaths()
+        self.assertFalse(chromatus.taunt)
+
+    def test_chogall_colossal_arms(self):
+        game = self.game()
+        chogall = self.add_hand(game, "CATA_726")
+        game.step(Action("PLAY", chogall.entity_id))
+        arms = [m for m in game.players[0].board if m.card_id in {"CATA_726t", "CATA_726t1"}]
+        self.assertEqual(2, len(arms))
+        enemy_minion = game._entity("CATA_565")
+        game.players[1].deck.append(enemy_minion)
+        before = len(game.players[1].deck)
+        game._end_turn()
+        self.assertEqual(before - 1, len(game.players[1].deck))
+
     def test_experimental_animation_heralds_and_damages_enemy_minions(self):
         game = self.game()
         enemy = self.add_board(game, "TLC_248", 1)

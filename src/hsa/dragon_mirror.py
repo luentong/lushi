@@ -186,6 +186,9 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 }
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
+    "CATA_300",  # The Black Blood
+    "CATA_432",  # Chromatus
+    "CATA_726",  # Cho'gall, Mastermind
     "CATA_153",  # Al'Akir, Lord of Storms
     "CATA_154",  # Sinestra
     "CATA_488",  # Vulcanos
@@ -318,6 +321,8 @@ ADDITIONAL_PLAYABLE_SPELL_IDS = {
 }
 
 SPECIAL_TOKEN_IDS = {
+    "CATA_300t1", "CATA_300t2", "CATA_300t3",
+    "CATA_432t1", "CATA_432t2", "CATA_432t3", "CATA_432t4",
     "CATA_561t",  # Breezling
     "CATA_153t", "CATA_153t1",  # Charged Hand of Al'Akir
     "CATA_154t", "CATA_154t1",  # Sinestra's Wing
@@ -1780,6 +1785,14 @@ class DragonMirrorGame:
             self._summon_colossal_appendages(player, minion, "CATA_154t", 2)
         elif minion.card_id == "CATA_488":
             self._summon_colossal_appendages(player, minion, "CATA_488t", 2)
+        elif minion.card_id == "CATA_300":
+            self._summon_colossal_appendages(
+                player, minion, "CATA_300t1", 3,
+            )
+        elif minion.card_id == "CATA_432":
+            self._summon_chromatus_heads(player, minion)
+        elif minion.card_id == "CATA_726":
+            self._summon_colossal_appendages(player, minion, "CATA_726t", 2)
         elif minion.card_id == "CATA_151":
             self._summon_azshara_tentacles(player, minion)
         elif minion.card_id == "CATA_155":
@@ -1805,6 +1818,27 @@ class DragonMirrorGame:
             self._event(
                 "colossal_appendage", player=player.index,
                 source=parent.entity_id, entity=appendage.entity_id,
+                side="left" if offset % 2 == 0 else "right",
+            )
+
+    def _summon_chromatus_heads(
+        self, player: Player, chromatus: CardInstance
+    ) -> None:
+        """Summon Chromatus's four heads in printed order around its body."""
+        for offset, card_id in enumerate(
+            ("CATA_432t1", "CATA_432t2", "CATA_432t3", "CATA_432t4")
+        ):
+            if len(player.board) + len(player.locations) >= 7:
+                break
+            index = player.board.index(chromatus)
+            position = index if offset % 2 == 0 else index + 1
+            head = self._entity(card_id, created_by=chromatus.card_id)
+            head.colossal_parent_entity = chromatus.entity_id
+            head.summoned_turn = self.turn
+            self._summon(player, head, position=position)
+            self._event(
+                "colossal_appendage", player=player.index,
+                source=chromatus.entity_id, entity=head.entity_id,
                 side="left" if offset % 2 == 0 else "right",
             )
 
@@ -2455,6 +2489,30 @@ class DragonMirrorGame:
                 self._resolve_deaths()
             elif minion.card_id == "CAP_107t" and not minion.silenced:
                 self._fire_cannoneer(player, minion, reason="end_turn")
+            elif minion.card_id in {"CATA_300t1", "CATA_300t2", "CATA_300t3"} and not minion.silenced:
+                damaged = [m for m in player.board if m.health > 0 and m.damage > 0]
+                if player.health < player.max_health:
+                    damaged.append(None)
+                if damaged:
+                    target = self.rng.choice(damaged)
+                    if target is None:
+                        player.health = min(player.max_health, player.health + 3)
+                        restored = "hero"
+                    else:
+                        amount = min(3, target.damage)
+                        target.damage -= amount
+                        restored = target.entity_id
+                    self._event("black_blood_restore", player=player.index,
+                                source=minion.entity_id, restored=restored)
+                    enemies = self._random_enemy_minions(player.index)
+                    bodies = [m for m in player.board if m.card_id == "CATA_300"
+                              and not m.silenced and m.dormant_turns == 0
+                              and m.health > 0]
+                    if bodies and enemies:
+                        self._forced_minion_attack(
+                            player.index, self.rng.choice(bodies),
+                            1 - player.index, self.rng.choice(enemies),
+                        )
             elif not minion.silenced and self.rule_registry.dispatch(
                 Hook.END_TURN, minion.card_id, self,
                 RuleContext(player=player, card=minion),
@@ -8149,6 +8207,33 @@ class DragonMirrorGame:
             Hook.DEATHRATTLE, minion.card_id, self,
             RuleContext(player=player, card=minion),
         )
+        # Chromatus heads remove exactly their own keyword from the surviving
+        # parent.  The parent entity link matters when multiple Chromatuses
+        # are present; looking only at the card ID would mutate the wrong one.
+        chromatus_keyword = {
+            "CATA_432t1": "taunt",
+            "CATA_432t2": "lifesteal",
+            "CATA_432t3": "elusive",
+            "CATA_432t4": "divine_shield",
+        }.get(minion.card_id)
+        if chromatus_keyword and minion.colossal_parent_entity is not None:
+            parent = next(
+                (
+                    candidate for candidate in player.board
+                    if candidate.entity_id == minion.colossal_parent_entity
+                    and candidate.card_id == "CATA_432"
+                ),
+                None,
+            )
+            if parent is not None:
+                setattr(parent, chromatus_keyword, False)
+                if chromatus_keyword == "divine_shield":
+                    parent.divine_shield_hits = 0
+                self._event(
+                    "chromatus_head_removed_keyword", player=player.index,
+                    source=minion.entity_id, parent=parent.entity_id,
+                    keyword=chromatus_keyword,
+                )
         if minion.card_id == "TLC_513t2" and player.ninja_shuffle_active:
             returned = self._entity("TLC_513t2", started_in_deck=True,
                                     created_by="TLC_513t")

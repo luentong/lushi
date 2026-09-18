@@ -2484,6 +2484,36 @@ class HeraldDestroyRightAndGrow:
 
     def execute(self, game: Any, context: RuleContext) -> None:
         player = context.player
+        # Cho'gall's Arms/Soldiers replace the adjacent destruction with a
+        # random minion destroyed from the enemy deck while Cho'gall lives.
+        # The parent link prevents another copy's Arm from changing targets.
+        cho_gall = next(
+            (
+                minion for minion in player.board
+                if minion.card_id == "CATA_726"
+                and not minion.silenced
+                and minion.dormant_turns == 0
+                and minion.health > 0
+                and context.card.colossal_parent_entity == minion.entity_id
+            ),
+            None,
+        )
+        if cho_gall is not None:
+            enemy = game.players[1 - player.index]
+            candidates = [
+                card for card in enemy.deck
+                if card.definition.card_type == "MINION"
+            ]
+            if candidates:
+                destroyed = game.rng.choice(candidates)
+                enemy.deck.remove(destroyed)
+                game._event(
+                    "chogall_deck_destroy", player=player.index,
+                    source=context.card.entity_id, card=destroyed.card_id,
+                )
+                context.card.attack_delta += context.card.herald_power
+                context.card.health_delta += context.card.herald_power
+            return
         try:
             index = player.board.index(context.card)
         except ValueError:
@@ -6953,6 +6983,18 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CATA_488", {Hook.END_TURN: (DamageAllOtherMinions(3),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Colossal appendage model", ("test_vulcanos_colossal_and_end_turn_damage",)),
+        ),
+        CardRule(
+            "CATA_300", {},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Colossal appendage model", ("test_black_blood_colossal_bodies",)),
+        ),
+        CardRule(
+            "CATA_432", {},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Colossal appendage model", ("test_chromatus_heads_remove_keywords",)),
+        ),
+        CardRule(
+            "CATA_726", {},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Colossal appendage model", ("test_chogall_colossal_arms",)),
         ),
         CardRule(
             "CATA_725t", {Hook.END_TURN: (HeraldDestroyRightAndGrow(),)},
