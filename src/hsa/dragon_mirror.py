@@ -316,6 +316,8 @@ ADDITIONAL_PLAYABLE_SPELL_IDS = {
 
 SPECIAL_TOKEN_IDS = {
     "CATA_561t",  # Breezling
+    "CATA_153t", "CATA_153t1",  # Charged Hand of Al'Akir
+    "CATA_154t", "CATA_154t1",  # Sinestra's Wing
     "BOT_102t",  # Spark
     "CAP_107t",  # Cannoneer
     "CATA_155t",  # Onyxia's Wing
@@ -1712,6 +1714,27 @@ class DragonMirrorGame:
                 "azshara_tentacle", player=player.index,
                 entity=minion.entity_id, attack=amount,
             )
+        elif minion.card_id in {"CATA_154t", "CATA_154t1"}:
+            # The Wing token's generated spell is discounted by the current
+            # Herald tier.  Keep the class pool explicit and executable-only,
+            # as with the other random-generation effects.
+            candidates = sorted(
+                card_id for card_id, definition in self.card_defs.items()
+                if card_id in EXECUTABLE_CARD_IDS
+                and definition.card_type == "SPELL"
+                and definition.card_class not in {"", player.card_class}
+            )
+            if candidates:
+                generated = self._entity(
+                    self.rng.choice(candidates), created_by=minion.card_id
+                )
+                generated.cost_delta -= self._herald_power(player.herald_count)
+                self._add_generated(player, generated)
+                self._event(
+                    "sinestra_wing_spell", player=player.index,
+                    source=minion.entity_id, card=generated.card_id,
+                    discount=self._herald_power(player.herald_count),
+                )
         elif minion.card_id == "CATA_151":
             self._summon_azshara_tentacles(player, minion)
         elif minion.card_id == "CATA_155":
@@ -2867,6 +2890,19 @@ class DragonMirrorGame:
                     dire_wolf_neighbors[neighbor.entity_id] = (
                         dire_wolf_neighbors.get(neighbor.entity_id, 0) + 1
                     )
+        charged_hand_neighbors: dict[int, int] = {}
+        for index, source in enumerate(player.board):
+            if source.card_id not in {"CATA_153t", "CATA_153t1"} or source not in active:
+                continue
+            bonus = max(1, source.herald_power)
+            for neighbor_index in (index - 1, index + 1):
+                if 0 <= neighbor_index < len(player.board):
+                    neighbor = player.board[neighbor_index]
+                    if neighbor in active:
+                        charged_hand_neighbors[neighbor.entity_id] = (
+                            charged_hand_neighbors.get(neighbor.entity_id, 0)
+                            + bonus
+                        )
         for minion in player.board:
             minion.pirate_aura_stats = (
                 captains
@@ -2895,6 +2931,7 @@ class DragonMirrorGame:
                         if minion.has_race("MURLOC") else 0
                     )
                     + dire_wolf_neighbors.get(minion.entity_id, 0)
+                    + charged_hand_neighbors.get(minion.entity_id, 0)
                 )
                 minion.aura_health_bonus = (
                     champions

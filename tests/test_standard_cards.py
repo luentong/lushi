@@ -935,6 +935,21 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(2, sum(m.card_id == "CATA_561t" for m in game.players[0].board))
         self.assertTrue(all(m.rush for m in game.players[0].board if m.card_id == "CATA_561t"))
 
+    def test_herald_derived_charged_hand_aura_and_sinestra_wing(self):
+        game = self.game()
+        left = self.add_board(game, "CATA_565", 0)
+        hand = game._entity("CATA_153t")
+        hand.herald_power = 2
+        hand.summoned_turn = game.turn
+        game._summon(game.players[0], hand)
+        self.assertEqual(2, left.aura_attack_bonus)
+
+        game = self.game()
+        wing = game._entity("CATA_154t")
+        wing.summoned_turn = game.turn
+        game._summon(game.players[0], wing)
+        self.assertTrue(any(card.created_by == "CATA_154t" for card in game.players[0].hand))
+
     def test_experimental_animation_heralds_and_damages_enemy_minions(self):
         game = self.game()
         enemy = self.add_board(game, "TLC_248", 1)
