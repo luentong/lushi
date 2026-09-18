@@ -3225,10 +3225,17 @@ class DragonMirrorGame:
         if card_class == "WARRIOR":
             self._gain_armor(player, player.hero_power_armor)
         elif card_class == "MAGE":
+            bonus = sum(
+                minion.card_id == "CORE_AT_003"
+                and not minion.silenced
+                and minion.dormant_turns == 0
+                and minion.health > 0
+                for minion in player.board
+            )
             self._deal_to_target(
                 player.index,
                 (action.target_player, action.target_entity),
-                1,
+                1 + bonus,
             )
         elif card_class == "PRIEST":
             if action.target_entity is None:

@@ -2407,6 +2407,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", weapon.entity_id))
         self.assertEqual(5, game.players[0].weapon.durability)
 
+    def test_fallen_hero_increases_mage_hero_power_damage(self):
+        game = self.game()
+        game.players[0].card_class = "MAGE"
+        self.add_board(game, "CORE_AT_003", 0)
+        game.players[0].mana = 2
+        game.step(Action("HERO_POWER", target_player=1, target_entity=None))
+        self.assertEqual(28, game.players[1].health)
+
     def test_secret_ingredient_choose_one_attack_or_druid_card(self):
         attack_game = self.game()
         ingredient = self.add_hand(attack_game, "JAIL_201")
