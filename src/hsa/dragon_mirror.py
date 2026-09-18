@@ -47,7 +47,7 @@ DIRECT_IDS = {
     "JAIL_384",
     "CAP_105",
     "CAP_107",
-    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_570", "EDR_843", "EDR_872", "END_010", "JAIL_877", "JAIL_887", "JAIL_987", "MEND_044", "TIME_044", "TLC_449",
+    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010", "JAIL_877", "JAIL_887", "JAIL_987", "MEND_044", "TIME_044", "TLC_449",
     "TIME_436", "TIME_446", "TIME_810",
 }
 
@@ -930,6 +930,7 @@ class CardInstance:
     copied_from_opponent: bool = False
     deathrattle_copy_card_id: str | None = None
     deathrattle_summon_card_id: str | None = None
+    deathrattle_damage_all_enemies: int = 0
     killed_by_entity: int | None = None
     devoured_cards: list[CardInstance] = field(default_factory=list)
     imprisoned_entity_id: int | None = None
@@ -1095,6 +1096,7 @@ class Player:
     hero_lifesteal_turn: int = -1
     hero_attacks_this_turn: int = 0
     hero_attacks_this_game: int = 0
+    hero_poisonous_until_turn: int = -1
     avatar_form_hero_pending: bool = False
     void_soul_level: int = 1
     # Shared Leyline progression.  Crystallized Leyline reads this value;
@@ -8889,6 +8891,12 @@ class DragonMirrorGame:
             before = max(0, defender.health)
             self._damage_minion(action.target_player, defender, player.attack)
             if (
+                player.hero_poisonous_until_turn == self.turn
+                and defender.health > 0
+            ):
+                defender.damage = defender.max_health
+                self._resolve_deaths()
+            if (
                 defender.health <= 0
                 and player.weapon
                 and player.weapon.card_id == "CORE_RLK_086"
@@ -9515,6 +9523,17 @@ class DragonMirrorGame:
             Hook.DEATHRATTLE, minion.card_id, self,
             RuleContext(player=player, card=minion),
         )
+        if minion.deathrattle_damage_all_enemies:
+            amount = minion.deathrattle_damage_all_enemies
+            opponent = self.players[1 - player.index]
+            self._damage_hero(opponent, amount, minion)
+            for target in list(opponent.board):
+                self._damage_minion(opponent.index, target, amount, minion)
+            self._resolve_deaths()
+            self._event(
+                "deathrattle_damage_all_enemies", player=player.index,
+                source=minion.entity_id, amount=amount,
+            )
         if minion.card_id == "END_017t":
             opponent = self.players[1 - player.index]
             removed = len(opponent.hand)

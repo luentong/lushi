@@ -49,7 +49,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_standard_choose_one_batch_is_executable(self):
         game = self.game()
-        self.assertTrue({"Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_490", "EDR_570", "EDR_843", "EDR_872", "END_010"}
+        self.assertTrue({"Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_490", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010"}
                         <= game.executable_card_ids)
 
     def test_boomkin_choose_one_deals_damage_or_heals(self):
@@ -104,6 +104,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", source.entity_id))
         game.step(Action("RULE_CHOICE_PICK", 0))
         self.assertEqual(1, other.attack)
+
+    def test_barbed_thorn_choose_one_grants_hero_poisonous(self):
+        game = self.game()
+        thorn = self.add_hand(game, "EDR_525")
+        game.step(Action("PLAY", thorn.entity_id))
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        self.assertEqual(game.turn, game.players[0].hero_poisonous_until_turn)
 
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()

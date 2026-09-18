@@ -191,7 +191,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
-    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_570", "EDR_843", "EDR_872", "END_010", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Standard mechanism tranche
+    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Standard mechanism tranche
     "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
@@ -3159,6 +3159,20 @@ class SetOtherMinionsStat:
                     raise ValueError(f"unsupported minion stat: {self.stat}")
         if self.stat == "health":
             game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class GiveHeroPoisonousThisTurn:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.hero_poisonous_until_turn = game.turn
+
+
+@dataclass(frozen=True)
+class SetDeathrattleDamageAllEnemies:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.card.deathrattle_damage_all_enemies = self.amount
 
 
 @dataclass(frozen=True)
@@ -8775,6 +8789,14 @@ def build_rule_registry() -> RuleRegistry:
             )),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
                        verification=("test_twilight_timereaver_choose_one_stats",)),
+        ),
+        CardRule(
+            "EDR_525", {Hook.BATTLECRY: (OfferEffectChoice((
+                ("hero_poisonous", (GiveHeroPoisonousThisTurn(),)),
+                ("enemy_deathrattle", (SetDeathrattleDamageAllEnemies(2),)),
+            )),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_barbed_thorn_choose_one",)),
         ),
         CardRule(
             "CORE_ONY_018", {Hook.BATTLECRY: (OfferEffectChoice((
