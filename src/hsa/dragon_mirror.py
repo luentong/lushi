@@ -1095,6 +1095,7 @@ class Player:
     # The expiry is the owner's next turn, not the opponent's intervening turn.
     hero_immune: bool = False
     hero_immune_expiry_turn: int = -1
+    corpse_rebirth_pending: bool = False
     turns_taken: int = 0
     dragons_played_this_turn: int = 0
     start_turn_temporary_mana_charges: int = 0
@@ -2020,6 +2021,22 @@ class DragonMirrorGame:
             self._summon_wickerfang_legs(player, minion)
         elif minion.card_id in {"CATA_155t", "CATA_155t1"}:
             self._get_onyxia_wing_minion(player, minion)
+        # Corpse Flower watches the opponent's completed summons.  Resolve
+        # this after summon-side effects so the summoned minion is a legal
+        # target, while still allowing the trigger to kill it immediately.
+        opponent = self.players[1 - player.index]
+        flowers = [m for m in opponent.board
+                   if m.card_id == "EDR_815" and not m.silenced
+                   and m.dormant_turns == 0 and m.health > 0]
+        if flowers and player.index != opponent.index and opponent.corpses >= 2:
+            for flower in flowers:
+                if opponent.corpses < 2 or minion not in player.board:
+                    break
+                opponent.corpses -= 2
+                self._damage_minion(player.index, minion, 3, flower)
+                self._event("corpse_flower_trigger", player=opponent.index,
+                            source=flower.entity_id, target=minion.entity_id)
+                self._resolve_deaths()
 
     def _summon_colossal_appendages(
         self, player: Player, parent: CardInstance, card_id: str, count: int
@@ -8671,6 +8688,14 @@ class DragonMirrorGame:
             )
             return
         player.health -= health_loss
+        if player.health <= 0 and player.corpse_rebirth_pending:
+            amount = min(20, player.corpses)
+            if amount > 0:
+                player.corpses -= amount
+                player.health = min(player.max_health, amount)
+                player.corpse_rebirth_pending = False
+                self._event("corpse_rebirth", player=player.index,
+                            amount=amount, source=getattr(source, "card_id", None))
         self.players[player.index].damaged_characters_this_turn.add(f"hero:{player.index}")
         if source and source.lifesteal:
             owner = self.players[1 - player.index]
@@ -9676,6 +9701,7 @@ class DragonMirrorGame:
                 "generated_cards_played": player.generated_cards_played,
                 "pending_phoenixes": player.pending_phoenixes,
                 "corpses": player.corpses,
+                "corpse_rebirth_pending": player.corpse_rebirth_pending,
                 "pending_magmaw_bodies": player.pending_magmaw_bodies,
                 "overloaded_mana_this_game": player.overloaded_mana_this_game,
                 "overload_next_turn": player.overload_next_turn,

@@ -853,6 +853,14 @@ class RaiseOneCorpseEndTurn:
 
 
 @dataclass(frozen=True)
+class ArmCorpseRebirth:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.corpse_rebirth_pending = True
+        game._event("corpse_rebirth_armed", player=context.player.index,
+                    source=context.card.card_id)
+
+
+@dataclass(frozen=True)
 class DrawThenShuffleSource:
     """Draw a card, then shuffle the played source card back into its deck."""
 
@@ -7486,6 +7494,16 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
                        verification=("test_morbid_swarm_choose_one",)),
             TargetSpec(TargetKind.ANY_MINION, optional=True),
+        ),
+        CardRule(
+            "EDR_815", {},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_corpse_flower_triggers_on_opponent_summon",)),
+        ),
+        CardRule(
+            "TIME_618", {Hook.BATTLECRY: (ArmCorpseRebirth(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_husk_arms_corpse_rebirth",)),
         ),
         CardRule(
             "CORE_CATA_009", {Hook.SPELL: (FreezeActionTarget(), OfferSpellDiscover())},
