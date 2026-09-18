@@ -4371,7 +4371,10 @@ class HealHero:
     def execute(self, game: Any, context: RuleContext) -> None:
         player = _recipient(game, context, self.side)
         amount = game._spell_effect_amount(context.player, context.card, self.amount)
-        player.health = min(player.max_health, player.health + amount)
+        restored = min(amount, max(0, player.max_health - player.health))
+        player.health += restored
+        if restored:
+            game._black_blood_after_restore(player, source=context.card)
 
 
 @dataclass(frozen=True)
@@ -4384,12 +4387,18 @@ class HealActionTarget:
         amount = game._spell_effect_amount(context.player, context.card, self.amount)
         if context.action.target_entity is None:
             target = game.players[context.action.target_player]
-            target.health = min(target.max_health, target.health + amount)
+            restored = min(amount, max(0, target.max_health - target.health))
+            target.health += restored
         else:
             target = game._find_minion(
                 context.action.target_player, context.action.target_entity
             )
-            target.damage = max(0, target.damage - amount)
+            restored = min(amount, target.damage)
+            target.damage -= restored
+        if restored:
+            game._black_blood_after_restore(
+                game.players[context.action.target_player], source=context.card
+            )
 
 
 @dataclass(frozen=True)
@@ -4404,7 +4413,12 @@ class HealActionTargetToFull:
         target = game._find_minion(
             context.action.target_player, context.action.target_entity
         )
+        restored = target.damage
         target.damage = 0
+        if restored:
+            game._black_blood_after_restore(
+                game.players[context.action.target_player], source=context.card
+            )
 
 
 @dataclass(frozen=True)
@@ -4414,9 +4428,13 @@ class HealFriendlyCharacters:
     def execute(self, game: Any, context: RuleContext) -> None:
         player = context.player
         amount = game._spell_effect_amount(context.player, context.card, self.amount)
-        player.health = min(player.max_health, player.health + amount)
+        restored = min(amount, max(0, player.max_health - player.health))
+        player.health += restored
         for minion in player.board:
+            restored += min(amount, minion.damage)
             minion.damage = max(0, minion.damage - amount)
+        if restored:
+            game._black_blood_after_restore(player, source=context.card)
 
 
 @dataclass(frozen=True)
@@ -4441,6 +4459,7 @@ class HealRandomFriendlyCharacters:
                 target.health = min(target.max_health, target.health + 1)
             else:
                 target.damage = max(0, target.damage - 1)
+            game._black_blood_after_restore(player, source=context.card)
         game._event("random_friendly_heal", player=player.index,
                     source=context.card.card_id, amount=self.amount)
 

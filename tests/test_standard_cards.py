@@ -1070,6 +1070,11 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", black_blood.entity_id))
         bodies = [m for m in game.players[0].board if m.card_id.startswith("CATA_300t")]
         self.assertEqual(3, len(bodies))
+        enemy = self.add_board(game, "CATA_565", 1)
+        black_blood.damage = 2
+        heal = self.add_hand(game, "CORE_AT_055")
+        game.step(Action("PLAY", heal.entity_id, 0, black_blood.entity_id))
+        self.assertLess(enemy.health, enemy.max_health)
 
     def test_chromatus_heads_remove_keywords(self):
         game = self.game()

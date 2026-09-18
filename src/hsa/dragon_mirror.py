@@ -2504,15 +2504,7 @@ class DragonMirrorGame:
                         restored = target.entity_id
                     self._event("black_blood_restore", player=player.index,
                                 source=minion.entity_id, restored=restored)
-                    enemies = self._random_enemy_minions(player.index)
-                    bodies = [m for m in player.board if m.card_id == "CATA_300"
-                              and not m.silenced and m.dormant_turns == 0
-                              and m.health > 0]
-                    if bodies and enemies:
-                        self._forced_minion_attack(
-                            player.index, self.rng.choice(bodies),
-                            1 - player.index, self.rng.choice(enemies),
-                        )
+                    self._black_blood_after_restore(player, source=minion)
             elif not minion.silenced and self.rule_registry.dispatch(
                 Hook.END_TURN, minion.card_id, self,
                 RuleContext(player=player, card=minion),
@@ -5656,6 +5648,26 @@ class DragonMirrorGame:
         self._after_minion_attacked(defender_owner, defender)
         self._after_minion_attack(attacker_owner, attacker, attacked_minion=True, was_stealthed=was_stealthed)
         self._resolve_deaths()
+
+    def _black_blood_after_restore(self, player: Player, source: CardInstance | None = None) -> None:
+        """Resolve The Black Blood's trigger after a real Health restore."""
+        bodies = [
+            minion for minion in player.board
+            if minion.card_id == "CATA_300"
+            and not minion.silenced and minion.dormant_turns == 0
+            and minion.health > 0
+        ]
+        for body in bodies:
+            targets = self._random_enemy_minions(player.index)
+            if not targets:
+                continue
+            target = self.rng.choice(targets)
+            self._event("black_blood_attack", player=player.index,
+                        source=body.entity_id, target=target.entity_id,
+                        restore_source=getattr(source, "card_id", None))
+            self._forced_minion_attack(
+                player.index, body, 1 - player.index, target,
+            )
 
     def _finja_kill(
         self, attacker_owner: int, attacker: CardInstance,
