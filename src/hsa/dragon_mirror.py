@@ -309,6 +309,9 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "FIR_958",  # Tindral Sageswift
     "JAIL_509",  # Godfrey the Betrayer
     "TLC_987",  # Questing Assistant
+    "CORE_RLK_083",  # Deathchiller
+    "CORE_RLK_116",  # Necrotic Mortician
+    "RLK_223",  # Thassarian
     "TLC_480",  # Krog, Crater King
     "CORE_EX1_005",  # Big Game Hunter
     "CORE_REV_023",  # Demolition Renovator
@@ -1092,6 +1095,7 @@ class Player:
     hero_power_armor: int = 2
     hero_power_id: str | None = None
     hero_power_imbues: int = 0
+    undead_died_after_last_turn: bool = False
     # Endtime Murozond skips the controller's next turn.  This is a turn-level
     # flag rather than a card-local effect so it survives state cloning and
     # resolves before start-of-turn draws/mana refresh.
@@ -2890,6 +2894,9 @@ class DragonMirrorGame:
 
     def _end_turn(self) -> None:
         player = self.players[self.current]
+        # Start the new observation window before end-of-turn triggers. Any
+        # Undead dying in those triggers belongs to the next opponent turn.
+        player.undead_died_after_last_turn = False
         for minion in list(player.board):
             if minion.card_id == "EDR_979" and minion.dormant_turns > 0 and not minion.silenced:
                 self._gain_armor(player, 3)
@@ -9097,6 +9104,8 @@ class DragonMirrorGame:
                     "minion_died", player=player.index, card=minion.card_id,
                     entity=minion.entity_id,
                 )
+                if minion.has_race("UNDEAD") and player.index != self.current:
+                    player.undead_died_after_last_turn = True
                 gained = corpse_multipliers[player.index]
                 player.corpses += gained
                 if gained > 1:
@@ -9902,6 +9911,7 @@ class DragonMirrorGame:
                 "hero_power_id": player.hero_power_id,
                 "hero_power_armor": player.hero_power_armor,
                 "rune_counts": dict(player.rune_counts),
+                "undead_died_after_last_turn": player.undead_died_after_last_turn,
                 "secrets": [card.card_id for card in player.secrets],
                 "pending_end_turn_returns": [
                     card.card_id for card in player.pending_end_turn_returns

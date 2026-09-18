@@ -182,6 +182,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TLC_817t3", "TLC_817t4", "TLC_817t5", "TLC_830t",
     "END_017", "END_017t",  # Battle at the End Time / Tick and Tock
     "TLC_987",  # Questing Assistant
+    "CORE_RLK_083", "CORE_RLK_116", "RLK_223",  # DK rune cards
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
     "UNG_934t1", "UNG_940t8", "UNG_942t", "UNG_954t1",
     "UNG_999t2t1",
@@ -1817,6 +1818,37 @@ class DamageRandomEnemyCharacters:
             "random_enemy_damage", player=context.player.index,
             source=context.card.card_id, amount=amount, targets=chosen,
         )
+
+
+@dataclass(frozen=True)
+class DeathchillerAfterSpell:
+    """Deathchiller: after a spell, ping two random enemy characters."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        DamageRandomEnemyCharacters(1, 2).execute(game, context)
+
+
+@dataclass(frozen=True)
+class DiscoverUnholyIfUndeadDied:
+    """Necrotic Mortician's conditional Unholy Rune Discover."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if getattr(context.player, "undead_died_after_last_turn", False):
+            game._offer_rune_discover(
+                context.player, rune="unholy", source_card_id=context.card.card_id
+            )
+            game._event(
+                "necrotic_mortician_discover", player=context.player.index,
+                source=context.card.entity_id, rune="unholy",
+            )
+
+
+@dataclass(frozen=True)
+class ThassarianRandomEnemyDamage:
+    """Thassarian's Battlecry and Deathrattle share one random ping."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        DamageRandomEnemyCharacters(2, 1).execute(game, context)
 
 
 @dataclass(frozen=True)
@@ -8482,6 +8514,21 @@ def build_rule_registry() -> RuleRegistry:
             "RLK_024", {Hook.SPELL: (DamageActionTarget(6),)},
             RuleSource("upstream_adapted", rosetta, "RLK_024", "AGPL-3.0", ("test_batch_direct_damage_rules",)),
             TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "CORE_RLK_083", {Hook.AFTER_PLAY: (DeathchillerAfterSpell(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "CORE_RLK_116", {Hook.BATTLECRY: (DiscoverUnholyIfUndeadDied(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "RLK_223", {
+                Hook.BATTLECRY: (ThassarianRandomEnemyDamage(),),
+                Hook.DEATHRATTLE: (ThassarianRandomEnemyDamage(),),
+            },
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
         ),
         CardRule(
             "CATA_156", {Hook.SPELL: (HeraldRagnaros(), DamageEnemyMinions(4),)},
