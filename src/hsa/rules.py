@@ -190,7 +190,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
-    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "EDR_454", "EDR_520", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Location cards
+    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_520", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Standard mechanism tranche
     "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
@@ -5594,6 +5594,46 @@ class BuffFriendlyMinionOrHandAttack:
 
 
 @dataclass(frozen=True)
+class BuffSelfAttackShield:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.card.attack_delta += 3
+        context.card.divine_shield = True
+        context.card.divine_shield_hits = max(1, context.card.divine_shield_hits)
+
+
+@dataclass(frozen=True)
+class BuffSelfHealthLifesteal:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.card.health_delta += 3
+        context.card.lifesteal = True
+
+
+@dataclass(frozen=True)
+class DamageEnemyHero:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._damage_hero(game.players[1 - context.player.index], self.amount, context.card)
+
+
+@dataclass(frozen=True)
+class SummonCustomRushWolf:
+    count: int = 1
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for _ in range(self.count):
+            if len(context.player.board) + len(context.player.locations) >= 7:
+                break
+            token = game._entity("DRG_217t", created_by=context.card.card_id)
+            token.attack_delta += 1
+            token.health_delta -= 1
+            token.taunt = False
+            token.rush = True
+            token.summoned_turn = game.turn
+            game._summon(context.player, token)
+
+
+@dataclass(frozen=True)
 class BuffLocationTargetAndSleep:
     attack: int
     health: int
@@ -6447,6 +6487,27 @@ def build_rule_registry() -> RuleRegistry:
         ),
         CardRule(
             "CATA_527", {Hook.LOCATION: (DamageRandomEnemyCharacters(1, 1),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "EDR_233", {Hook.SPELL: (OfferEffectChoice((
+                ("summon_wolves", (Summon("DRG_217t", count=3),)),
+                ("summon_falcons", (Summon("EDR_233t2", count=2),)),
+            )),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "EDR_257", {Hook.BATTLECRY: (OfferEffectChoice((
+                ("attack_divine_shield", (BuffSelfAttackShield(),)),
+                ("health_lifesteal", (BuffSelfHealthLifesteal(),)),
+            )),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "EDR_263", {Hook.SPELL: (OfferEffectChoice((
+                ("damage_enemy_hero", (DamageEnemyHero(4),)),
+                ("summon_rush_wolves", (SummonCustomRushWolf(2),)),
+            )),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
         ),
         CardRule(

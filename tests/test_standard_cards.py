@@ -47,6 +47,11 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertTrue({"CATA_161", "CATA_301", "CATA_477", "CATA_527", "EDR_454", "EDR_520", "JAIL_877", "JAIL_887", "JAIL_987", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449"}
                         <= game.executable_card_ids)
 
+    def test_standard_choose_one_batch_is_executable(self):
+        game = self.game()
+        self.assertTrue({"EDR_233", "EDR_257", "EDR_263"}
+                        <= game.executable_card_ids)
+
     def test_chef_nethrek_is_executable(self):
         game = self.game()
         self.assertIn("JAIL_860", game.executable_card_ids)
