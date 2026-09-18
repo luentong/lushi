@@ -4941,6 +4941,17 @@ class DragonMirrorGame:
                 for a in costs for b in costs if b >= a
                 for c in costs if c >= b and a + b + c == 12
             ]
+            if not cost_triples:
+                fallback = [
+                    (a, b, c)
+                    for a in costs for b in costs if b >= a
+                    for c in costs if c >= b and a + b + c <= 12
+                ]
+                if fallback:
+                    best_total = max(sum(item) for item in fallback)
+                    cost_triples = [
+                        item for item in fallback if sum(item) == best_total
+                    ]
             chosen = None
             if cost_triples:
                 chosen_costs = self.rng.choice(cost_triples)
