@@ -187,6 +187,7 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 }
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
+    "TLC_100",  # Elise the Navigator
     "JAIL_860",  # Chef Neth'rek
     "JAIL_719",  # Irida Sinseeker
     "JAIL_446",  # Blood Doctor Thal'ena
@@ -4158,6 +4159,63 @@ class DragonMirrorGame:
         if option_index is None or not 0 <= option_index < len(pending["options"]):
             raise ValueError("invalid rule choice")
         player = self.players[pending["player"]]
+        if pending.get("stage") == "ELISE_COST":
+            cost = pending["costs"][option_index]
+            effect_ids = (
+                "bursting_geyser", "shining_moonlight", "runic_inscriptions",
+                "snapping_plants", "nesting_grounds", "lava_stream",
+                "radiant_crystals",
+            )
+            self.pending_choice = {
+                "kind": "RULE_CHOICE", "stage": "ELISE_EFFECTS",
+                "player": player.index, "card": pending["card"],
+                "action": pending.get("action"), "cost": cost,
+                "selected_effects": [],
+                "options": tuple(
+                    (effect.replace("_", " ").title(), ())
+                    for effect in effect_ids
+                ),
+            }
+            self._event(
+                "elise_location_cost_pick", player=player.index,
+                source=pending["card"].card_id, cost=cost,
+            )
+            return
+        if pending.get("stage") == "ELISE_EFFECTS":
+            selected = list(pending["selected_effects"])
+            effect_id = pending["options"][option_index][0].lower().replace(" ", "_")
+            selected.append(effect_id)
+            if len(selected) < 2:
+                self.pending_choice = {
+                    **pending,
+                    "selected_effects": selected,
+                    "options": tuple(
+                        option for option in pending["options"]
+                        if option[0].lower().replace(" ", "_") not in selected
+                    ),
+                }
+                self._event(
+                    "elise_location_effect_pick", player=player.index,
+                    source=pending["card"].card_id, effect=effect_id,
+                    remaining=1,
+                )
+                return
+            location_id = {
+                1: "TLC_100t1", 5: "TLC_100t2", 10: "TLC_100t3",
+            }[pending["cost"]]
+            location = Location(
+                self.next_entity_id, location_id, 2,
+                custom_effects=tuple(selected), custom_tier=pending["cost"],
+            )
+            self.next_entity_id += 1
+            player.locations.append(location)
+            self.pending_choice = None
+            self._event(
+                "elise_location_created", player=player.index,
+                source=pending["card"].card_id, location=location_id,
+                cost=pending["cost"], effects=selected,
+            )
+            return
         self.pending_choice = None
         if pending["kind"] == "ASHALON_ADAPT":
             adaptation = pending["options"][option_index]
@@ -4836,6 +4894,26 @@ class DragonMirrorGame:
                 "rulebreaker_hero_power", player=player.index,
                 source=card.card_id, hero_power="JAIL_446hp",
             )
+            return
+        if card.card_id == "TLC_100":
+            started_costs = {
+                held.definition.cost for held in player.deck
+                if held.started_in_deck
+            }
+            if len(started_costs) >= 10 and len(player.locations) < 7:
+                self.pending_choice = {
+                    "kind": "RULE_CHOICE", "stage": "ELISE_COST",
+                    "player": player.index, "card": card, "action": action,
+                    "costs": (1, 5, 10),
+                    "options": tuple(
+                        (f"Craft {cost} Mana Location", ())
+                        for cost in (1, 5, 10)
+                    ),
+                }
+                self._event(
+                    "elise_location_cost_offer", player=player.index,
+                    source=card.card_id, costs=[1, 5, 10],
+                )
             return
         if card.card_id == "JAIL_851":
             opponent = self.players[1 - player.index]

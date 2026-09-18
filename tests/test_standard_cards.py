@@ -97,6 +97,28 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("RULE_CHOICE_PICK", 0))
         self.assertEqual("CORE_CS2_013", game.players[0].holmes_target_card_id)
 
+    def test_elise_navigator_location_choices(self):
+        game = self.game()
+        by_cost = {}
+        for card_id, definition in game.card_defs.items():
+            if definition.card_type and definition.cost not in by_cost:
+                by_cost[definition.cost] = card_id
+        game.players[0].deck = [
+            game._entity(by_cost[cost], started_in_deck=True)
+            for cost in range(10) if cost in by_cost
+        ]
+        elise = self.add_hand(game, "TLC_100")
+        game.step(Action("PLAY", elise.entity_id))
+        self.assertEqual("ELISE_COST", game.pending_choice["stage"])
+        game.step(Action("RULE_CHOICE_PICK", 1))
+        self.assertEqual("ELISE_EFFECTS", game.pending_choice["stage"])
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        self.assertIsNone(game.pending_choice)
+        self.assertEqual(1, len(game.players[0].locations))
+        self.assertEqual(5, game.players[0].locations[0].custom_tier)
+        self.assertEqual(2, len(game.players[0].locations[0].custom_effects))
+
     def game(self) -> DragonMirrorGame:
         game = DragonMirrorGame(CARDS, 29)
         game.current = 0

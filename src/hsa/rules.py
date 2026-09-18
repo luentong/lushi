@@ -6302,6 +6302,13 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule(
+            "TLC_100", {},
+            RuleSource(
+                "local_spec", local,
+                verification=("test_elise_navigator_location_choices",),
+            ),
+        ),
+        CardRule(
             "CORE_SW_068", {Hook.DEATHRATTLE: (GainArmor(8),)},
             RuleSource(
                 "upstream_adapted", rosetta, "CORE_SW_068", "AGPL-3.0",
