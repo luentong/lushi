@@ -6271,6 +6271,15 @@ class DragonMirrorGame:
                     started_in_deck=option.started_in_deck,
                     created_by=option.created_by, origin_stone=True,
                 )
+                if option.definition.card_type == "MINION":
+                    player.minion_played_this_turn = True
+                    player.played_races_this_turn.update(option.definition.races)
+                    player.played_races_this_game.update(option.definition.races)
+                    if option.definition.race:
+                        player.played_races_this_turn.add(option.definition.race)
+                        player.played_races_this_game.add(option.definition.race)
+                    if option.has_race("DRAGON"):
+                        player.dragons_played_this_turn += 1
                 action = Action("PLAY", option.entity_id)
                 target_spec = self.rule_registry.targeting(option.card_id)
                 if target_spec is not None:
