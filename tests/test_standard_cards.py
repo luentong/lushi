@@ -297,6 +297,23 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.players[0].hand.append(game._entity("CORE_CS2_023"))
         self.assertGreater(game._hero_power_cost(game.players[0]), 0)
 
+    def test_tichondrius_hero_immunity_clears_on_silence(self):
+        game = self.game()
+        demonlord = self.add_board(game, "CORE_CATA_001", 0)
+        game._damage_hero(game.players[0], 5)
+        self.assertEqual(30, game.players[0].health)
+        demonlord.silenced = True
+        game._damage_hero(game.players[0], 5)
+        self.assertEqual(25, game.players[0].health)
+
+    def test_falric_doubles_corpses_from_friendly_deaths(self):
+        game = self.game()
+        self.add_board(game, "CORE_EDR_003", 0)
+        victim = self.add_board(game, "CORE_EX1_005", 0)
+        victim.health = 0
+        game._resolve_deaths()
+        self.assertEqual(2, game.players[0].corpses)
+
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
         spell = self.add_hand(game, "EDR_490")
