@@ -9,7 +9,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from hsa.dragon_mirror import (
-    Action, DragonMirrorGame, Location, STANDARD_VANILLA_IDS, Weapon,
+    Action, DragonMirrorGame, Location, LOST_CITY_QUEST_IDS,
+    LOST_CITY_QUEST_REWARDS, STANDARD_VANILLA_IDS, Weapon,
 )
 
 
@@ -2414,6 +2415,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.players[0].mana = 2
         game.step(Action("HERO_POWER", target_player=1, target_entity=None))
         self.assertEqual(28, game.players[1].health)
+
+    def test_all_current_class_legendary_quests_are_registered(self):
+        expected = {
+            "TLC_229", "TLC_239", "TLC_426", "TLC_433", "TLC_446",
+            "TLC_460", "TLC_513", "TLC_602", "TLC_631", "TLC_817", "TLC_830",
+        }
+        self.assertEqual(expected, set(LOST_CITY_QUEST_IDS))
+        self.assertTrue(expected - {"TLC_426"} <= set(LOST_CITY_QUEST_REWARDS))
 
     def test_secret_ingredient_choose_one_attack_or_druid_card(self):
         attack_game = self.game()
