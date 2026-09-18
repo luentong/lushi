@@ -920,6 +920,41 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", rite.entity_id, 1, enemy.entity_id))
         self.assertEqual(before - 3, enemy.health)
 
+    def test_herald_source_cards_and_ritual_tokens(self):
+        for card_id in ("CATA_525", "CATA_565", "CATA_580", "CATA_780"):
+            game = self.game()
+            card = self.add_hand(game, card_id)
+            game.step(Action("PLAY", card.entity_id))
+            self.assertEqual(1, game.players[0].herald_count, card_id)
+            self.assertTrue(any(m.card_id == "CATA_580t" for m in game.players[0].board), card_id)
+
+        game = self.game()
+        ritual = self.add_hand(game, "CATA_561")
+        game.step(Action("PLAY", ritual.entity_id))
+        self.assertEqual(1, game.players[0].herald_count)
+        self.assertEqual(2, sum(m.card_id == "CATA_561t" for m in game.players[0].board))
+        self.assertTrue(all(m.rush for m in game.players[0].board if m.card_id == "CATA_561t"))
+
+    def test_experimental_animation_heralds_and_damages_enemy_minions(self):
+        game = self.game()
+        enemy = self.add_board(game, "TLC_248", 1)
+        spell = self.add_hand(game, "CATA_156")
+        before = enemy.health
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(1, game.players[0].herald_count)
+        self.assertEqual(before - 4, enemy.health)
+
+    def test_fel_infusion_herald_and_hero_lifesteal(self):
+        game = self.game()
+        game.players[0].health = 20
+        spell = self.add_hand(game, "CATA_530")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(1, game.players[0].herald_count)
+        self.assertEqual(game.turn, game.players[0].hero_lifesteal_turn)
+        game.players[0].hero_attack_bonus = 1
+        game.step(Action("HERO_ATTACK", None, 1, None))
+        self.assertGreater(game.players[0].health, 20)
+
     def test_grim_harvest_draws_and_summons_dreadseed(self):
         game = self.game()
         drawn = game._entity("TLC_248", started_in_deck=True)

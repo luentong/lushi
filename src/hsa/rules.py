@@ -2431,6 +2431,19 @@ class HeraldRagnarosCombo:
 
 
 @dataclass(frozen=True)
+class HeraldAndHeroLifesteal:
+    """Herald once and grant the controller's hero lifesteal this turn."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._herald_ragnaros(context.player, source=context.card.card_id)
+        context.player.hero_lifesteal_turn = game.turn
+        game._event(
+            "hero_lifesteal_granted", player=context.player.index,
+            source=context.card.card_id, turn=game.turn,
+        )
+
+
+@dataclass(frozen=True)
 class BuffSourceHealthPerHandCard:
     def execute(self, game: Any, context: RuleContext) -> None:
         context.card.health_delta += len(context.player.hand)
@@ -6817,8 +6830,32 @@ def build_rule_registry() -> RuleRegistry:
             TargetSpec(TargetKind.ANY_MINION),
         ),
         CardRule(
-            "CATA_156", {Hook.SPELL: (DamageAllEnemies(4),)},
-            RuleSource("upstream_adapted", rosetta, "CATA_156", "AGPL-3.0", ("test_batch_direct_damage_rules",)),
+            "CATA_156", {Hook.SPELL: (HeraldRagnaros(), DamageAllEnemies(4),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Herald event model", ("test_experimental_animation_heralds_and_damages_enemy_minions",)),
+        ),
+        CardRule(
+            "CATA_525", {Hook.BATTLECRY: (HeraldRagnaros(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Herald event model", ("test_armored_bloodletter_heralds",)),
+        ),
+        CardRule(
+            "CATA_530", {Hook.SPELL: (HeraldAndHeroLifesteal(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; turn-level hero lifesteal", ("test_fel_infusion_herald_and_hero_lifesteal",)),
+        ),
+        CardRule(
+            "CATA_561", {Hook.SPELL: (HeraldRagnaros(), Summon("CATA_561t", count=2),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Herald event model", ("test_ritual_of_power_heralds_and_summons_rushing_elementals",)),
+        ),
+        CardRule(
+            "CATA_565", {Hook.BATTLECRY: (HeraldRagnaros(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Herald event model", ("test_skywall_sentinel_heralds",)),
+        ),
+        CardRule(
+            "CATA_580", {Hook.BATTLECRY: (HeraldRagnaros(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Herald event model", ("test_cataclysmic_war_axe_heralds",)),
+        ),
+        CardRule(
+            "CATA_780", {Hook.BATTLECRY: (HeraldRagnaros(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Herald event model", ("test_obsessive_technician_heralds",)),
         ),
         CardRule(
             "JAIL_COIN1", {Hook.SPELL: (GainMana(1),)},

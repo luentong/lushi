@@ -186,6 +186,9 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 }
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
+    "CATA_525",  # Armored Bloodletter
+    "CATA_565",  # Skywall Sentinel
+    "CATA_780",  # Obsessive Technician
     "CORE_EX1_284",  # Azure Drake (legacy/Core-hidden compatibility)
     "CATA_155",  # Arisen Onyxia
     "CATA_151",  # Azshara, Ocean Lord
@@ -273,6 +276,7 @@ ADDITIONAL_PLAYABLE_CARD_IDS = {
     "TIME_433",  # Cease to Exist
     "TIME_441",  # Aeon Rend
     "TIME_610",  # Shadows of Yesterday
+    "CATA_580",  # Cataclysmic War Axe
 }
 
 # Individually closed spells used by generated-spell mechanics. Keep these
@@ -305,9 +309,13 @@ ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "CORE_EX1_610",  # Explosive Trap
     "END_024",  # Flames of Infinity
     "CORE_LOOT_101",  # Explosive Runes
+    "CATA_156",  # Experimental Animation
+    "CATA_530",  # Fel Infusion
+    "CATA_561",  # Ritual of Power
 }
 
 SPECIAL_TOKEN_IDS = {
+    "CATA_561t",  # Breezling
     "BOT_102t",  # Spark
     "CAP_107t",  # Cannoneer
     "CATA_155t",  # Onyxia's Wing
@@ -892,6 +900,8 @@ class Player:
     fatigue: int = 0
     weapon: Weapon | None = None
     hero_attack_bonus: int = 0
+    # Set by Fel Infusion/Herald and valid only for the current turn.
+    hero_lifesteal_turn: int = -1
     hero_attacks_this_turn: int = 0
     hero_attacks_this_game: int = 0
     avatar_form_hero_pending: bool = False
@@ -2292,6 +2302,8 @@ class DragonMirrorGame:
                 remaining=player.start_turn_temporary_mana_charges,
             )
         player.hero_attack_bonus = 0
+        if player.hero_lifesteal_turn != -1:
+            player.hero_lifesteal_turn = -1
         player.hero_attacks_this_turn = 0
         player.hero_power_used = False
         player.imbue_passive_triggered_this_turn = False
@@ -7634,6 +7646,17 @@ class DragonMirrorGame:
         if source and source.lifesteal:
             owner = self.players[1 - player.index]
             owner.health = min(owner.max_health, owner.health + amount)
+        elif source is None:
+            # Hero combat damage has no CardInstance source.  A Herald-granted
+            # lifesteal effect therefore has to be checked on the attacking
+            # player's turn-level state here.
+            owner = self.players[1 - player.index]
+            if owner.hero_lifesteal_turn == self.turn:
+                owner.health = min(owner.max_health, owner.health + health_loss)
+                self._event(
+                    "hero_lifesteal", player=owner.index,
+                    amount=health_loss,
+                )
         self._check_warptooth(player.index)
 
     def _damage_minion(self, player_index: int, minion: CardInstance, amount: int,
