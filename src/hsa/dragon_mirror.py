@@ -1420,7 +1420,10 @@ class DragonMirrorGame:
                         state["holy"] = state.get("holy", 0) + 1
                     elif school == "SHADOW":
                         state["shadow"] = state.get("shadow", 0) + 1
-            if quest_id == "TLC_460" and "discover" in kind:
+            if quest_id == "TLC_460" and kind in {
+                "discover_pick", "deck_card_discover_pick", "deck_discover_pick",
+                "intertwined_fate_pick", "rewind_discover_pick",
+            }:
                 state["progress"] += 1
             elif quest_id == "TLC_513" and "shuffle" in kind:
                 state["progress"] += 1

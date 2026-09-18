@@ -2372,6 +2372,19 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", minion.entity_id))
         self.assertEqual(2, sum(card.card_id == "UNG_999t2t1" for card in game.players[0].board))
 
+    def test_forbidden_sequence_counts_discover_only_after_pick(self):
+        game = self.game()
+        game.players[0].active_quests["TLC_460"] = {
+            "progress": 0, "turns": 0, "flags": set(),
+        }
+        game._offer_discover(
+            game.players[0], ["CORE_AT_055", "CORE_CS2_023", "CORE_LOOT_137"],
+            dark_gift=False, source_card_id="TEST_DISCOVER",
+        )
+        self.assertEqual(0, game.players[0].active_quests["TLC_460"]["progress"])
+        game.step(Action("DISCOVER_PICK", game.pending_choice["options"][0].entity_id))
+        self.assertEqual(1, game.players[0].active_quests["TLC_460"]["progress"])
+
     def test_secret_ingredient_choose_one_attack_or_druid_card(self):
         attack_game = self.game()
         ingredient = self.add_hand(attack_game, "JAIL_201")
