@@ -4932,7 +4932,7 @@ class DragonMirrorGame:
                     card_id in EXECUTABLE_CARD_IDS
                     and definition.card_type == "SPELL"
                     and definition.spell_school == "NATURE"
-                    and 1 <= definition.cost <= 10
+                    and 0 <= definition.cost <= 10
                 ):
                     nature_by_cost.setdefault(definition.cost, []).append(card_id)
             costs = sorted(nature_by_cost)
