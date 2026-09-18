@@ -952,7 +952,12 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         wing = game._entity("CATA_154t")
         wing.summoned_turn = game.turn
         game._summon(game.players[0], wing)
-        self.assertTrue(any(card.created_by == "CATA_154t" for card in game.players[0].hand))
+        generated = next(card for card in game.players[0].hand if card.created_by == "CATA_154t")
+        self.assertIn(generated.definition.card_class, {
+            "DEMONHUNTER", "DRUID", "HUNTER", "MAGE", "PALADIN", "PRIEST",
+            "ROGUE", "SHAMAN", "WARLOCK", "WARRIOR", "DEATHKNIGHT",
+        })
+        self.assertNotEqual(generated.definition.card_class, game.players[0].card_class)
 
     def test_herald_chogall_soldier_destroys_right_and_grows(self):
         game = self.game()

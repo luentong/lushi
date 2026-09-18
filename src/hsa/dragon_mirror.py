@@ -1734,7 +1734,12 @@ class DragonMirrorGame:
                 card_id for card_id, definition in self.card_defs.items()
                 if card_id in EXECUTABLE_CARD_IDS
                 and definition.card_type == "SPELL"
-                and definition.card_class not in {"", player.card_class}
+                and definition.card_class in {
+                    "DEMONHUNTER", "DRUID", "HUNTER", "MAGE", "PALADIN",
+                    "PRIEST", "ROGUE", "SHAMAN", "WARLOCK", "WARRIOR",
+                    "DEATHKNIGHT",
+                }
+                and definition.card_class != player.card_class
             )
             if candidates:
                 generated = self._entity(
