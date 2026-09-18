@@ -256,6 +256,8 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "CORE_KAR_061",  # The Curator
     "CORE_REV_946",  # Steamcleaner
     "JAIL_456",  # P1CK-P0K3T
+    "JAIL_035",  # Vigilant Sentry
+    "JAIL_328",  # Scarlet Bruiser
     "CAP_004",  # Disguised Operator
     "JAIL_442",  # Disguised Doctor
     "JAIL_452",  # Disguised Detective
@@ -6894,7 +6896,8 @@ class DragonMirrorGame:
                     source=source_card_id, options=[c.card_id for c in options])
 
     def _add_random_executable_class_card(
-        self, player: Player, *, card_class: str, source_card_id: str
+        self, player: Player, *, card_class: str, source_card_id: str,
+        cost_delta: int = 0,
     ) -> None:
         candidates = sorted(
             card_id for card_id, definition in self.card_defs.items()
@@ -6910,11 +6913,13 @@ class DragonMirrorGame:
         card = self._entity(
             self.rng.choice(candidates), created_by=source_card_id
         )
+        card.cost_delta += cost_delta
         destination = self._add_generated(player, card)
         self._event(
             "random_class_card", player=player.index, source=source_card_id,
             card_class=card_class, card=card.card_id, entity=card.entity_id,
-            destination=destination, profile="executable_standard_pool_v1",
+            destination=destination, cost_delta=cost_delta,
+            profile="executable_standard_pool_v1",
         )
 
     def _summon_random_executable_minion(

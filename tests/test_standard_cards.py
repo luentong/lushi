@@ -163,6 +163,29 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(12, carve["total_cost"])
         self.assertTrue(carve["exact_total"])
 
+    def test_vigilant_sentry_no_neutral_summons_two(self):
+        game = self.game()
+        game.players[0].deck = [game._entity("JAIL_035", started_in_deck=True)]
+        sentry = self.add_hand(game, "JAIL_035")
+        game.step(Action("PLAY", sentry.entity_id))
+        self.assertEqual(3, sum(
+            minion.card_id == "JAIL_035" for minion in game.players[0].board
+        ))
+
+    def test_scarlet_bruiser_no_neutral_adds_discounted_paladin_card(self):
+        game = self.game()
+        game.players[0].deck = [game._entity("JAIL_035", started_in_deck=True)]
+        bruiser = self.add_board(game, "JAIL_328")
+        game._damage_minion(0, bruiser, bruiser.health)
+        game._resolve_deaths()
+        generated = [
+            card for card in game.players[0].hand
+            if card.created_by == "JAIL_328"
+        ]
+        self.assertEqual(1, len(generated))
+        self.assertEqual("PALADIN", generated[0].definition.card_class)
+        self.assertEqual(-2, generated[0].cost_delta)
+
     def game(self) -> DragonMirrorGame:
         game = DragonMirrorGame(CARDS, 29)
         game.current = 0

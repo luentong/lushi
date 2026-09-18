@@ -1031,11 +1031,18 @@ class OfferStealthDiscover:
 @dataclass(frozen=True)
 class AddRandomExecutableClassCard:
     card_class: str
+    require_no_neutral: bool = False
+    cost_delta: int = 0
 
     def execute(self, game: Any, context: RuleContext) -> None:
+        if self.require_no_neutral and any(
+            card.definition.card_class == "NEUTRAL"
+            for card in context.player.deck
+        ):
+            return
         game._add_random_executable_class_card(
             context.player, card_class=self.card_class,
-            source_card_id=context.card.card_id,
+            source_card_id=context.card.card_id, cost_delta=self.cost_delta,
         )
 
 
@@ -3505,6 +3512,20 @@ class Summon:
             minion = game._entity(self.card_id, created_by=context.card.card_id)
             minion.summoned_turn = game.turn
             game._summon(player, minion)
+
+
+@dataclass(frozen=True)
+class SummonIfDeckHasNoNeutral:
+    card_id: str
+    count: int = 1
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if any(
+            card.definition.card_class == "NEUTRAL"
+            for card in context.player.deck
+        ):
+            return
+        Summon(self.card_id, self.count).execute(game, context)
 
 
 @dataclass(frozen=True)
@@ -6590,6 +6611,26 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource(
                 "local_spec", local,
                 verification=("test_one_cost_simple_deathrattles",),
+            ),
+        ),
+        CardRule(
+            "JAIL_035", {Hook.BATTLECRY: (
+                SummonIfDeckHasNoNeutral("JAIL_035", count=2),
+            )},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_vigilant_sentry_no_neutral_summons_two",),
+            ),
+        ),
+        CardRule(
+            "JAIL_328", {Hook.DEATHRATTLE: (
+                AddRandomExecutableClassCard(
+                    "PALADIN", require_no_neutral=True, cost_delta=-2,
+                ),
+            )},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_scarlet_bruiser_no_neutral_adds_discounted_paladin",),
             ),
         ),
         CardRule(
