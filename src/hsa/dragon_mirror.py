@@ -1721,7 +1721,8 @@ class DragonMirrorGame:
         if (
             minion.card_id in {
                 "CATA_525t", "CATA_565t", "CATA_725t", "CATA_726t",
-                "CATA_726t1", "CATA_780t",
+                "CATA_726t1", "CATA_780t", "CATA_153t", "CATA_153t1",
+                "CATA_154t", "CATA_154t1",
             }
             and minion.herald_power == 1
         ):

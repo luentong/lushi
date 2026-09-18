@@ -987,6 +987,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._summon(game.players[0], soldier)
         self.assertEqual(4, neighbor.aura_attack_bonus)
 
+        game = self.game()
+        game.players[0].herald_count = 1
+        neighbor = self.add_board(game, "CATA_565", 0)
+        charged = game._entity("CATA_153t")
+        charged.summoned_turn = game.turn
+        game._summon(game.players[0], charged)
+        self.assertEqual(1, neighbor.aura_attack_bonus)
+        herald = self.add_hand(game, "CATA_160")
+        game.step(Action("PLAY", herald.entity_id))
+        self.assertEqual(1, neighbor.aura_attack_bonus)
+
     def test_herald_soldier_onyxia_variant_generates_health_cost_card(self):
         game = self.game()
         game.players[0].herald_count = 1
