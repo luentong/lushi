@@ -4964,6 +4964,11 @@ def build_rule_registry() -> RuleRegistry:
                  cost_modifier=CostIfKindred(2)),
         CardRule("TLC_903", {Hook.BATTLECRY: (KindredHeroAttack(5),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332")),
+        CardRule(
+            "JAIL_446hp", {Hook.HERO_POWER: (BuffActionTarget(3, 0),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+            targeting=TargetSpec(TargetKind.ANY_MINION),
+        ),
         CardRule("TLC_440", {Hook.SPELL: (CryosleepKindred(),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
                  targeting=TargetSpec(TargetKind.ANY_CHARACTER)),

@@ -188,6 +188,7 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 ADDITIONAL_PLAYABLE_MINION_IDS = {
     "JAIL_860",  # Chef Neth'rek
     "JAIL_719",  # Irida Sinseeker
+    "JAIL_446",  # Blood Doctor Thal'ena
     "TLC_226",  # Conjured Bookkeeper
     "TLC_251",  # Primalfin Challenger
     "TLC_366",  # Pterrorwing Ravager
@@ -3461,7 +3462,16 @@ class DragonMirrorGame:
 
     def _use_hero_power(self, action: Action) -> None:
         player = self.players[self.current]
-        self._spend_mana(player, self._hero_power_cost(player))
+        if player.hero_power_id == "JAIL_446hp":
+            if player.corpses < 3:
+                raise ValueError("Vampyr's Kiss requires 3 corpses")
+            player.corpses -= 3
+            self._event(
+                "spend_corpses", player=player.index, amount=3,
+                source="JAIL_446hp",
+            )
+        else:
+            self._spend_mana(player, self._hero_power_cost(player))
         # Effects such as Fleeing Treant make exactly the next Hero Power
         # free; consume the override at resolution time.
         if player.hero_power_cost_override is not None:
@@ -3918,7 +3928,12 @@ class DragonMirrorGame:
                 }:
                     actions.append(Action("HERO_ATTACK", None, enemy.index, None))
                 actions.extend(Action("HERO_ATTACK", None, enemy.index, m.entity_id) for m in awake_enemy)
-        if player.mana >= self._hero_power_cost(player) and not player.hero_power_used:
+        hero_power_ready = (
+            player.corpses >= 3
+            if player.hero_power_id == "JAIL_446hp"
+            else player.mana >= self._hero_power_cost(player)
+        )
+        if hero_power_ready and not player.hero_power_used:
             actions.extend(self._hero_power_actions(player))
         for location in player.locations:
             if location.cooldown == 0 and location.durability > 0:
@@ -4665,6 +4680,13 @@ class DragonMirrorGame:
                     source=card.card_id, hand_count=hand_count,
                     deck_count=deck_count, pool_size=len(pool),
                 )
+            return
+        if card.card_id == "JAIL_446":
+            player.hero_power_id = "JAIL_446hp"
+            self._event(
+                "rulebreaker_hero_power", player=player.index,
+                source=card.card_id, hero_power="JAIL_446hp",
+            )
             return
         if card.card_id == "JAIL_719":
             # Irida leaves exactly one random card in the normal deck and
