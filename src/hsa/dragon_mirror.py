@@ -7424,6 +7424,12 @@ class DragonMirrorGame:
             )
             dealt = before - (enemy.health + enemy.armor)
             self._weapon_lifesteal(player, attacked_weapon, dealt)
+            if player.hero_lifesteal_turn == self.turn and dealt > 0:
+                player.health = min(player.max_health, player.health + dealt)
+                self._event(
+                    "hero_lifesteal", player=player.index,
+                    amount=dealt,
+                )
         else:
             defender = self._find_minion(action.target_player, target_entity)
             before = max(0, defender.health)
@@ -7652,17 +7658,6 @@ class DragonMirrorGame:
         if source and source.lifesteal:
             owner = self.players[1 - player.index]
             owner.health = min(owner.max_health, owner.health + amount)
-        elif source is None:
-            # Hero combat damage has no CardInstance source.  A Herald-granted
-            # lifesteal effect therefore has to be checked on the attacking
-            # player's turn-level state here.
-            owner = self.players[1 - player.index]
-            if owner.hero_lifesteal_turn == self.turn:
-                owner.health = min(owner.max_health, owner.health + health_loss)
-                self._event(
-                    "hero_lifesteal", player=owner.index,
-                    amount=health_loss,
-                )
         self._check_warptooth(player.index)
 
     def _damage_minion(self, player_index: int, minion: CardInstance, amount: int,
