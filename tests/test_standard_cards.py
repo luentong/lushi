@@ -2352,7 +2352,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             if option.card_id == "CORE_AT_055"
         )
         game.step(Action("DISCOVER_PICK", chosen.entity_id))
-        self.assertEqual(3, game.players[0].weapon.durability)
+        self.assertEqual(5, game.players[0].weapon.durability)
         self.assertTrue(any(card.card_id == "CORE_LOOT_137" for card in game.players[0].board))
         self.assertEqual(2, game.players[0].cards_played_this_turn)
 
@@ -2394,6 +2394,12 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         state = game.snapshot()["players"][0]
         self.assertEqual(7, state["underfel_rift_used_turn"])
         self.assertEqual(["taunt", "plants"], state["ashalon_adaptations"])
+
+    def test_weapon_play_uses_printed_health_as_durability(self):
+        game = self.game()
+        weapon = self.add_hand(game, "TLC_239t")
+        game.step(Action("PLAY", weapon.entity_id))
+        self.assertEqual(5, game.players[0].weapon.durability)
 
     def test_secret_ingredient_choose_one_attack_or_druid_card(self):
         attack_game = self.game()

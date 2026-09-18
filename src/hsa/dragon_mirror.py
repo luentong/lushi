@@ -4109,7 +4109,8 @@ class DragonMirrorGame:
             durability = (
                 card.definition.health
                 if card.card_id == "TLC_460t"
-                else getattr(card.definition, "durability", 0) or 2
+                else getattr(card.definition, "durability", 0)
+                or card.definition.health or 2
             )
             self._equip_weapon(
                 player,
@@ -6323,7 +6324,8 @@ class DragonMirrorGame:
                     durability = (
                         option.definition.health
                         if option.card_id == "TLC_460t"
-                        else getattr(option.definition, "durability", 0) or 2
+                        else getattr(option.definition, "durability", 0)
+                        or option.definition.health or 2
                     )
                     self._equip_weapon(
                         player, Weapon(option.card_id, option.definition.name,
