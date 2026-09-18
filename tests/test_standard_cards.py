@@ -130,6 +130,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(28, game.players[0].health)
         self.assertEqual(26, game.players[1].health)
 
+    def test_getaway_hogdriver_draw_two_minions_and_gains_charge(self):
+        game = self.game()
+        game.players[0].deck = [
+            game._entity("CORE_EX1_005"), game._entity("CORE_CS2_172")
+        ]
+        driver = self.add_hand(game, "JAIL_462")
+        game.step(Action("PLAY", driver.entity_id))
+        self.assertTrue(driver.charge)
+        self.assertEqual(2, len(game.players[0].hand))
+
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
         spell = self.add_hand(game, "EDR_490")

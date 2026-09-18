@@ -191,7 +191,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
-    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "CORE_OG_044", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Standard mechanism tranche
+    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "CORE_OG_044", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010", "JAIL_462", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Standard mechanism tranche
     "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
@@ -1720,6 +1720,23 @@ class AddMinionsMatchingSourceAttack:
         for _ in range(self.count):
             if not candidates:
                 break
+
+
+@dataclass(frozen=True)
+class DrawTwoGainChargeIfMinions:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        drawn: list[Any] = []
+        for _ in range(2):
+            before = len(context.player.hand)
+            game._draw(context.player)
+            if len(context.player.hand) > before:
+                drawn.append(context.player.hand[-1])
+        if len(drawn) == 2 and all(card.definition.card_type == "MINION" for card in drawn):
+            context.card.charge = True
+            game._event(
+                "getaway_hogdriver_charge", player=context.player.index,
+                source=context.card.card_id,
+            )
             card = game._entity(game.rng.choice(sorted(candidates)), created_by=context.card.card_id)
             card.cost_delta = 1 - card.definition.cost
             game._add_generated(context.player, card)
@@ -9390,6 +9407,11 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "JAIL_444", {Hook.BATTLECRY: (DestroyOtherMinionsDrawAndRefresh(),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_sawbones_destroys_other_minions_and_refreshes",)),
+        ),
+        CardRule(
+            "JAIL_462", {Hook.BATTLECRY: (DrawTwoGainChargeIfMinions(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       ("test_getaway_hogdriver_draw_two_minions_charge",)),
         ),
         CardRule(
             "JAIL_395", {Hook.BATTLECRY: (TriggerFriendlyDeathrattle(),)},
