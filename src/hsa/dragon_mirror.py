@@ -1417,12 +1417,22 @@ class DragonMirrorGame:
 
     def _finish_mulligan(self) -> None:
         self.pending_choice = None
-        aya_index = next(
-            (player.index for player in self.players
-             if any(card.card_id == "JAIL_504" for card in player.hand + player.deck)),
-            None,
-        )
-        self.first_player = 1 - aya_index if aya_index is not None else 0
+        aya_players = [
+            player.index for player in self.players
+            if any(card.card_id == "JAIL_504" for card in player.hand + player.deck)
+        ]
+        if len(aya_players) == 2:
+            # Two Aya effects cancel the deterministic rule; use the game's
+            # seeded RNG so cloned/search states remain reproducible.
+            self.first_player = self.rng.choice([0, 1])
+            self._event(
+                "aya_first_player_randomized", candidates=[0, 1],
+                first_player=self.first_player,
+            )
+        elif aya_players:
+            self.first_player = 1 - aya_players[0]
+        else:
+            self.first_player = 0
         self.current = self.first_player
         self._give_coin(self.players[1 - self.first_player], source="MULLIGAN")
         self._start_of_game()
