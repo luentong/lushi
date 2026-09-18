@@ -468,6 +468,25 @@ class DragonMirrorRulesTests(unittest.TestCase):
         targets = game._random_spell_target_candidates(0, friendly_only)
         self.assertTrue(all(owner == 0 for owner, _, _ in targets))
 
+    def test_random_spell_target_pool_distinguishes_minions_from_characters(self):
+        game = self.game(2851)
+        enemy_minion = self.add_board(game, "CORE_NEW1_023", 1)
+        friendly_minion = self.add_board(game, "CORE_NEW1_023", 0)
+
+        enemy_minion_only = CardInstance(
+            -1, CardDef("X4", "X4", "SPELL", 1,
+                        text="Deal damage to a random enemy minion.")
+        )
+        targets = game._random_spell_target_candidates(0, enemy_minion_only)
+        self.assertEqual([(1, enemy_minion.entity_id, "enemy_minion")], targets)
+
+        friendly_minion_only = CardInstance(
+            -1, CardDef("X5", "X5", "SPELL", 1,
+                        text="Restore health to a random friendly minion.")
+        )
+        targets = game._random_spell_target_candidates(0, friendly_minion_only)
+        self.assertEqual([(0, friendly_minion.entity_id, "friendly_minion")], targets)
+
     def test_brightwing_adds_random_legendary(self):
         game = self.game(285)
         card = self.add_hand(game, "CORE_EX1_189")

@@ -3421,6 +3421,12 @@ class DragonMirrorGame:
         text = spell.definition.text.casefold()
         enemy_only = "enemy" in text and "friendly" not in text
         friendly_only = "friendly" in text and "enemy" not in text
+        enemy_minion_only = "enemy minion" in text
+        friendly_minion_only = "friendly minion" in text
+        # "character" explicitly includes the hero.  For minion wording,
+        # do not silently add a hero to the random pool.
+        enemy_character = "enemy character" in text
+        friendly_character = "friendly character" in text
         enemy_priority = any(
             token in text
             for token in ("prefer enemy", "enemy first", "prioritize enemy", "enemy targets first")
@@ -3432,14 +3438,22 @@ class DragonMirrorGame:
         enemy_candidates: list[tuple[int, int | None, str]] = []
         friendly_candidates: list[tuple[int, int | None, str]] = []
         if not friendly_only:
-            enemy_candidates.append((1 - player_index, None, "enemy_hero"))
+            if not enemy_minion_only and (
+                enemy_character or "enemy" in text
+                or ("enemy" not in text and "friendly" not in text)
+            ):
+                enemy_candidates.append((1 - player_index, None, "enemy_hero"))
             enemy_candidates.extend(
                 (1 - player_index, minion.entity_id, "enemy_minion")
                 for minion in self.players[1 - player_index].board
                 if minion.dormant_turns == 0
             )
         if not enemy_only:
-            friendly_candidates.append((player_index, None, "friendly_hero"))
+            if not friendly_minion_only and (
+                friendly_character or "friendly" in text
+                or ("enemy" not in text and "friendly" not in text)
+            ):
+                friendly_candidates.append((player_index, None, "friendly_hero"))
             friendly_candidates.extend(
                 (player_index, minion.entity_id, "friendly_minion")
                 for minion in self.players[player_index].board
