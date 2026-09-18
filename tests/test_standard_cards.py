@@ -334,6 +334,34 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(2, len(cannoneers))
         self.assertEqual(1, sum(m.card_id == "CAP_106" for m in game.players[0].board))
 
+    def test_si7_slayer_buffs_stealthed_attacker(self):
+        game = self.game()
+        self.add_board(game, "CAP_000", 0)
+        attacker = self.add_board(game, "CORE_EX1_005", 0)
+        attacker.stealth = True
+        base_attack = attacker.attack
+        game._after_minion_attack(0, attacker, was_stealthed=True)
+        self.assertEqual(base_attack + 2, attacker.attack)
+        self.assertEqual(attacker.definition.health + 2, attacker.max_health)
+
+    def test_si7_supplier_draws_after_attack(self):
+        game = self.game()
+        supplier = self.add_board(game, "CAP_003", 0)
+        supplier.stealth = True
+        game.players[0].deck = [game._entity("CORE_CS2_023")]
+        game._after_minion_attack(0, supplier, was_stealthed=True)
+        self.assertEqual(1, len(game.players[0].hand))
+
+    def test_mathias_shaw_discounts_after_stealth_attack(self):
+        game = self.game()
+        self.add_board(game, "CAP_005", 0)
+        attacker = self.add_board(game, "CORE_EX1_005", 0)
+        attacker.stealth = True
+        held = game._entity("CORE_CS2_023")
+        game.players[0].hand = [held]
+        game._after_minion_attack(0, attacker, was_stealthed=True)
+        self.assertEqual(held.definition.cost - 3, held.cost)
+
 
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
