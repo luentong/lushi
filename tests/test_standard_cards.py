@@ -49,7 +49,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_standard_choose_one_batch_is_executable(self):
         game = self.game()
-        self.assertTrue({"Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_490", "EDR_570"}
+        self.assertTrue({"Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_490", "EDR_570", "EDR_872"}
                         <= game.executable_card_ids)
 
     def test_boomkin_choose_one_deals_damage_or_heals(self):
@@ -77,6 +77,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("RULE_CHOICE_PICK", 1))
         self.assertEqual("DISCOVER", game.pending_choice["kind"])
         self.assertTrue(all(option.definition.card_type == "SPELL"
+                            for option in game.pending_choice["options"]))
+
+    def test_spark_of_life_choose_one_class_discover(self):
+        game = self.game()
+        spell = self.add_hand(game, "EDR_872")
+        game.step(Action("PLAY", spell.entity_id))
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        self.assertTrue(all(option.definition.card_class == "MAGE"
+                            or "MAGE" in getattr(option.definition, "classes", ())
                             for option in game.pending_choice["options"]))
 
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
