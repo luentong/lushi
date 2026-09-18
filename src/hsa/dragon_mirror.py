@@ -5031,7 +5031,7 @@ class DragonMirrorGame:
         """Offer one of three Adaptations, preserving the two-pick chain."""
         pool = [
             "attack_health", "attack", "health", "divine_shield", "taunt",
-            "windfury", "poisonous", "stealth", "elusive",
+            "windfury", "poisonous", "stealth", "elusive", "plants",
         ]
         self.rng.shuffle(pool)
         self.pending_choice = {
@@ -5065,6 +5065,13 @@ class DragonMirrorGame:
                 minion.stealth = True
             elif adaptation == "elusive":
                 minion.elusive = True
+            elif adaptation == "plants":
+                for _ in range(2):
+                    if len(player.board) + len(player.locations) >= 7:
+                        break
+                    plant = self._entity("UNG_999t2t1", created_by="TLC_229t14")
+                    plant.summoned_turn = self.turn
+                    self._summon(player, plant)
         if player.ashalon_adaptations:
             self._event(
                 "ashalon_adaptations_applied", player=player.index,

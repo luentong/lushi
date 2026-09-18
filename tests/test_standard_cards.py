@@ -2365,6 +2365,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", reward.entity_id))
         self.assertEqual("TLC_460t", game.players[0].weapon.card_id)
 
+    def test_ashalon_plants_adaptation_summons_two_plants(self):
+        game = self.game()
+        game.players[0].ashalon_adaptations = ["plants"]
+        minion = self.add_hand(game, "CORE_LOOT_137")
+        game.step(Action("PLAY", minion.entity_id))
+        self.assertEqual(2, sum(card.card_id == "UNG_999t2t1" for card in game.players[0].board))
+
     def test_secret_ingredient_choose_one_attack_or_druid_card(self):
         attack_game = self.game()
         ingredient = self.add_hand(attack_game, "JAIL_201")
