@@ -1821,6 +1821,20 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", spell.entity_id))
         self.assertEqual((4, 4), (friendly.damage, enemy.damage))
 
+    def test_scramble_for_gear_gains_armor_and_shuffles_cast_when_drawn_gear(self):
+        game = self.game()
+        spell = self.add_hand(game, "JAIL_386")
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True)]
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(2, game.players[0].armor)
+        gear = [card for card in game.players[0].deck if card.card_id == "JAIL_386t"]
+        self.assertEqual(5, len(gear))
+        self.assertTrue(all(card.casts_when_drawn_armor == 2 for card in gear))
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True)] + gear[:1]
+        before = game.players[0].armor
+        game._draw(game.players[0])
+        self.assertEqual(before + 2, game.players[0].armor)
+
     def test_lava_flow_retargets_lowest_health_enemy(self):
         game = self.game()
         target = self.add_board(game, "CAP_107t", 1)

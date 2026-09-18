@@ -258,6 +258,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "JAIL_456",  # P1CK-P0K3T
     "JAIL_035",  # Vigilant Sentry
     "JAIL_328",  # Scarlet Bruiser
+    "JAIL_386",  # Scramble for Gear
     "CAP_004",  # Disguised Operator
     "JAIL_442",  # Disguised Doctor
     "JAIL_452",  # Disguised Detective
@@ -818,6 +819,7 @@ class CardInstance:
     burning_applied_turn: int = -1
     twilight_whelp_bonus: int = 0
     casts_when_drawn_damage: int = 0
+    casts_when_drawn_armor: int = 0
     void_soul_cost: int = 0
     omen_damage: int = 1
     summon_moragg_on_death: bool = False
@@ -5921,6 +5923,15 @@ class DragonMirrorGame:
                 source=card.card_id, card=monkey.card_id,
                 entity=monkey.entity_id,
             )
+            self._draw(player)
+            return
+        if card.casts_when_drawn_armor:
+            self._gain_armor(player, card.casts_when_drawn_armor)
+            self._event(
+                "casts_when_drawn", player=player.index, card=card.card_id,
+                armor=card.casts_when_drawn_armor,
+            )
+            self._after_card_draw(player, card)
             self._draw(player)
             return
         if card.card_id == "TLC_446t":

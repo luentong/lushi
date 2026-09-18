@@ -6203,6 +6203,19 @@ def build_rule_registry() -> RuleRegistry:
             cost_modifier=CostDiscountIfDeckAtLeast(25, 2),
         ),
         CardRule(
+            "JAIL_386", {Hook.SPELL: (
+                GainArmor(2),
+                AddToDeck(
+                    "JAIL_386t", count=5, shuffle=True,
+                    attributes=(("casts_when_drawn_armor", 2),),
+                ),
+            )},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_scramble_for_gear_gains_armor_and_shuffles_gear",),
+            ),
+        ),
+        CardRule(
             "JAIL_801",
             {Hook.SPELL: (DamageActionTarget(4), ResolveDeaths())},
             RuleSource(
