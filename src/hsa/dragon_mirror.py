@@ -960,6 +960,7 @@ class Player:
     completed_quests: set[str] = field(default_factory=set)
     murloc_quest_buff: bool = False
     gorishi_double_damage: bool = False
+    ninja_shuffle_active: bool = False
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "Player":
         """Fast branch copy for the mutable player state used by MCTS."""
@@ -3746,6 +3747,15 @@ class DragonMirrorGame:
                 "deathwing_transform", player=player.index, card=card.card_id,
                 armor=card.definition.armor, cataclysms=choices,
             )
+        elif card.card_id == "TLC_513t":
+            player.ninja_shuffle_active = True
+            for _ in range(2):
+                if len(player.board) + len(player.locations) >= 7:
+                    break
+                ninja = self._entity("TLC_513t2", created_by=card.card_id)
+                ninja.summoned_turn = self.turn
+                self._summon(player, ninja)
+            self._event("master_dusk_battlecry", player=player.index, ninjas=2)
         else:
             self._event("hero_transform", player=player.index, card=card.card_id)
 
@@ -7731,6 +7741,12 @@ class DragonMirrorGame:
             Hook.DEATHRATTLE, minion.card_id, self,
             RuleContext(player=player, card=minion),
         )
+        if minion.card_id == "TLC_513t2" and player.ninja_shuffle_active:
+            returned = self._entity("TLC_513t2", started_in_deck=True,
+                                    created_by="TLC_513t")
+            player.deck.insert(self.rng.randrange(len(player.deck) + 1), returned)
+            self._event("master_dusk_ninja_reshuffled", player=player.index,
+                        card=returned.card_id)
         if minion.card_id == "JAIL_720":
             coin = self._entity("JAIL_COIN1", created_by=minion.card_id)
             destination = self._add_generated(player, coin)
@@ -8300,6 +8316,7 @@ class DragonMirrorGame:
                 "completed_quests": sorted(player.completed_quests),
                 "murloc_quest_buff": player.murloc_quest_buff,
                 "gorishi_double_damage": player.gorishi_double_damage,
+                "ninja_shuffle_active": player.ninja_shuffle_active,
                 "weapon": None if player.weapon is None else {
                     "card": player.weapon.card_id,
                     "name": player.weapon.name,
