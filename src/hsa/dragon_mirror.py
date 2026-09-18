@@ -8544,6 +8544,8 @@ class DragonMirrorGame:
                 "gorishi_double_damage": player.gorishi_double_damage,
                 "ninja_shuffle_active": player.ninja_shuffle_active,
                 "ashalon_adaptations": list(player.ashalon_adaptations),
+                "underfel_rift_used_turn": player.underfel_rift_used_turn,
+                "origin_stone_triggering": player.origin_stone_triggering,
                 "weapon": None if player.weapon is None else {
                     "card": player.weapon.card_id,
                     "name": player.weapon.name,

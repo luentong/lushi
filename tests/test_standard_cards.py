@@ -2385,6 +2385,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("DISCOVER_PICK", game.pending_choice["options"][0].entity_id))
         self.assertEqual(1, game.players[0].active_quests["TLC_460"]["progress"])
 
+    def test_new_lost_city_state_is_visible_in_snapshot(self):
+        game = self.game()
+        game.players[0].underfel_rift_used_turn = 7
+        game.players[0].ashalon_adaptations = ["taunt", "plants"]
+        state = game.snapshot()["players"][0]
+        self.assertEqual(7, state["underfel_rift_used_turn"])
+        self.assertEqual(["taunt", "plants"], state["ashalon_adaptations"])
+
     def test_secret_ingredient_choose_one_attack_or_druid_card(self):
         attack_game = self.game()
         ingredient = self.add_hand(attack_game, "JAIL_201")
