@@ -4941,6 +4941,7 @@ class DragonMirrorGame:
                 for a in costs for b in costs if b >= a
                 for c in costs if c >= b and a + b + c == 12
             ]
+            exact = bool(cost_triples)
             if not cost_triples:
                 fallback = [
                     (a, b, c)
@@ -4970,6 +4971,11 @@ class DragonMirrorGame:
                 "bashana_runetotem", player=player.index,
                 source=card.card_id,
                 spells=list(chosen) if chosen else [],
+                total_cost=(
+                    sum(self.card_defs[spell_id].cost for spell_id in chosen)
+                    if chosen else 0
+                ),
+                exact_total=exact,
             )
             return
         if card.card_id == "MEND_046t" and card.embedded_spell_id:
