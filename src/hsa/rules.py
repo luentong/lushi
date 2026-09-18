@@ -98,6 +98,9 @@ DECLARATIVE_METADATA_ALIASES = {
 # New full-Standard rules are kept separate from the historical Dragon slice
 # so adding cards does not mutate the vocabulary of existing neural models.
 STANDARD_DECLARATIVE_IDS = {
+    "TLC_828",  # Supreme Dinomancy
+    "TLC_835",  # Story of Amara
+    "TLC_901",  # Fumigate
     # Simple Core rule tranche: direct draw, heal, damage, and destroy.
     "CORE_AT_055",  # Flash Heal
     "CORE_CS2_023",  # Arcane Intellect
@@ -3094,6 +3097,51 @@ class BuffZone:
             require_attribute=self.require_attribute,
             affected_count=len(affected), affected=affected,
         )
+
+
+@dataclass(frozen=True)
+class BuffBeastsEverywhere:
+    attack: int
+    health: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        affected: list[int] = []
+        for zone_name in ("hand", "deck", "board"):
+            for card in getattr(context.player, zone_name):
+                if card.definition.card_type == "MINION" and card.has_race("BEAST"):
+                    card.attack_delta += self.attack
+                    card.health_delta += self.health
+                    affected.append(card.entity_id)
+        game._event("buff_beasts_everywhere", player=context.player.index,
+                    source=context.card.card_id, affected=affected)
+
+
+@dataclass(frozen=True)
+class SetHeroHealth:
+    health: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.max_health = max(context.player.max_health, self.health)
+        context.player.health = self.health
+        game._event("set_hero_health", player=context.player.index,
+                    source=context.card.card_id, health=self.health)
+
+
+@dataclass(frozen=True)
+class DamageMinionAndSameRace:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("minion target is required")
+        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        race = target.definition.race or (target.definition.races[0] if target.definition.races else "")
+        enemy = game.players[context.action.target_player]
+        targets = [m for m in enemy.board if m.health > 0 and m.dormant_turns == 0
+                   and (m is target or (race and m.has_race(race)))]
+        for minion in targets:
+            game._damage_minion(enemy.index, minion, self.amount, context.card)
+        game._resolve_deaths()
 
 
 @dataclass(frozen=True)
@@ -7014,6 +7062,19 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CATA_726", {},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Colossal appendage model", ("test_chogall_colossal_arms",)),
+        ),
+        CardRule(
+            "TLC_828", {Hook.SPELL: (BuffBeastsEverywhere(2, 2),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_supreme_dinomancy_buffs_all_beast_zones",)),
+        ),
+        CardRule(
+            "TLC_835", {Hook.SPELL: (SetHeroHealth(40),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_story_of_amara_sets_hero_health",)),
+        ),
+        CardRule(
+            "TLC_901", {Hook.SPELL: (DamageMinionAndSameRace(3),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_fumigate_hits_same_race",)),
+            TargetSpec(TargetKind.ENEMY_MINION),
         ),
         CardRule(
             "CATA_725t", {Hook.END_TURN: (HeraldDestroyRightAndGrow(),)},

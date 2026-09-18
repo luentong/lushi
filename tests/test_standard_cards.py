@@ -1100,6 +1100,35 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._end_turn()
         self.assertEqual(before - 1, len(game.players[1].deck))
 
+    def test_supreme_dinomancy_buffs_all_beast_zones(self):
+        game = self.game()
+        hand_beast = self.add_hand(game, "CATA_565")
+        deck_beast = game._entity("CATA_565")
+        game.players[0].deck.append(deck_beast)
+        board_beast = self.add_board(game, "CATA_565", 0)
+        before = [(card.attack, card.max_health) for card in (hand_beast, deck_beast, board_beast)]
+        spell = self.add_hand(game, "TLC_828")
+        game.step(Action("PLAY", spell.entity_id))
+        after = [(card.attack, card.max_health) for card in (hand_beast, deck_beast, board_beast)]
+        self.assertEqual([(a + 2, h + 2) for a, h in before], after)
+
+    def test_story_of_amara_sets_hero_health(self):
+        game = self.game()
+        game.players[0].health = 12
+        spell = self.add_hand(game, "TLC_835")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual((40, 40), (game.players[0].health, game.players[0].max_health))
+
+    def test_fumigate_hits_same_race(self):
+        game = self.game()
+        target = self.add_board(game, "CATA_565", 1)
+        same_race = self.add_board(game, "CATA_565", 1)
+        other = self.add_board(game, "CORE_CS2_065", 1)
+        spell = self.add_hand(game, "TLC_901")
+        game.step(Action("PLAY", spell.entity_id, 1, target.entity_id))
+        self.assertEqual((3, 3), (target.damage, same_race.damage))
+        self.assertEqual(0, other.damage)
+
     def test_experimental_animation_heralds_and_damages_enemy_minions(self):
         game = self.game()
         enemy = self.add_board(game, "TLC_248", 1)
