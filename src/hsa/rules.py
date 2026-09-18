@@ -101,6 +101,7 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_326",  # Judgment
     "JAIL_913",  # Hold Them Off!
     "JAIL_444",  # Sawbones
+    "JAIL_395",  # Sewer Swimmer
     "TLC_828",  # Supreme Dinomancy
     "TLC_835",  # Story of Amara
     "TLC_901",  # Fumigate
@@ -3087,6 +3088,19 @@ class DestroyOtherMinionsDrawAndRefresh:
             player.mana = min(player.max_mana, player.mana + 1)
         game._event("sawbones_destroyed_others", player=player.index,
                     source=context.card.card_id, destroyed=destroyed)
+
+
+@dataclass(frozen=True)
+class TriggerFriendlyDeathrattle:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player != context.player.index:
+            raise ValueError("friendly minion target is required")
+        target = game._find_minion(context.player.index, context.action.target_entity)
+        if target.silenced or "DEATHRATTLE" not in target.definition.mechanics:
+            raise ValueError("target must have a Deathrattle")
+        game._deathrattle(context.player, target)
+        game._event("trigger_friendly_deathrattle", player=context.player.index,
+                    source=context.card.card_id, target=target.entity_id)
 
 
 @dataclass(frozen=True)
@@ -7143,6 +7157,11 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "JAIL_444", {Hook.BATTLECRY: (DestroyOtherMinionsDrawAndRefresh(),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_sawbones_destroys_other_minions_and_refreshes",)),
+        ),
+        CardRule(
+            "JAIL_395", {Hook.BATTLECRY: (TriggerFriendlyDeathrattle(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_sewer_swimmer_triggers_friendly_deathrattle",)),
+            TargetSpec(TargetKind.FRIENDLY_MINION),
         ),
         CardRule(
             "CATA_725t", {Hook.END_TURN: (HeraldDestroyRightAndGrow(),)},

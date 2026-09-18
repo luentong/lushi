@@ -1164,6 +1164,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertNotIn(other, game.players[0].board)
         self.assertGreaterEqual(game.players[0].mana, 1)
 
+    def test_sewer_swimmer_triggers_friendly_deathrattle(self):
+        game = self.game()
+        game.players[0].health = 20
+        target = self.add_board(game, "JAIL_912", 0)
+        swimmer = self.add_hand(game, "JAIL_395")
+        game.step(Action("PREPARE", swimmer.entity_id))
+        game.step(Action("PLAY", swimmer.entity_id, 0, target.entity_id))
+        self.assertEqual(26, game.players[0].health)
+
     def test_experimental_animation_heralds_and_damages_enemy_minions(self):
         game = self.game()
         enemy = self.add_board(game, "TLC_248", 1)
