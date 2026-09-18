@@ -188,6 +188,9 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 }
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
+    # Standard Dormant cards.
+    "CATA_481", "EDR_469", "EDR_841", "EDR_979", "TIME_022", "TIME_058",
+    "TIME_442", "TLC_253",
     # Standard Quickdraw minions.
     # Standard Elusive cards with explicit rules below.
     "CATA_133", "CATA_185", "CATA_206", "EDR_462", "RLK_048", "TLC_246",
@@ -362,6 +365,7 @@ PLAYABLE_ON_EITHER_SIDE_IDS = frozenset({
 # separate from the Rewind tranche: the generation audit relies on the latter
 # being exactly the Rewind cards, while this set will grow by school/pool.
 ADDITIONAL_PLAYABLE_SPELL_IDS = {
+    "EDR_820", "JAIL_997",
     # Standard Quickdraw spells.
     "RLK_048",  # Anti-Magic Shell
     "CAP_001",  # Silent Strike
@@ -1366,7 +1370,7 @@ class DragonMirrorGame:
         result.poisonous = "POISONOUS" in result.definition.mechanics
         result.spell_damage_bonus = result.definition.spell_damage
         result.mirrex_tracker = result.card_id == "DINO_407"
-        if result.card_id in {"EDR_469", "MEND_040"}:
+        if result.card_id in {"EDR_469", "MEND_040", "EDR_979", "TLC_253"}:
             # These use condition-based Dormant rather than a fixed countdown.
             result.dormant_turns = 2_147_483_647
         elif result.card_id == "CORE_BT_156":
@@ -2754,6 +2758,13 @@ class DragonMirrorGame:
         player.damaged_characters_this_turn.clear()
         self._reform_nythendra(player)
         for minion in player.board:
+            if minion.card_id == "TLC_253" and minion.dormant_turns > 0 and not minion.silenced:
+                minion.attack_delta += 2
+                minion.health_delta += 2
+                if self.rng.random() < 0.5:
+                    minion.dormant_turns = 0
+                    self._event("petrified_ogre_awaken", player=player.index,
+                                entity=minion.entity_id)
             minion.attacks_this_turn = 0
             if (
                 minion.card_id == "CATA_210"
@@ -2795,6 +2806,10 @@ class DragonMirrorGame:
     def _end_turn(self) -> None:
         player = self.players[self.current]
         for minion in list(player.board):
+            if minion.card_id == "EDR_979" and minion.dormant_turns > 0 and not minion.silenced:
+                self._gain_armor(player, 3)
+                self._draw(player)
+                continue
             if (
                 minion not in player.board
                 or minion.health <= 0
@@ -3163,6 +3178,11 @@ class DragonMirrorGame:
             cost -= self.minions_died_this_turn
         if card.card_id == "END_030":
             cost -= player.overloaded_mana_this_game
+        if card.card_id == "TIME_022" and any(
+            minion.dormant_turns > 0 and minion.health > 0
+            for owner in self.players for minion in owner.board
+        ):
+            cost -= 4
         if (
             card.has_race("DRAGON")
             and player.dragons_played_this_turn == 0

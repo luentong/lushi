@@ -3529,6 +3529,28 @@ class IfQuickdraw:
 
 
 @dataclass(frozen=True)
+class SetDormantActionTarget:
+    turns: int = 2
+    buff_friendly_demon: bool = False
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("action target is required")
+        target = game._find_minion(context.action.target_player,
+                                   context.action.target_entity)
+        if (self.buff_friendly_demon and
+                context.action.target_player == context.player.index and
+                target.has_race("DEMON")):
+            target.attack_delta += 3
+            target.health_delta += 3
+        else:
+            target.dormant_turns = self.turns
+        game._event("set_dormant", player=context.player.index,
+                    source=context.card.card_id, target=target.entity_id,
+                    turns=(0 if target.dormant_turns == 0 else self.turns))
+
+
+@dataclass(frozen=True)
 class GrantTemporaryImmune:
     """Grant immunity through the current turn."""
 
@@ -5584,6 +5606,11 @@ def build_rule_registry() -> RuleRegistry:
             "CATA_133", {Hook.END_TURN: (FlitterwingEndTurn(),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
                        verification=("test_elusive_flitterwing_end_turn_buff",)),
+        ),
+        CardRule(
+            "JAIL_997", {Hook.SPELL: (SetDormantActionTarget(2, True),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+            TargetSpec(TargetKind.ANY_MINION),
         ),
         CardRule(
             "WW_325", {Hook.SPELL: (DamageActionTargetLifesteal(4),)},
