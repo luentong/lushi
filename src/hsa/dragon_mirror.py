@@ -976,6 +976,7 @@ class Player:
     fatigue: int = 0
     weapon: Weapon | None = None
     hero_attack_bonus: int = 0
+    next_spell_damage_bonus: int = 0
     # Set by Fel Infusion/Herald and valid only for the current turn.
     hero_lifesteal_turn: int = -1
     hero_attacks_this_turn: int = 0
@@ -3512,7 +3513,7 @@ class DragonMirrorGame:
             for minion in player.board
             if not minion.silenced and minion.dormant_turns == 0
         )
-        return dynamic_seer_damage + generic_damage
+        return dynamic_seer_damage + generic_damage + player.next_spell_damage_bonus
 
     def _spell_effect_amount(self, player: Player, card: CardInstance, amount: int) -> int:
         """Apply shared spell-damage and spell-doubling replacement effects.
@@ -5993,6 +5994,12 @@ class DragonMirrorGame:
                 continue
             held.definition = spell.definition
             held.cost_delta = 0
+        if player.next_spell_damage_bonus:
+            self._event(
+                "elise_shining_moonlight_consume", player=player.index,
+                amount=player.next_spell_damage_bonus, spell=spell.card_id,
+            )
+            player.next_spell_damage_bonus = 0
             held.created_by = "CORE_RLK_567"
             self._event(
                 "shadow_of_demise_transform", player=player.index,
@@ -6651,7 +6658,7 @@ class DragonMirrorGame:
         )
 
     def _offer_spell_discover(
-        self, player: Player, *, source_card_id: str,
+        self, player: Player, *, source_card_id: str, discount: int = 0,
     ) -> None:
         candidates = sorted(
             card_id for card_id, definition in self.card_defs.items()
@@ -6669,7 +6676,7 @@ class DragonMirrorGame:
             "pool": tuple(candidates), "dark_gift": False,
             "repeats_left": 0, "after_pick": None,
             "source_card_id": source_card_id, "options": options,
-            "refreshes": 0,
+            "refreshes": 0, "custom_discount": discount,
         }
         self._event(
             "spell_discover_offer", player=player.index,
@@ -6918,6 +6925,8 @@ class DragonMirrorGame:
             option.cost_delta = 1 - option.definition.cost
         if pending.get("dark_gift_cost_delta"):
             option.cost_delta += pending["dark_gift_cost_delta"]
+        if pending.get("source_card_id") == "TLC_100_CUSTOM":
+            option.cost_delta -= pending.get("custom_discount", 0)
         if pending.get("source_card_id") == "CAP_407":
             option.prepare_granted = True
         destination = self._add_generated(player, option)
@@ -7966,7 +7975,9 @@ class DragonMirrorGame:
         player = self.players[self.current]
         location = next(x for x in player.locations if x.entity_id == action.source)
         context_card = CardInstance(location.entity_id, self.card_defs[location.card_id])
-        if self.rule_registry.dispatch(
+        if location.custom_effects:
+            self._activate_custom_location(player, location, context_card)
+        elif self.rule_registry.dispatch(
             Hook.LOCATION, location.card_id, self,
             RuleContext(player=player, card=context_card, action=action),
         ):
@@ -8012,6 +8023,60 @@ class DragonMirrorGame:
         if location.durability <= 0:
             player.locations.remove(location)
             self._location_deathrattle(player, location)
+
+    def _activate_custom_location(
+        self, player: Player, location: Location, source: CardInstance,
+    ) -> None:
+        """Resolve the currently supported effects of an Elise location."""
+        tier = location.custom_tier
+        geyser_damage = {1: 1, 5: 3, 10: 5}[tier]
+        armor = {1: 3, 5: 6, 10: 12}[tier]
+        attack = {1: 1, 5: 2, 10: 4}[tier]
+        for effect in location.custom_effects:
+            if effect == "bursting_geyser":
+                for target in self._random_enemy_characters(player.index):
+                    self._deal_to_target(player.index, target, geyser_damage, source=source)
+                self._resolve_deaths()
+            elif effect == "lava_stream":
+                self._gain_armor(player, armor)
+            elif effect == "snapping_plants":
+                player.hero_attack_bonus += attack
+                for minion in player.board:
+                    if minion.dormant_turns == 0:
+                        minion.attack_delta += attack
+                        minion.temporary_attack_modifiers.append((attack, player.index))
+            elif effect == "nesting_grounds":
+                count = {1: 1, 5: 2, 10: 4}[tier]
+                for _ in range(count):
+                    if len(player.board) + len(player.locations) >= 7:
+                        break
+                    raptor = self._entity("TLC_101t", created_by=source.card_id)
+                    raptor.summoned_turn = self.turn
+                    self._summon(player, raptor)
+            elif effect == "radiant_crystals":
+                candidates = [m for m in player.board if m.entity_id != source.entity_id]
+                if candidates and len(player.board) + len(player.locations) < 7:
+                    target = self.rng.choice(candidates)
+                    copy = target.clone(self.next_entity_id)
+                    self.next_entity_id += 1
+                    copy.attack_delta = {1: 1, 5: 3, 10: 5}[tier] - copy.definition.attack
+                    copy.health_delta = {1: 1, 5: 3, 10: 5}[tier] - copy.definition.health
+                    copy.damage = 0
+                    copy.created_by = source.card_id
+                    copy.summoned_turn = self.turn
+                    self._summon(player, copy)
+            elif effect == "runic_inscriptions":
+                self._offer_spell_discover(
+                    player, source_card_id="TLC_100_CUSTOM",
+                    discount={1: 1, 5: 4, 10: 7}[tier],
+                )
+            elif effect == "shining_moonlight":
+                player.next_spell_damage_bonus += {1: 1, 5: 2, 10: 4}[tier]
+        self._event(
+            "elise_location_activate", player=player.index,
+            source=location.entity_id, tier=tier,
+            effects=list(location.custom_effects),
+        )
 
     def _location_deathrattle(self, player: Player, location: Location) -> None:
         """Resolve location deathrattles when durability or an effect destroys it."""
@@ -9324,6 +9389,7 @@ class DragonMirrorGame:
                 "mana": player.mana,
                 "max_mana": player.max_mana,
                 "hero_attack": player.attack,
+                "next_spell_damage_bonus": player.next_spell_damage_bonus,
                 "hero_attacks_this_game": player.hero_attacks_this_game,
                 "hero_lifesteal_turn": player.hero_lifesteal_turn,
                 "hero_power_cost": self._hero_power_cost(player),
