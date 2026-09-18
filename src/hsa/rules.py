@@ -159,6 +159,11 @@ STANDARD_DECLARATIVE_IDS = {
     # Classic League of Explorers map chain.
     "CORE_LOE_079", "LOE_019t", "LOE_019t2",
     "DINO_419", "DINO_421",
+    # The Lost City of Un'Goro class Legendary Quests.
+    "TLC_229", "TLC_239", "TLC_426", "TLC_433", "TLC_446",
+    "TLC_460", "TLC_513", "TLC_602", "TLC_631", "TLC_817", "TLC_830",
+    "TLC_229t14", "TLC_239t", "TLC_446t", "TLC_513t", "TLC_602t",
+    "TLC_631t", "TLC_817t3", "TLC_817t4", "TLC_830t",
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "CS2_tk1",

@@ -525,6 +525,14 @@ FABLED_MINION_IDS = frozenset({
     "TIME_609", "TIME_619", "TIME_850", "TIME_852", "TIME_875", "TIME_890",
 })
 
+# Current Lost City class quest cards.  They live in a dedicated state zone
+# once played; treating them as ordinary spells would silently consume them
+# without retaining their progress.
+LOST_CITY_QUEST_IDS = frozenset({
+    "TLC_229", "TLC_239", "TLC_426", "TLC_433", "TLC_446",
+    "TLC_460", "TLC_513", "TLC_602", "TLC_631", "TLC_817", "TLC_830",
+})
+
 DRAGON_IDS = {
     "TLC_600", "TIME_034", "END_033", "CATA_556",
     *GENERATED_DRAGON_IDS,
@@ -943,6 +951,8 @@ class Player:
     recover_overdrawn_cards: bool = False
     overdrawn_cards: list[CardInstance] = field(default_factory=list)
     pending_end_turn_returns: list[CardInstance] = field(default_factory=list)
+    active_quests: dict[str, dict[str, Any]] = field(default_factory=dict)
+    completed_quests: set[str] = field(default_factory=set)
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "Player":
         """Fast branch copy for the mutable player state used by MCTS."""
@@ -969,6 +979,8 @@ class Player:
         result.damaged_characters_this_turn = set(self.damaged_characters_this_turn)
         result.played_card_counts = dict(self.played_card_counts)
         result.map_followup_options = list(self.map_followup_options)
+        result.active_quests = copy.deepcopy(self.active_quests, memo)
+        result.completed_quests = set(self.completed_quests)
         return result
 
     @property
@@ -1370,6 +1382,18 @@ class DragonMirrorGame:
         if not self.record_events:
             return
         self.events.append({"turn": self.turn, "kind": kind, **payload})
+
+    def _activate_lost_city_quest(self, player: Player, card: CardInstance) -> None:
+        """Move a Lost City quest from hand into the quest state zone."""
+        if card.card_id not in LOST_CITY_QUEST_IDS:
+            return
+        if card.card_id in player.active_quests or card.card_id in player.completed_quests:
+            return
+        player.active_quests[card.card_id] = {"progress": 0, "turns": 0, "flags": set()}
+        self._event(
+            "quest_activated", player=player.index, card=card.card_id,
+            entity=card.entity_id,
+        )
 
     def clone(
         self,
@@ -3807,6 +3831,9 @@ class DragonMirrorGame:
         card.combo_active = player.cards_played_this_turn > 1
         if not card.started_in_deck:
             player.generated_cards_played += 1
+        if card.card_id in LOST_CITY_QUEST_IDS:
+            self._activate_lost_city_quest(player, card)
+            return
         if card.copied_from_opponent:
             for held in player.hand:
                 held.opponent_card_copy_played_while_held = True
