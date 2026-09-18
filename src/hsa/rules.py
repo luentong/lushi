@@ -164,6 +164,8 @@ STANDARD_DECLARATIVE_IDS = {
     "TLC_460", "TLC_513", "TLC_602", "TLC_631", "TLC_817", "TLC_830",
     "TLC_229t14", "TLC_239t", "TLC_446t", "TLC_513t", "TLC_602t",
     "TLC_433t", "TLC_631t", "TLC_817t3", "TLC_817t4", "TLC_830t",
+    "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
+    "UNG_934t1", "UNG_940t8", "UNG_942t", "UNG_954t1",
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "CS2_tk1",

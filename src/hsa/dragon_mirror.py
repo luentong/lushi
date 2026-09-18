@@ -4189,6 +4189,23 @@ class DragonMirrorGame:
                 for option in self.pending_choice["options"]:
                     option.cost_delta = 2 - option.definition.cost
             return
+        if card.card_id == "TLC_602t":
+            reward_pool = [
+                "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1",
+                "UNG_920t1", "UNG_934t1", "UNG_940t8", "UNG_942t", "UNG_954t1",
+            ]
+            reward_pool = [reward_id for reward_id in reward_pool if reward_id in self.card_defs]
+            self.rng.shuffle(reward_pool)
+            chosen, remainder = reward_pool[:2], reward_pool[2:]
+            for reward_id in chosen:
+                self._add_generated(player, self._entity(reward_id, created_by=card.card_id))
+            for reward_id in remainder:
+                player.deck.insert(self.rng.randrange(len(player.deck) + 1),
+                                   self._entity(reward_id, started_in_deck=True,
+                                                created_by=card.card_id))
+            self._event("latorvius_quest_rewards", player=player.index,
+                        chosen=chosen, shuffled=remainder)
+            return
         if card.card_id == "CORE_LOE_079":
             # Elise's map is a real deck card and is shuffled immediately;
             # this is intentionally not a hand generation shortcut.
