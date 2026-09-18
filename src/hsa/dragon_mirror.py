@@ -263,6 +263,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "CORE_AT_011",  # Holy Champion
     "CORE_CFM_606",  # Mana Geode
     "CORE_CS3_014",  # Crimson Clergy
+    "CORE_BT_480",  # Crimson Sigil Runner
     "CAP_004",  # Disguised Operator
     "JAIL_442",  # Disguised Doctor
     "JAIL_452",  # Disguised Detective
@@ -302,6 +303,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "FIR_958",  # Tindral Sageswift
     "JAIL_509",  # Godfrey the Betrayer
     "TLC_480",  # Krog, Crater King
+    "TIME_021",  # Doomsday Prepper
 }
 
 # Closed Rewind cards whose random outcomes can be played from hand without
@@ -378,6 +380,10 @@ ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "TLC_222",  # Flight of the Firehawk
     "TLC_632",  # Story of Sulfuras
     "CATA_581",  # Decimation
+    "CATA_533",  # Flash Flood
+    "DINO_136",  # Horn of Feasting
+    "END_005",  # Bygone Echoes
+    "JAIL_892",  # Cosmic Manifestations
     "END_025",  # Eternal Firebolt
     "JAIL_801",  # Molten Gold
     "CORE_EX1_610",  # Explosive Trap
@@ -812,6 +818,8 @@ class CardInstance:
     playable_after_turn: int = -1
     summoned_when_drawn: bool = False
     immune: bool = False
+    immune_while_attacking: bool = False
+    attacking_now: bool = False
     infinite_attack_next_turn: bool = False
     herald_power: int = 1
     deck_threshold_attack: int = 0
@@ -1063,6 +1071,10 @@ class Player:
     hero_divine_shield: bool = False
     hero_divine_shield_hits: int = 0
     hero_divine_shield_toreth: bool = False
+    # Temporary immunity granted by Outcast cards such as Doomsday Prepper.
+    # The expiry is the owner's next turn, not the opponent's intervening turn.
+    hero_immune: bool = False
+    hero_immune_expiry_turn: int = -1
     turns_taken: int = 0
     dragons_played_this_turn: int = 0
     start_turn_temporary_mana_charges: int = 0
@@ -2509,6 +2521,10 @@ class DragonMirrorGame:
         self.turn += 1
         self.minions_died_this_turn = 0
         player = self.players[index]
+        if player.hero_immune_expiry_turn == self.turn:
+            player.hero_immune = False
+            player.hero_immune_expiry_turn = -1
+            self._event("hero_immune_expire", player=index)
         if player.holmes_watch_turn >= 0 and player.holmes_watch_turn < self.turn:
             self._event(
                 "holmes_expire", player=player.index,
@@ -2549,6 +2565,7 @@ class DragonMirrorGame:
                     )
                 if minion.temporary_immune_expiry_turn == index:
                     minion.immune = False
+                    minion.immune_while_attacking = False
                     minion.temporary_immune_expiry_turn = -1
                     self._event(
                         "temporary_immune_expire", player=owner.index,
@@ -6277,7 +6294,9 @@ class DragonMirrorGame:
         was_stealthed = self._break_stealth_for_attack(attacker)
         attacker_damage = attacker.attack
         defender_damage = defender.attack
+        attacker.attacking_now = True
         self._damage_minion(defender_owner, defender, attacker_damage, attacker)
+        attacker.attacking_now = False
         self._damage_minion(attacker_owner, attacker, defender_damage, defender)
         self._finja_kill(attacker_owner, attacker, defender)
         self._after_minion_attacked(defender_owner, defender)
@@ -8335,7 +8354,9 @@ class DragonMirrorGame:
             )
         else:
             defender = self._find_minion(action.target_player, target_entity)
+            attacker.attacking_now = True
             self._damage_minion(action.target_player, defender, attacker.attack, attacker)
+            attacker.attacking_now = False
             self._damage_minion(self.current, attacker, defender.attack, defender)
             self._finja_kill(self.current, attacker, defender)
             self._after_minion_attacked(action.target_player, defender)
@@ -8557,6 +8578,9 @@ class DragonMirrorGame:
         amount = self._modified_damage(amount, source)
         if amount <= 0:
             return
+        if player.hero_immune:
+            self._event("hero_immune", player=player.index, amount=amount)
+            return
         if any(
             minion.card_id == "CORE_CATA_001"
             and not minion.silenced
@@ -8635,7 +8659,7 @@ class DragonMirrorGame:
             amount *= 2
         if amount <= 0:
             return
-        if minion.immune:
+        if minion.immune or (minion.immune_while_attacking and minion.attacking_now):
             return
         if minion.divine_shield:
             minion.divine_shield_hits = max(1, minion.divine_shield_hits) - 1
@@ -9573,6 +9597,7 @@ class DragonMirrorGame:
                         ("windfury", card.windfury), ("reborn", card.reborn),
                         ("poisonous", card.poisonous or card.aura_poisonous),
                         ("immune", card.immune),
+                        ("immune_while_attacking", card.immune_while_attacking),
                     ) if enabled
                 ],
             }
@@ -9616,6 +9641,8 @@ class DragonMirrorGame:
                 "next_demon_free": player.next_demon_free,
                 "hero_divine_shield": player.hero_divine_shield,
                 "hero_divine_shield_hits": player.hero_divine_shield_hits,
+                "hero_immune": player.hero_immune,
+                "hero_immune_expiry_turn": player.hero_immune_expiry_turn,
                 "turns_taken": player.turns_taken,
                 "active_quests": {
                     quest_id: {

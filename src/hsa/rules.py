@@ -485,6 +485,125 @@ class DrawIfOutcast:
 
 
 @dataclass(frozen=True)
+class FlashFloodOutcast:
+    """Deal five to the enemy board's edges, repeating for Outcast.
+
+    Edges are recomputed after each pass.  This matters when the first pass
+    kills an edge minion and the next pass therefore reaches a new edge.
+    """
+
+    amount: int = 5
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        passes = 2 if getattr(context.card, "outcast_active", False) else 1
+        for _ in range(passes):
+            targets = [m for m in enemy.board
+                       if m.health > 0 and m.dormant_turns == 0]
+            if not targets:
+                break
+            # With one minion it occupies both edges and receives both hits.
+            edge_targets = [targets[0], targets[-1]]
+            for target in edge_targets:
+                if target in enemy.board and target.health > 0:
+                    game._damage_minion(enemy.index, target,
+                                        game._spell_effect_amount(
+                                            context.player, context.card,
+                                            self.amount), context.card)
+            game._resolve_deaths()
+        game._event("flash_flood", player=context.player.index,
+                    source=context.card.card_id, passes=passes)
+
+
+@dataclass(frozen=True)
+class SummonOutcastImmuneRaptors:
+    """Horn of Feasting's three Rush Raptors and temporary attack immunity."""
+
+    card_id: str = "DINO_136t"
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        summoned = []
+        for _ in range(3):
+            if len(context.player.board) + len(context.player.locations) >= 7:
+                break
+            raptor = game._entity(self.card_id, created_by=context.card.card_id)
+            raptor.summoned_turn = game.turn
+            game._summon(context.player, raptor)
+            summoned.append(raptor)
+        if getattr(context.card, "outcast_active", False):
+            expiry = 1 - context.player.index
+            for raptor in summoned:
+                # The printed effect is combat-only: spells and attacks made
+                # against a resting Raptor can still damage it.
+                raptor.immune_while_attacking = True
+                raptor.temporary_immune_expiry_turn = expiry
+        game._event("horn_of_feasting", player=context.player.index,
+                    source=context.card.card_id, summoned=[m.entity_id for m in summoned],
+                    outcast=bool(getattr(context.card, "outcast_active", False)))
+
+
+@dataclass(frozen=True)
+class BygoneEchoesOutcast:
+    """Summon a four-cost minion, with corpse and Outcast extra copies."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        SummonRandomMinionWithCost(4).execute(game, context)
+        if context.player.corpses >= 4:
+            context.player.corpses -= 4
+            game._event("spend_corpses", player=context.player.index,
+                        amount=4, source=context.card.card_id)
+            SummonRandomMinionWithCost(4).execute(game, context)
+        if getattr(context.card, "outcast_active", False):
+            SummonRandomMinionWithCost(4).execute(game, context)
+
+
+@dataclass(frozen=True)
+class CosmicManifestationsOutcast:
+    """Deal damage and shuffle random Demon Hunter spells into the deck."""
+
+    amount: int = 2
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        repetitions = 2 if getattr(context.card, "outcast_active", False) else 1
+        candidates = sorted(
+            card_id for card_id in game.executable_card_ids
+            if card_id in game.card_defs
+            and game.card_defs[card_id].card_type == "SPELL"
+            and game.card_defs[card_id].card_class == "DEMONHUNTER"
+            and not card_id.endswith("t")
+        )
+        enemy = game.players[1 - context.player.index]
+        owner = context.player
+        for _ in range(repetitions):
+            game._damage_hero(enemy, game._spell_effect_amount(
+                context.player, context.card, self.amount), context.card)
+            if candidates:
+                card_id = game.rng.choice(candidates)
+                generated = game._entity(card_id, created_by=context.card.card_id)
+                owner.deck.append(generated)
+                game.rng.shuffle(owner.deck)
+                game._event("cosmic_manifestation_shuffle", player=owner.index,
+                            source=context.card.card_id, card=card_id,
+                            entity=generated.entity_id)
+        game._event("cosmic_manifestations", player=context.player.index,
+                    source=context.card.card_id, repetitions=repetitions)
+
+
+@dataclass(frozen=True)
+class HeroImmuneUntilNextTurnIfOutcast:
+    """Doomsday Prepper's Outcast-only hero immunity."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if not getattr(context.card, "outcast_active", False):
+            return
+        context.player.hero_immune = True
+        context.player.hero_immune_expiry_turn = game.turn + 2
+        game._event("hero_immune_until_next_turn", player=context.player.index,
+                    source=context.card.card_id,
+                    expiry_turn=context.player.hero_immune_expiry_turn)
+
+
+@dataclass(frozen=True)
 class DrawThenShuffleSource:
     """Draw a card, then shuffle the played source card back into its deck."""
 
@@ -6990,6 +7109,48 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource("upstream_adapted", rosetta, "BT_801", "AGPL-3.0", ("test_eye_beam_outcast_lifesteal",)),
             targeting=TargetSpec(TargetKind.ENEMY_MINION),
             cost_modifier=CostIfOutcast(1),
+        ),
+        CardRule(
+            "CORE_BT_480", {Hook.BATTLECRY: (DrawIfOutcast(),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_crimson_sigil_runner_outcast_draw",),
+            ),
+        ),
+        CardRule(
+            "CATA_533", {Hook.SPELL: (FlashFloodOutcast(),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_flash_flood_outcast_repeats_edges",),
+            ),
+        ),
+        CardRule(
+            "DINO_136", {Hook.SPELL: (SummonOutcastImmuneRaptors(),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_horn_of_feasting_outcast_raptors",),
+            ),
+        ),
+        CardRule(
+            "END_005", {Hook.SPELL: (BygoneEchoesOutcast(),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_bygone_echoes_corpses_and_outcast",),
+            ),
+        ),
+        CardRule(
+            "JAIL_892", {Hook.SPELL: (CosmicManifestationsOutcast(),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_cosmic_manifestations_outcast",),
+            ),
+        ),
+        CardRule(
+            "TIME_021", {Hook.BATTLECRY: (HeroImmuneUntilNextTurnIfOutcast(),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332",
+                verification=("test_doomsday_prepper_outcast_hero_immunity",),
+            ),
         ),
         CardRule(
             "CORE_CATA_009", {Hook.SPELL: (FreezeActionTarget(), OfferSpellDiscover())},

@@ -3451,6 +3451,50 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(3, enemy.damage)
         self.assertEqual(23, game.players[0].health)
 
+    def test_outcast_remaining_standard_cards(self):
+        # Crimson Sigil Runner only draws when it is played from a hand edge.
+        game = self.game()
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True)]
+        runner = self.add_hand(game, "CORE_BT_480")
+        game.step(Action("PLAY", runner.entity_id))
+        self.assertEqual(1, len(game.players[0].hand))
+
+        # Flash Flood repeats and recomputes the two board edges for Outcast.
+        game = self.game()
+        left = self.add_board(game, "CORE_LOOT_137", 1)
+        right = self.add_board(game, "CORE_LOOT_137", 1)
+        left.health_delta += 10
+        right.health_delta += 10
+        flood = self.add_hand(game, "CATA_533")
+        self.add_hand(game, "GAME_005")
+        self.add_hand(game, "GAME_005")
+        game.step(Action("PLAY", flood.entity_id))
+        self.assertEqual(10, left.damage)
+        self.assertEqual(10, right.damage)
+
+        # Horn of Feasting gives all three Raptors temporary attack immunity.
+        game = self.game()
+        horn = self.add_hand(game, "DINO_136")
+        game.step(Action("PLAY", horn.entity_id))
+        self.assertEqual(3, len(game.players[0].board))
+        self.assertTrue(all(m.immune_while_attacking for m in game.players[0].board))
+        self.assertTrue(all(not m.immune for m in game.players[0].board))
+
+        # Bygone Echoes spends corpses and Outcast adds the third summon.
+        game = self.game()
+        game.players[0].corpses = 4
+        echoes = self.add_hand(game, "END_005")
+        game.step(Action("PLAY", echoes.entity_id))
+        self.assertEqual(0, game.players[0].corpses)
+        self.assertEqual(3, len(game.players[0].board))
+
+        # Doomsday Prepper protects the hero only when played from an edge.
+        game = self.game()
+        prepper = self.add_hand(game, "TIME_021")
+        game.step(Action("PLAY", prepper.entity_id))
+        game._damage_hero(game.players[0], 5)
+        self.assertEqual(30, game.players[0].health)
+
     def test_deaths_advance(self):
         game = self.game()
         enemy = self.add_board(game, "CORE_LOOT_137", 1)
