@@ -186,6 +186,7 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 }
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
+    "JAIL_444",  # Sawbones
     "CATA_300",  # The Black Blood
     "CATA_432",  # Chromatus
     "CATA_726",  # Cho'gall, Mastermind

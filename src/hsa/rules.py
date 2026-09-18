@@ -100,6 +100,7 @@ DECLARATIVE_METADATA_ALIASES = {
 STANDARD_DECLARATIVE_IDS = {
     "JAIL_326",  # Judgment
     "JAIL_913",  # Hold Them Off!
+    "JAIL_444",  # Sawbones
     "TLC_828",  # Supreme Dinomancy
     "TLC_835",  # Story of Amara
     "TLC_901",  # Fumigate
@@ -3067,6 +3068,25 @@ class SetAllMinionStatsLikeTarget:
         game._event("judgment_set_stats", player=context.player.index,
                     source=context.card.card_id, target=target.entity_id,
                     attack=target.attack, health=target.max_health)
+
+
+@dataclass(frozen=True)
+class DestroyOtherMinionsDrawAndRefresh:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        victims = [m for m in player.board if m.entity_id != context.card.entity_id]
+        for minion in victims:
+            minion.damage = minion.max_health
+        game._resolve_deaths()
+        destroyed = sum(
+            corpse.entity_id in {m.entity_id for m in victims}
+            for corpse in player.dead_minions
+        )
+        for _ in range(destroyed):
+            game._draw(player)
+            player.mana = min(player.max_mana, player.mana + 1)
+        game._event("sawbones_destroyed_others", player=player.index,
+                    source=context.card.card_id, destroyed=destroyed)
 
 
 @dataclass(frozen=True)
@@ -7119,6 +7139,10 @@ def build_rule_registry() -> RuleRegistry:
             "JAIL_913", {Hook.SPELL: (BuffActionTargetWithLifesteal(5, 5),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_hold_them_off_buffs_lifesteal",)),
             TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "JAIL_444", {Hook.BATTLECRY: (DestroyOtherMinionsDrawAndRefresh(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_sawbones_destroys_other_minions_and_refreshes",)),
         ),
         CardRule(
             "CATA_725t", {Hook.END_TURN: (HeraldDestroyRightAndGrow(),)},

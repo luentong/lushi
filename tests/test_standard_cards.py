@@ -1155,6 +1155,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PREPARE", prepared.entity_id))
         self.assertLess(jailbird.cost, before)
 
+    def test_sawbones_destroys_other_minions_and_refreshes(self):
+        game = self.game()
+        other = self.add_board(game, "CATA_565", 0)
+        sawbones = self.add_hand(game, "JAIL_444")
+        game.step(Action("PREPARE", sawbones.entity_id))
+        game.step(Action("PLAY", sawbones.entity_id))
+        self.assertNotIn(other, game.players[0].board)
+        self.assertGreaterEqual(game.players[0].mana, 1)
+
     def test_experimental_animation_heralds_and_damages_enemy_minions(self):
         game = self.game()
         enemy = self.add_board(game, "TLC_248", 1)
