@@ -3767,11 +3767,15 @@ class DragonMirrorGame:
             if self.pending_choice["kind"] in {
                 "DISCOVER", "GEDDON_DRAW", "DECK_DISCOVER", "DECK_CARD_DISCOVER",
                 "IMBUE_PICK", "INTERTWINED_FATE", "INTERTWINED_FATE_OPPONENT",
+                "SKELETON_KEY",
             }:
-                return [
+                actions = [
                     Action("DISCOVER_PICK", option.entity_id)
                     for option in self.pending_choice["options"]
                 ]
+                if self.pending_choice["kind"] == "SKELETON_KEY":
+                    actions.append(Action("RULE_CHOICE_PICK", -1))
+                return actions
             if self.pending_choice["kind"] == "ASHALON_ADAPT":
                 return [
                     Action("RULE_CHOICE_PICK", index)
@@ -4100,7 +4104,14 @@ class DragonMirrorGame:
         elif action.kind == "CORPSE_SPEND":
             self._resolve_corpse_spend(action.source)
         elif action.kind == "RULE_CHOICE_PICK":
-            self._resolve_rule_choice(action.source)
+            if (
+                self.pending_choice
+                and self.pending_choice.get("kind") == "SKELETON_KEY"
+                and action.source == -1
+            ):
+                self._refresh_skeleton_key()
+            else:
+                self._resolve_rule_choice(action.source)
         elif action.kind == "CATACLYSM_PICK":
             self._resolve_deathwing_cataclysm(action.source)
         for owner in self.players:
@@ -6413,6 +6424,30 @@ class DragonMirrorGame:
                      for card in options],
         )
 
+    def _refresh_skeleton_key(self) -> None:
+        pending = self.pending_choice
+        if pending is None or pending.get("kind") != "SKELETON_KEY":
+            raise ValueError("no Skeleton Key choice is pending")
+        player = self.players[pending["player"]]
+        if self.rng.random() < 0.20:
+            self._damage_hero(player, 5)
+            self._event(
+                "skeleton_key_refresh_damage", player=player.index,
+                amount=5, refreshes=pending["refreshes"] + 1,
+            )
+        candidates = list(pending["pool"])
+        self.rng.shuffle(candidates)
+        self.pending_choice["options"] = [
+            self._entity(card_id, created_by="JAIL_319")
+            for card_id in candidates[:3]
+        ]
+        self.pending_choice["refreshes"] += 1
+        self._event(
+            "skeleton_key_refresh", player=player.index,
+            refreshes=self.pending_choice["refreshes"],
+            options=[card.card_id for card in self.pending_choice["options"]],
+        )
+
     def _offer_spell_school_discover(
         self, player: Player, *, spell_school: str, source_card_id: str,
         cost_delta: int = 0,
@@ -6431,7 +6466,8 @@ class DragonMirrorGame:
         for option in options:
             option.cost_delta += cost_delta
         self.pending_choice = {
-            "kind": "DISCOVER", "player": player.index,
+            "kind": "DISCOVER",
+            "player": player.index,
             "pool": tuple(candidates), "dark_gift": False,
             "repeats_left": 0, "after_pick": None,
             "source_card_id": source_card_id, "options": options,
@@ -6458,10 +6494,12 @@ class DragonMirrorGame:
             for card_id in candidates[:3]
         ]
         self.pending_choice = {
-            "kind": "DISCOVER", "player": player.index,
+            "kind": "SKELETON_KEY" if source_card_id == "JAIL_319" else "DISCOVER",
+            "player": player.index,
             "pool": tuple(candidates), "dark_gift": False,
             "repeats_left": 0, "after_pick": None,
             "source_card_id": source_card_id, "options": options,
+            "refreshes": 0,
         }
         self._event(
             "spell_discover_offer", player=player.index,
