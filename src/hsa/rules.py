@@ -187,7 +187,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
-    "JAIL_877", "MEND_044", "TIME_044", "TLC_449",  # Location cards
+    "JAIL_877", "MEND_044", "TIME_044", "TIME_436", "TIME_810", "TLC_449",  # Location cards
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
     "UNG_934t1", "UNG_940t8", "UNG_942t", "UNG_954t1",
     "UNG_999t2t1",
@@ -4146,6 +4146,36 @@ class AddRandomDragon:
 
 
 @dataclass(frozen=True)
+class SummonRandomDragonMinCost:
+    """Summon a random executable Dragon at or above a printed cost."""
+
+    min_cost: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if len(context.player.board) + len(context.player.locations) >= 7:
+            return
+        candidates = sorted(
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "MINION"
+            and "DRAGON" in definition.races
+            and definition.cost >= self.min_cost
+        )
+        if not candidates:
+            return
+        minion = game._entity(
+            game.rng.choice(candidates), created_by=context.card.card_id
+        )
+        minion.summoned_turn = game.turn
+        game._summon(context.player, minion)
+        game._event(
+            "random_dragon_summoned", player=context.player.index,
+            source=context.card.card_id, card=minion.card_id,
+            entity=minion.entity_id, min_cost=self.min_cost,
+        )
+
+
+@dataclass(frozen=True)
 class DiscoverNatureSpell:
     """Farseer Wo's post-cast Discover from the executable Nature pool."""
 
@@ -6173,6 +6203,14 @@ def build_rule_registry() -> RuleRegistry:
             "TIME_044", {Hook.LOCATION: (BuffActionTarget(2, 1),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
             TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "TIME_436", {Hook.LOCATION: (SummonRandomDragonMinCost(5),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "TIME_810", {Hook.LOCATION: (DamageRandomEnemyMinion(5),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
         ),
         CardRule(
             "TLC_449", {Hook.LOCATION: (DiscoverTemporaryOneCostMinion(),)},
