@@ -156,6 +156,12 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             game.card_defs[token.embedded_spell_id].cost for token in tokens
         )
         self.assertEqual(12, total)
+        carve = next(
+            event for event in reversed(game.events)
+            if event["kind"] == "bashana_runetotem"
+        )
+        self.assertEqual(12, carve["total_cost"])
+        self.assertTrue(carve["exact_total"])
 
     def game(self) -> DragonMirrorGame:
         game = DragonMirrorGame(CARDS, 29)
