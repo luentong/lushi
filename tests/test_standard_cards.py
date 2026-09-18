@@ -348,7 +348,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game = self.game()
         supplier = self.add_board(game, "CAP_003", 0)
         supplier.stealth = True
-        game.players[0].deck = [game._entity("CORE_CS2_023")]
+        game.players[0].deck = [game._entity("AT_001")]
         game._after_minion_attack(0, supplier, was_stealthed=True)
         self.assertEqual(1, len(game.players[0].hand))
 
@@ -393,6 +393,96 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(1, len(game.players[0].hand))
         self.assertEqual("CORE_CS2_023", game.players[0].hand[0].card_id)
         self.assertEqual(0, len(game.players[0].deck))
+
+    def test_asphyxiate_destroys_highest_attack_enemy(self):
+        game = self.game()
+        low = self.add_board(game, "CORE_EX1_005", 1)
+        high = self.add_board(game, "CORE_EX1_005", 1)
+        low.attack_delta = 1
+        high.attack_delta = 5
+        spell = self.add_hand(game, "CORE_RLK_087")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertIn(low, game.players[1].board)
+        self.assertNotIn(high, game.players[1].board)
+
+    def test_nascent_bolt_draws_two_if_survives(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_EX1_005", 1)
+        game.players[1].board[0].health_delta = 10
+        game.players[0].deck = [game._entity("CORE_CS2_023") for _ in range(2)]
+        spell = self.add_hand(game, "TIME_216")
+        game.step(Action("PLAY", spell.entity_id, target_player=1, target_entity=target.entity_id))
+        self.assertEqual(2, len(game.players[0].hand))
+
+    def test_living_flame_draws_fire_spell(self):
+        game = self.game()
+        game.players[0].deck = [game._entity("AT_001")]
+        flame = self.add_board(game, "FIR_929", 0)
+        flame.health = 0
+        game._resolve_deaths()
+        self.assertEqual(1, len(game.players[0].hand))
+
+    def test_temporal_construct_draws_excess(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_EX1_005", 1)
+        target.health_delta = -4
+        game.players[0].deck = [game._entity("CORE_CS2_023")]
+        construct = self.add_hand(game, "TIME_858")
+        game.step(Action("PLAY", construct.entity_id, target_player=1, target_entity=target.entity_id))
+        self.assertEqual(1, len(game.players[0].hand))
+
+    def test_disciple_of_the_dove_draws_and_buffs_hand_minions(self):
+        game = self.game()
+        game.players[0].deck = [game._entity("CORE_EX1_005")]
+        existing = game._entity("CORE_EX1_005")
+        game.players[0].hand.append(existing)
+        disciple = self.add_hand(game, "TIME_037")
+        game.step(Action("PLAY", disciple.entity_id))
+        self.assertEqual(2, len(game.players[0].hand))
+        self.assertTrue(all(card.health_delta == 2 for card in game.players[0].hand))
+
+    def test_emerald_bounty_locks_drawn_cards(self):
+        game = self.game()
+        game.players[0].deck = [game._entity("CORE_CS2_023") for _ in range(2)]
+        spell = self.add_hand(game, "EDR_234")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertTrue(all(card.playable_after_turn == game.turn + 2 for card in game.players[0].hand))
+
+    def test_precursory_strike_conditional_minion_draw(self):
+        game = self.game()
+        held = game._entity("CORE_EX1_005")
+        held.cost_delta = 4
+        game.players[0].hand.append(held)
+        game.players[0].deck = [game._entity("CORE_EX1_005")]
+        spell = self.add_hand(game, "TIME_750")
+        game.step(Action("PLAY", spell.entity_id, target_player=1, target_entity=None))
+        self.assertTrue(any(card.definition.card_type == "MINION" for card in game.players[0].hand))
+
+    def test_muradins_last_stand_scales_with_attacks(self):
+        game = self.game()
+        game.players[0].hero_attacks_this_game = 3
+        game.players[0].deck = [game._entity("CORE_CS2_023") for _ in range(2)]
+        spell = self.add_hand(game, "CATA_568")
+        self.assertEqual(6, game._effective_cost(game.players[0], spell))
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(2, len(game.players[0].hand))
+
+    def test_morchok_draws_with_excess_discount(self):
+        game = self.game()
+        game.players[0].deck = [game._entity("CORE_CS2_023")]
+        card = self.add_hand(game, "CATA_570")
+        game.step(Action("PLAY", card.entity_id))
+        self.assertEqual(1, len(game.players[0].hand))
+
+    def test_primordial_overseer_nature_condition(self):
+        game = self.game()
+        nature = game._entity("AT_037")
+        game.players[0].hand.append(nature)
+        game.players[0].deck = [game._entity("CORE_CS2_023")]
+        overseer = self.add_hand(game, "TIME_213")
+        game.step(Action("PLAY", overseer.entity_id))
+        self.assertEqual(1, overseer.attack_delta)
+        self.assertEqual(2, len(game.players[0].hand))
 
 
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):

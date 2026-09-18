@@ -3331,6 +3331,8 @@ class DragonMirrorGame:
             cost -= player.next_murloc_cost_reduction
         if card.card_id == "TLC_600" and "DRAGON" in player.played_races_last_turn:
             cost -= 3
+        if card.card_id == "CATA_568":
+            cost -= player.hero_attacks_this_game
         if card.card_id == "END_033" and any(
             other.entity_id != card.entity_id and other.has_race("DRAGON")
             for other in player.hand

@@ -203,6 +203,8 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_042", "TIME_042t",
     "TIME_617",
     "CATA_721",
+    "CORE_RLK_087", "TIME_216", "FIR_929", "TIME_858", "TIME_037",
+    "EDR_234", "TIME_750", "CATA_568", "CATA_570", "TIME_213",
     "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
@@ -954,6 +956,142 @@ class DestroyHighAttackMinion:
             raise ValueError("Big Game Hunter requires a 7+ Attack target")
         target.damage = target.max_health
         game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class DestroyHighestAttackEnemy:
+    """Asphyxiate: destroy the highest-Attack enemy minion (random tie)."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = [m for m in game.players[1 - context.player.index].board
+                      if m.dormant_turns == 0 and m.health > 0]
+        if not candidates:
+            return
+        highest = max(m.attack for m in candidates)
+        target = game.rng.choice([m for m in candidates if m.attack == highest])
+        target.damage = target.max_health
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class DamageThenDrawIfSurvives:
+    amount: int
+    draws: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("enemy minion target is required")
+        target = game._find_minion(context.action.target_player,
+                                   context.action.target_entity)
+        game._damage_minion(
+            context.action.target_player, target,
+            game._spell_effect_amount(context.player, context.card, self.amount),
+            context.card,
+        )
+        survives = target.health > 0
+        game._resolve_deaths()
+        if survives:
+            for _ in range(self.draws):
+                game._draw(context.player)
+
+
+@dataclass(frozen=True)
+class DamageThenDrawExcess:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("enemy minion target is required")
+        target = game._find_minion(context.action.target_player,
+                                   context.action.target_entity)
+        before = max(0, target.health)
+        damage = game._spell_effect_amount(context.player, context.card, self.amount)
+        game._damage_minion(context.action.target_player, target, damage, context.card)
+        excess = max(0, damage - before)
+        game._resolve_deaths()
+        for _ in range(excess):
+            game._draw(context.player)
+
+
+@dataclass(frozen=True)
+class DrawMinionBuffHand:
+    health: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        DrawMatching(card_type="MINION").execute(game, context)
+        for card in context.player.hand:
+            if card.definition.card_type == "MINION":
+                card.health_delta += self.health
+
+
+@dataclass(frozen=True)
+class DrawAndLockForTurns:
+    count: int
+    turns: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for _ in range(self.count):
+            before = set(card.entity_id for card in context.player.hand)
+            game._draw(context.player)
+            for card in context.player.hand:
+                if card.entity_id not in before:
+                    card.playable_after_turn = game.turn + self.turns
+
+
+@dataclass(frozen=True)
+class DamageTargetThenConditionalMinionDraw:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        DamageActionTarget(self.amount).execute(game, context)
+        if any(card.definition.card_type == "MINION" and card.cost >= 5
+               for card in context.player.hand):
+            DrawMatching(card_type="MINION").execute(game, context)
+
+
+@dataclass(frozen=True)
+class DrawTwoDiscountByHeroAttacks:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        discount = context.player.hero_attacks_this_game
+        for _ in range(2):
+            before = set(card.entity_id for card in context.player.hand)
+            game._draw(context.player)
+            for card in context.player.hand:
+                if card.entity_id not in before:
+                    card.cost_delta -= discount
+
+
+@dataclass(frozen=True)
+class DrawCostRepeatExcess:
+    discount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        remaining = self.discount
+        while remaining > 0:
+            before = set(card.entity_id for card in context.player.hand)
+            game._draw(context.player)
+            drawn = [card for card in context.player.hand if card.entity_id not in before]
+            if not drawn:
+                break
+            card = drawn[-1]
+            applied = min(remaining, card.cost)
+            card.cost_delta -= self.discount
+            remaining -= applied
+            if applied == 0:
+                break
+
+
+@dataclass(frozen=True)
+class NatureHeldBuffDraw:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        nature_held = any(
+            card.definition.spell_school == "NATURE"
+            for card in context.player.hand
+        )
+        if nature_held:
+            context.card.attack_delta += 1
+            context.card.health_delta += 1
+            game._draw(context.player)
 
 
 @dataclass(frozen=True)
@@ -9042,6 +9180,39 @@ def build_rule_registry() -> RuleRegistry:
         CardRule("CATA_721", {},
                  RuleSource("official_text_and_engine_verified", "hand choice and shuffle engine",
                             verification=("test_sheltered_survivor_shuffles_selected_hand_card",))),
+        CardRule("CORE_RLK_087", {Hook.SPELL: (DestroyHighestAttackEnemy(),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                            verification=("test_asphyxiate_destroys_highest_attack_enemy",))),
+        CardRule("TIME_216", {Hook.SPELL: (DamageThenDrawIfSurvives(5, 2),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                            verification=("test_nascent_bolt_draws_two_if_survives",)),
+                 targeting=TargetSpec(TargetKind.ENEMY_MINION)),
+        CardRule("FIR_929", {Hook.DEATHRATTLE: (DrawMatching(card_type="SPELL", spell_school="FIRE"),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                            verification=("test_living_flame_draws_fire_spell",))),
+        CardRule("TIME_858", {Hook.BATTLECRY: (DamageThenDrawExcess(5),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                            verification=("test_temporal_construct_draws_excess",)),
+                 targeting=TargetSpec(TargetKind.ENEMY_MINION)),
+        CardRule("TIME_037", {Hook.BATTLECRY: (DrawMinionBuffHand(2),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                            verification=("test_disciple_of_the_dove_draws_and_buffs_hand",))),
+        CardRule("EDR_234", {Hook.SPELL: (DrawAndLockForTurns(2, 2),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                            verification=("test_emerald_bounty_locks_drawn_cards",))),
+        CardRule("TIME_750", {Hook.SPELL: (DamageTargetThenConditionalMinionDraw(3),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                            verification=("test_precursory_strike_conditional_minion_draw",)),
+                 targeting=TargetSpec(TargetKind.ANY_CHARACTER)),
+        CardRule("CATA_568", {Hook.SPELL: (DrawTwoDiscountByHeroAttacks(),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                            verification=("test_muradins_last_stand_scales_with_attacks",))),
+        CardRule("CATA_570", {Hook.BATTLECRY: (DrawCostRepeatExcess(10),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                            verification=("test_morchok_draws_with_excess_discount",))),
+        CardRule("TIME_213", {Hook.BATTLECRY: (NatureHeldBuffDraw(),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                            verification=("test_primordial_overseer_nature_condition",))),
         CardRule(
             "CATA_724", {
                 Hook.AFTER_PLAY: (Overload(3),),
