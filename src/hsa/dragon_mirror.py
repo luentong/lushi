@@ -304,6 +304,17 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "JAIL_509",  # Godfrey the Betrayer
     "TLC_480",  # Krog, Crater King
     "TIME_021",  # Doomsday Prepper
+    "CORE_EDR_003",  # Falric
+    "CORE_RLK_066",  # Hematurge
+    "CORE_RLK_505",  # Marrow Manipulator
+    "CORE_RLK_506",  # Boneguard Commander
+    "DINO_416",  # Hollow Direhorn
+    "EDR_815",  # Corpse Flower
+    "FIR_951",  # Volcoross
+    "RLK_061",  # Battlefield Necromancer
+    "RLK_503",  # Body Bagger
+    "CORE_RLK_745",  # Malignant Horror
+    "TIME_618",  # Husk, Eternal Reaper
 }
 
 # Closed Rewind cards whose random outcomes can be played from hand without
@@ -384,6 +395,15 @@ ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "DINO_136",  # Horn of Feasting
     "END_005",  # Bygone Echoes
     "JAIL_892",  # Cosmic Manifestations
+    "CORE_RLK_118",  # Tomb Guardians
+    "CORE_RLK_712",  # Blood Tap
+    "CORE_WW_374",  # Corpse Farm
+    "RLK_060",  # Army of the Dead
+    "RLK_707",  # Grave Strength
+    "JAIL_451",  # Blood Clone
+    "TLC_434",  # Paleomancy
+    "EDR_813",  # Morbid Swarm
+    "CATA_465",  # Chow Down
     "END_025",  # Eternal Firebolt
     "JAIL_801",  # Molten Gold
     "CORE_EX1_610",  # Explosive Trap

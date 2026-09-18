@@ -3495,6 +3495,28 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._damage_hero(game.players[0], 5)
         self.assertEqual(30, game.players[0].health)
 
+    def test_corpse_core_cards(self):
+        game = self.game()
+        game.players[0].corpses = 4
+        tomb = self.add_hand(game, "CORE_RLK_118")
+        game.step(Action("PLAY", tomb.entity_id))
+        self.assertEqual(0, game.players[0].corpses)
+        self.assertEqual(2, len(game.players[0].board))
+        self.assertTrue(all(m.taunt and m.reborn for m in game.players[0].board))
+
+        game = self.game()
+        game.players[0].corpses = 1
+        bagger = self.add_hand(game, "RLK_503")
+        game.step(Action("PLAY", bagger.entity_id))
+        self.assertEqual(2, game.players[0].corpses)
+
+        game = self.game()
+        game.players[0].corpses = 8
+        chow = self.add_hand(game, "CATA_465")
+        game.step(Action("PLAY", chow.entity_id))
+        self.assertEqual(0, game.players[0].corpses)
+        self.assertTrue(all(m.rush for m in game.players[0].board))
+
     def test_deaths_advance(self):
         game = self.game()
         enemy = self.add_board(game, "CORE_LOOT_137", 1)

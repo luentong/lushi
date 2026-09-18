@@ -604,6 +604,207 @@ class HeroImmuneUntilNextTurnIfOutcast:
 
 
 @dataclass(frozen=True)
+class GainCorpses:
+    amount: int = 1
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.corpses += self.amount
+        game._event("gain_corpses", player=context.player.index,
+                    source=context.card.card_id, amount=self.amount)
+
+
+@dataclass(frozen=True)
+class SpendCorpsesDiscoverRune:
+    rune: str
+    amount: int = 1
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.player.corpses < self.amount:
+            return
+        context.player.corpses -= self.amount
+        game._event("spend_corpses", player=context.player.index,
+                    source=context.card.card_id, amount=self.amount)
+        game._offer_rune_discover(
+            context.player, rune=self.rune, source_card_id=context.card.card_id,
+        )
+
+
+@dataclass(frozen=True)
+class SpendCorpsesBuffHand:
+    base_attack: int = 1
+    base_health: int = 1
+    spend: int = 0
+    bonus_attack: int = 1
+    bonus_health: int = 1
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for card in context.player.hand:
+            if card.entity_id != context.card.entity_id:
+                card.attack_delta += self.base_attack
+                card.health_delta += self.base_health
+        if context.player.corpses >= self.spend:
+            context.player.corpses -= self.spend
+            for card in context.player.hand:
+                if card.entity_id != context.card.entity_id:
+                    card.attack_delta += self.bonus_attack
+                    card.health_delta += self.bonus_health
+            game._event("spend_corpses", player=context.player.index,
+                        source=context.card.card_id, amount=self.spend)
+
+
+@dataclass(frozen=True)
+class SummonCorpseTokens:
+    card_id: str
+    count: int
+    spend: int = 0
+    taunt: bool = False
+    reborn_if_spent: bool = False
+    rush: bool = False
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        can_spend = context.player.corpses >= self.spend
+        if can_spend and self.spend:
+            context.player.corpses -= self.spend
+            game._event("spend_corpses", player=context.player.index,
+                        source=context.card.card_id, amount=self.spend)
+        for _ in range(self.count):
+            if len(context.player.board) + len(context.player.locations) >= 7:
+                break
+            token = game._entity(self.card_id, created_by=context.card.card_id)
+            token.taunt = self.taunt or token.taunt
+            token.rush = self.rush or token.rush
+            token.reborn = self.reborn_if_spent and can_spend
+            token.summoned_turn = game.turn
+            game._summon(context.player, token)
+
+
+@dataclass(frozen=True)
+class SpendCorpsesRandomDamage:
+    max_corpses: int
+    amount_per_corpse: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        spent = min(context.player.corpses, self.max_corpses)
+        if spent <= 0:
+            return
+        context.player.corpses -= spent
+        game._event("spend_corpses", player=context.player.index,
+                    source=context.card.card_id, amount=spent)
+        for _ in range(spent):
+            targets = game._random_enemy_characters(context.player.index)
+            if not targets:
+                break
+            target = game.rng.choice(targets)
+            game._deal_to_target(
+                context.player.index, target,
+                game._spell_effect_amount(context.player, context.card,
+                                           self.amount_per_corpse),
+                source=context.card,
+            )
+
+
+@dataclass(frozen=True)
+class SpendCorpsesRandomMinion:
+    max_corpses: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        spent = min(context.player.corpses, self.max_corpses)
+        if spent <= 0:
+            return
+        context.player.corpses -= spent
+        game._event("spend_corpses", player=context.player.index,
+                    source=context.card.card_id, amount=spent)
+        game._summon_random_executable_minion(
+            context.player, source_card_id=context.card.card_id, cost=spent,
+        )
+
+
+@dataclass(frozen=True)
+class RaiseCorpseFootmen:
+    max_count: int
+    card_id: str
+    attack_damage: int = 0
+    health_damage: int = 0
+    taunt: bool = True
+    rush: bool = False
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        slots = max(0, 7 - len(context.player.board) - len(context.player.locations))
+        count = min(context.player.corpses, self.max_count, slots)
+        if count <= 0:
+            return
+        context.player.corpses -= count
+        game._event("spend_corpses", player=context.player.index,
+                    source=context.card.card_id, amount=count)
+        for _ in range(count):
+            if len(context.player.board) + len(context.player.locations) >= 7:
+                break
+            token = game._entity(self.card_id, created_by=context.card.card_id)
+            token.taunt = self.taunt
+            token.rush = self.rush
+            token.summoned_turn = game.turn
+            game._summon(context.player, token)
+
+
+@dataclass(frozen=True)
+class GraveStrength:
+    base_attack: int = 1
+    corpse_threshold: int = 5
+    upgraded_attack: int = 3
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        attack = self.base_attack
+        if context.player.corpses >= self.corpse_threshold:
+            context.player.corpses -= self.corpse_threshold
+            attack = self.upgraded_attack
+            game._event("spend_corpses", player=context.player.index,
+                        source=context.card.card_id, amount=self.corpse_threshold)
+        for minion in context.player.board:
+            minion.attack_delta += attack
+
+
+@dataclass(frozen=True)
+class ChowDown:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        rush = context.player.corpses >= 8
+        if rush:
+            context.player.corpses -= 8
+            game._event("spend_corpses", player=context.player.index,
+                        source=context.card.card_id, amount=8)
+        for _ in range(5):
+            if len(context.player.board) + len(context.player.locations) >= 7:
+                break
+            drake = game._entity("CATA_465t", created_by=context.card.card_id)
+            drake.rush = rush
+            drake.summoned_turn = game.turn
+            game._summon(context.player, drake)
+
+
+@dataclass(frozen=True)
+class MalignantHorrorEndTurn:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.player.corpses < 4:
+            return
+        if len(context.player.board) + len(context.player.locations) >= 7:
+            return
+        context.player.corpses -= 4
+        game._event("spend_corpses", player=context.player.index,
+                    source=context.card.card_id, amount=4)
+        copy = context.card.clone(game.next_entity_id)
+        game.next_entity_id += 1
+        copy.created_by = context.card.card_id
+        copy.damage = 0
+        copy.summoned_turn = game.turn
+        game._summon(context.player, copy)
+
+
+@dataclass(frozen=True)
+class RaiseOneCorpseEndTurn:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        RaiseCorpseFootmen(1, "RLK_061t").execute(game, context)
+
+
+@dataclass(frozen=True)
 class DrawThenShuffleSource:
     """Draw a card, then shuffle the played source card back into its deck."""
 
@@ -7151,6 +7352,73 @@ def build_rule_registry() -> RuleRegistry:
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_doomsday_prepper_outcast_hero_immunity",),
             ),
+        ),
+        CardRule(
+            "RLK_503", {Hook.BATTLECRY: (GainCorpses(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_body_bagger_gains_corpse",)),
+        ),
+        CardRule(
+            "CORE_RLK_066", {Hook.BATTLECRY: (
+                SpendCorpsesDiscoverRune("blood"),
+            )},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_hematurge_spends_corpse",)),
+        ),
+        CardRule(
+            "CORE_RLK_118", {Hook.SPELL: (
+                SummonCorpseTokens("RLK_118t3", 2, spend=4,
+                                   taunt=True, reborn_if_spent=True),
+            )},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_tomb_guardians_corpse_upgrade",)),
+        ),
+        CardRule(
+            "CORE_RLK_505", {Hook.BATTLECRY: (SpendCorpsesRandomDamage(5, 2),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_marrow_manipulator_spends_corpses",)),
+        ),
+        CardRule(
+            "CORE_RLK_506", {Hook.BATTLECRY: (
+                RaiseCorpseFootmen(6, "RLK_506t"),
+            )},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_boneguard_commander_raises_corpses",)),
+        ),
+        CardRule(
+            "CORE_RLK_712", {Hook.SPELL: (SpendCorpsesBuffHand(1, 1, 2, 1, 1),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_blood_tap_corpse_upgrade",)),
+        ),
+        CardRule(
+            "CORE_WW_374", {Hook.SPELL: (SpendCorpsesRandomMinion(8),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_corpse_farm_cost_pool",)),
+        ),
+        CardRule(
+            "RLK_060", {Hook.SPELL: (RaiseCorpseFootmen(5, "RLK_008t", rush=True),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_army_of_the_dead_raises_ghouls",)),
+        ),
+        CardRule(
+            "RLK_707", {Hook.SPELL: (GraveStrength(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_grave_strength_corpse_upgrade",)),
+        ),
+        CardRule(
+            "CATA_465", {Hook.SPELL: (ChowDown(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_chow_down_corpse_rush",)),
+        ),
+        CardRule(
+            "CORE_RLK_745", {Hook.END_TURN: (MalignantHorrorEndTurn(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_malignant_horror_end_turn_copy",)),
+        ),
+        CardRule(
+            "RLK_061", {Hook.END_TURN: (RaiseOneCorpseEndTurn(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_battlefield_necromancer_raises_footman",)),
         ),
         CardRule(
             "CORE_CATA_009", {Hook.SPELL: (FreezeActionTarget(), OfferSpellDiscover())},
