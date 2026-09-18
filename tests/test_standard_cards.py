@@ -326,6 +326,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.players[0].board[0].silenced = True
         self.assertEqual(2, game._effective_cost(game.players[0], own))
 
+    def test_captain_crowley_summons_cannoneers_and_adds_shots(self):
+        game = self.game()
+        captain = self.add_hand(game, "CAP_106")
+        game.step(Action("PLAY", captain.entity_id))
+        cannoneers = [m for m in game.players[0].board if m.card_id == "CAP_107t"]
+        self.assertEqual(2, len(cannoneers))
+        self.assertEqual(1, sum(m.card_id == "CAP_106" for m in game.players[0].board))
+
 
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
