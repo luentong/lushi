@@ -2138,6 +2138,25 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertNotIn(enemy, game.players[1].board)
         self.assertNotIn(watchman, game.players[0].board)
 
+    def test_rulebreaker_detective_overloads_the_receiving_side(self):
+        game = self.game(278)
+        detective = self.add_hand(game, "JAIL_452")
+        self.play(game, detective, 1, None)
+        self.assertIn(detective, game.players[1].board)
+        self.assertEqual(2, game.players[1].overload_next_turn)
+        self.assertEqual(0, game.players[0].overload_next_turn)
+
+    def test_rulebreaker_executioner_destroys_random_adjacent_minion(self):
+        game = self.game(279)
+        left = self.add_board(game, "CORE_NEW1_023", 1)
+        right = self.add_board(game, "CORE_NEW1_023", 1)
+        executioner = self.add_hand(game, "JAIL_461")
+        self.play(game, executioner, 1, None)
+        self.assertIn(executioner, game.players[1].board)
+        survivors = {minion.entity_id for minion in game.players[1].board}
+        self.assertEqual(2, len(survivors))
+        self.assertEqual(1, len(survivors & {left.entity_id, right.entity_id}))
+
     def test_nablya_copies_damaged_minions_with_rush(self):
         game = self.game(281)
         player = game.players[0]

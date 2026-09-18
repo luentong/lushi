@@ -256,6 +256,10 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "CORE_KAR_061",  # The Curator
     "CORE_REV_946",  # Steamcleaner
     "JAIL_456",  # P1CK-P0K3T
+    "CAP_004",  # Disguised Operator
+    "JAIL_442",  # Disguised Doctor
+    "JAIL_452",  # Disguised Detective
+    "JAIL_461",  # Disguised Executioner
     "JAIL_502",  # Alarm-o-Matic
     "JAIL_850",  # Warden Maiev
     "JAIL_852",  # Togwaggle, Smuggler King
@@ -315,6 +319,17 @@ ADDITIONAL_PLAYABLE_CARD_IDS = {
     "TIME_610",  # Shadows of Yesterday
     "CATA_580",  # Cataclysmic War Axe
 }
+
+# Rulebreaker minions explicitly ignore the normal friendly-board placement
+# restriction.  Keep this as data so legal-action generation and resolution
+# use the same side-placement contract.
+PLAYABLE_ON_EITHER_SIDE_IDS = frozenset({
+    "CAP_004",   # Disguised Operator
+    "JAIL_442",  # Disguised Doctor
+    "JAIL_452",  # Disguised Detective
+    "JAIL_455",  # Disguised Watchman
+    "JAIL_461",  # Disguised Executioner
+})
 
 # Individually closed spells used by generated-spell mechanics. Keep these
 # separate from the Rewind tranche: the generation audit relies on the latter
@@ -3875,7 +3890,7 @@ class DragonMirrorGame:
             if (
                 card.definition.card_type in {"MINION", "LOCATION"}
                 and len(player.board) + len(player.locations) >= 7
-                and card.card_id != "JAIL_455"
+                and card.card_id not in PLAYABLE_ON_EITHER_SIDE_IDS
             ):
                 continue
             targets: list[tuple[int, int | None]] | None = None
@@ -3986,7 +4001,7 @@ class DragonMirrorGame:
                     for minion in self.players[1 - self.current].board
                     if minion.dormant_turns == 0 and not minion.stealth
                 ] or [(None, None)]
-            elif card.card_id == "JAIL_455":
+            elif card.card_id in PLAYABLE_ON_EITHER_SIDE_IDS:
                 targets = [
                     (candidate.index, None)
                     for candidate in self.players
@@ -4488,7 +4503,8 @@ class DragonMirrorGame:
             player.next_spell_cost_reduction = 0
         controller = (
             self.players[action.target_player]
-            if card.card_id == "JAIL_455" and action.target_player is not None
+            if card.card_id in PLAYABLE_ON_EITHER_SIDE_IDS
+            and action.target_player is not None
             else player
         )
         self._event(
@@ -4811,6 +4827,35 @@ class DragonMirrorGame:
 
     def _battlecry(self, player: Player, card: CardInstance, action: Action) -> None:
         times = 2 if card.battlecry_twice else 1
+        if card.card_id == "JAIL_452":
+            # Overload belongs to the side that received the minion.  This is
+            # observable when the Detective is deliberately played onto the
+            # opponent's board.
+            player.overload_next_turn += 2
+            self._event(
+                "rulebreaker_overload", player=player.index,
+                source=card.card_id, amount=2,
+            )
+            return
+        if card.card_id == "JAIL_461":
+            if card in player.board:
+                index = player.board.index(card)
+                adjacent = [
+                    minion for minion in (
+                        player.board[max(0, index - 1):index]
+                        + player.board[index + 1:index + 2]
+                    )
+                    if minion.dormant_turns == 0
+                ]
+                if adjacent:
+                    target = self.rng.choice(adjacent)
+                    target.damage = target.max_health
+                    self._event(
+                        "rulebreaker_adjacent_destroy", player=player.index,
+                        source=card.card_id, target=target.entity_id,
+                    )
+                    self._resolve_deaths()
+            return
         if card.card_id == "TLC_229t14":
             self._offer_ashalon_adapt(player, remaining=2)
             return
