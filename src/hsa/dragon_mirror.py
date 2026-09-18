@@ -48,7 +48,7 @@ DIRECT_IDS = {
     "CAP_105",
     "CAP_107",
     "JAIL_877", "MEND_044", "TIME_044", "TLC_449",
-    "TIME_436", "TIME_810",
+    "TIME_436", "TIME_446", "TIME_810",
 }
 
 GENERATED_DRAGON_IDS = {

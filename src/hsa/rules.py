@@ -187,7 +187,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
-    "JAIL_877", "MEND_044", "TIME_044", "TIME_436", "TIME_810", "TLC_449",  # Location cards
+    "JAIL_877", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Location cards
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
     "UNG_934t1", "UNG_940t8", "UNG_942t", "UNG_954t1",
     "UNG_999t2t1",
@@ -1394,6 +1394,26 @@ class OfferMinionDarkGiftDiscover:
         )
         if game.pending_choice is not None:
             game.pending_choice["dark_gift_cost_delta"] = self.cost_delta
+
+
+@dataclass(frozen=True)
+class OfferDemonDiscoverMinCost:
+    """Discover an executable Demon with at least the requested cost."""
+
+    min_cost: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        pool = [
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "MINION"
+            and "DEMON" in definition.races
+            and definition.cost >= self.min_cost
+        ]
+        game._offer_discover(
+            context.player, pool, dark_gift=False,
+            source_card_id=context.card.card_id,
+        )
 
 
 @dataclass(frozen=True)
@@ -6206,6 +6226,10 @@ def build_rule_registry() -> RuleRegistry:
         ),
         CardRule(
             "TIME_436", {Hook.LOCATION: (SummonRandomDragonMinCost(5),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "TIME_446", {Hook.LOCATION: (OfferDemonDiscoverMinCost(5),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
         ),
         CardRule(
