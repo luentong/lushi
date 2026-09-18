@@ -188,6 +188,9 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 }
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
+    # Standard Quickdraw minions.
+    "WW_003", "WW_358", "WW_360", "WW_363", "WW_379", "WW_384", "SW_037",
+    "WW_417", "WW_434", "WW_808", "WW_900", "TTN_844", "YOG_402",
     # Standard Elusive cards with explicit rules below.
     "CATA_133", "CATA_185", "CATA_206", "EDR_462", "RLK_048", "TLC_246",
     "TLC_100",  # Elise the Navigator
@@ -361,6 +364,9 @@ PLAYABLE_ON_EITHER_SIDE_IDS = frozenset({
 # separate from the Rewind tranche: the generation audit relies on the latter
 # being exactly the Rewind cards, while this set will grow by school/pool.
 ADDITIONAL_PLAYABLE_SPELL_IDS = {
+    # Standard Quickdraw spells.
+    "WW_325", "WW_348", "WW_365", "WW_377", "WW_403", "WW_411",
+    "WW_436", "WW_823", "TTN_841", "TOY_519", "DED_506",
     "RLK_048",  # Anti-Magic Shell
     "CAP_001",  # Silent Strike
     "CORE_BAR_541",  # Runed Orb
@@ -906,6 +912,7 @@ class CardInstance:
     avatar_form_pending: bool = False
     temporary_health_modifiers: list[tuple[int, int]] = field(default_factory=list)
     temporary_immune_expiry_turn: int = -1
+    drawn_turn: int = -1
     bonus_effect_options: tuple[str, str] | None = None
     bonus_effect_active: str | None = None
     destroy_at_turn_start: int = -1
@@ -1087,6 +1094,7 @@ class Player:
     hero_board_attack_bonus: int = 0
     frozen_turn: int = -1
     cards_played_this_turn: int = 0
+    cards_drawn_this_turn: int = 0
     spells_cast_this_turn: int = 0
     generated_cards_played: int = 0
     played_card_counts: dict[str, int] = field(default_factory=dict)
@@ -2196,6 +2204,11 @@ class DragonMirrorGame:
         self._receive_drawn_card(player, card)
 
     def _receive_drawn_card(self, player: Player, card: CardInstance) -> None:
+        card.drawn_turn = self.turn
+        player.cards_drawn_this_turn += 1
+        for minion in player.board:
+            if minion.card_id == "TTN_844" and not minion.silenced:
+                minion.attack_delta += 1
         if (card.card_id in {"CATA_134", "CATA_306", "CATA_479", "CATA_489", "CATA_820"}
                 and not card.shatter_combined):
             self._split_shatter_card(player, card)
@@ -2728,6 +2741,7 @@ class DragonMirrorGame:
             player.map_followup_turn = -1
         player.fire_spell_played = False
         player.cards_played_this_turn = 0
+        player.cards_drawn_this_turn = 0
         player.spells_cast_this_turn = 0
         player.mug_magic_used_this_turn = False
         player.dragons_played_this_turn = 0
@@ -3116,6 +3130,12 @@ class DragonMirrorGame:
                 and not player.mug_magic_used_this_turn
             ):
                 cost -= 2
+        if card.card_id == "TOY_519":
+            cost -= player.cards_drawn_this_turn
+        if card.card_id == "TTN_841":
+            cost -= player.cards_drawn_this_turn
+        if card.card_id == "SW_037":
+            cost -= player.cards_drawn_this_turn
         if card.has_race("BEAST"):
             cost -= player.next_beast_cost_reduction
         if card.has_race("MURLOC"):

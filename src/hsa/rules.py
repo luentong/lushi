@@ -424,6 +424,16 @@ class CostIfKindred:
 
 
 @dataclass(frozen=True)
+class CostIfQuickdraw:
+    """Quickdraw is active only when the card was drawn this turn."""
+
+    amount: int
+
+    def adjustment(self, game: Any, player: Any, card: Any) -> int:
+        return -self.amount if getattr(card, "drawn_turn", -1) == game.turn else 0
+
+
+@dataclass(frozen=True)
 class RafaamCostDiscount:
     """Dynamic discount for Giant Rafaam or the next Rafaam effect."""
     mode: str
@@ -3507,6 +3517,61 @@ class IfSourceAttribute:
 
 
 @dataclass(frozen=True)
+class IfQuickdraw:
+    """Run the nested effects when the source card was drawn this turn."""
+
+    effects: tuple[Effect, ...]
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if getattr(context.card, "drawn_turn", -1) == game.turn:
+            for effect in self.effects:
+                effect.execute(game, context)
+
+
+@dataclass(frozen=True)
+class GrantTemporaryImmune:
+    """Grant immunity through the current turn."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.card.immune = True
+        context.card.temporary_immune_expiry_turn = game.turn + 1
+        game._event("quickdraw_immune", player=context.player.index,
+                    source=context.card.card_id, entity=context.card.entity_id)
+
+
+@dataclass(frozen=True)
+class RefreshMana:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        before = context.player.mana
+        context.player.mana = min(context.player.max_mana,
+                                  context.player.mana + self.amount)
+        game._event("refresh_mana", player=context.player.index,
+                    source=context.card.card_id,
+                    amount=context.player.mana - before)
+
+
+@dataclass(frozen=True)
+class QuickdrawCopyBattlecry:
+    """Azerite Chain Gang: copy once for Battlecry and once more for Quickdraw."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        count = 2 if getattr(context.card, "drawn_turn", -1) == game.turn else 1
+        for _ in range(count):
+            if len(context.player.board) + len(context.player.locations) >= 7:
+                break
+            copy = context.card.clone(game.next_entity_id)
+            game.next_entity_id += 1
+            copy.damage = 0
+            copy.summoned_turn = game.turn
+            copy.created_by = context.card.card_id
+            game._summon(context.player, copy)
+        game._event("quickdraw_copy_battlecry", player=context.player.index,
+                    source=context.card.card_id, count=count)
+
+
+@dataclass(frozen=True)
 class IfHeroPowerImbued:
     """Execute nested effects only after enough Imbue events."""
 
@@ -3954,6 +4019,21 @@ class DiscoverNatureSpell:
             if card_id in game.executable_card_ids
             and definition.card_type == "SPELL"
             and definition.spell_school == "NATURE"
+        )
+        if candidates:
+            game._offer_discover(context.player, candidates, dark_gift=False,
+                                 source_card_id=context.card.card_id)
+
+
+@dataclass(frozen=True)
+class DiscoverQuickdrawOtherClass:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = sorted(
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "SPELL"
+            and definition.card_class != context.player.card_class
+            and "QUICKDRAW" in definition.mechanics
         )
         if candidates:
             game._offer_discover(context.player, candidates, dark_gift=False,
@@ -5061,10 +5141,9 @@ class SummonRandomMinionWithCost:
     """Summon a random executable minion with the requested printed cost."""
 
     cost: int
+    count: int = 1
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        if len(context.player.board) + len(context.player.locations) >= 7:
-            return
         candidates = [
             card_id for card_id in game.executable_card_ids
             if card_id in game.card_defs
@@ -5073,23 +5152,24 @@ class SummonRandomMinionWithCost:
         ]
         if not candidates:
             return
-        minion = game._entity(
-            game.rng.choice(sorted(candidates)), created_by=context.card.card_id
-        )
-        # Bwonsamdi's Boons carry over to the minion summoned by its
-        # deathrattle.  Copy the keyword flags and the auditable gift labels.
-        if context.card.gifts:
-            minion.gifts = list(context.card.gifts)
-            minion.taunt = minion.taunt or context.card.taunt
-            minion.lifesteal = minion.lifesteal or context.card.lifesteal
-            minion.rush = minion.rush or context.card.rush
-        minion.summoned_turn = game.turn
-        game._summon(context.player, minion)
-        game._event(
-            "random_cost_minion_summoned", player=context.player.index,
-            source=context.card.card_id, card=minion.card_id,
-            entity=minion.entity_id, cost=requested_cost,
-        )
+        for _ in range(self.count):
+            if len(context.player.board) + len(context.player.locations) >= 7:
+                break
+            minion = game._entity(
+                game.rng.choice(sorted(candidates)), created_by=context.card.card_id
+            )
+            if context.card.gifts:
+                minion.gifts = list(context.card.gifts)
+                minion.taunt = minion.taunt or context.card.taunt
+                minion.lifesteal = minion.lifesteal or context.card.lifesteal
+                minion.rush = minion.rush or context.card.rush
+            minion.summoned_turn = game.turn
+            game._summon(context.player, minion)
+            game._event(
+                "random_cost_minion_summoned", player=context.player.index,
+                source=context.card.card_id, card=minion.card_id,
+                entity=minion.entity_id, cost=self.cost,
+            )
 @dataclass(frozen=True)
 class AddShaladrassilDreamCards:
     """Get the fixed Dream set, using Corrupted versions only if earned."""
@@ -5506,6 +5586,53 @@ def build_rule_registry() -> RuleRegistry:
                        verification=("test_elusive_flitterwing_end_turn_buff",)),
         ),
         CardRule(
+            "WW_325", {Hook.SPELL: (DamageActionTargetLifesteal(4),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                       verification=("test_dehydrate_quickdraw_damage_and_cost",)),
+            TargetSpec(TargetKind.ENEMY_MINION), cost_modifier=CostIfQuickdraw(1),
+        ),
+        CardRule(
+            "WW_360", {Hook.BATTLECRY: (QuickdrawCopyBattlecry(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                       verification=("test_azerite_chain_gang_quickdraw_copy",)),
+        ),
+        CardRule(
+            "WW_434", {Hook.BATTLECRY: (IfQuickdraw((DamageRandomEnemyCharacters(6),)),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                       verification=("test_sunspot_dragon_quickdraw",)),
+        ),
+        CardRule(
+            "WW_808", {Hook.BATTLECRY: (IfQuickdraw((GrantTemporaryImmune(),)),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                       verification=("test_silver_serpent_quickdraw_immune",)),
+        ),
+        CardRule(
+            "WW_823", {Hook.SPELL: (HealHero(7), IfQuickdraw((RefreshMana(2),)))},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                       verification=("test_rehydrate_quickdraw_refresh",)),
+        ),
+        CardRule(
+            "DED_506", {Hook.SPELL: (Draw(3),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                       verification=("test_need_for_greed_quickdraw_cost",)),
+            cost_modifier=CostIfQuickdraw(3),
+        ),
+        CardRule(
+            "TTN_841", {Hook.SPELL: (GainHeroAttack(4),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                       verification=("test_momentum_scales_with_draws",)),
+        ),
+        CardRule(
+            "TOY_519", {Hook.SPELL: (SummonRandomMinionWithCost(4, count=2),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                       verification=("test_everything_must_go_scales_with_draws",)),
+        ),
+        CardRule(
+            "WW_403", {Hook.SPELL: (DamageHero(3),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                       verification=("test_pocket_sand_quickdraw",)),
+        ),
+        CardRule(
             "CATA_185", {Hook.DEATHRATTLE: (FacelessReplicatorDeathrattle(),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
                        verification=("test_faceless_replicator_transforms_lethal_killer",)),
@@ -5727,6 +5854,20 @@ def build_rule_registry() -> RuleRegistry:
                 "Power.log 23282dea + HearthstoneJSON 251332",
                 verification=("test_lunarwing_messenger_imbues_hero_power",),
             ),
+        ),
+        CardRule(
+            "WW_365", {Hook.SPELL: (SetActionTargetStats(1, 1),
+                                      IfQuickdraw((DamageActionTarget(1),)))},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "WW_363", {Hook.BATTLECRY: (IfQuickdraw((AddToHand("JAIL_COIN1"),)),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+        ),
+        CardRule(
+            "WW_411", {Hook.SPELL: (DiscoverQuickdrawOtherClass(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
         ),
         CardRule(
             "CORE_EX1_189", {Hook.BATTLECRY: (AddRandomLegendaryMinion(),)},
