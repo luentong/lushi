@@ -532,6 +532,11 @@ LOST_CITY_QUEST_IDS = frozenset({
     "TLC_229", "TLC_239", "TLC_426", "TLC_433", "TLC_446",
     "TLC_460", "TLC_513", "TLC_602", "TLC_631", "TLC_817", "TLC_830",
 })
+LOST_CITY_QUEST_REWARDS = {
+    "TLC_229": "TLC_229t14", "TLC_239": "TLC_239t", "TLC_446": "TLC_446t",
+    "TLC_513": "TLC_513t", "TLC_602": "TLC_602t", "TLC_631": "TLC_631t",
+    "TLC_830": "TLC_830t",
+}
 
 DRAGON_IDS = {
     "TLC_600", "TIME_034", "END_033", "CATA_556",
@@ -1379,9 +1384,66 @@ class DragonMirrorGame:
                 self._event("start_of_game", player=player.index, card="JAIL_509", effect="recover_overdrawn")
 
     def _event(self, kind: str, **payload: Any) -> None:
+        self._observe_lost_city_quests(kind, payload)
         if not self.record_events:
             return
         self.events.append({"turn": self.turn, "kind": kind, **payload})
+
+    def _observe_lost_city_quests(self, kind: str, payload: dict[str, Any]) -> None:
+        """Advance the compact progress model for active Lost City quests."""
+        owner = payload.get("player")
+        if not isinstance(owner, int) or owner not in (0, 1):
+            return
+        player = self.players[owner]
+        card_id = payload.get("card")
+        for quest_id, state in list(player.active_quests.items()):
+            if kind == "play" and card_id in self.card_defs:
+                definition = self.card_defs[card_id]
+                if quest_id == "TLC_229" and definition.card_type == "MINION":
+                    types = set(definition.races) or ({definition.race} if definition.race else set())
+                    state["flags"].update(types)
+                    state["progress"] = len(state["flags"])
+                elif quest_id == "TLC_830" and definition.card_type == "MINION" and "BEAST" in definition.races:
+                    state["flags"].add(definition.attack)
+                    state["progress"] = len(state["flags"] & {1, 3, 5, 7})
+                elif quest_id == "TLC_817" and definition.card_type == "SPELL":
+                    school = definition.spell_school.upper()
+                    if school == "HOLY":
+                        state["holy"] = state.get("holy", 0) + 1
+                    elif school == "SHADOW":
+                        state["shadow"] = state.get("shadow", 0) + 1
+            if quest_id == "TLC_460" and "discover" in kind:
+                state["progress"] += 1
+            elif quest_id == "TLC_513" and "shuffle" in kind:
+                state["progress"] += 1
+            elif quest_id == "TLC_433" and kind == "spend_corpses":
+                state["progress"] += int(payload.get("amount", 0))
+            elif quest_id == "TLC_602" and kind == "turn_end":
+                state["progress"] += 1
+            elif quest_id == "TLC_239" and kind == "turn_end":
+                if len(player.board) + len(player.locations) >= 7:
+                    state["progress"] += 1
+            elif quest_id == "TLC_631" and kind in {"damage_minion", "damage_hero"}:
+                if int(payload.get("amount", 0)) == 2:
+                    state["progress"] += 1
+            thresholds = {
+                "TLC_229": 6, "TLC_239": 3, "TLC_446": 6, "TLC_460": 8,
+                "TLC_513": 5, "TLC_602": 10, "TLC_631": 12, "TLC_830": 4,
+            }
+            if quest_id in thresholds and state["progress"] >= thresholds[quest_id]:
+                self._complete_lost_city_quest(player, quest_id)
+            elif quest_id == "TLC_817" and state.get("holy", 0) >= 4 and state.get("shadow", 0) >= 4:
+                self._complete_lost_city_quest(player, quest_id)
+
+    def _complete_lost_city_quest(self, player: Player, quest_id: str) -> None:
+        state = player.active_quests.pop(quest_id, None)
+        if state is None:
+            return
+        player.completed_quests.add(quest_id)
+        reward_id = LOST_CITY_QUEST_REWARDS.get(quest_id)
+        if reward_id in self.card_defs and len(player.hand) < 10:
+            self._add_generated(player, self._entity(reward_id, created_by=quest_id))
+        self._event("quest_completed", player=player.index, card=quest_id, reward=reward_id)
 
     def _activate_lost_city_quest(self, player: Player, card: CardInstance) -> None:
         """Move a Lost City quest from hand into the quest state zone."""
@@ -8119,6 +8181,14 @@ class DragonMirrorGame:
                 "hero_divine_shield": player.hero_divine_shield,
                 "hero_divine_shield_hits": player.hero_divine_shield_hits,
                 "turns_taken": player.turns_taken,
+                "active_quests": {
+                    quest_id: {
+                        key: (sorted(value) if isinstance(value, set) else value)
+                        for key, value in state.items()
+                    }
+                    for quest_id, state in player.active_quests.items()
+                },
+                "completed_quests": sorted(player.completed_quests),
                 "weapon": None if player.weapon is None else {
                     "card": player.weapon.card_id,
                     "name": player.weapon.name,
