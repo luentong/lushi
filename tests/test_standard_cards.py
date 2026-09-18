@@ -2355,6 +2355,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(3, game.players[0].weapon.durability)
         self.assertTrue(any(card.card_id == "CORE_LOOT_137" for card in game.players[0].board))
 
+    def test_origin_stone_reward_can_be_equipped_from_quest(self):
+        game = self.game()
+        game.players[0].active_quests["TLC_460"] = {
+            "progress": 8, "turns": 0, "flags": set(),
+        }
+        game._complete_lost_city_quest(game.players[0], "TLC_460")
+        reward = next(card for card in game.players[0].hand if card.card_id == "TLC_460t")
+        game.step(Action("PLAY", reward.entity_id))
+        self.assertEqual("TLC_460t", game.players[0].weapon.card_id)
+
     def test_secret_ingredient_choose_one_attack_or_druid_card(self):
         attack_game = self.game()
         ingredient = self.add_hand(attack_game, "JAIL_201")

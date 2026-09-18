@@ -534,7 +534,8 @@ LOST_CITY_QUEST_IDS = frozenset({
 })
 LOST_CITY_QUEST_REWARDS = {
     "TLC_229": "TLC_229t14", "TLC_239": "TLC_239t", "TLC_446": "TLC_446t",
-    "TLC_433": "TLC_433t", "TLC_513": "TLC_513t", "TLC_602": "TLC_602t", "TLC_631": "TLC_631t",
+    "TLC_433": "TLC_433t", "TLC_460": "TLC_460t", "TLC_513": "TLC_513t",
+    "TLC_602": "TLC_602t", "TLC_631": "TLC_631t",
     "TLC_830": "TLC_830t",
 }
 
