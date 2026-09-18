@@ -4850,6 +4850,10 @@ class DragonMirrorGame:
                     "kind": "RULE_CHOICE", "player": player.index,
                     "card": card, "action": action,
                     "options": options,
+                    "option_metadata": tuple(
+                        {"entity": held.entity_id, "card_id": held.card_id}
+                        for held in opponent.hand
+                    ),
                 }
                 self._event(
                     "holmes_investigate_offer", player=player.index,
@@ -9339,6 +9343,10 @@ class DragonMirrorGame:
                 pending["options"] = [
                     label for label, _ in self.pending_choice["options"]
                 ]
+                if "option_metadata" in self.pending_choice:
+                    pending["option_metadata"] = list(
+                        self.pending_choice["option_metadata"]
+                    )
             elif self.pending_choice["kind"] == "DEATHWING_CATACLYSM":
                 pending["remaining"] = self.pending_choice["remaining"]
                 pending["options"] = [

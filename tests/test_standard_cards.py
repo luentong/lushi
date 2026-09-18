@@ -84,6 +84,12 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
         self.assertEqual("RULE_CHOICE", game.pending_choice["kind"])
         self.assertEqual(1, len(game.pending_choice["options"]))
+        pending = game.snapshot()["pending_choice"]
+        self.assertEqual("JAIL_851", pending["source_card"])
+        self.assertEqual(
+            [{"entity": opponent_card.entity_id, "card_id": "CORE_CS2_013"}],
+            pending["option_metadata"],
+        )
         self.assertEqual(
             [Action("RULE_CHOICE_PICK", 0).key()],
             [action.key() for action in game.legal_actions()],
