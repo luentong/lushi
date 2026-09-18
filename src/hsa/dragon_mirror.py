@@ -192,6 +192,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "JAIL_800",  # Mug'Zee
     "JAIL_504",  # Aya, Lotus Kingpin
     "JAIL_397",  # Commander Beatrix
+    "JAIL_882",  # R4T-C4TCH3R
     "TLC_226",  # Conjured Bookkeeper
     "TLC_251",  # Primalfin Challenger
     "TLC_366",  # Pterrorwing Ravager
@@ -4789,6 +4790,23 @@ class DragonMirrorGame:
             self._event(
                 "rulebreaker_hero_power", player=player.index,
                 source=card.card_id, hero_power="JAIL_446hp",
+            )
+            return
+        if card.card_id == "JAIL_882":
+            spell_ids = [
+                held.card_id for held in player.deck
+                if held.definition.card_type == "SPELL"
+            ]
+            generated = []
+            for spell_id in spell_ids:
+                copy_card = self._entity(spell_id, created_by=card.card_id)
+                if len(player.hand) >= 10:
+                    break
+                player.hand.append(copy_card)
+                generated.append(copy_card.card_id)
+            self._event(
+                "r4t4tcher_copy_spells", player=player.index,
+                source=card.card_id, copied=generated,
             )
             return
         if card.card_id == "JAIL_719":

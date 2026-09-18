@@ -5003,6 +5003,10 @@ def build_rule_registry() -> RuleRegistry:
             "JAIL_319", {Hook.SPELL: (OfferSpellDiscover(),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
         ),
+        CardRule(
+            "JAIL_882", {Hook.DEATHRATTLE: (Draw(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+        ),
         CardRule("TLC_440", {Hook.SPELL: (CryosleepKindred(),)},
                  RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
                  targeting=TargetSpec(TargetKind.ANY_CHARACTER)),
