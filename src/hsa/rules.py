@@ -2465,7 +2465,7 @@ class HeraldDestroyRightAndGrow:
         )
         game._resolve_deaths()
         if context.card in player.board:
-            amount = game._herald_power(player.herald_count)
+            amount = context.card.herald_power
             context.card.attack_delta += amount
             context.card.health_delta += amount
             game._event(

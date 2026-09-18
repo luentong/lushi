@@ -1718,6 +1718,14 @@ class DragonMirrorGame:
                     "murloc_tidecaller_trigger", player=player.index,
                     entity=tidecaller.entity_id, summoned=minion.card_id,
                 )
+        if (
+            minion.card_id in {
+                "CATA_525t", "CATA_565t", "CATA_725t", "CATA_726t",
+                "CATA_726t1", "CATA_780t",
+            }
+            and minion.herald_power == 1
+        ):
+            minion.herald_power = self._herald_power(player.herald_count)
         self._refresh_continuous(player)
         if minion.card_id == "CATA_151t":
             amount = self._herald_power(player.herald_count)
@@ -1745,22 +1753,22 @@ class DragonMirrorGame:
                 generated = self._entity(
                     self.rng.choice(candidates), created_by=minion.card_id
                 )
-                generated.cost_delta -= self._herald_power(player.herald_count)
+                generated.cost_delta -= minion.herald_power
                 self._add_generated(player, generated)
                 self._event(
                     "sinestra_wing_spell", player=player.index,
                     source=minion.entity_id, card=generated.card_id,
-                    discount=self._herald_power(player.herald_count),
+                    discount=minion.herald_power,
                 )
         elif minion.card_id == "CATA_525t":
-            amount = self._herald_power(player.herald_count)
+            amount = minion.herald_power
             player.hero_attack_bonus += amount
             self._event(
                 "herald_azshara_soldier", player=player.index,
                 entity=minion.entity_id, attack=amount,
             )
         elif minion.card_id == "CATA_780t":
-            self._get_onyxia_wing_minion(player, minion)
+            self._get_onyxia_wing_minion(player, minion, power=minion.herald_power)
         elif minion.card_id == "CATA_151":
             self._summon_azshara_tentacles(player, minion)
         elif minion.card_id == "CATA_155":
@@ -1832,10 +1840,10 @@ class DragonMirrorGame:
             )
 
     def _get_onyxia_wing_minion(
-        self, player: Player, wing: CardInstance
+        self, player: Player, wing: CardInstance, *, power: int | None = None
     ) -> None:
         """Get a Herald-scaled minion that costs Health only this turn."""
-        cost = self._herald_power(player.herald_count)
+        cost = power if power is not None else self._herald_power(player.herald_count)
         candidates = [
             definition for card_id, definition in self.card_defs.items()
             if card_id in EXECUTABLE_CARD_IDS
