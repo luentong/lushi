@@ -186,6 +186,13 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 }
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
+    "TLC_226",  # Conjured Bookkeeper
+    "TLC_251",  # Primalfin Challenger
+    "TLC_366",  # Pterrorwing Ravager
+    "TLC_428",  # Hot Spring Glider
+    "TLC_429",  # Steamfin Thief
+    "TLC_454",  # Scalehide Kodo
+    "TLC_903",  # Silithid Queen
     "JAIL_906",  # Moragg
     "JAIL_998",  # Defias Smuggler
     "JAIL_912",  # Soothsayer
@@ -302,6 +309,16 @@ ADDITIONAL_PLAYABLE_CARD_IDS = {
 ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "CAP_001",  # Silent Strike
     "CORE_BAR_541",  # Runed Orb
+    "TLC_435",  # Crypt Map
+    "TLC_440",  # Cryosleep
+    "TLC_442",  # Submerged Map
+    "TLC_447",  # Caustic Fumes
+    "TLC_464",  # Mountain Map
+    "TLC_519",  # Ambush Predators
+    "TLC_815",  # Gravedawn Voidbulb
+    "TLC_816",  # Gravedawn Sunbloom
+    "TLC_824",  # Odd Map
+    "TLC_900",  # Hive Map
     "CAP_407",  # Wanted Poster
     "JAIL_735",  # Code Violet
     "CORE_CS2_013", "CORE_EX1_164", "CORE_CS2_075",
