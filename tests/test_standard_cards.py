@@ -2339,6 +2339,22 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertFalse(any(a.kind == "PLAY" and a.source == second.entity_id
                              for a in game.legal_actions()))
 
+    def test_origin_stone_plays_unchosen_discover_options_and_loses_durability(self):
+        game = self.game()
+        game.players[0].weapon = Weapon("TLC_460t", "The Origin Stone", 0, 4)
+        game._offer_discover(
+            game.players[0],
+            ["CORE_AT_055", "CORE_LOOT_137", "CORE_CS2_023"],
+            dark_gift=False, source_card_id="TEST_DISCOVER",
+        )
+        chosen = next(
+            option for option in game.pending_choice["options"]
+            if option.card_id == "CORE_AT_055"
+        )
+        game.step(Action("DISCOVER_PICK", chosen.entity_id))
+        self.assertEqual(3, game.players[0].weapon.durability)
+        self.assertTrue(any(card.card_id == "CORE_LOOT_137" for card in game.players[0].board))
+
     def test_secret_ingredient_choose_one_attack_or_druid_card(self):
         attack_game = self.game()
         ingredient = self.add_hand(attack_game, "JAIL_201")

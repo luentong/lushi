@@ -963,6 +963,7 @@ class Player:
     ninja_shuffle_active: bool = False
     ashalon_adaptations: list[str] = field(default_factory=list)
     underfel_rift_used_turn: int = -1
+    origin_stone_triggering: bool = False
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "Player":
         """Fast branch copy for the mutable player state used by MCTS."""
@@ -6204,6 +6205,13 @@ class DragonMirrorGame:
             ]
             player.map_followup_entity = option.entity_id
             player.map_followup_turn = self.turn
+        if (
+            player.weapon is not None
+            and player.weapon.card_id == "TLC_460t"
+            and player.weapon.durability > 0
+            and not player.origin_stone_triggering
+        ):
+            self._origin_stone_play_unchosen(player, pending["options"], option.entity_id)
         self._event(
             "discover_pick", player=player.index, card=option.card_id,
             gifts=list(option.gifts), entity=option.entity_id,
@@ -6229,6 +6237,58 @@ class DragonMirrorGame:
             )
         elif pending["after_pick"] == "summon_cannoneers":
             self._summon_cannoneers(player)
+
+    def _origin_stone_play_unchosen(
+        self, player: Player, options: list[CardInstance], chosen_entity: int,
+    ) -> None:
+        """Resolve Origin Stone's remaining Discover options as free plays."""
+        player.origin_stone_triggering = True
+        try:
+            for option in options:
+                if option.entity_id == chosen_entity:
+                    continue
+                action = Action("PLAY", option.entity_id)
+                target_spec = self.rule_registry.targeting(option.card_id)
+                if target_spec is not None:
+                    targets = self._rule_targets(player, option, target_spec.kind)
+                    if not targets:
+                        self._event(
+                            "origin_stone_option_skipped", player=player.index,
+                            card=option.card_id, reason="no_target",
+                        )
+                        continue
+                    target_player, target_entity = self.rng.choice(targets)
+                    action = Action("PLAY", option.entity_id, target_player, target_entity)
+                if option.definition.card_type == "MINION":
+                    if len(player.board) + len(player.locations) >= 7:
+                        continue
+                    option.summoned_turn = self.turn
+                    option.played_turn = self.turn
+                    self._summon(player, option)
+                    self._battlecry(player, option, action)
+                elif option.definition.card_type == "SPELL":
+                    self._cast_spell(player, option, action)
+                elif option.definition.card_type == "WEAPON":
+                    durability = getattr(option.definition, "durability", 0) or 2
+                    self._equip_weapon(
+                        player, Weapon(option.card_id, option.definition.name,
+                                       option.definition.attack, durability),
+                    )
+                    self._battlecry(player, option, action)
+                self._event(
+                    "origin_stone_option_played", player=player.index,
+                    card=option.card_id,
+                )
+        finally:
+            player.origin_stone_triggering = False
+        if player.weapon is not None and player.weapon.card_id == "TLC_460t":
+            player.weapon.durability -= 1
+            self._event(
+                "origin_stone_durability", player=player.index,
+                remaining=player.weapon.durability,
+            )
+            if player.weapon.durability <= 0:
+                self._destroy_weapon(player)
 
     def _resolve_earthen_roar_pick(self, entity_id: int) -> None:
         pending = self.pending_choice
