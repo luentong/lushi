@@ -534,7 +534,7 @@ LOST_CITY_QUEST_IDS = frozenset({
 })
 LOST_CITY_QUEST_REWARDS = {
     "TLC_229": "TLC_229t14", "TLC_239": "TLC_239t", "TLC_446": "TLC_446t",
-    "TLC_513": "TLC_513t", "TLC_602": "TLC_602t", "TLC_631": "TLC_631t",
+    "TLC_433": "TLC_433t", "TLC_513": "TLC_513t", "TLC_602": "TLC_602t", "TLC_631": "TLC_631t",
     "TLC_830": "TLC_830t",
 }
 
@@ -958,6 +958,7 @@ class Player:
     pending_end_turn_returns: list[CardInstance] = field(default_factory=list)
     active_quests: dict[str, dict[str, Any]] = field(default_factory=dict)
     completed_quests: set[str] = field(default_factory=set)
+    murloc_quest_buff: bool = False
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "Player":
         """Fast branch copy for the mutable player state used by MCTS."""
@@ -1426,6 +1427,12 @@ class DragonMirrorGame:
             elif quest_id == "TLC_631" and kind in {"damage_minion", "damage_hero"}:
                 if int(payload.get("amount", 0)) == 2:
                     state["progress"] += 1
+            elif quest_id == "TLC_426" and kind == "summon":
+                summoned = self.card_defs.get(card_id)
+                if summoned is not None and "MURLOC" in summoned.races:
+                    state["progress"] += 1
+            elif quest_id == "TLC_446" and kind == "play" and not payload.get("started_in_deck", True):
+                state["progress"] += 1
             thresholds = {
                 "TLC_229": 6, "TLC_239": 3, "TLC_446": 6, "TLC_460": 8,
                 "TLC_513": 5, "TLC_602": 10, "TLC_631": 12, "TLC_830": 4,
@@ -1434,12 +1441,28 @@ class DragonMirrorGame:
                 self._complete_lost_city_quest(player, quest_id)
             elif quest_id == "TLC_817" and state.get("holy", 0) >= 4 and state.get("shadow", 0) >= 4:
                 self._complete_lost_city_quest(player, quest_id)
+            elif quest_id == "TLC_426" and state["progress"] >= 6:
+                self._complete_lost_city_quest(player, quest_id)
 
     def _complete_lost_city_quest(self, player: Player, quest_id: str) -> None:
         state = player.active_quests.pop(quest_id, None)
         if state is None:
             return
+        if quest_id == "TLC_426":
+            # Repeatable Quest: the progress starts over, while the reward
+            # aura remains active for all later Murlocs.
+            player.active_quests[quest_id] = {"progress": 0, "turns": 0, "flags": set()}
+            player.murloc_quest_buff = True
+            self._event("quest_completed", player=player.index, card=quest_id, repeatable=True)
+            return
         player.completed_quests.add(quest_id)
+        if quest_id == "TLC_817":
+            for reward_id in ("TLC_817t3", "TLC_817t4"):
+                if reward_id in self.card_defs and len(player.hand) < 10:
+                    self._add_generated(player, self._entity(reward_id, created_by=quest_id))
+            self._event("quest_completed", player=player.index, card=quest_id,
+                        reward=["TLC_817t3", "TLC_817t4"])
+            return
         reward_id = LOST_CITY_QUEST_REWARDS.get(quest_id)
         if reward_id in self.card_defs and len(player.hand) < 10:
             self._add_generated(player, self._entity(reward_id, created_by=quest_id))
@@ -1624,6 +1647,13 @@ class DragonMirrorGame:
             player.board.append(minion)
         else:
             player.board.insert(position, minion)
+        if minion.has_race("MURLOC") and player.murloc_quest_buff:
+            minion.attack_delta += 1
+            minion.health_delta += 1
+        self._event(
+            "summon", player=player.index, card=minion.card_id,
+            entity=minion.entity_id,
+        )
         if minion.card_id in {"TIME_009t1", "TIME_009t2"}:
             minion.aura_remaining_turns = 3
         if minion.has_race("MURLOC"):
@@ -8189,6 +8219,7 @@ class DragonMirrorGame:
                     for quest_id, state in player.active_quests.items()
                 },
                 "completed_quests": sorted(player.completed_quests),
+                "murloc_quest_buff": player.murloc_quest_buff,
                 "weapon": None if player.weapon is None else {
                     "card": player.weapon.card_id,
                     "name": player.weapon.name,
