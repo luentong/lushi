@@ -7436,6 +7436,12 @@ class DragonMirrorGame:
                 player.weapon.killed_minions.append(copy.deepcopy(defender.definition))
             dealt = before - max(0, defender.health)
             self._weapon_lifesteal(player, attacked_weapon, dealt)
+            if player.hero_lifesteal_turn == self.turn and dealt > 0:
+                player.health = min(player.max_health, player.health + dealt)
+                self._event(
+                    "hero_lifesteal", player=player.index,
+                    amount=dealt,
+                )
             self._damage_hero(player, defender.attack)
             self._after_minion_attacked(action.target_player, defender)
         if player.weapon:

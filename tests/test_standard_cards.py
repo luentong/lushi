@@ -873,7 +873,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_twilight_mistress_returns_enemy_board(self):
         game = self.game()
-        enemy = self.add_board(game, "TLC_248", 1)
+        enemy = self.add_board(game, "CATA_565", 1)
         mistress = self.add_hand(game, "CATA_201")
         game.step(Action("PLAY", mistress.entity_id))
         self.assertFalse(game.players[1].board)
@@ -888,7 +888,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_opu_the_unseen_fan_of_knives(self):
         game = self.game()
-        enemy = self.add_board(game, "TLC_248", 1)
+        enemy = self.add_board(game, "TLC_248", 1, attack=0)
         opu = self.add_hand(game, "TLC_522")
         before_hand = len(game.players[0].hand)
         game.step(Action("PLAY", opu.entity_id))
@@ -953,6 +953,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(game.turn, game.players[0].hero_lifesteal_turn)
         game.players[0].hero_attack_bonus = 1
         game.step(Action("HERO_ATTACK", None, 1, None))
+        self.assertGreater(game.players[0].health, 20)
+
+        game = self.game()
+        game.players[0].health = 20
+        spell = self.add_hand(game, "CATA_530")
+        enemy = self.add_board(game, "CATA_565", 1)
+        game.step(Action("PLAY", spell.entity_id))
+        game.players[0].hero_attack_bonus = 1
+        game.step(Action("HERO_ATTACK", None, 1, enemy.entity_id))
         self.assertGreater(game.players[0].health, 20)
 
     def test_grim_harvest_draws_and_summons_dreadseed(self):
