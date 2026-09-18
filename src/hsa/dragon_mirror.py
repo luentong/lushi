@@ -653,6 +653,9 @@ class CardDef:
     text: str = ""
     spell_school: str = ""
     spell_damage: int = 0
+    # Death Knight rune requirements are part of the printed card metadata;
+    # Map cards use them when building the Frost Rune Discover pool.
+    rune_cost: dict[str, int] = field(default_factory=dict)
     rarity: str = ""
     collectible: bool = False
     armor: int = 0
@@ -1095,6 +1098,7 @@ class DragonMirrorGame:
                     text=card.get("text", "") or "",
                     spell_school=card.get("spellSchool", "") or "",
                     spell_damage=int(card.get("spellDamage", 0)),
+                    rune_cost=dict(card.get("runeCost", {}) or {}),
                     rarity=card.get("rarity", "") or "",
                     collectible=bool(card.get("collectible", False)),
                     armor=int(card.get("armor", 0)),
