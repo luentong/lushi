@@ -303,6 +303,9 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "FIR_958",  # Tindral Sageswift
     "JAIL_509",  # Godfrey the Betrayer
     "TLC_480",  # Krog, Crater King
+    "CORE_EX1_005",  # Big Game Hunter
+    "CORE_REV_023",  # Demolition Renovator
+    "TLC_255",  # Crystal Tender
     "TIME_021",  # Doomsday Prepper
     "CORE_EDR_003",  # Falric
     "CORE_RLK_066",  # Hematurge
@@ -405,6 +408,7 @@ ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "TLC_434",  # Paleomancy
     "EDR_813",  # Morbid Swarm
     "CATA_465",  # Chow Down
+    "CORE_SW_429",  # Best in Shell
     "END_025",  # Eternal Firebolt
     "JAIL_801",  # Molten Gold
     "CORE_EX1_610",  # Explosive Trap
@@ -3960,8 +3964,19 @@ class DragonMirrorGame:
             target_spec = self.rule_registry.targeting(card.card_id)
             if target_spec is not None:
                 targets = self._rule_targets(player, card, target_spec.kind)
+                if card.card_id == "CORE_EX1_005":
+                    targets = [
+                        target for target in targets
+                        if self._find_minion(*target).attack >= 7
+                    ]
                 if target_spec.optional:
                     targets = [(None, None), *targets]
+            elif card.card_id == "CORE_REV_023":
+                targets = [
+                    (1 - self.current, location.entity_id)
+                    for location in self.players[1 - self.current].locations
+                    if location.durability > 0
+                ]
             elif card.card_id == "CORE_SW_066":
                 targets = [
                     target for target in self._all_minions()

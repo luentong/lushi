@@ -3566,6 +3566,32 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("HERO_POWER"))
         self.assertEqual(1, sum(m.card_id == "EX1_tk34" for m in game.players[0].board))
 
+    def test_tradeable_standard_cards(self):
+        game = self.game()
+        game.players[0].deck = [
+            game._entity("GAME_005", started_in_deck=True),
+            game._entity("GAME_005", started_in_deck=True),
+        ]
+        trade = self.add_hand(game, "CORE_SW_429")
+        game.step(Action("TRADE", trade.entity_id))
+        self.assertEqual(1, len(game.players[0].hand))
+
+        game = self.game()
+        game.players[0].mana = 20
+        large = self.add_board(game, "CORE_LOOT_137", 1, attack=6)
+        hunter = self.add_hand(game, "CORE_EX1_005")
+        game.step(Action("PLAY", hunter.entity_id, 1, large.entity_id))
+        self.assertNotIn(large, game.players[1].board)
+
+        game = self.game()
+        location_card = game._entity("CORE_REV_023")
+        game.players[0].hand.append(location_card)
+        location = Location(game.next_entity_id, "CORE_REV_990", 3, cooldown=0)
+        game.next_entity_id += 1
+        game.players[1].locations.append(location)
+        game.step(Action("PLAY", location_card.entity_id, 1, location.entity_id))
+        self.assertFalse(game.players[1].locations)
+
     def test_deaths_advance(self):
         game = self.game()
         enemy = self.add_board(game, "CORE_LOOT_137", 1)

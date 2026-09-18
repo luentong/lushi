@@ -873,6 +873,55 @@ class JaraxxusInferno:
 
 
 @dataclass(frozen=True)
+class DestroyHighAttackMinion:
+    threshold: int = 7
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_entity is None:
+            raise ValueError("enemy minion target is required")
+        target = game._find_minion(context.action.target_player,
+                                   context.action.target_entity)
+        if target.attack < self.threshold:
+            raise ValueError("Big Game Hunter requires a 7+ Attack target")
+        target.damage = target.max_health
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class DestroyEnemyLocation:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_entity is None:
+            raise ValueError("enemy location target is required")
+        owner = game.players[context.action.target_player]
+        location = next((loc for loc in owner.locations
+                         if loc.entity_id == context.action.target_entity), None)
+        if location is None:
+            raise ValueError("location target is no longer present")
+        owner.locations.remove(location)
+        game._location_deathrattle(owner, location)
+        game._event("destroy_enemy_location", player=context.player.index,
+                    source=context.card.card_id, target=location.entity_id)
+
+
+@dataclass(frozen=True)
+class BestInShell:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        SummonWithTaunt("SW_429t", count=2).execute(game, context)
+
+
+@dataclass(frozen=True)
+class CrystalTenderBattlecry:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        opponent = game.players[1 - context.player.index]
+        gained = max(0, opponent.max_mana - context.player.max_mana)
+        gained = min(gained, 10 - context.player.max_mana)
+        context.player.max_mana += gained
+        context.player.mana += gained
+        game._event("crystal_tender_mana", player=context.player.index,
+                    source=context.card.card_id, amount=gained)
+
+
+@dataclass(frozen=True)
 class DrawThenShuffleSource:
     """Draw a card, then shuffle the played source card back into its deck."""
 
@@ -7284,6 +7333,27 @@ def build_rule_registry() -> RuleRegistry:
             "CATA_203", {Hook.SPELL: (DestroyLegendaryTarget(),)},
             RuleSource("upstream_adapted", rosetta, "CATA_203", "AGPL-3.0", ("test_standard_garona_last_stand",)),
             TargetSpec(TargetKind.ENEMY_MINION),
+        ),
+        CardRule(
+            "CORE_EX1_005", {Hook.BATTLECRY: (DestroyHighAttackMinion(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_big_game_hunter_tradeable_battlecry",)),
+            TargetSpec(TargetKind.ENEMY_MINION),
+        ),
+        CardRule(
+            "CORE_REV_023", {Hook.BATTLECRY: (DestroyEnemyLocation(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_demolition_renovator_tradeable_battlecry",)),
+        ),
+        CardRule(
+            "CORE_SW_429", {Hook.SPELL: (BestInShell(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_best_in_shell_tradeable_spell",)),
+        ),
+        CardRule(
+            "TLC_255", {Hook.BATTLECRY: (CrystalTenderBattlecry(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_crystal_tender_matches_mana",)),
         ),
         CardRule(
             "CATA_554", {Hook.SPELL: (SetEnemyHealthOneWithDragonRepeat(),)},
