@@ -56,6 +56,7 @@ GENERATED_DRAGON_IDS = {
     "CATA_497",  # Ultraxion
     "CATA_898",  # Scaled Lancer
     "CATA_999",  # Earthen Drake
+    "CATA_723",  # Drakeadon Mongrel
     "CORE_AT_123",  # Chillmaw
     "CORE_DRG_079",  # Evasive Wyrm
     "CORE_EX1_043",  # Twilight Drake
