@@ -1463,6 +1463,11 @@ class DragonMirrorGame:
             self._event("quest_completed", player=player.index, card=quest_id,
                         reward=["TLC_817t3", "TLC_817t4"])
             return
+        if quest_id == "TLC_239":
+            self._equip_weapon(player, Weapon("TLC_239t", "The Everbloom", 2, 5))
+            self._event("quest_completed", player=player.index, card=quest_id,
+                        reward="TLC_239t")
+            return
         reward_id = LOST_CITY_QUEST_REWARDS.get(quest_id)
         if reward_id in self.card_defs and len(player.hand) < 10:
             self._add_generated(player, self._entity(reward_id, created_by=quest_id))
@@ -6322,6 +6327,11 @@ class DragonMirrorGame:
             for owner, entity in list(self._all_minions()):
                 self._damage_minion(owner, self._find_minion(owner, entity), 1)
             self._resolve_deaths()
+        elif weapon.card_id == "TLC_239t":
+            for minion in player.board:
+                if minion.dormant_turns == 0 and not minion.silenced:
+                    minion.attack_delta += 2
+                    minion.health_delta += 2
         elif weapon.card_id == "CATA_467" and player.board:
             self.rng.choice(player.board).attack_delta += 2
         elif weapon.card_id == "EDR_253":
