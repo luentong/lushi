@@ -185,6 +185,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CORE_RLK_083", "CORE_RLK_116", "RLK_223",  # DK rune cards
     "TIME_611", "TIME_612", "TIME_613",  # DK rune cards
     "TIME_617", "CORE_RLK_706",  # DK rune cards
+    "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
     "UNG_934t1", "UNG_940t8", "UNG_942t", "UNG_954t1",
     "UNG_999t2t1",
@@ -1889,6 +1890,15 @@ class TimestopEffect:
 
 
 @dataclass(frozen=True)
+class BoneFlurryEffect:
+    """Bone Flurry gains a second volley after a friendly death this turn."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        amount = 3 + (3 if getattr(context.player, "friendly_minions_died_this_turn", 0) else 0)
+        DamageRandomSplitEnemyCharacters(amount).execute(game, context)
+
+
+@dataclass(frozen=True)
 class DamageAllEnemyCharacters:
     """Deal fixed damage to the opposing hero and all awake minions."""
 
@@ -1952,6 +1962,37 @@ class DamageRandomSplitEnemyMinionsLifesteal:
         game._event(
             "random_split_enemy_minion_damage", player=context.player.index,
             source=context.card.card_id, amount=points, targets=targets,
+        )
+
+
+@dataclass(frozen=True)
+class SummonNecronursesAttackTarget:
+    """Emergency Surgery: summon four Lifesteal attackers into one target."""
+
+    count: int = 4
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("enemy minion target is required")
+        target_player = context.action.target_player
+        target_entity = context.action.target_entity
+        target = game._find_minion(target_player, target_entity)
+        summoned = []
+        for _ in range(self.count):
+            if len(context.player.board) + len(context.player.locations) >= 7:
+                break
+            nurse = game._entity("JAIL_454t", created_by=context.card.card_id)
+            nurse.summoned_turn = game.turn
+            game._summon(context.player, nurse)
+            summoned.append(nurse.entity_id)
+            if target not in game.players[target_player].board or target.health <= 0:
+                break
+            game._forced_minion_attack(
+                context.player.index, nurse, target_player, target
+            )
+        game._event(
+            "necronurse_surgery", player=context.player.index,
+            source=context.card.card_id, target=target_entity, summoned=summoned,
         )
 
 
@@ -8596,6 +8637,15 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "TIME_613", {Hook.DEATHRATTLE: (AddRandomLegendaryMinionDiscounted(),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "JAIL_445", {Hook.SPELL: (BoneFlurryEffect(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "JAIL_454", {Hook.SPELL: (SummonNecronursesAttackTarget(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+            TargetSpec(TargetKind.ENEMY_MINION),
         ),
         CardRule(
             "CATA_156", {Hook.SPELL: (HeraldRagnaros(), DamageEnemyMinions(4),)},

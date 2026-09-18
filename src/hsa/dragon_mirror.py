@@ -315,6 +315,7 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "TIME_613",  # Cryofrozen Champion
     "TIME_617",  # Chronochiller
     "CORE_RLK_706",  # Alexandros Mograine
+    "JAIL_443",  # The Living Plague
     "TLC_480",  # Krog, Crater King
     "CORE_EX1_005",  # Big Game Hunter
     "CORE_REV_023",  # Demolition Renovator
@@ -436,6 +437,8 @@ ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "END_017",  # Battle at the End Time
     "TIME_612",  # Blood Draw
     "TIME_611",  # Timestop
+    "JAIL_445",  # Bone Flurry
+    "JAIL_454",  # Emergency Surgery
 }
 
 # Rotated Quickdraw cards retained for an optional Wild/historical ruleset.
@@ -1102,6 +1105,7 @@ class Player:
     hero_power_imbues: int = 0
     undead_died_after_last_turn: bool = False
     mograine_active: bool = False
+    friendly_minions_died_this_turn: int = 0
     # Endtime Murozond skips the controller's next turn.  This is a turn-level
     # flag rather than a card-local effect so it survives state cloning and
     # resolves before start-of-turn draws/mana refresh.
@@ -2689,6 +2693,7 @@ class DragonMirrorGame:
         self.turn += 1
         self.minions_died_this_turn = 0
         player = self.players[index]
+        player.friendly_minions_died_this_turn = 0
         if player.hero_immune_expiry_turn == self.turn:
             player.hero_immune = False
             player.hero_immune_expiry_turn = -1
@@ -8638,6 +8643,33 @@ class DragonMirrorGame:
             sacrifice = self._trigger_noble_sacrifice(self.players[action.target_player])
             target_entity = sacrifice.entity_id if sacrifice is not None else None
         if target_entity is None:
+            if attacker.card_id == "JAIL_443" and not attacker.silenced:
+                enemy = self.players[action.target_player]
+                for _ in range(max(0, attacker.attack)):
+                    blight = CardInstance(
+                        self.next_entity_id,
+                        CardDef(
+                            "JAIL_442t", "Blight", "SPELL", 1,
+                            card_class="DEATHKNIGHT",
+                            card_set="ESCAPEFROM_VIOLET_HOLD",
+                        ),
+                        created_by=attacker.card_id,
+                        casts_when_drawn_damage=2,
+                    )
+                    self.next_entity_id += 1
+                    enemy.deck.append(blight)
+                self.rng.shuffle(enemy.deck)
+                self._event(
+                    "living_plague_attack", player=self.current,
+                    source=attacker.entity_id, target_player=enemy.index,
+                    blights=max(0, attacker.attack),
+                )
+                self._trigger_secrets_after_hero_attacked(enemy)
+                self._after_minion_attack(
+                    self.current, attacker,
+                    attacked_minion=False, was_stealthed=was_stealthed,
+                )
+                return
             self._damage_hero(self.players[action.target_player], attacker.attack, attacker)
             self._trigger_secrets_after_hero_attacked(
                 self.players[action.target_player]
@@ -9129,6 +9161,8 @@ class DragonMirrorGame:
                 )
                 if minion.has_race("UNDEAD") and player.index != self.current:
                     player.undead_died_after_last_turn = True
+                if player.index == self.current:
+                    player.friendly_minions_died_this_turn += 1
                 gained = corpse_multipliers[player.index]
                 player.corpses += gained
                 if gained > 1:
@@ -9136,7 +9170,7 @@ class DragonMirrorGame:
                         "corpse_multiplier", player=player.index,
                         entity=minion.entity_id, gained=gained,
                     )
-            self.minions_died_this_turn += len(dead)
+                self.minions_died_this_turn += len(dead)
 
             # Duplicate copies the first friendly corpse twice into hand.
             for owner in self.players:
@@ -9936,6 +9970,7 @@ class DragonMirrorGame:
                 "rune_counts": dict(player.rune_counts),
                 "undead_died_after_last_turn": player.undead_died_after_last_turn,
                 "mograine_active": player.mograine_active,
+                "friendly_minions_died_this_turn": player.friendly_minions_died_this_turn,
                 "secrets": [card.card_id for card in player.secrets],
                 "pending_end_turn_returns": [
                     card.card_id for card in player.pending_end_turn_returns

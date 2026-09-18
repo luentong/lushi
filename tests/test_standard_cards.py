@@ -3216,7 +3216,8 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game = self.game()
         self.assertTrue({"CORE_RLK_083", "CORE_RLK_116", "RLK_223",
                          "TIME_611", "TIME_612", "TIME_613"}
-                        | {"TIME_617", "CORE_RLK_706"}
+                        | {"TIME_617", "CORE_RLK_706", "JAIL_443",
+                           "JAIL_445", "JAIL_454"}
                         <= game.executable_card_ids)
 
     def test_death_knight_rune_configuration_is_inferred_and_exposed(self):
