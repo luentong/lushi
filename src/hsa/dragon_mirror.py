@@ -4541,6 +4541,17 @@ class DragonMirrorGame:
         if card is None:
             raise ValueError("invalid discard choice")
         player.hand.remove(card)
+        if pending.get("mode") == "shuffle_hand_card":
+            card.started_in_deck = False
+            card.created_by = pending["source"]
+            player.deck.insert(self.rng.randrange(len(player.deck) + 1), card)
+            self.pending_choice = None
+            self._draw(player)
+            self._event(
+                "sheltered_survivor_shuffle", player=player.index,
+                source=pending["source"], card=card.card_id,
+            )
+            return
         player.zuramat_discarded_card = card
         self.pending_choice = None
         if len(player.board) + len(player.locations) < 7:
@@ -5267,6 +5278,21 @@ class DragonMirrorGame:
                 "rulebreaker_overload", player=player.index,
                 source=card.card_id, amount=2,
             )
+            return
+        if card.card_id == "CATA_721":
+            if player.hand:
+                self.pending_choice = {
+                    "kind": "HAND_DISCARD", "mode": "shuffle_hand_card",
+                    "player": player.index, "source": card.card_id,
+                    "options": tuple(player.hand),
+                }
+                self._event(
+                    "sheltered_survivor_offer", player=player.index,
+                    source=card.entity_id,
+                    options=[held.card_id for held in player.hand],
+                )
+            else:
+                self._draw(player)
             return
         if card.card_id == "JAIL_461":
             if card in player.board:

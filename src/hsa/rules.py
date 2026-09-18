@@ -202,6 +202,7 @@ STANDARD_DECLARATIVE_IDS = {
     "CAP_000", "CAP_003", "CAP_005",
     "TIME_042", "TIME_042t",
     "TIME_617",
+    "CATA_721",
     "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
@@ -9038,6 +9039,9 @@ def build_rule_registry() -> RuleRegistry:
         CardRule("TIME_617", {},
                  RuleSource("official_text_and_engine_verified", "start-turn draw engine",
                             verification=("test_chronochiller_skips_start_turn_draw",))),
+        CardRule("CATA_721", {},
+                 RuleSource("official_text_and_engine_verified", "hand choice and shuffle engine",
+                            verification=("test_sheltered_survivor_shuffles_selected_hand_card",))),
         CardRule(
             "CATA_724", {
                 Hook.AFTER_PLAY: (Overload(3),),

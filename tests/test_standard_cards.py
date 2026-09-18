@@ -382,6 +382,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(1, len(game.players[0].deck))
         self.assertTrue(any(event["kind"] == "chronochiller_skip_draw" for event in game.events))
 
+    def test_sheltered_survivor_shuffles_selected_hand_card(self):
+        game = self.game()
+        survivor = self.add_hand(game, "CATA_721")
+        chosen = game._entity("CORE_CS2_023")
+        game.players[0].hand.append(chosen)
+        game.step(Action("PLAY", survivor.entity_id))
+        self.assertEqual("HAND_DISCARD", game.pending_choice["kind"])
+        game.step(Action("DISCARD_PICK", chosen.entity_id))
+        self.assertEqual(1, len(game.players[0].hand))
+        self.assertEqual("CORE_CS2_023", game.players[0].hand[0].card_id)
+        self.assertEqual(0, len(game.players[0].deck))
+
 
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
