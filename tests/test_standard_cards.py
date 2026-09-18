@@ -1028,6 +1028,24 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", herald.entity_id))
         self.assertEqual(first_cost, generated.cost)
 
+    def test_alakir_colossal_and_cost_matching_minions(self):
+        game = self.game()
+        alakir = self.add_hand(game, "CATA_153")
+        game.step(Action("PLAY", alakir.entity_id))
+        self.assertEqual(2, sum(m.card_id == "CATA_153t" for m in game.players[0].board))
+        generated = [card for card in game.players[0].hand if card.created_by == "CATA_153"]
+        self.assertEqual(2, len(generated))
+        self.assertTrue(all(card.cost == 1 for card in generated))
+
+    def test_sinestra_colossal_doubles_other_class_spells(self):
+        game = self.game()
+        sinestra = self.add_hand(game, "CATA_154")
+        game.step(Action("PLAY", sinestra.entity_id))
+        spell = self.add_hand(game, "CATA_530")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(2, game.players[0].herald_count)
+        self.assertEqual(2, sum(m.card_id == "CATA_154t" for m in game.players[0].board))
+
     def test_experimental_animation_heralds_and_damages_enemy_minions(self):
         game = self.game()
         enemy = self.add_board(game, "TLC_248", 1)

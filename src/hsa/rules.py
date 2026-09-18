@@ -1113,6 +1113,28 @@ class AddRandomClassMinion:
 
 
 @dataclass(frozen=True)
+class AddMinionsMatchingSourceAttack:
+    """Al'Akir: add two minions whose printed cost equals this minion's attack."""
+
+    count: int = 2
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        cost = context.card.attack
+        candidates = [
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "MINION"
+            and definition.cost == cost
+        ]
+        for _ in range(self.count):
+            if not candidates:
+                break
+            card = game._entity(game.rng.choice(sorted(candidates)), created_by=context.card.card_id)
+            card.cost_delta = 1 - card.definition.cost
+            game._add_generated(context.player, card)
+
+
+@dataclass(frozen=True)
 class AddCardCopiesToHand:
     card_id: str
     count: int = 1
@@ -6906,6 +6928,14 @@ def build_rule_registry() -> RuleRegistry:
                 "powerlog_verified", local, "JAIL_COIN1", "internal",
                 ("test_latest_powerlog_simple_rules",),
             ),
+        ),
+        CardRule(
+            "CATA_153", {Hook.BATTLECRY: (AddMinionsMatchingSourceAttack(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Colossal appendage model", ("test_alakir_colossal_and_cost_matching_minions",)),
+        ),
+        CardRule(
+            "CATA_154", {},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Colossal appendage model", ("test_sinestra_colossal_doubles_other_class_spells",)),
         ),
         CardRule(
             "CATA_725t", {Hook.END_TURN: (HeraldDestroyRightAndGrow(),)},

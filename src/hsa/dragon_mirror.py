@@ -186,6 +186,8 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 }
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
+    "CATA_153",  # Al'Akir, Lord of Storms
+    "CATA_154",  # Sinestra
     "CATA_525",  # Armored Bloodletter
     "CATA_565",  # Skywall Sentinel
     "CATA_780",  # Obsessive Technician
@@ -1770,6 +1772,10 @@ class DragonMirrorGame:
             )
         elif minion.card_id == "CATA_780t":
             self._get_onyxia_wing_minion(player, minion, power=minion.herald_power)
+        elif minion.card_id == "CATA_153":
+            self._summon_colossal_appendages(player, minion, "CATA_153t", 2)
+        elif minion.card_id == "CATA_154":
+            self._summon_colossal_appendages(player, minion, "CATA_154t", 2)
         elif minion.card_id == "CATA_151":
             self._summon_azshara_tentacles(player, minion)
         elif minion.card_id == "CATA_155":
@@ -1778,6 +1784,25 @@ class DragonMirrorGame:
             self._summon_wickerfang_legs(player, minion)
         elif minion.card_id in {"CATA_155t", "CATA_155t1"}:
             self._get_onyxia_wing_minion(player, minion)
+
+    def _summon_colossal_appendages(
+        self, player: Player, parent: CardInstance, card_id: str, count: int
+    ) -> None:
+        """Summon named Colossal appendages immediately beside their parent."""
+        for offset in range(count):
+            if len(player.board) + len(player.locations) >= 7:
+                break
+            index = player.board.index(parent)
+            position = index if offset % 2 == 0 else index + 1
+            appendage = self._entity(card_id, created_by=parent.card_id)
+            appendage.colossal_parent_entity = parent.entity_id
+            appendage.summoned_turn = self.turn
+            self._summon(player, appendage, position=position)
+            self._event(
+                "colossal_appendage", player=player.index,
+                source=parent.entity_id, entity=appendage.entity_id,
+                side="left" if offset % 2 == 0 else "right",
+            )
 
     def _summon_azshara_tentacles(
         self, player: Player, azshara: CardInstance
@@ -4227,7 +4252,13 @@ class DragonMirrorGame:
                 and any(m.has_race("DRAGON") and m.card_id != "TIME_852t1"
                         and not m.silenced and m.dormant_turns == 0 for m in player.board)
             )
-            if (card.spell_casts_twice or malygos_active) and self.pending_choice is None:
+            sinestra_active = any(
+                m.card_id == "CATA_154"
+                and not m.silenced and m.dormant_turns == 0
+                and card.definition.card_class not in {"", "NEUTRAL", player.card_class}
+                for m in player.board
+            )
+            if (card.spell_casts_twice or malygos_active or sinestra_active) and self.pending_choice is None:
                 self._cast_spell(player, card, action)
             if player.hamuul_active:
                 player.hamuul_spells_cast += 1
