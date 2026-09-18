@@ -296,6 +296,7 @@ ADDITIONAL_PLAYABLE_CARD_IDS = {
 # separate from the Rewind tranche: the generation audit relies on the latter
 # being exactly the Rewind cards, while this set will grow by school/pool.
 ADDITIONAL_PLAYABLE_SPELL_IDS = {
+    "CAP_407",  # Wanted Poster
     "JAIL_735",  # Code Violet
     "CORE_CS2_013", "CORE_EX1_164", "CORE_CS2_075",
     "CORE_CS2_077", "CORE_CS2_089",
@@ -773,6 +774,7 @@ class CardInstance:
     prepared_turn: int = -1
     # Prepare is a one-time state on the card, not a per-turn activation.
     prepared: bool = False
+    prepare_granted: bool = False
     shatter_origin: str | None = None
     shatter_half: str | None = None
     shatter_combined: bool = False
@@ -3644,7 +3646,7 @@ class DragonMirrorGame:
             self._refresh_continuous(candidate)
         actions = [Action("END_TURN")]
         for card in player.hand:
-            if "Prepare" in card.definition.text and not card.prepared:
+            if ("Prepare" in card.definition.text or card.prepare_granted) and not card.prepared:
                 actions.append(Action("PREPARE", card.entity_id))
             if card.prepared_turn == self.turn:
                 continue
@@ -6500,6 +6502,8 @@ class DragonMirrorGame:
             option.cost_delta = 1 - option.definition.cost
         if pending.get("dark_gift_cost_delta"):
             option.cost_delta += pending["dark_gift_cost_delta"]
+        if pending.get("source_card_id") == "CAP_407":
+            option.prepare_granted = True
         destination = self._add_generated(player, option)
         if pending.get("map_followup") and destination == "hand":
             player.map_followup_options = [
@@ -8875,6 +8879,7 @@ class DragonMirrorGame:
                 "spell_damage_bonus": card.spell_damage_bonus,
                 "prepared_turn": card.prepared_turn,
                 "prepared": card.prepared,
+                "prepare_granted": card.prepare_granted,
                 "dynamic_spell_damage": card.dynamic_spell_damage,
                 "spells_cast_while_held": card.spells_cast_while_held,
                 "illusion_fake": card.illusion_fake,

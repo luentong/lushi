@@ -98,6 +98,7 @@ DECLARATIVE_METADATA_ALIASES = {
 # New full-Standard rules are kept separate from the historical Dragon slice
 # so adding cards does not mutate the vocabulary of existing neural models.
 STANDARD_DECLARATIVE_IDS = {
+    "CAP_407",  # Wanted Poster
     "JAIL_735",  # Code Violet
     "JAIL_909",  # Defias Wannabe
     "JAIL_321",  # Tricksy Improviser
@@ -3144,6 +3145,21 @@ class CodeVioletSummon:
         SummonRandomExecutableMinion(cost=8, count=count).execute(game, context)
         game._event("code_violet_summon", player=context.player.index,
                     source=context.card.card_id, count=count)
+
+
+@dataclass(frozen=True)
+class WantedPosterDiscover:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = [
+            card_id for card_id in game.executable_card_ids
+            if card_id in game.card_defs
+            and game.card_defs[card_id].card_type == "MINION"
+            and game.card_defs[card_id].cost >= 5
+        ]
+        game._offer_discover(
+            context.player, candidates, dark_gift=False,
+            source_card_id=context.card.card_id,
+        )
 
 
 @dataclass(frozen=True)
@@ -7229,6 +7245,10 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "JAIL_735", {Hook.SPELL: (CodeVioletSummon(),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; spell-count event model", ("test_code_violet_repeats_after_three_other_spells",)),
+        ),
+        CardRule(
+            "CAP_407", {Hook.SPELL: (WantedPosterDiscover(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Discover + Prepare state", ("test_wanted_poster_grants_prepare",)),
         ),
         CardRule(
             "CATA_725t", {Hook.END_TURN: (HeraldDestroyRightAndGrow(),)},

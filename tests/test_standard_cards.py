@@ -1240,6 +1240,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         summoned = [m for m in game.players[0].board if m.created_by == "JAIL_735"]
         self.assertEqual(2, len(summoned))
 
+    def test_wanted_poster_grants_prepare(self):
+        game = self.game()
+        poster = self.add_hand(game, "CAP_407")
+        game.step(Action("PLAY", poster.entity_id))
+        self.assertIsNotNone(game.pending_choice)
+        option = game.pending_choice["options"][0]
+        game.step(Action("DISCOVER_PICK", option.entity_id))
+        granted = next(card for card in game.players[0].hand if card.entity_id == option.entity_id)
+        self.assertTrue(granted.prepare_granted)
+        self.assertTrue(any(action.kind == "PREPARE" and action.source == granted.entity_id
+                            for action in game.legal_actions()))
+
     def test_experimental_animation_heralds_and_damages_enemy_minions(self):
         game = self.game()
         enemy = self.add_board(game, "TLC_248", 1)
