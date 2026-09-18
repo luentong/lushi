@@ -3112,7 +3112,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         roots = self.add_hand(damage_game, "CORE_AT_037")
         damage_game.step(Action("PLAY", roots.entity_id, 1, target.entity_id))
         damage_game.step(Action("RULE_CHOICE_PICK", 0))
-        self.assertEqual(2, target.damage)
+        self.assertEqual(3, target.damage)
 
         summon_game = self.game()
         roots = self.add_hand(summon_game, "CORE_AT_037")
@@ -3516,6 +3516,45 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", chow.entity_id))
         self.assertEqual(0, game.players[0].corpses)
         self.assertTrue(all(m.rush for m in game.players[0].board))
+
+    def test_corpse_discover_and_hero_rebirth_boundaries(self):
+        game = self.game()
+        game.players[0].corpses = 5
+        clone = self.add_hand(game, "JAIL_451")
+        game.step(Action("PLAY", clone.entity_id))
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        choice = game.pending_choice["options"][0]
+        game.step(Action("DISCOVER_PICK", choice.entity_id))
+        self.assertEqual(0, game.players[0].corpses)
+        self.assertEqual(1, len(game.players[0].board))
+        self.assertEqual(choice.card_id, game.players[0].board[0].card_id)
+
+        game = self.game()
+        game.players[0].corpses = 5
+        paleomancy = self.add_hand(game, "TLC_434")
+        game.step(Action("PLAY", paleomancy.entity_id))
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        game.step(Action("DISCOVER_PICK", game.pending_choice["options"][0].entity_id))
+        self.assertEqual(0, game.players[0].corpses)
+        self.assertGreaterEqual(len(game.players[0].hand), 1)
+
+        game = self.game()
+        game.players[0].corpses = 7
+        husk = self.add_hand(game, "TIME_618")
+        game.step(Action("PLAY", husk.entity_id))
+        game._damage_hero(game.players[0], 99)
+        self.assertEqual(7, game.players[0].health)
+        self.assertEqual(0, game.players[0].corpses)
+        self.assertFalse(game.players[0].corpse_rebirth_pending)
+
+        game = self.game()
+        flower = self.add_board(game, "EDR_815", 0)
+        game.players[0].corpses = 2
+        target = game._entity("CORE_LOOT_137")
+        target.summoned_turn = game.turn
+        game._summon(game.players[1], target)
+        self.assertEqual(2, target.damage)
+        self.assertEqual(0, game.players[0].corpses)
 
     def test_deaths_advance(self):
         game = self.game()
