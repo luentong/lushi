@@ -191,7 +191,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
-    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "CATA_569", "CATA_724", "CORE_AT_052", "CORE_EX1_250", "CORE_OG_044", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "CS3_007", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010", "END_028", "JAIL_462", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_601", "TIME_810", "TLC_227", "TLC_449",  # Standard mechanism tranche
+    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "CATA_569", "CATA_724", "CORE_AT_052", "CORE_EX1_250", "CORE_OG_044", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "CS3_007", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010", "END_028", "JAIL_380", "JAIL_462", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_601", "TIME_810", "TLC_227", "TLC_449",  # Standard mechanism tranche
     "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
@@ -9494,6 +9494,13 @@ def build_rule_registry() -> RuleRegistry:
             "JAIL_462", {Hook.BATTLECRY: (DrawTwoGainChargeIfMinions(),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
                        ("test_getaway_hogdriver_draw_two_minions_charge",)),
+        ),
+        CardRule(
+            "JAIL_380", {Hook.DEATHRATTLE: (
+                DrawMatching(card_type="SPELL", started_in_deck=False),
+            )},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_smuggled_shovel_draws_generated_spell",)),
         ),
         CardRule(
             "TIME_601", {Hook.BATTLECRY: (DrawUntilHandSize(3),)},

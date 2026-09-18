@@ -49,7 +49,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_standard_choose_one_batch_is_executable(self):
         game = self.game()
-        self.assertTrue({"CATA_569", "CATA_724", "CORE_AT_052", "CORE_EX1_250", "CORE_OG_044", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "CS3_007", "EDR_233", "EDR_257", "EDR_263", "EDR_490", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010", "END_028", "TIME_601", "TLC_227"}
+        self.assertTrue({"CATA_569", "CATA_724", "CORE_AT_052", "CORE_EX1_250", "CORE_OG_044", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "CS3_007", "EDR_233", "EDR_257", "EDR_263", "EDR_490", "EDR_525", "EDR_570", "EDR_843", "EDR_872", "END_010", "END_028", "JAIL_380", "TIME_601", "TLC_227"}
                         <= game.executable_card_ids)
 
     def test_boomkin_choose_one_deals_damage_or_heals(self):
@@ -178,6 +178,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertIn("TIME_014", game.executable_card_ids)
         self.assertIsNotNone(game.rule_registry.get("JAIL_452"))
         self.assertIsNotNone(game.rule_registry.get("TIME_014"))
+
+    def test_smuggled_shovel_draws_only_generated_spell(self):
+        game = self.game()
+        generated = game._entity("CORE_CS2_013", started_in_deck=False)
+        original = game._entity("CORE_CS2_013", started_in_deck=True)
+        game.players[0].deck = [original, generated]
+        shovel = self.add_board(game, "JAIL_380", 0)
+        game._deathrattle(game.players[0], shovel)
+        self.assertEqual(1, len(game.players[0].hand))
+        self.assertEqual("CORE_CS2_013", game.players[0].hand[0].card_id)
+        self.assertEqual(1, len(game.players[0].deck))
 
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
