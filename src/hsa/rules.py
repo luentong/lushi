@@ -191,7 +191,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
-    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_570", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Standard mechanism tranche
+    "CATA_161", "CATA_301", "CATA_477", "CATA_527", "Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_454", "EDR_490", "EDR_520", "EDR_570", "JAIL_877", "JAIL_887", "MEND_044", "TIME_044", "TIME_436", "TIME_446", "TIME_810", "TLC_449",  # Standard mechanism tranche
     "CATA_527t2",
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
@@ -1305,6 +1305,24 @@ class OfferSpellDiscover:
     def execute(self, game: Any, context: RuleContext) -> None:
         game._offer_spell_discover(
             context.player, source_card_id=context.card.card_id
+        )
+
+
+@dataclass(frozen=True)
+class OfferTypeDiscover:
+    """Discover three executable cards of one card type."""
+
+    card_type: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = [
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == self.card_type
+        ]
+        game._offer_discover(
+            context.player, candidates, False,
+            source_card_id=context.card.card_id,
         )
 
 
@@ -8680,6 +8698,14 @@ def build_rule_registry() -> RuleRegistry:
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
                        verification=("test_morbid_swarm_choose_one",)),
             TargetSpec(TargetKind.ANY_MINION, optional=True),
+        ),
+        CardRule(
+            "Core_LOE_115", {Hook.SPELL: (OfferEffectChoice((
+                ("discover_minion", (OfferTypeDiscover("MINION"),)),
+                ("discover_spell", (OfferTypeDiscover("SPELL"),)),
+            )),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
+                       verification=("test_raven_idol_choose_one_discover",)),
         ),
         CardRule(
             "CORE_ONY_018", {Hook.BATTLECRY: (OfferEffectChoice((

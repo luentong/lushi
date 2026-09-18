@@ -49,7 +49,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_standard_choose_one_batch_is_executable(self):
         game = self.game()
-        self.assertTrue({"CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_490", "EDR_570"}
+        self.assertTrue({"Core_LOE_115", "CORE_ONY_018", "CORE_TSC_650", "EDR_233", "EDR_257", "EDR_263", "EDR_490", "EDR_570"}
                         <= game.executable_card_ids)
 
     def test_boomkin_choose_one_deals_damage_or_heals(self):
@@ -67,6 +67,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("RULE_CHOICE_PICK", 1))
         self.assertEqual(6, len(game.players[0].board))
         self.assertTrue(all(m.card_id == "TSC_650t4" for m in game.players[0].board))
+
+    def test_raven_idol_choose_one_offers_type_discover(self):
+        game = self.game()
+        spell = self.add_hand(game, "Core_LOE_115")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(["discover_minion", "discover_spell"],
+                         game.snapshot()["pending_choice"]["options"])
+        game.step(Action("RULE_CHOICE_PICK", 1))
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        self.assertTrue(all(option.definition.card_type == "SPELL"
+                            for option in game.pending_choice["options"]))
 
     def test_sleep_paralysis_choose_one_summons_two_nonattacking_demons(self):
         game = self.game()
