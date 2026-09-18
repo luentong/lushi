@@ -157,7 +157,7 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_460",
     "TLC_435", "TLC_442", "TLC_464", "TLC_515", "TLC_824", "TLC_900",
     # Classic League of Explorers map chain.
-    "CORE_LOE_079", "LOE_079", "LOE_019t", "LOE_019t2",
+    "CORE_LOE_079", "LOE_019t", "LOE_019t2",
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "CS2_tk1",

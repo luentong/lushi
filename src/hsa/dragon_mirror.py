@@ -4040,7 +4040,7 @@ class DragonMirrorGame:
 
     def _battlecry(self, player: Player, card: CardInstance, action: Action) -> None:
         times = 2 if card.battlecry_twice else 1
-        if card.card_id in {"CORE_LOE_079", "LOE_079"}:
+        if card.card_id == "CORE_LOE_079":
             # Elise's map is a real deck card and is shuffled immediately;
             # this is intentionally not a hand generation shortcut.
             map_card = self._entity("LOE_019t", created_by=card.card_id)
