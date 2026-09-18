@@ -318,6 +318,8 @@ SPECIAL_TOKEN_IDS = {
     "CATA_561t",  # Breezling
     "CATA_153t", "CATA_153t1",  # Charged Hand of Al'Akir
     "CATA_154t", "CATA_154t1",  # Sinestra's Wing
+    "CATA_525t", "CATA_565t", "CATA_725t", "CATA_726t", "CATA_726t1",
+    "CATA_780t",
     "BOT_102t",  # Spark
     "CAP_107t",  # Cannoneer
     "CATA_155t",  # Onyxia's Wing
@@ -1735,6 +1737,15 @@ class DragonMirrorGame:
                     source=minion.entity_id, card=generated.card_id,
                     discount=self._herald_power(player.herald_count),
                 )
+        elif minion.card_id == "CATA_525t":
+            amount = self._herald_power(player.herald_count)
+            player.hero_attack_bonus += amount
+            self._event(
+                "herald_azshara_soldier", player=player.index,
+                entity=minion.entity_id, attack=amount,
+            )
+        elif minion.card_id == "CATA_780t":
+            self._get_onyxia_wing_minion(player, minion)
         elif minion.card_id == "CATA_151":
             self._summon_azshara_tentacles(player, minion)
         elif minion.card_id == "CATA_155":
@@ -2892,7 +2903,7 @@ class DragonMirrorGame:
                     )
         charged_hand_neighbors: dict[int, int] = {}
         for index, source in enumerate(player.board):
-            if source.card_id not in {"CATA_153t", "CATA_153t1"} or source not in active:
+            if source.card_id not in {"CATA_153t", "CATA_153t1", "CATA_565t"} or source not in active:
                 continue
             bonus = max(1, source.herald_power)
             for neighbor_index in (index - 1, index + 1):

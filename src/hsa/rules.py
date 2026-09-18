@@ -2444,6 +2444,37 @@ class HeraldAndHeroLifesteal:
 
 
 @dataclass(frozen=True)
+class HeraldDestroyRightAndGrow:
+    """Cho'gall Soldier: destroy the minion to the right and grow."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        try:
+            index = player.board.index(context.card)
+        except ValueError:
+            return
+        if index + 1 >= len(player.board):
+            return
+        right = player.board[index + 1]
+        if right.dormant_turns > 0 or right.health <= 0:
+            return
+        right.damage = right.max_health
+        game._event(
+            "herald_destroy_right", player=player.index,
+            source=context.card.entity_id, target=right.entity_id,
+        )
+        game._resolve_deaths()
+        if context.card in player.board:
+            amount = game._herald_power(player.herald_count)
+            context.card.attack_delta += amount
+            context.card.health_delta += amount
+            game._event(
+                "herald_grow", player=player.index,
+                source=context.card.entity_id, amount=amount,
+            )
+
+
+@dataclass(frozen=True)
 class BuffSourceHealthPerHandCard:
     def execute(self, game: Any, context: RuleContext) -> None:
         context.card.health_delta += len(context.player.hand)
@@ -6863,6 +6894,18 @@ def build_rule_registry() -> RuleRegistry:
                 "powerlog_verified", local, "JAIL_COIN1", "internal",
                 ("test_latest_powerlog_simple_rules",),
             ),
+        ),
+        CardRule(
+            "CATA_725t", {Hook.END_TURN: (HeraldDestroyRightAndGrow(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Herald Soldier token", ("test_herald_chogall_soldier_destroys_right_and_grows",)),
+        ),
+        CardRule(
+            "CATA_726t", {Hook.END_TURN: (HeraldDestroyRightAndGrow(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Herald Soldier token", ("test_herald_chogall_soldier_destroys_right_and_grows",)),
+        ),
+        CardRule(
+            "CATA_726t1", {Hook.END_TURN: (HeraldDestroyRightAndGrow(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Herald Soldier token", ("test_herald_chogall_soldier_destroys_right_and_grows",)),
         ),
         CardRule(
             "TIME_770", {Hook.SPELL: (DrawTwoThenChooseDiscount(2),)},

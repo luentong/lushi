@@ -950,6 +950,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._summon(game.players[0], wing)
         self.assertTrue(any(card.created_by == "CATA_154t" for card in game.players[0].hand))
 
+    def test_herald_chogall_soldier_destroys_right_and_grows(self):
+        game = self.game()
+        game.players[0].herald_count = 2
+        soldier = game._entity("CATA_725t")
+        soldier.summoned_turn = game.turn - 1
+        game._summon(game.players[0], soldier)
+        right = self.add_board(game, "CATA_565", 0)
+        before = soldier.attack
+        game._end_turn()
+        self.assertNotIn(right, game.players[0].board)
+        self.assertEqual(before + 2, soldier.attack)
+
     def test_experimental_animation_heralds_and_damages_enemy_minions(self):
         game = self.game()
         enemy = self.add_board(game, "TLC_248", 1)
