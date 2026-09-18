@@ -6301,6 +6301,20 @@ class DragonMirrorGame:
                     self._battlecry(player, option, action)
                 elif option.definition.card_type == "SPELL":
                     self._cast_spell(player, option, action)
+                    if player.hamuul_active:
+                        player.hamuul_spells_cast += 1
+                        if player.hamuul_spells_cast % 3 == 0:
+                            power_id = imbue_hero_power_id(player.card_class)
+                            if power_id in self.card_defs:
+                                player.hero_power_id = power_id
+                                player.imbued_hero_power_id = power_id
+                                player.hero_power_imbues += 1
+                                self._event(
+                                    "hero_power_imbued", player=player.index,
+                                    source="EDR_845", hero_power=power_id,
+                                    count=player.hero_power_imbues,
+                                )
+                    self._dispatch_after_spell_cast(player, option)
                 elif option.definition.card_type == "WEAPON":
                     durability = getattr(option.definition, "durability", 0) or 2
                     self._equip_weapon(
