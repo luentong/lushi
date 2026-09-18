@@ -42,6 +42,11 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game = self.game()
         self.assertTrue(rule_ids <= game.executable_card_ids)
 
+    def test_standard_location_batch_is_executable(self):
+        game = self.game()
+        self.assertTrue({"JAIL_877", "MEND_044", "TIME_044", "TLC_449"}
+                        <= game.executable_card_ids)
+
     def test_chef_nethrek_is_executable(self):
         game = self.game()
         self.assertIn("JAIL_860", game.executable_card_ids)

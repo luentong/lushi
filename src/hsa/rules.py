@@ -187,6 +187,7 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_617", "CORE_RLK_706",  # DK rune cards
     "JAIL_443", "JAIL_445", "JAIL_454",  # DK rune cards
     "TIME_615",  # DK rune card
+    "JAIL_877", "MEND_044", "TIME_044", "TLC_449",  # Location cards
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
     "UNG_934t1", "UNG_940t8", "UNG_942t", "UNG_954t1",
     "UNG_999t2t1",
@@ -5369,6 +5370,53 @@ class FillHandRandomUndeadHealthCost:
 
 
 @dataclass(frozen=True)
+class SummonLocationRat:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if len(context.player.board) + len(context.player.locations) >= 7:
+            return
+        rat = game._entity("JAIL_877t", created_by=context.card.card_id)
+        rat.summoned_turn = game.turn
+        game._summon(context.player, rat)
+
+
+@dataclass(frozen=True)
+class BuffLocationTargetAndSleep:
+    attack: int
+    health: int
+    dormant_turns: int = 2
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("friendly minion target is required")
+        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        if context.action.target_player != context.player.index:
+            raise ValueError("location target must be friendly")
+        target.attack_delta += self.attack
+        target.health_delta += self.health
+        target.taunt = True
+        target.dormant_turns = max(target.dormant_turns, self.dormant_turns)
+        game._event(
+            "location_buff_sleep", player=context.player.index,
+            source=context.card.card_id, target=target.entity_id,
+        )
+
+
+@dataclass(frozen=True)
+class DiscoverTemporaryOneCostMinion:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        pool = [
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "MINION" and definition.cost == 1
+        ]
+        game._offer_discover(context.player, pool, dark_gift=False,
+                             source_card_id=context.card.card_id)
+        if game.pending_choice is not None:
+            for option in game.pending_choice["options"]:
+                option.temporary = True
+
+
+@dataclass(frozen=True)
 class SummonRandomLegendaryMinion:
     """Summon one random executable Legendary minion if board space exists."""
 
@@ -6111,6 +6159,24 @@ def build_rule_registry() -> RuleRegistry:
                 "Power.log 23282dea + HearthstoneJSON 251332",
                 verification=("test_lunarwing_messenger_imbues_hero_power",),
             ),
+        ),
+        CardRule(
+            "JAIL_877", {Hook.LOCATION: (SummonLocationRat(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "MEND_044", {Hook.LOCATION: (BuffLocationTargetAndSleep(2, 2),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+            TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "TIME_044", {Hook.LOCATION: (BuffActionTarget(2, 1),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+            TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "TLC_449", {Hook.LOCATION: (DiscoverTemporaryOneCostMinion(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
         ),
         CardRule(
             "WW_365", {Hook.SPELL: (SetActionTargetStats(1, 1),

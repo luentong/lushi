@@ -47,6 +47,7 @@ DIRECT_IDS = {
     "JAIL_384",
     "CAP_105",
     "CAP_107",
+    "JAIL_877", "MEND_044", "TIME_044", "TLC_449",
 }
 
 GENERATED_DRAGON_IDS = {
@@ -519,7 +520,7 @@ STANDARD_VANILLA_IDS = {
     "TLC_446t3", "TLC_446t4",
     "CORE_EDR_002e", "CATA_151e", "TLC_631e", "TIME_861e2",
     "CATA_530e", "CATA_553e2", "JAIL_500e", "JAIL_516e",
-    "MEND_044e3", "NEW_4183_Copy", "CAP_805e", "TLC_446e",
+    "MEND_044e3", "JAIL_877t", "NEW_4183_Copy", "CAP_805e", "TLC_446e",
     "CAP_105t", "TIME_870t",
     "CATA_134t3", "CATA_135t", "CATA_190t14", "CATA_210t",
     "CATA_452t", "CATA_465t", "CATA_470t1", "CATA_478t", "CATA_479t3",
@@ -9365,6 +9366,12 @@ class DragonMirrorGame:
                 "tick_and_tock_deathrattle", player=player.index,
                 source=minion.entity_id, opponent=opponent.index,
                 cards_removed=removed,
+            )
+        if minion.card_id == "JAIL_877t":
+            self._draw(player)
+            self._event(
+                "snoot_hoarder_deathrattle", player=player.index,
+                source=minion.entity_id,
             )
         # Chromatus heads remove exactly their own keyword from the surviving
         # parent.  The parent entity link matters when multiple Chromatuses
