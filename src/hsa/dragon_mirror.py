@@ -3629,6 +3629,13 @@ class DragonMirrorGame:
                     )
                 elif location.card_id in {"CATA_584", "FIR_907"}:
                     actions.append(Action("LOCATION", location.entity_id))
+                elif location.card_id == "TLC_433t2":
+                    # Terror's Grave is a targeted location: deal 4 damage to
+                    # an enemy character, then its durability is consumed.
+                    actions.extend(
+                        Action("LOCATION", location.entity_id, p, e)
+                        for p, e in self._enemy_characters(player.index)
+                    )
                 elif self.rule_registry.has_hook(Hook.LOCATION, location.card_id):
                     target_spec = self.rule_registry.targeting(location.card_id)
                     if target_spec is None:
@@ -4942,7 +4949,9 @@ class DragonMirrorGame:
                     destroyed_minion = self.rng.choice(minions)
                     destroyed_minion.damage = destroyed_minion.max_health
                 if enemy.locations:
-                    enemy.locations.remove(self.rng.choice(enemy.locations))
+                    removed_location = self.rng.choice(enemy.locations)
+                    enemy.locations.remove(removed_location)
+                    self._location_deathrattle(enemy, removed_location)
                 if enemy.weapon:
                     self._destroy_weapon(enemy)
                 self._resolve_deaths()
@@ -7071,12 +7080,34 @@ class DragonMirrorGame:
                 next_refresh=location.next_refresh + 1,
             )
             location.next_refresh += 1
+        elif location.card_id == "TLC_433t2":
+            target = (action.target_player, action.target_entity)
+            self._deal_to_target(player.index, target, 4, source=context_card)
         location.durability -= 1
         # Locations are dormant for the entire following turn; the next
         # refresh at turn start reduces 2 -> 1, and the subsequent one 1 -> 0.
         location.cooldown = 2
         if location.durability <= 0:
             player.locations.remove(location)
+            self._location_deathrattle(player, location)
+
+    def _location_deathrattle(self, player: Player, location: Location) -> None:
+        """Resolve location deathrattles when durability or an effect destroys it."""
+        if location.card_id != "TLC_433t2":
+            return
+        if len(player.board) + len(player.locations) >= 7:
+            self._event(
+                "terror_grave_resummon_blocked", player=player.index,
+                source=location.entity_id,
+            )
+            return
+        tyrax = self._entity("TLC_433t", created_by=location.card_id)
+        tyrax.summoned_turn = self.turn
+        self._summon(player, tyrax)
+        self._event(
+            "terror_grave_resummon", player=player.index,
+            source=location.entity_id, entity=tyrax.entity_id,
+        )
 
     @staticmethod
     def _break_stealth_for_attack(attacker: CardInstance) -> bool:
@@ -7747,6 +7778,24 @@ class DragonMirrorGame:
             player.deck.insert(self.rng.randrange(len(player.deck) + 1), returned)
             self._event("master_dusk_ninja_reshuffled", player=player.index,
                         card=returned.card_id)
+        if minion.card_id == "TLC_433t":
+            # Tyrax opens Terror's Grave when it dies.  The location occupies
+            # a board slot just like every other location and can therefore
+            # fail to appear when the controller's board is full.
+            if len(player.board) + len(player.locations) < 7:
+                grave = self._entity("TLC_433t2", created_by=minion.card_id)
+                player.locations.append(
+                    Location(grave.entity_id, grave.card_id, grave.definition.health, 2)
+                )
+                self._event(
+                    "terror_grave_opened", player=player.index,
+                    source=minion.entity_id, entity=grave.entity_id,
+                )
+            else:
+                self._event(
+                    "terror_grave_blocked", player=player.index,
+                    source=minion.entity_id,
+                )
         if minion.card_id == "JAIL_720":
             coin = self._entity("JAIL_COIN1", created_by=minion.card_id)
             destination = self._add_generated(player, coin)

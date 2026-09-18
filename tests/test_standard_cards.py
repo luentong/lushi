@@ -2285,6 +2285,27 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             for card in options
         ))
 
+    def test_tyrax_deathrattle_opens_terrors_grave(self):
+        game = self.game()
+        tyrax = self.add_board(game, "TLC_433t", 0)
+        tyrax.damage = tyrax.max_health
+        game._resolve_deaths()
+        self.assertFalse(game.players[0].board)
+        self.assertEqual(1, len(game.players[0].locations))
+        self.assertEqual("TLC_433t2", game.players[0].locations[0].card_id)
+
+    def test_terrors_grave_deals_four_and_resummons_tyrax(self):
+        game = self.game()
+        location_card = game._entity("TLC_433t2")
+        location = Location(location_card.entity_id, location_card.card_id,
+                            1, 0)
+        game.players[0].locations.append(location)
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        game._use_location(Action("LOCATION", location.entity_id, 1, target.entity_id))
+        self.assertEqual(4, target.damage)
+        self.assertNotIn(location, game.players[0].locations)
+        self.assertTrue(any(card.card_id == "TLC_433t" for card in game.players[0].board))
+
     def test_secret_ingredient_choose_one_attack_or_druid_card(self):
         attack_game = self.game()
         ingredient = self.add_hand(attack_game, "JAIL_201")
