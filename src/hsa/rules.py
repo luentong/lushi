@@ -22,6 +22,8 @@ class Hook(StrEnum):
     AFTER_ATTACK = "after_attack"
     AFTER_HERO_ATTACK = "after_hero_attack"
     AFTER_HERO_POWER = "after_hero_power"
+    OTHER_FRIENDLY_ATTACK = "other_friendly_attack"
+    AFTER_HEAL_ENEMY = "after_heal_enemy"
     AFTER_SUMMON = "after_summon"
     AFTER_DISCARD = "after_discard"
     AFTER_DAMAGE = "after_damage"
@@ -104,6 +106,9 @@ DECLARATIVE_METADATA_IDS = {
     # Standard tranche 50H generated / transformed dependencies.
     "GIL_577t", "JAIL_436t", "JAIL_436t2", "JAIL_447t", "JAIL_805t",
     "JAIL_879t", "JAIL_881t", "TLC_234t", "TLC_237t",
+    # Lost City tranche 50I generated hand cards.  These remain generated
+    # dependencies rather than deck-construction entries.
+    "TLC_622t", "TLC_829t", "GILA_500p2t",
 }
 
 # Some Core printings retain the historical behavior ID while the pinned JSON
@@ -116,6 +121,7 @@ DECLARATIVE_METADATA_ALIASES = {
 # New full-Standard rules are kept separate from the historical Dragon slice
 # so adding cards does not mutate the vocabulary of existing neural models.
 STANDARD_DECLARATIVE_IDS = {
+    "CORE_BAR_812",  # Oasis Ally
     "CAP_407",  # Wanted Poster
     "JAIL_735",  # Code Violet
     "JAIL_909",  # Defias Wannabe
@@ -512,6 +518,18 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_805", "JAIL_806", "JAIL_876", "JAIL_878", "JAIL_879",
     "JAIL_881", "JAIL_883", "JAIL_940", "JAIL_974", "JAIL_986",
     "TLC_234", "TLC_237", "TLC_244", "TLC_245", "TLC_256",
+    # Standard coverage tranche 50I: the remaining Lost City collectible
+    # cards plus Tribute Dance, whose runtime behaviour belongs to the same
+    # Un'Goro card family in the pinned client build.
+    "DINO_414", "TLC_106", "TLC_109", "TLC_230", "TLC_232", "TLC_233",
+    "TLC_247", "TLC_250", "TLC_252", "TLC_254", "TLC_257", "TLC_334",
+    "TLC_364", "TLC_427", "TLC_430", "TLC_438", "TLC_441", "TLC_443",
+    "TLC_444", "TLC_450", "TLC_452", "TLC_462", "TLC_465", "TLC_467",
+    "TLC_469", "TLC_477", "TLC_479", "TLC_483", "TLC_516", "TLC_517",
+    "TLC_518", "TLC_520", "TLC_521", "TLC_601", "TLC_620", "TLC_622",
+    "TLC_810", "TLC_811", "TLC_814", "TLC_818", "TLC_819", "TLC_821",
+    "TLC_822", "TLC_826", "TLC_827", "TLC_831", "TLC_836", "TLC_840",
+    "TLC_841",
 }
 
 
@@ -7030,6 +7048,810 @@ class SummonRecruitsAndEquip:
         EquipGeneratedWeapon("CS2_091", "Light's Justice", 1, 4).execute(game, context)
 
 
+# ---- Standard tranche 50I -------------------------------------------------
+# The last Lost City collection has a dense group of cards that manufacture
+# small tokens or read a persistent game counter.  Keep those mechanics here
+# rather than teaching each card a bespoke engine branch.  ``_lost_city_token``
+# intentionally creates a non-collectible instance: it is never admitted to a
+# Constructed deck or a random generator pool, but carries normal minion
+# combat/death state once it enters a zone.
+
+
+def _lost_city_token(
+    game: Any, card_id: str, name: str, *, cost: int, attack: int,
+    health: int, race: str = "", mechanics: tuple[str, ...] = (),
+    card_class: str = "NEUTRAL",
+) -> Any:
+    from .dragon_mirror import CardDef
+
+    definition = CardDef(
+        card_id, name, "MINION", cost, attack, health, race, mechanics,
+        card_class, (race,) if race else (), "THE_LOST_CITY",
+    )
+    return game._instance_from_definition(definition)
+
+
+@dataclass(frozen=True)
+class OfferTransformIntoDifferentMinion:
+    """Tribute Dance: target first, then explicitly choose a new minion."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("minion target is required")
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        pool = [
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "MINION"
+            and card_id != target.card_id
+        ]
+        if not pool:
+            return
+        game.rng.shuffle(pool)
+        options = tuple(
+            (f"Transform into {game.card_defs[card_id].name}",
+             (TransformActionTarget(card_id),))
+            for card_id in pool[:3]
+        )
+        game.pending_choice = {
+            "kind": "RULE_CHOICE", "player": context.player.index,
+            "card": context.card, "action": context.action,
+            "options": options,
+        }
+        game._event("tribute_dance_offer", player=context.player.index,
+                    source=context.card.card_id, target=target.entity_id,
+                    options=pool[:3])
+
+
+@dataclass(frozen=True)
+class TriggerRandomFriendlyDeadDeathrattles:
+    count: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = [
+            minion for minion in context.player.dead_minions
+            if "DEATHRATTLE" in minion.definition.mechanics and not minion.silenced
+        ]
+        game.rng.shuffle(candidates)
+        triggered: list[int] = []
+        for minion in candidates[:self.count]:
+            game._deathrattle(context.player, copy.deepcopy(minion))
+            game._resolve_deaths()
+            triggered.append(minion.entity_id)
+        game._event("trigger_dead_deathrattles", player=context.player.index,
+                    source=context.card.card_id, triggered=triggered)
+
+
+@dataclass(frozen=True)
+class DestroyTopDeckDiscoverSameRarity:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        deck = context.player.deck
+        if not deck:
+            return
+        destroyed = deck.pop()
+        pool = [
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.rarity == destroyed.definition.rarity
+        ]
+        game._event("relic_miner_destroy", player=context.player.index,
+                    source=context.card.card_id, destroyed=destroyed.card_id,
+                    rarity=destroyed.definition.rarity)
+        if pool:
+            game._offer_discover(context.player, pool, False,
+                                 source_card_id=context.card.card_id)
+
+
+@dataclass(frozen=True)
+class SummonTokensAttackActionTarget:
+    card_id: str
+    count: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("minion target is required")
+        target_owner = context.action.target_player
+        target_id = context.action.target_entity
+        summoned: list[int] = []
+        for _ in range(self.count):
+            if len(context.player.board) + len(context.player.locations) >= 7:
+                break
+            try:
+                target = game._find_minion(target_owner, target_id)
+            except ValueError:
+                break
+            token = game._entity(self.card_id, created_by=context.card.card_id)
+            token.rush = True
+            token.summoned_turn = game.turn
+            game._summon(context.player, token)
+            game._forced_minion_attack(context.player.index, token,
+                                       target_owner, target)
+            summoned.append(token.entity_id)
+        game._event("summon_attack_target", player=context.player.index,
+                    source=context.card.card_id, summoned=summoned,
+                    target=target_id)
+
+
+@dataclass(frozen=True)
+class QueueStartTurnTokenSummon:
+    card_id: str
+    count: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.delayed_token_summons.append(
+            (context.player.turns_taken, self.card_id, self.count,
+             context.card.card_id)
+        )
+        game._event("delayed_token_summon", player=context.player.index,
+                    source=context.card.card_id, card=self.card_id,
+                    count=self.count)
+
+
+@dataclass(frozen=True)
+class BuffOtherLowAttackMinionsTaunt:
+    attack: int
+    health: int
+    maximum_attack: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        affected = []
+        for minion in context.player.board:
+            if minion.entity_id == context.card.entity_id or minion.attack > self.maximum_attack:
+                continue
+            minion.attack_delta += self.attack
+            minion.health_delta += self.health
+            minion.taunt = True
+            affected.append(minion.entity_id)
+        game._event("low_attack_minion_buff", player=context.player.index,
+                    source=context.card.card_id, affected=affected)
+
+
+@dataclass(frozen=True)
+class CopyKilledMinionToHand:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        killed = [
+            minion for minion in enemy.dead_minions
+            if minion.killed_by_entity == context.card.entity_id
+        ]
+        if not killed:
+            return
+        copy_card = killed[-1].clone(game.next_entity_id)
+        game.next_entity_id += 1
+        copy_card.created_by = context.card.card_id
+        game._add_generated(context.player, copy_card)
+        game._event("sabretooth_copy", player=context.player.index,
+                    source=context.card.entity_id, card=copy_card.card_id)
+
+
+@dataclass(frozen=True)
+class BlockEnemyHeroHealing:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        # The global turn advances once at each player's start.  A value one
+        # turn ahead therefore covers the opponent's coming turn and expires
+        # before this minion's controller starts another one.
+        enemy.hero_heal_blocked_until_enemy_turn = game.turn + 1
+        enemy.hero_heal_blocked_by = context.player.index
+        game._event("hero_healing_blocked", player=enemy.index,
+                    source=context.card.card_id)
+
+
+@dataclass(frozen=True)
+class DestroyFriendlyMakeBones:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player != context.player.index:
+            raise ValueError("friendly minion target is required")
+        target = game._find_minion(context.player.index, context.action.target_entity)
+        attack, health = target.attack, target.max_health
+        target.damage = target.max_health
+        game._resolve_deaths()
+        if len(context.player.hand) < 10:
+            bones = game._entity("TLC_829t", created_by=context.card.card_id)
+            bones.payload_attack = attack
+            bones.payload_health = health
+            context.player.hand.append(bones)
+        game._event("dissolving_ooze_bones", player=context.player.index,
+                    source=context.card.card_id, attack=attack, health=health)
+
+
+@dataclass(frozen=True)
+class BuffTargetFromPayload:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("minion target is required")
+        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        target.attack_delta += int(getattr(context.card, "payload_attack", 0))
+        target.health_delta += int(getattr(context.card, "payload_health", 0))
+        game._event("bones_buff", player=context.player.index,
+                    source=context.card.card_id, target=target.entity_id,
+                    attack=getattr(context.card, "payload_attack", 0),
+                    health=getattr(context.card, "payload_health", 0))
+
+
+@dataclass(frozen=True)
+class BuffEachDifferentTribe:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        seen: set[str] = set()
+        affected = []
+        for minion in context.player.board:
+            tribes = tuple(sorted(set(minion.definition.races) or {minion.definition.race or "NONE"}))
+            tribe = next((race for race in tribes if race not in seen), None)
+            if tribe is None:
+                continue
+            seen.add(tribe)
+            minion.attack_delta += 1
+            minion.health_delta += 1
+            affected.append(minion.entity_id)
+        game._event("storyteller_tribe_buff", player=context.player.index,
+                    source=context.card.card_id, affected=affected)
+
+
+@dataclass(frozen=True)
+class SetMinionCostForGame:
+    cost: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.minion_cost_fixed = self.cost
+        game._event("minion_cost_fixed", player=context.player.index,
+                    source=context.card.card_id, cost=self.cost)
+
+
+@dataclass(frozen=True)
+class OfferHighCostSpellDiscounted:
+    min_cost: int
+    target_cost: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        pool = _filtered_executable_ids(game, card_type="SPELL", min_cost=self.min_cost)
+        game._offer_discover(context.player, pool, False,
+                             source_card_id=context.card.card_id)
+        if game.pending_choice is not None:
+            for option in game.pending_choice["options"]:
+                option.cost_delta += self.target_cost - option.definition.cost
+
+
+@dataclass(frozen=True)
+class DiscountNonStartingHandCards:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        affected = []
+        for held in context.player.hand:
+            if held.started_in_deck:
+                continue
+            held.cost_delta -= self.amount
+            affected.append(held.entity_id)
+        game._event("nonstarting_hand_discount", player=context.player.index,
+                    source=context.card.card_id, affected=affected, amount=self.amount)
+
+
+@dataclass(frozen=True)
+class AddSmallRock:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        rock = game._entity("GILA_500p2t", created_by=context.card.card_id)
+        rock.cost_delta += 1
+        rock.payload_damage = 3
+        game._add_generated(context.player, rock)
+
+
+@dataclass(frozen=True)
+class DamageTargetFromPayload:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("target is required")
+        amount = int(getattr(context.card, "payload_damage", 1))
+        game._deal_to_target(context.player.index,
+                             (context.action.target_player, context.action.target_entity),
+                             amount, context.card)
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class ReplayRandomSchoolSpellThisTurn:
+    school: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        # Rules deliberately do not import the simulator at module import
+        # time: it imports this registry.  The local import avoids that cycle.
+        from .dragon_mirror import Action
+        spells = [
+            spell for spell in context.player.spells_this_turn_for_replay
+            if spell.definition.spell_school == self.school
+        ]
+        if not spells:
+            return
+        spell = copy.deepcopy(game.rng.choice(spells))
+        spell.created_by = context.card.card_id
+        try:
+            game._cast_spell(context.player, spell, Action("PLAY", spell.entity_id,
+                                                            context.player.index,
+                                                            context.card.entity_id))
+        except ValueError:
+            for target_player, target_entity, _ in game._random_spell_target_candidates(
+                context.player.index, spell
+            ):
+                try:
+                    game._cast_spell(context.player, spell,
+                                     Action("PLAY", spell.entity_id, target_player, target_entity))
+                    break
+                except ValueError:
+                    continue
+        game._event("recast_random_school_spell", player=context.player.index,
+                    source=context.card.entity_id, spell=spell.card_id, school=self.school)
+
+
+@dataclass(frozen=True)
+class CastRandomDeckSpellAtSource:
+    maximum_cost: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        from .dragon_mirror import Action
+        candidates = [
+            card for card in context.player.deck
+            if card.definition.card_type == "SPELL" and card.cost <= self.maximum_cost
+        ]
+        if not candidates:
+            return
+        spell = game.rng.choice(candidates)
+        context.player.deck.remove(spell)
+        try:
+            game._cast_spell(context.player, spell,
+                             Action("PLAY", spell.entity_id, context.player.index,
+                                    context.card.entity_id))
+        except ValueError:
+            for target_player, target_entity, _ in game._random_spell_target_candidates(
+                context.player.index, spell
+            ):
+                try:
+                    game._cast_spell(context.player, spell,
+                                     Action("PLAY", spell.entity_id, target_player, target_entity))
+                    break
+                except ValueError:
+                    continue
+        game._event("deck_spell_cast", player=context.player.index,
+                    source=context.card.entity_id, spell=spell.card_id)
+
+
+@dataclass(frozen=True)
+class BuffTargetAndSameTribe:
+    attack: int
+    health: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player != context.player.index:
+            raise ValueError("friendly minion target is required")
+        target = game._find_minion(context.player.index, context.action.target_entity)
+        races = set(target.definition.races) or {target.definition.race}
+        for minion in context.player.board:
+            if minion is target or races & (set(minion.definition.races) | {minion.definition.race}):
+                minion.attack_delta += self.attack
+                minion.health_delta += self.health
+
+
+@dataclass(frozen=True)
+class GrantRandomBonusEffects:
+    count: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player != context.player.index:
+            raise ValueError("friendly minion target is required")
+        target = game._find_minion(context.player.index, context.action.target_entity)
+        granted = []
+        for _ in range(self.count):
+            effect = game._grant_bonus_effect(context.player, target,
+                                              source=context.card.card_id)
+            if effect is None:
+                break
+            granted.append(effect)
+        game._event("random_bonus_effects", player=context.player.index,
+                    source=context.card.card_id, target=target.entity_id,
+                    effects=granted)
+
+
+@dataclass(frozen=True)
+class SetNextTemporaryDiscount:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.next_temporary_cost_reduction += self.amount
+        game._event("temporary_discount_armed", player=context.player.index,
+                    source=context.card.card_id, amount=self.amount)
+
+
+@dataclass(frozen=True)
+class TitanographerAbility:
+    """Record a rotating Titan ability without widening the public action space.
+
+    Actual Titan abilities are selected from the executable Titan ability pool
+    once their generated closures are available; until then this is an
+    auditable held-card state, not a fake spell cast.
+    """
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        pool = [
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and "TITAN" in definition.text.upper()
+            and definition.card_type in {"SPELL", "HERO_POWER"}
+        ]
+        context.card.titan_ability_id = game.rng.choice(pool) if pool else None
+        game._event("titanographer_ability", player=context.player.index,
+                    source=context.card.entity_id, ability=context.card.titan_ability_id)
+
+
+@dataclass(frozen=True)
+class SummonRandomMinionByDiscoverState:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        cost = 4 if context.player.discovers_this_turn else 2
+        game._summon_random_executable_minion(context.player,
+                                               source_card_id=context.card.card_id,
+                                               cost=cost)
+
+
+@dataclass(frozen=True)
+class PropagateRandomBonusDeathrattle:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = [minion for minion in context.player.board
+                      if minion.dormant_turns == 0 and minion.health > 0]
+        if not candidates:
+            return
+        target = game.rng.choice(candidates)
+        game._grant_bonus_effect(context.player, target, source=context.card.card_id)
+        target.propagate_bonus_deathrattle = True
+        game._event("propagate_bonus_deathrattle", player=context.player.index,
+                    source=context.card.card_id, target=target.entity_id)
+
+
+@dataclass(frozen=True)
+class AddRandomSpellsCostHealth:
+    count: int
+    school: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        pool = _filtered_executable_ids(game, card_type="SPELL", spell_school=self.school)
+        for _ in range(self.count):
+            if not pool:
+                break
+            spell = game._entity(game.rng.choice(pool), created_by=context.card.card_id)
+            spell.costs_health_expiry_turn = 1 - context.player.index
+            game._add_generated(context.player, spell)
+
+
+@dataclass(frozen=True)
+class AddTemporaryRandomMinions:
+    count: int
+    cost: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        pool = _filtered_executable_ids(game, card_type="MINION", cost=self.cost)
+        for _ in range(self.count):
+            if not pool:
+                break
+            minion = game._entity(game.rng.choice(pool), created_by=context.card.card_id)
+            minion.temporary = True
+            game._add_generated(context.player, minion)
+
+
+@dataclass(frozen=True)
+class SummonRandomFelBeast:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        pool = _filtered_executable_ids(game, card_type="MINION", race="BEAST")
+        if pool:
+            minion = game._entity(game.rng.choice(pool), created_by=context.card.card_id)
+            minion.summoned_turn = game.turn
+            game._summon(context.player, minion)
+
+
+@dataclass(frozen=True)
+class OfferOtherClassWeapon:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        pool = [
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "WEAPON"
+            and definition.card_class not in {"", "NEUTRAL", context.player.card_class}
+        ]
+        if not pool:
+            return
+        weapon = game._entity(game.rng.choice(pool), created_by=context.card.card_id)
+        if context.card.combo_active:
+            # Weapon is an ordinary CardInstance until equipped, so mutate
+            # its instance attack modifier rather than a nonexistent weapon
+            # object field.
+            weapon.attack_delta += 2
+        game._add_generated(context.player, weapon)
+
+
+@dataclass(frozen=True)
+class DamagePerShuffle:
+    base: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("enemy minion target is required")
+        amount = self.base + context.player.cards_shuffled_into_deck
+        game._deal_to_target(context.player.index,
+                             (context.action.target_player, context.action.target_entity),
+                             amount, context.card)
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class ShuffleNinjas:
+    count: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for _ in range(self.count):
+            ninja = _lost_city_token(game, "TLC_518t", "Ninja", cost=3,
+                                      attack=3, health=3, mechanics=("STEALTH",))
+            ninja.stealth = True
+            ninja.summoned_when_drawn = True
+            context.player.deck.insert(game.rng.randrange(len(context.player.deck) + 1), ninja)
+        context.player.cards_shuffled_into_deck += self.count
+        game._event("ninjas_shuffled", player=context.player.index,
+                    source=context.card.card_id, count=self.count)
+
+
+@dataclass(frozen=True)
+class CostMinusShuffledCards:
+    def adjustment(self, _game: Any, player: Any, _card: Any) -> int:
+        return -player.cards_shuffled_into_deck
+
+
+@dataclass(frozen=True)
+class OfferEnemyDeckCardTop:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        options = game.rng.sample(enemy.deck, min(3, len(enemy.deck)))
+        if not options:
+            return
+        context.player.discovers_this_turn = True
+        game.pending_choice = {
+            "kind": "ENEMY_DECK_TOP_DISCOVER", "player": context.player.index,
+            "enemy": enemy.index, "source_card_id": context.card.card_id,
+            "options": options,
+        }
+        game._event("enemy_deck_top_offer", player=context.player.index,
+                    source=context.card.card_id,
+                    options=[card.card_id for card in options])
+
+
+@dataclass(frozen=True)
+class SpendArmorDamageAllMinions:
+    maximum: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        spent = min(self.maximum, context.player.armor)
+        context.player.armor -= spent
+        for owner in game.players:
+            for minion in list(owner.board):
+                game._damage_minion(owner.index, minion, spent, context.card)
+        game._resolve_deaths()
+        game._event("shellnado", player=context.player.index,
+                    source=context.card.card_id, armor_spent=spent)
+
+
+@dataclass(frozen=True)
+class GainArmorDamageTarget:
+    armor: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("enemy minion target is required")
+        game._gain_armor(context.player, self.armor)
+        game._deal_to_target(context.player.index,
+                             (context.action.target_player, context.action.target_entity),
+                             context.player.armor, context.card)
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class SummonSecurity:
+    count: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        Summon("TLC_622t", self.count).execute(game, context)
+
+
+@dataclass(frozen=True)
+class GainAttackAfterDamage:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.payload.get("amount", 0) > 0:
+            context.card.attack_delta += self.amount
+
+
+@dataclass(frozen=True)
+class SummonDeckDeathrattlesAndFight:
+    count: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = [card for card in context.player.deck
+                      if card.definition.card_type == "MINION"
+                      and "DEATHRATTLE" in card.definition.mechanics]
+        game.rng.shuffle(candidates)
+        summoned = []
+        for card in candidates[:self.count]:
+            if len(context.player.board) + len(context.player.locations) >= 7:
+                break
+            context.player.deck.remove(card)
+            card.summoned_turn = game.turn
+            game._summon(context.player, card)
+            summoned.append(card)
+        if len(summoned) == 2:
+            game._forced_minion_attack(context.player.index, summoned[0],
+                                       context.player.index, summoned[1])
+        game._event("herenn_deathrattle_fight", player=context.player.index,
+                    source=context.card.card_id, summoned=[card.entity_id for card in summoned])
+
+
+@dataclass(frozen=True)
+class SetAttackerHealthToSource:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        attacker = context.payload.get("attacker")
+        if attacker is None or attacker.entity_id == context.card.entity_id:
+            return
+        attacker.health_delta += context.card.max_health - attacker.max_health
+        attacker.damage = min(attacker.damage, max(0, attacker.max_health - context.card.max_health))
+
+
+@dataclass(frozen=True)
+class AddRandomSchoolSpells:
+    schools: tuple[str, ...]
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for school in self.schools:
+            pool = _filtered_executable_ids(game, card_type="SPELL", spell_school=school)
+            if pool:
+                game._add_generated(context.player,
+                                    game._entity(game.rng.choice(pool), created_by=context.card.card_id))
+
+
+@dataclass(frozen=True)
+class ResurrectCostsWithReborn:
+    costs: tuple[int, ...]
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for cost in self.costs:
+            if len(context.player.board) + len(context.player.locations) >= 7:
+                break
+            candidates = [card for card in context.player.dead_minions
+                          if card.definition.cost == cost]
+            if not candidates:
+                continue
+            revived = copy.deepcopy(game.rng.choice(candidates)).clone(game.next_entity_id)
+            game.next_entity_id += 1
+            revived.reborn = True
+            revived.damage = 0
+            revived.summoned_turn = game.turn
+            game._summon(context.player, revived)
+
+
+@dataclass(frozen=True)
+class CostIfHolyAndShadowThisTurn:
+    target_cost: int
+
+    def adjustment(self, _game: Any, player: Any, card: Any) -> int:
+        if {"HOLY", "SHADOW"} <= player.spell_schools_cast_this_turn:
+            return self.target_cost - card.cost
+        return 0
+
+
+@dataclass(frozen=True)
+class AttackEnemyHealedTarget:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        target = context.payload.get("target")
+        owner_index = context.payload.get("target_owner")
+        if target is None or owner_index is None:
+            return
+        if target is game.players[owner_index]:
+            game._damage_hero(target, context.card.attack, context.card)
+            return
+        if target in game.players[owner_index].board:
+            game._forced_minion_attack(context.player.index, context.card,
+                                       owner_index, target)
+
+
+@dataclass(frozen=True)
+class DiscountRandomHandRaceEndTurn:
+    race: str
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = [card for card in context.player.hand if card.has_race(self.race)]
+        if candidates:
+            game.rng.choice(candidates).cost_delta -= self.amount
+
+
+@dataclass(frozen=True)
+class ShuffleRaptors:
+    count: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for _ in range(self.count):
+            raptor = _lost_city_token(game, "TLC_826t", "Raptor", cost=1,
+                                       attack=3, health=2, race="BEAST")
+            raptor.summoned_when_drawn = True
+            raptor.draw_on_summon = True
+            context.player.deck.insert(game.rng.randrange(len(context.player.deck) + 1), raptor)
+        context.player.cards_shuffled_into_deck += self.count
+        game._event("raptors_shuffled", player=context.player.index,
+                    source=context.card.card_id, count=self.count)
+
+
+@dataclass(frozen=True)
+class GrowSelfEverywhere:
+    attack: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for zone in (context.player.board, context.player.hand, context.player.deck):
+            for card in zone:
+                if card.card_id == context.card.card_id:
+                    card.attack_delta += self.attack
+
+
+@dataclass(frozen=True)
+class SummonPterrordaxAndStealHealth:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if len(context.player.board) + len(context.player.locations) >= 7:
+            return
+        pterrordax = game._entity("TLC_831t", created_by=context.card.card_id)
+        pterrordax.summoned_turn = game.turn
+        game._summon(context.player, pterrordax)
+        for owner in game.players:
+            for minion in list(owner.board):
+                if minion.entity_id == pterrordax.entity_id:
+                    continue
+                game._steal_health(context.player, (owner.index, minion.entity_id), 1)
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class DoubleOneCostPlays:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        played = context.payload.get("played")
+        if played is None or played.entity_id == context.card.entity_id:
+            return
+        if played.definition.cost == 1 and played.definition.card_type == "MINION":
+            played.attack_delta += played.attack
+            played.health_delta += played.max_health
+
+
+@dataclass(frozen=True)
+class DealEnemyHeroAfterAttack:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._damage_hero(game.players[1 - context.player.index], self.amount,
+                          context.card)
+
+
+@dataclass(frozen=True)
+class JarHandMinions:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        from .dragon_mirror import CardDef
+        jar_def = CardDef("TLC_841t", "Specimen Jar", "MINION", 1, 0, 1,
+                          "", ("DEATHRATTLE",), "DEMONHUNTER", (), "THE_LOST_CITY")
+        jarred = []
+        for held in list(context.player.hand):
+            if held.definition.card_type != "MINION":
+                continue
+            original = copy.deepcopy(held)
+            held.definition = jar_def
+            held.attack_delta = held.health_delta = held.damage = 0
+            held.taunt = held.rush = held.charge = held.lifesteal = False
+            held.elusive = held.divine_shield = held.windfury = held.reborn = False
+            held.stealth = held.poisonous = held.immune = False
+            held.jarred_minion = original
+            jarred.append(original.card_id)
+        game._event("jar_hand_minions", player=context.player.index,
+                    source=context.card.card_id, cards=jarred)
+
+
 _BATCH_50_SOURCE = RuleSource(
     "official_text_and_engine_pattern", "HearthstoneJSON 251332",
     verification=("test_standard_batch_50_registry_and_smoke",),
@@ -7100,6 +7922,16 @@ _BATCH_50H_SOURCE = RuleSource(
         "EighthStandardCardBatchTests.test_batch_has_exactly_fifty_registered_cards",
         "EighthStandardCardBatchTests.test_deck_secret_and_discover_rules",
         "EighthStandardCardBatchTests.test_damage_deathrattle_and_hand_rules",
+    ),
+)
+
+
+_BATCH_50I_SOURCE = RuleSource(
+    "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+    verification=(
+        "NinthStandardCardBatchTests.test_batch_has_exactly_fifty_registered_cards",
+        "NinthStandardCardBatchTests.test_lost_city_token_and_deck_rules",
+        "NinthStandardCardBatchTests.test_lost_city_combat_and_persistent_rules",
     ),
 )
 
@@ -14989,5 +15821,69 @@ def build_rule_registry() -> RuleRegistry:
         CardRule("TLC_244", {Hook.DEATHRATTLE: (DiscountRandomOpponentHandMinion(2),)}, _BATCH_50H_SOURCE),
         CardRule("TLC_245", {Hook.BATTLECRY: (AncientRaptorChoice(),)}, _BATCH_50H_SOURCE),
         CardRule("TLC_256", {Hook.AFTER_PLAY: (ThresherAfterSpell(),)}, _BATCH_50H_SOURCE),
+        # ---- 50-card Standard tranche 50I -----------------------------
+        CardRule("CORE_BAR_812", {}, _BATCH_50I_SOURCE),
+        CardRule("DINO_414", {Hook.SPELL: (OfferTransformIntoDifferentMinion(),)}, _BATCH_50I_SOURCE,
+                 TargetSpec(TargetKind.ANY_MINION)),
+        CardRule("TLC_106", {Hook.BATTLECRY: (TriggerRandomFriendlyDeadDeathrattles(5),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_109", {Hook.BATTLECRY: (DestroyTopDeckDiscoverSameRarity(),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_230", {Hook.SPELL: (SummonTokensAttackActionTarget("TLC_230t", 4),)}, _BATCH_50I_SOURCE,
+                 TargetSpec(TargetKind.ANY_MINION)),
+        CardRule("TLC_232", {Hook.SPELL: (QueueStartTurnTokenSummon("TLC_237t", 3),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_233", {Hook.BATTLECRY: (BuffOtherLowAttackMinionsTaunt(1, 1, 2),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_247", {Hook.AFTER_ATTACK: (CopyKilledMinionToHand(),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_250", {Hook.BATTLECRY: (BlockEnemyHeroHealing(),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_252", {Hook.BATTLECRY: (DestroyFriendlyMakeBones(),)}, _BATCH_50I_SOURCE,
+                 TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("TLC_254", {Hook.END_TURN: (BuffEachDifferentTribe(),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_257", {Hook.BATTLECRY: (SetMinionCostForGame(5),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_334", {Hook.SPELL: (OfferHighCostSpellDiscounted(8, 1),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_364", {Hook.SPELL: (DiscountNonStartingHandCards(1),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_427", {Hook.BATTLECRY: (AddSmallRock(),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_430", {Hook.END_TURN: (ReplayRandomSchoolSpellThisTurn("HOLY"),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_438", {Hook.BATTLECRY: (CastRandomDeckSpellAtSource(2),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_441", {Hook.SPELL: (BuffTargetAndSameTribe(1, 2),)}, _BATCH_50I_SOURCE,
+                 TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("TLC_443", {Hook.DEATHRATTLE: (Summon("TLC_443t"),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_444", {Hook.SPELL: (GrantRandomBonusEffects(3),)}, _BATCH_50I_SOURCE,
+                 TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("TLC_450", {Hook.BATTLECRY: (SetNextTemporaryDiscount(2),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_452", {Hook.START_TURN: (TitanographerAbility(),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_462", {Hook.SPELL: (SummonRandomMinionByDiscoverState(),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_465", {Hook.DEATHRATTLE: (PropagateRandomBonusDeathrattle(),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_467", {Hook.DEATHRATTLE: (AddRandomSpellsCostHealth(2, "FEL"),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_469", {Hook.DEATHRATTLE: (AddTemporaryRandomMinions(2, 2),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_477", {Hook.SPELL: (BuffActionTarget(4, 4), GrantDeathrattleRandomMinion(4, 1))}, _BATCH_50I_SOURCE,
+                 TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("TLC_479", {Hook.DEATHRATTLE: (SummonRandomFelBeast(),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_483", {}, _BATCH_50I_SOURCE),
+        CardRule("TLC_516", {Hook.BATTLECRY: (OfferOtherClassWeapon(),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_517", {Hook.SPELL: (DamagePerShuffle(1),)}, _BATCH_50I_SOURCE,
+                 TargetSpec(TargetKind.ENEMY_MINION)),
+        CardRule("TLC_518", {Hook.SPELL: (ShuffleNinjas(3),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_520", {}, _BATCH_50I_SOURCE, cost_modifier=CostMinusShuffledCards()),
+        CardRule("TLC_521", {Hook.BATTLECRY: (OfferEnemyDeckCardTop(),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_601", {Hook.SPELL: (SpendArmorDamageAllMinions(5),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_620", {Hook.SPELL: (GainArmorDamageTarget(3),)}, _BATCH_50I_SOURCE,
+                 TargetSpec(TargetKind.ENEMY_MINION)),
+        CardRule("TLC_622", {Hook.SPELL: (SummonSecurity(2),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_622t", {Hook.AFTER_DAMAGE: (GainAttackAfterDamage(1),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_810", {Hook.BATTLECRY: (SummonDeckDeathrattlesAndFight(2),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_811", {Hook.OTHER_FRIENDLY_ATTACK: (SetAttackerHealthToSource(),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_814", {Hook.DEATHRATTLE: (AddRandomSchoolSpells(("HOLY", "SHADOW")),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_818", {Hook.SPELL: (ResurrectCostsWithReborn((1, 2, 3)),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_819", {}, _BATCH_50I_SOURCE, cost_modifier=CostIfHolyAndShadowThisTurn(1)),
+        CardRule("TLC_821", {Hook.AFTER_HEAL_ENEMY: (AttackEnemyHealedTarget(),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_822", {Hook.END_TURN: (DiscountRandomHandRaceEndTurn("BEAST", 1),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_826", {Hook.SPELL: (ShuffleRaptors(10),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_827", {Hook.END_TURN: (GrowSelfEverywhere(1),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_831", {Hook.DEATHRATTLE: (SummonPterrordaxAndStealHealth(),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_836", {Hook.AFTER_PLAY: (DoubleOneCostPlays(),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_840", {Hook.AFTER_ATTACK: (DealEnemyHeroAfterAttack(2),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_841", {Hook.BATTLECRY: (JarHandMinions(),)}, _BATCH_50I_SOURCE),
+        CardRule("TLC_829t", {Hook.SPELL: (BuffTargetFromPayload(),)}, _BATCH_50I_SOURCE,
+                 TargetSpec(TargetKind.ANY_MINION)),
+        CardRule("GILA_500p2t", {Hook.SPELL: (DamageTargetFromPayload(),)}, _BATCH_50I_SOURCE,
+                 TargetSpec(TargetKind.ANY_CHARACTER)),
         CardRule("FIR_960", {Hook.BATTLECRY: (CopyLowestCostBeast(),)}, _BATCH_50G_SOURCE),
     ))

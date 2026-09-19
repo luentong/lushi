@@ -1004,6 +1004,16 @@ class CardInstance:
     deathrattle_summon_token_id: str | None = None
     deathrattle_summon_token_count: int = 1
     deathrattle_summon_mechanic: str | None = None
+    # Lost City 50I generated-card payloads.  Keeping the payload on the
+    # entity, rather than on a global source map, makes copies/transforms and
+    # ISMCTS cloning retain the exact values made by the originating effect.
+    payload_attack: int = 0
+    payload_health: int = 0
+    payload_damage: int = 0
+    draw_on_summon: bool = False
+    jarred_minion: CardInstance | None = None
+    propagate_bonus_deathrattle: bool = False
+    titan_ability_id: str | None = None
 
     @property
     def card_id(self) -> str:
@@ -1071,6 +1081,7 @@ class CardInstance:
         result.temporary_health_modifiers = list(self.temporary_health_modifiers)
         result.stored_discarded_card = copy.deepcopy(self.stored_discarded_card, memo)
         result.stored_spell = copy.deepcopy(self.stored_spell, memo)
+        result.jarred_minion = copy.deepcopy(self.jarred_minion, memo)
         return result
 
     def clone(self, entity_id: int) -> "CardInstance":
@@ -1304,6 +1315,17 @@ class Player:
     reinforcement_aura_turns: int = 0
     spells_this_turn_for_replay: list[CardInstance] = field(default_factory=list)
     spells_last_turn_for_replay: list[CardInstance] = field(default_factory=list)
+    # Lost City 50I persistent state.  These are all zone/game counters; they
+    # must be copied directly for search branches rather than reconstructed
+    # from the event stream.
+    delayed_token_summons: list[tuple[int, str, int, str]] = field(default_factory=list)
+    cards_shuffled_into_deck: int = 0
+    minion_cost_fixed: int | None = None
+    next_temporary_cost_reduction: int = 0
+    discovers_this_turn: bool = False
+    spell_schools_cast_this_turn: set[str] = field(default_factory=set)
+    hero_heal_blocked_until_enemy_turn: int = -1
+    hero_heal_blocked_by: int | None = None
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "Player":
         """Fast branch copy for the mutable player state used by MCTS."""
@@ -1313,6 +1335,7 @@ class Player:
             "deck", "hand", "board", "dead_minions", "locations", "secrets",
             "overdrawn_cards", "pending_end_turn_returns", "minions_died_this_turn_cards",
             "spells_this_turn_for_replay", "spells_last_turn_for_replay",
+            "delayed_token_summons",
         ):
             zone = getattr(self, name)
             # ``clone(skip_hidden_zones_of=...)`` supplies branch-local empty
@@ -1329,6 +1352,7 @@ class Player:
         result.played_races_last_turn = set(self.played_races_last_turn)
         result.played_races_this_game = set(self.played_races_this_game)
         result.damaged_characters_this_turn = set(self.damaged_characters_this_turn)
+        result.spell_schools_cast_this_turn = set(self.spell_schools_cast_this_turn)
         result.played_card_counts = dict(self.played_card_counts)
         result.map_followup_options = list(self.map_followup_options)
         result.ashalon_adaptations = list(self.ashalon_adaptations)
@@ -2537,6 +2561,11 @@ class DragonMirrorGame:
             if len(controller.board) + len(controller.locations) < 7:
                 card.summoned_turn = self.turn
                 self._summon(controller, card)
+                # Raptor-style "Summoned When Drawn" entities can also have
+                # a battlecry draw.  It happens after they enter play and
+                # before this replacement draw resolves.
+                if card.draw_on_summon:
+                    self._draw(controller)
                 self._event(
                     "summoned_when_drawn", player=player.index, controller=controller.index,
                     card=card.card_id, entity=card.entity_id,
@@ -2704,6 +2733,26 @@ class DragonMirrorGame:
             for minion in list(attacker.board):
                 self._damage_minion(attacker.index, minion, 2, secret)
         self._resolve_deaths()
+
+    def _trigger_secrets_after_friendly_minion_attacked(
+        self, defender: Player, target: CardInstance
+    ) -> None:
+        """Resolve secrets that trigger on a declared friendly-minion attack."""
+        for secret in list(defender.secrets):
+            if secret.card_id != "CORE_BAR_812":
+                continue
+            self._consume_secret(defender, secret)
+            if len(defender.board) + len(defender.locations) < 7:
+                elemental = self._entity("CORE_CS2_033", created_by=secret.card_id)
+                elemental.summoned_turn = self.turn
+                self._summon(defender, elemental)
+                entity = elemental.entity_id
+            else:
+                entity = None
+            self._event(
+                "oasis_ally", player=defender.index, source=secret.entity_id,
+                target=target.entity_id, summoned=entity,
+            )
 
     def _trigger_freezing_trap(self, attacker: CardInstance, defender: Player) -> bool:
         for secret in list(defender.secrets):
@@ -2933,6 +2982,22 @@ class DragonMirrorGame:
         self.turn += 1
         self.minions_died_this_turn = 0
         player = self.players[index]
+        # Resolve Lost City's "at the start of your next turn" summons using
+        # the owner's local turn number.  This remains correct if a turn is
+        # skipped, unlike a global-turn offset.
+        due_tokens = [entry for entry in player.delayed_token_summons
+                      if entry[0] == player.turns_taken]
+        player.delayed_token_summons = [entry for entry in player.delayed_token_summons
+                                        if entry[0] != player.turns_taken]
+        for _due, card_id, count, source in due_tokens:
+            for _ in range(count):
+                if len(player.board) + len(player.locations) >= 7:
+                    break
+                token = self._entity(card_id, created_by=source)
+                token.summoned_turn = self.turn
+                self._summon(player, token)
+            self._event("delayed_token_summon_resolved", player=index,
+                        source=source, card=card_id, count=count)
         due_damage = [amount for turn, amount in player.delayed_self_damage if turn == self.turn]
         player.delayed_self_damage = [item for item in player.delayed_self_damage if item[0] != self.turn]
         for amount in due_damage:
@@ -3087,6 +3152,7 @@ class DragonMirrorGame:
                                 entity=card.entity_id,
                                 amount=card.cost_reduction_each_own_start)
         self._resolve_deaths()
+
         player.turns_taken += 1
         # Tar Creeper/Tar Tyrant have conditional attack while their controller
         # waits through the opponent's turn. Toggle a flag at the turn boundary
@@ -3206,6 +3272,8 @@ class DragonMirrorGame:
         player.cards_played_this_turn = 0
         player.cards_drawn_this_turn = 0
         player.spells_cast_this_turn = 0
+        player.discovers_this_turn = False
+        player.spell_schools_cast_this_turn.clear()
         player.spell_damage_dealt_this_turn = 0
         player.restored_health_this_turn = 0
         player.mug_magic_used_this_turn = False
@@ -3743,6 +3811,8 @@ class DragonMirrorGame:
 
     def _effective_cost(self, player: Player, card: CardInstance) -> int:
         cost = card.cost
+        if card.definition.card_type == "MINION" and player.minion_cost_fixed is not None:
+            cost = player.minion_cost_fixed
         # Sabotage is a hand-position enchantment: both immediate neighbours
         # cost one more while the sabotage card remains in that hand.
         for index, held in enumerate(player.hand):
@@ -3764,6 +3834,8 @@ class DragonMirrorGame:
             cost += player.minion_cost_increase_amount
         if card.definition.card_type == "MINION":
             cost -= player.next_minion_cost_reduction
+        if card.temporary:
+            cost -= player.next_temporary_cost_reduction
             cost += 2 * sum(
                 minion.card_id == "JAIL_890"
                 and not minion.silenced
@@ -5553,6 +5625,10 @@ class DragonMirrorGame:
             player.next_combo_cost_reduction = 0
         if card.definition.card_type == "MINION" and player.next_minion_cost_reduction:
             player.next_minion_cost_reduction = 0
+        if card.temporary and player.next_temporary_cost_reduction:
+            player.next_temporary_cost_reduction = 0
+            self._event("temporary_discount_consumed", player=player.index,
+                        card=card.card_id)
         if card.definition.card_type == "SPELL" and player.next_spell_cost_reduction:
             player.next_spell_cost_reduction = 0
         controller = (
@@ -5575,6 +5651,8 @@ class DragonMirrorGame:
         if card.definition.card_type == "SPELL":
             player.spells_cast_this_turn += 1
             player.spells_cast_this_game += 1
+            if card.definition.spell_school:
+                player.spell_schools_cast_this_turn.add(card.definition.spell_school)
             if player.spells_cast_twice_remaining:
                 card.spell_casts_twice = True
                 player.spells_cast_twice_remaining -= 1
@@ -7512,6 +7590,15 @@ class DragonMirrorGame:
         amount = max(0, int(amount))
         if amount:
             amount += max(0, owner.healing_bonus)
+        if (
+            isinstance(target, Player)
+            and target.hero_heal_blocked_until_enemy_turn >= self.turn
+        ):
+            self._event(
+                "hero_heal_blocked", player=target.index,
+                source=None if source is None else source.card_id,
+            )
+            return 0
         if owner.ruby_sanctum_turn == self.turn and amount:
             owner.ruby_sanctum_turn = -1
             if isinstance(target, Player):
@@ -7538,6 +7625,19 @@ class DragonMirrorGame:
             target.damage = max(0, target.damage - restored)
         if restored:
             owner.restored_health_this_turn += restored
+            controller = self._source_controller(source) if source is not None else owner
+            if controller.index != owner.index:
+                for minion in list(controller.board):
+                    if minion.silenced or minion.dormant_turns > 0 or minion.health <= 0:
+                        continue
+                    self.rule_registry.dispatch(
+                        Hook.AFTER_HEAL_ENEMY, minion.card_id, self,
+                        RuleContext(
+                            player=controller, card=minion,
+                            payload={"target": target, "target_owner": owner.index,
+                                     "amount": restored, "source": source},
+                        ),
+                    )
         if restored and trigger_black_blood:
             self._black_blood_after_restore(owner, source=source)
         excess = amount - restored
@@ -7707,6 +7807,24 @@ class DragonMirrorGame:
                 ),
             )
 
+        # "Whenever another friendly minion attacks" observes a completed
+        # combat.  Dispatch it only for surviving, unsilenced observers and
+        # never to the attacker itself.
+        for trigger in list(player.board):
+            if (
+                trigger.entity_id == attacker.entity_id
+                or trigger.silenced
+                or trigger.dormant_turns > 0
+                or trigger.health <= 0
+            ):
+                continue
+            self.rule_registry.dispatch(
+                Hook.OTHER_FRIENDLY_ATTACK, trigger.card_id, self,
+                RuleContext(player=player, card=trigger,
+                            payload={"attacker": attacker,
+                                     "attacked_minion": attacked_minion}),
+            )
+
         # Rehgar observes its own and its surviving adjacent minions' attacks.
         # The board may have changed during combat, so recompute adjacency
         # after deaths have resolved rather than retaining stale positions.
@@ -7782,6 +7900,17 @@ class DragonMirrorGame:
                 source=source_card_id, dark_gift=dark_gift,
             )
             return
+        player.discovers_this_turn = True
+        # Vault Breaker discounts generated Discover choices.  Deck-inspection
+        # effects keep their original deck entities and therefore bypass this
+        # generic offer helper.
+        discover_discount = sum(
+            1 for minion in player.board
+            if minion.card_id == "TLC_483" and not minion.silenced
+            and minion.dormant_turns == 0 and minion.health > 0
+        )
+        for option in options:
+            option.cost_delta -= discover_discount
         if dark_gift:
             # The three Discover choices are paired with distinct gifts when
             # the candidate sets permit it.  Solve the tiny assignment problem
@@ -9850,6 +9979,9 @@ class DragonMirrorGame:
             )
         else:
             defender = self._find_minion(action.target_player, target_entity)
+            self._trigger_secrets_after_friendly_minion_attacked(
+                self.players[action.target_player], defender
+            )
             attacker.attacking_now = True
             self._damage_minion(action.target_player, defender, attacker.attack, attacker)
             attacker.attacking_now = False
@@ -10709,6 +10841,35 @@ class DragonMirrorGame:
             Hook.DEATHRATTLE, minion.card_id, self,
             RuleContext(player=player, card=minion),
         )
+        # Entomologist Toru's jars retain the complete original instance.
+        # Releasing happens on death, not on the moment the jar is silenced
+        # or otherwise transformed, and consumes the stored instance once.
+        if (
+            minion.jarred_minion is not None
+            and len(player.board) + len(player.locations) < 7
+        ):
+            released = minion.jarred_minion
+            minion.jarred_minion = None
+            released.entity_id = self.next_entity_id
+            self.next_entity_id += 1
+            released.damage = 0
+            released.summoned_turn = self.turn
+            self._summon(player, released)
+            self._event("specimen_jar_released", player=player.index,
+                        source=minion.entity_id, entity=released.entity_id,
+                        card=released.card_id)
+        # Stranglevine's copied Deathrattle is intentionally recursive: the
+        # newly selected living friendly minion receives both a bonus effect
+        # and the same propagation marker.
+        if minion.propagate_bonus_deathrattle:
+            candidates = [candidate for candidate in player.board
+                          if candidate.health > 0 and candidate.dormant_turns == 0]
+            if candidates:
+                target = self.rng.choice(candidates)
+                self._grant_bonus_effect(player, target, source=minion.card_id)
+                target.propagate_bonus_deathrattle = True
+                self._event("propagated_bonus_deathrattle", player=player.index,
+                            source=minion.entity_id, target=target.entity_id)
         if minion.deathrattle_summon_random_cost:
             for _ in range(minion.deathrattle_summon_token_count):
                 if minion.deathrattle_summon_mechanic is None:

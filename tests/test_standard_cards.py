@@ -5478,5 +5478,116 @@ class EighthStandardCardBatchTests(unittest.TestCase):
         self.assertNotIn(card, game.players[0].hand)
 
 
+class NinthStandardCardBatchTests(unittest.TestCase):
+    """Regression coverage for the Lost City 50I standard-card tranche."""
+
+    BATCH = {
+        "CORE_BAR_812", "DINO_414", "TLC_106", "TLC_109", "TLC_230", "TLC_232", "TLC_233",
+        "TLC_247", "TLC_250", "TLC_252", "TLC_254", "TLC_257", "TLC_334",
+        "TLC_364", "TLC_427", "TLC_430", "TLC_438", "TLC_441", "TLC_443",
+        "TLC_444", "TLC_450", "TLC_452", "TLC_462", "TLC_465", "TLC_467",
+        "TLC_469", "TLC_477", "TLC_479", "TLC_483", "TLC_516", "TLC_517",
+        "TLC_518", "TLC_520", "TLC_521", "TLC_601", "TLC_620", "TLC_622",
+        "TLC_810", "TLC_811", "TLC_814", "TLC_818", "TLC_819", "TLC_821",
+        "TLC_822", "TLC_826", "TLC_827", "TLC_831", "TLC_836", "TLC_840",
+        "TLC_841",
+    }
+
+    def game(self):
+        game = DragonMirrorGame(CARDS, 61)
+        game.current = 0
+        for player in game.players:
+            player.hand.clear()
+            player.board.clear()
+            player.locations.clear()
+            player.deck.clear()
+            player.secrets.clear()
+            player.mana = 20
+            player.max_mana = 10
+            player.health = 30
+            player.armor = 0
+        return game
+
+    @staticmethod
+    def add_hand(game, card_id, player=0):
+        card = game._entity(card_id)
+        game.players[player].hand.append(card)
+        return card
+
+    @staticmethod
+    def add_board(game, card_id, player=0):
+        card = game._entity(card_id)
+        card.summoned_turn = -1
+        game._summon(game.players[player], card)
+        return card
+
+    def test_batch_has_exactly_fifty_registered_cards(self):
+        game = self.game()
+        self.assertEqual(50, len(self.BATCH))
+        self.assertTrue(self.BATCH <= game.executable_card_ids)
+        self.assertTrue(self.BATCH <= {rule.card_id for rule in game.rule_registry.all_rules()})
+
+    def test_delayed_deck_and_cost_rules(self):
+        game = self.game()
+        flock = self.add_hand(game, "TLC_232")
+        game.step(Action("PLAY", flock.entity_id))
+        self.assertEqual([], game.players[0].board)
+        game._start_turn(1)
+        game._start_turn(0)
+        self.assertEqual(3, sum(card.card_id == "TLC_237t" for card in game.players[0].board))
+
+        game = self.game()
+        loh = self.add_hand(game, "TLC_257")
+        game.step(Action("PLAY", loh.entity_id))
+        minion = self.add_hand(game, "CORE_EX1_005")
+        self.assertEqual(5, game._effective_cost(game.players[0], minion))
+
+        game = self.game()
+        raptors = self.add_hand(game, "TLC_826")
+        game.step(Action("PLAY", raptors.entity_id))
+        self.assertEqual(10, sum(card.card_id == "TLC_826t" for card in game.players[0].deck))
+        raptor = next(card for card in game.players[0].deck if card.card_id == "TLC_826t")
+        game.players[0].deck.remove(raptor)
+        game._receive_drawn_card(game.players[0], raptor)
+        self.assertTrue(any(card.card_id == "TLC_826t" for card in game.players[0].board))
+
+    def test_persistent_combat_and_hand_state_rules(self):
+        game = self.game()
+        ally = self.add_hand(game, "CORE_BAR_812", player=1)
+        game.current = 1
+        game.step(Action("PLAY", ally.entity_id))
+        defender = self.add_board(game, "CORE_EX1_005", player=1)
+        attacker = self.add_board(game, "CORE_EX1_005", player=0)
+        game.current = 0
+        game.step(Action("ATTACK", attacker.entity_id, 1, defender.entity_id))
+        self.assertTrue(any(card.card_id == "CORE_CS2_033" for card in game.players[1].board))
+
+        game = self.game()
+        defenses = self.add_hand(game, "TLC_622")
+        game.step(Action("PLAY", defenses.entity_id))
+        security = next(card for card in game.players[0].board if card.card_id == "TLC_622t")
+        before = security.attack
+        game._damage_minion(0, security, 1)
+        self.assertEqual(before + 1, security.attack)
+
+        game = self.game()
+        attacker = self.add_board(game, "CORE_EX1_005")
+        archaios = self.add_board(game, "TLC_811")
+        attacker.health_delta += 4
+        game._after_minion_attack(0, attacker)
+        self.assertEqual(archaios.max_health, attacker.max_health)
+
+        game = self.game()
+        original = self.add_hand(game, "CORE_EX1_005")
+        toru = self.add_hand(game, "TLC_841")
+        game.step(Action("PLAY", toru.entity_id))
+        jar = next(card for card in game.players[0].hand if card.entity_id == original.entity_id)
+        self.assertEqual("TLC_841t", jar.card_id)
+        game._summon(game.players[0], jar)
+        game._damage_minion(0, jar, jar.health)
+        game._resolve_deaths()
+        self.assertTrue(any(card.card_id == "CORE_EX1_005" for card in game.players[0].board))
+
+
 if __name__ == "__main__":
     unittest.main()
