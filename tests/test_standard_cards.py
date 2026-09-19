@@ -5222,5 +5222,154 @@ class SixthStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(5, copied.max_health)
 
 
+class SeventhStandardCardBatchTests(unittest.TestCase):
+    """Regression coverage for the 50G combat/stateful standard tranche."""
+
+    BATCH = {
+        "CAP_006", "CAP_101", "CAP_400", "CAP_802", "CAP_804", "CAP_805",
+        "CAP_806", "CATA_480", "CATA_563", "CORE_AT_062", "CORE_BAR_313",
+        "CORE_BOT_256", "CORE_ETC_111", "CORE_ETC_523", "CORE_SCH_605",
+        "CORE_SW_047", "CORE_WON_350", "DINO_137", "DINO_402", "DINO_415",
+        "DINO_424", "DINO_426", "DINO_427", "DINO_428", "DINO_429",
+        "DINO_430", "EDR_014", "EDR_460", "EDR_461", "EDR_464", "EDR_472",
+        "EDR_477", "EDR_482", "EDR_483", "EDR_484", "EDR_495", "EDR_530",
+        "EDR_853", "END_002", "END_006", "END_009", "END_012", "END_013",
+        "END_018", "END_029", "END_032", "FIR_778", "FIR_913", "FIR_955",
+        "FIR_960",
+    }
+
+    def game(self):
+        game = DragonMirrorGame(CARDS, 53)
+        game.current = 0
+        for player in game.players:
+            player.hand.clear()
+            player.board.clear()
+            player.locations.clear()
+            player.deck.clear()
+            player.secrets.clear()
+            player.mana = 20
+            player.max_mana = 10
+            player.health = 30
+            player.armor = 0
+        return game
+
+    @staticmethod
+    def add_hand(game, card_id, player=0):
+        card = game._entity(card_id)
+        game.players[player].hand.append(card)
+        return card
+
+    @staticmethod
+    def add_board(game, card_id, player=0):
+        card = game._entity(card_id)
+        card.summoned_turn = -1
+        game._summon(game.players[player], card)
+        return card
+
+    def test_batch_has_exactly_fifty_registered_cards(self):
+        game = self.game()
+        self.assertEqual(50, len(self.BATCH))
+        self.assertTrue(self.BATCH <= game.executable_card_ids)
+        self.assertTrue(self.BATCH <= {rule.card_id for rule in game.rule_registry.all_rules()})
+
+    def test_masks_and_druid_state_rules(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_EX1_005")
+        mask = self.add_hand(game, "DINO_402")
+        game.step(Action("PLAY", mask.entity_id, 0, target.entity_id))
+        self.assertEqual(7, len(game.players[0].board))
+        self.assertTrue(all(card.attack == 1 and card.max_health == 1
+                            for card in game.players[0].board))
+
+        game = self.game()
+        story = self.add_hand(game, "DINO_415")
+        game.step(Action("PLAY", story.entity_id))
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        self.assertTrue(all(option.cost >= 5 and "DEATHRATTLE" in option.definition.mechanics
+                            for option in game.pending_choice["options"]))
+        option = game.pending_choice["options"][0]
+        game.step(Action("DISCOVER_PICK", option.entity_id))
+        self.assertTrue(any(card.card_id == option.card_id for card in game.players[0].board))
+
+        game = self.game()
+        tyrande = self.add_hand(game, "EDR_464")
+        game.step(Action("PLAY", tyrande.entity_id))
+        self.assertEqual(3, game.players[0].spells_cast_twice_remaining)
+        spell = self.add_hand(game, "CAP_006")
+        game.step(Action("PLAY", spell.entity_id, 1, None))
+        self.assertEqual(2, game.players[0].spells_cast_twice_remaining)
+        self.assertEqual(28, game.players[1].health)
+
+        game = self.game()
+        taka = self.add_hand(game, "DINO_430")
+        game.step(Action("PLAY", taka.entity_id))
+        option = game.pending_choice["options"][0]
+        game.step(Action("DISCOVER_PICK", option.entity_id))
+        taka_on_board = next(card for card in game.players[0].board if card.card_id == "DINO_430")
+        self.assertEqual(option.attack, taka_on_board.attack)
+        self.assertEqual(option.max_health, taka_on_board.max_health)
+        self.assertEqual(option.card_id, taka_on_board.deathrattle_summon_card_id)
+        self.assertEqual(1, len(game.players[0].board))
+
+    def test_resurrect_transform_and_cost_rules(self):
+        game = self.game()
+        conspirator = self.add_board(game, "CAP_400")
+        game._damage_minion(0, conspirator, conspirator.health)
+        game._resolve_deaths()
+        self.assertEqual(2, sum(card.card_id == "CAP_400t" for card in game.players[1].deck))
+        game._draw(game.players[1])
+        self.assertTrue(any(card.card_id == "CAP_400t" for card in game.players[0].board))
+
+        game = self.game()
+        target = self.add_board(game, "CORE_EX1_005")
+        specialist = self.add_hand(game, "CAP_804")
+        game.step(Action("PLAY", specialist.entity_id, 0, target.entity_id))
+        self.assertTrue(target.reborn)
+        specialist = self.add_hand(game, "CAP_804")
+        game.step(Action("PLAY", specialist.entity_id, 0, target.entity_id))
+        self.assertEqual(2, sum(card.card_id == target.card_id for card in game.players[0].board))
+
+        game = self.game()
+        game.players[0].health = 10
+        apple = self.add_hand(game, "EDR_482")
+        game.step(Action("PLAY", apple.entity_id))
+        self.assertEqual(22, game.players[0].health)
+        self.assertEqual(2, len(game.players[0].delayed_self_damage))
+
+        game = self.game()
+        game.players[0].health = 20
+        game.players[0].mana = 0
+        game.players[0].restored_health_this_turn = 1
+        knight = self.add_hand(game, "CORE_ETC_523")
+        game.step(Action("PLAY", knight.entity_id))
+        self.assertEqual(17, game.players[0].health)
+        self.assertEqual(0, game.players[0].mana)
+
+    def test_deathrattle_and_copy_rules(self):
+        game = self.game()
+        held = self.add_hand(game, "CAP_006")
+        acolyte = self.add_hand(game, "END_018")
+        game.step(Action("PLAY", acolyte.entity_id))
+        self.assertGreater(held.cost, 1_000_000)
+        acolyte_on_board = next(card for card in game.players[0].board if card.card_id == "END_018")
+        game._damage_minion(0, acolyte_on_board, acolyte_on_board.health)
+        game._resolve_deaths()
+        self.assertEqual(1, held.cost)
+
+        game = self.game()
+        held = self.add_hand(game, "CORE_EX1_005")
+        ford = self.add_board(game, "CORE_SW_047")
+        game._damage_minion(0, ford, 1)
+        self.assertEqual(held.definition.attack + 5, held.attack)
+        self.assertEqual(held.definition.health + 5, held.max_health)
+
+        game = self.game()
+        flytrap = self.add_board(game, "EDR_484")
+        victim = self.add_board(game, "CORE_EX1_005", player=1)
+        game._damage_minion(1, victim, victim.health)
+        game._resolve_deaths()
+        self.assertEqual(flytrap.definition.attack + victim.attack, flytrap.attack)
+
+
 if __name__ == "__main__":
     unittest.main()
