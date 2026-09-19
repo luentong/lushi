@@ -212,6 +212,13 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "END_006", "CORE_CFM_753", "CORE_CFM_790", "CORE_DMF_067",
     "CORE_ONY_022", "CORE_SCH_713", "CORE_BT_416", "CORE_ETC_111",
     "CORE_TTN_843", "EDR_227", "END_026", "CORE_EDR_004_2026", "TIME_064",
+    # Third tranche: additional registered fee-pool outcomes. These are kept
+    # in the same manifest so future pool audits can distinguish missing rules
+    # from cards whose rules are already verified but not yet sampled.
+    "CAP_406", "CATA_473", "CATA_478", "CORE_BOT_576", "DINO_131",
+    "EDR_014", "END_015", "FIR_901", "FIR_960", "JAIL_122",
+    "CAP_003", "CATA_180", "CORE_BT_156", "CORE_BT_321", "CORE_KAR_062",
+    "CAP_005", "CATA_132", "END_002", "TLC_468",
     # Dragon-pool generators whose outer rules are now executable.  Their
     # nested pools remain audited independently (not silently treated as
     # vanilla cards).
