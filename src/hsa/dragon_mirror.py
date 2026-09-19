@@ -946,6 +946,10 @@ class CardInstance:
     copied_from_opponent: bool = False
     deathrattle_copy_card_id: str | None = None
     deathrattle_summon_card_id: str | None = None
+    # Dark Gift: Inner Demons adds an ordinary, stackable draw Deathrattle.
+    # Keep the count on the instance so copied, transformed and reborn cards
+    # retain every independently granted copy of the Gift.
+    deathrattle_draw_cards: int = 0
     deathrattle_damage_all_enemies: int = 0
     killed_by_entity: int | None = None
     devoured_cards: list[CardInstance] = field(default_factory=list)
@@ -9050,7 +9054,7 @@ class DragonMirrorGame:
             self._summon(player, token)
 
     def _eligible_dark_gifts(self, card: CardInstance) -> set[str]:
-        gifts = {"living_nightmare", "sweet_dreams"}
+        gifts = {"inner_demons", "living_nightmare", "sweet_dreams"}
         if not card.lifesteal:
             gifts.add("waking_terror")
         if not card.taunt:
@@ -9061,6 +9065,8 @@ class DragonMirrorGame:
             gifts.add("sleepwalker")
         if not card.divine_shield and not card.windfury:
             gifts.add("harpys_talons")
+        if not card.divine_shield:
+            gifts.add("nightmare_scales")
         if not card.reborn:
             gifts.add("persisting_horror")
         if card.attack >= 3:
@@ -9087,8 +9093,12 @@ class DragonMirrorGame:
         elif gift == "persisting_horror": card.reborn = True
         elif gift == "short_claws": card.cost_delta -= 2; card.attack_delta -= 2
         elif gift == "rude_awakening": card.battlecry_twice = True
+        elif gift == "inner_demons": card.deathrattle_draw_cards += 2
         elif gift == "living_nightmare": card.living_nightmare = True
         elif gift == "sweet_dreams": card.attack_delta += 4; card.health_delta += 5
+        elif gift == "nightmare_scales":
+            card.divine_shield = True
+            card.divine_shield_hits = 3
         if propagate:
             # Wallow copies gifts granted to friendly minions while hidden in
             # hand/deck.  Do not recurse when applying the copied gift.
@@ -11028,6 +11038,13 @@ class DragonMirrorGame:
             Hook.DEATHRATTLE, minion.card_id, self,
             RuleContext(player=player, card=minion),
         )
+        if minion.deathrattle_draw_cards:
+            for _ in range(minion.deathrattle_draw_cards):
+                self._draw(player)
+            self._event(
+                "deathrattle_draw", player=player.index, source=minion.entity_id,
+                cards=minion.deathrattle_draw_cards,
+            )
         if any(
             source.card_id == "TIME_064" and not source.silenced
             and source.dormant_turns == 0 and source.health > 0

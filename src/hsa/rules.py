@@ -226,6 +226,15 @@ STANDARD_DECLARATIVE_IDS = {
     "EDR_234", "TIME_750", "CATA_568", "CATA_570", "TIME_213",
     "TIME_715", "END_020", "CORE_WC_701", "TIME_031", "TIME_032",
     "TIME_614", "RLK_720", "FIR_902", "JAIL_440", "TLC_630",
+    # Dark Gift option entities are non-collectible cards selected by a
+    # Discover.  Register their actual effects as well as the parent-card
+    # Discover flow, so replay/import callers do not need a parallel path.
+    "EDR_100t", "EDR_100t1", "EDR_100t2", "EDR_100t3", "EDR_100t4",
+    "EDR_100t5", "EDR_100t6", "EDR_100t7", "EDR_100t8", "EDR_100t9",
+    "EDR_100t10", "EDR_100t13",
+    "EDR_101t", "EDR_101t1", "EDR_101t2", "EDR_101t3", "EDR_101t4",
+    "EDR_101t5", "EDR_101t6", "EDR_101t7", "EDR_101t8", "EDR_101t9",
+    "EDR_101t10", "EDR_101t11", "EDR_101t12", "EDR_101t13", "EDR_101t14",
     # 50-card Standard coverage tranche (23 metadata-keyword cards + 27
     # composable Battlecry/Deathrattle/spell cards).
     "RLK_067", "CORE_BT_921", "EDR_272", "CATA_558", "CORE_CS2_179",
@@ -8293,6 +8302,67 @@ class StealBonusEffects:
 
 
 @dataclass(frozen=True)
+class ApplyDarkGiftToActionTarget:
+    """Apply one concrete Dark Gift option to a friendly minion.
+
+    Dark Gifts normally resolve as the second half of a Discover, where the
+    game calls ``_apply_dark_gift`` directly.  The option entities also occur
+    in replay data, however, so they need the same authoritative path when
+    dispatched as cards rather than a hand-written approximation.
+    """
+
+    gift: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player != context.player.index:
+            raise ValueError("friendly minion target is required for a Dark Gift")
+        target = game._find_minion(context.player.index, context.action.target_entity)
+        game._apply_dark_gift(target, self.gift, owner=context.player)
+        game._event(
+            "dark_gift_option", player=context.player.index,
+            source=context.card.card_id, target=target.entity_id, gift=self.gift,
+        )
+
+
+@dataclass(frozen=True)
+class ApplyKeywordPackageToActionTarget:
+    """Apply a Blinding Carapace keyword pair to a friendly minion.
+
+    The 15 token IDs encode every unordered pair from the five keyword pool.
+    Applying through a tuple makes the combinations auditable and guarantees
+    that a shield created by the option gets its regular single-hit counter.
+    """
+
+    keywords: tuple[str, str]
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player != context.player.index:
+            raise ValueError("friendly minion target is required for Blinding Carapace")
+        target = game._find_minion(context.player.index, context.action.target_entity)
+        for keyword in self.keywords:
+            if keyword == "DIVINE_SHIELD":
+                target.divine_shield = True
+                target.divine_shield_hits = max(1, target.divine_shield_hits)
+            elif keyword == "RUSH":
+                target.rush = True
+            elif keyword == "LIFESTEAL":
+                target.lifesteal = True
+            elif keyword == "REBORN":
+                target.reborn = True
+            elif keyword == "TAUNT":
+                target.taunt = True
+            elif keyword == "POISONOUS":
+                target.poisonous = True
+            else:
+                raise ValueError(f"unsupported Blinding Carapace keyword: {keyword}")
+        game._event(
+            "blinding_carapace", player=context.player.index,
+            source=context.card.card_id, target=target.entity_id,
+            keywords=list(self.keywords),
+        )
+
+
+@dataclass(frozen=True)
 class OfferEnemyHandDiscardOnDeath:
     def execute(self, game: Any, context: RuleContext) -> None:
         enemy = game.players[1 - context.player.index]
@@ -13086,6 +13156,51 @@ def build_rule_registry() -> RuleRegistry:
             )},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332", ("test_treacherous_tormentor_dark_gift_discover",)),
         ),
+        # Dark Gift option cards.  These are normally chosen inside a
+        # Discover, but Power.log/replay inputs can expose their individual
+        # entity IDs.  Keep the option rules explicit so both routes apply
+        # the same instance-level Gift state.
+        CardRule("EDR_100t", {Hook.SPELL: (ApplyDarkGiftToActionTarget("waking_terror"),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_dark_gift_option_entities",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_100t1", {Hook.SPELL: (ApplyDarkGiftToActionTarget("well_rested"),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_dark_gift_option_entities",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_100t2", {Hook.SPELL: (ApplyDarkGiftToActionTarget("short_claws"),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_dark_gift_option_entities",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_100t3", {Hook.SPELL: (ApplyDarkGiftToActionTarget("bundled_up"),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_dark_gift_option_entities",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_100t4", {Hook.SPELL: (ApplyDarkGiftToActionTarget("inner_demons"),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_dark_gift_option_entities",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_100t5", {Hook.SPELL: (ApplyDarkGiftToActionTarget("living_nightmare"),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_dark_gift_option_entities",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_100t6", {Hook.SPELL: (ApplyDarkGiftToActionTarget("sleepwalker"),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_dark_gift_option_entities",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_100t7", {Hook.SPELL: (ApplyDarkGiftToActionTarget("rude_awakening"),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_dark_gift_option_entities",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_100t8", {Hook.SPELL: (ApplyDarkGiftToActionTarget("sweet_dreams"),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_dark_gift_option_entities",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_100t9", {Hook.SPELL: (ApplyDarkGiftToActionTarget("persisting_horror"),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_dark_gift_option_entities",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_100t10", {Hook.SPELL: (ApplyDarkGiftToActionTarget("nightmare_scales"),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_dark_gift_option_entities",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_100t13", {Hook.SPELL: (ApplyDarkGiftToActionTarget("harpys_talons"),)},
+                 RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_dark_gift_option_entities",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        # Blinding Carapace: each option is one pair from Divine Shield,
+        # Rush, Lifesteal, Reborn, Taunt and Poisonous.
+        CardRule("EDR_101t", {Hook.SPELL: (ApplyKeywordPackageToActionTarget(("DIVINE_SHIELD", "RUSH")),)}, RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_blinding_carapace_options",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_101t1", {Hook.SPELL: (ApplyKeywordPackageToActionTarget(("DIVINE_SHIELD", "LIFESTEAL")),)}, RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_blinding_carapace_options",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_101t2", {Hook.SPELL: (ApplyKeywordPackageToActionTarget(("DIVINE_SHIELD", "REBORN")),)}, RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_blinding_carapace_options",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_101t3", {Hook.SPELL: (ApplyKeywordPackageToActionTarget(("DIVINE_SHIELD", "TAUNT")),)}, RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_blinding_carapace_options",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_101t4", {Hook.SPELL: (ApplyKeywordPackageToActionTarget(("DIVINE_SHIELD", "POISONOUS")),)}, RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_blinding_carapace_options",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_101t5", {Hook.SPELL: (ApplyKeywordPackageToActionTarget(("RUSH", "LIFESTEAL")),)}, RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_blinding_carapace_options",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_101t6", {Hook.SPELL: (ApplyKeywordPackageToActionTarget(("RUSH", "REBORN")),)}, RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_blinding_carapace_options",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_101t7", {Hook.SPELL: (ApplyKeywordPackageToActionTarget(("RUSH", "TAUNT")),)}, RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_blinding_carapace_options",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_101t8", {Hook.SPELL: (ApplyKeywordPackageToActionTarget(("RUSH", "POISONOUS")),)}, RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_blinding_carapace_options",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_101t9", {Hook.SPELL: (ApplyKeywordPackageToActionTarget(("LIFESTEAL", "REBORN")),)}, RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_blinding_carapace_options",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_101t10", {Hook.SPELL: (ApplyKeywordPackageToActionTarget(("LIFESTEAL", "TAUNT")),)}, RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_blinding_carapace_options",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_101t11", {Hook.SPELL: (ApplyKeywordPackageToActionTarget(("LIFESTEAL", "POISONOUS")),)}, RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_blinding_carapace_options",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_101t12", {Hook.SPELL: (ApplyKeywordPackageToActionTarget(("REBORN", "TAUNT")),)}, RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_blinding_carapace_options",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_101t13", {Hook.SPELL: (ApplyKeywordPackageToActionTarget(("REBORN", "POISONOUS")),)}, RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_blinding_carapace_options",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
+        CardRule("EDR_101t14", {Hook.SPELL: (ApplyKeywordPackageToActionTarget(("TAUNT", "POISONOUS")),)}, RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_blinding_carapace_options",)), TargetSpec(TargetKind.FRIENDLY_MINION)),
         CardRule(
             "EDR_811", {Hook.SPELL: (
                 OfferMinionDarkGiftDiscover(race="UNDEAD", spend_corpses=2),

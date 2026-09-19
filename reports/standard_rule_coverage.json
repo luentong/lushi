@@ -7,11 +7,11 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 1131,
+      "declarative": 1158,
       "engine_owned_auxiliary": 21,
       "engine_state": 482,
-      "legacy_compatibility": 298,
-      "not_implemented": 229
+      "legacy_compatibility": 297,
+      "not_implemented": 203
     },
     "collectible_implementation": {
       "declarative": 972,
@@ -11551,10 +11551,10 @@
       "mechanics": "",
       "text": "+3 Attack and Lifesteal.",
       "text_sha256": "c83ac3855ec7efd99bee790ec829698caa320cbafa50ab05f4159c57ca75b623",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_100t1",
@@ -11567,10 +11567,10 @@
       "mechanics": "",
       "text": "+2/+2 and Elusive.",
       "text_sha256": "343a337773150d80f56ccc863274b82a0a8e96b9b57c7c9fe92878f14ff88fb5",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_100t10",
@@ -11583,10 +11583,10 @@
       "mechanics": "",
       "text": "Has a Divine Shield that takes 3 hits to break.",
       "text_sha256": "e8773a24262d768ba0f4b33545a705730c70070265e9a58e5cff4072640f94c2",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_100t13",
@@ -11599,10 +11599,10 @@
       "mechanics": "DIVINE_SHIELD,WINDFURY",
       "text": "Divine Shield, Windfury",
       "text_sha256": "f920eb0b052f6e18d5b97d17153ea7ba085a5c78fd0b4cd8509e70ef04c19009",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_100t13e",
@@ -11647,10 +11647,10 @@
       "mechanics": "",
       "text": "Costs (2) less, but has -2 Attack.",
       "text_sha256": "74a7895c250e3657c15b8e22cbecfaaac3b3fe98c90d2c3ca2de120d36ecfcd9",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_100t2e",
@@ -11679,10 +11679,10 @@
       "mechanics": "",
       "text": "+4 Health and Taunt.",
       "text_sha256": "0fefaed85652e837e8f075e4a9c7beafc574d1a9b988dddc3c269b73ef4f3a8c",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_100t3e",
@@ -11711,10 +11711,10 @@
       "mechanics": "",
       "text": "Deathrattle: Draw 2 cards.",
       "text_sha256": "c7e3d6b7b0427bf678e44fc7f205f04cc70029e1b315647f31741e120308a902",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_100t4e",
@@ -11743,10 +11743,10 @@
       "mechanics": "",
       "text": "When you play this minion, summon a 2/2 copy of it.",
       "text_sha256": "2c08c7128b28daaa569919a783b3a945243837cfdd84589c8b8364486074482e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_100t5e",
@@ -11807,7 +11807,7 @@
       "mechanics": "CHARGE",
       "text": "Charge",
       "text_sha256": "ff9f88ce353a222860a9f826971a2b2ee3da6b06c696d67537285890506d4bda",
-      "implementation": "legacy_compatibility",
+      "implementation": "declarative",
       "playable_ready": true,
       "runtime_state_ready": true,
       "verification": "focused_or_regression_tests"
@@ -11839,10 +11839,10 @@
       "mechanics": "",
       "text": "This minion's Battlecries trigger twice.",
       "text_sha256": "59a58eb1cc70bc2edc7d4fe58564f1c95a9ed8e5d55431e563428b1337ab8c41",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_100t7e",
@@ -11887,10 +11887,10 @@
       "mechanics": "",
       "text": "+4/+5. Place this card on top of your deck.",
       "text_sha256": "b84bcdcdf3594c8b687735bd1a4a0a8b75a5c9616442fe1a694e28e855938953",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_100t8e",
@@ -11935,10 +11935,10 @@
       "mechanics": "REBORN",
       "text": "Reborn. Is Reborn with full Health and enchantments.",
       "text_sha256": "dce358bfd14af55bc9832dd382ea93d8bba1167de76a93bf474d0aae0b6f0001",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_100t9e",
@@ -11983,10 +11983,10 @@
       "mechanics": "",
       "text": "Divine Shield, Rush",
       "text_sha256": "f0bd1771c2f5f3e1d51a8616f4a991179f61cae9741968739da772128a5bb06d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_101t1",
@@ -11999,10 +11999,10 @@
       "mechanics": "",
       "text": "Divine Shield, Lifesteal",
       "text_sha256": "59ef784b47dce045421af632944c240d98a08f38bd7ab7441b4d11c8ede7af03",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_101t10",
@@ -12015,10 +12015,10 @@
       "mechanics": "",
       "text": "Lifesteal, Taunt",
       "text_sha256": "585c2e4b6b3089464643838b33bed508774f4bb283e4920a6b5e4c573c5c6452",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_101t11",
@@ -12031,10 +12031,10 @@
       "mechanics": "",
       "text": "Lifesteal, Poisonous",
       "text_sha256": "f6d50a48bdffc271a32ec49e671fd2f9db276f1001a3b39188d3a72a9a5f595f",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_101t12",
@@ -12047,10 +12047,10 @@
       "mechanics": "",
       "text": "Reborn, Taunt",
       "text_sha256": "9912438a71edfe0369b99aca17394af3ee64c91be8536a16728b9de9c6609093",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_101t13",
@@ -12063,10 +12063,10 @@
       "mechanics": "",
       "text": "Reborn, Poisonous",
       "text_sha256": "6a232a3caba78909fb7105d0a3ba141ca668d9849b0338cfaf237d82ac10ed74",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_101t14",
@@ -12079,10 +12079,10 @@
       "mechanics": "",
       "text": "Taunt, Poisonous",
       "text_sha256": "7cfdf22fe317edeee4a9aab0e600f3fddec787d49f1a669f9bc1d9fbc38101f8",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_101t2",
@@ -12095,10 +12095,10 @@
       "mechanics": "",
       "text": "Divine Shield, Reborn",
       "text_sha256": "c082b539a6b9132df5c5953fe024d873ea7684c52b305625d673d119cfd7928d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_101t3",
@@ -12111,10 +12111,10 @@
       "mechanics": "",
       "text": "Divine Shield, Taunt",
       "text_sha256": "8ce3e5136653a27d3431cdd6affebe752d41b6de3d0ae62745183fc64b7c5632",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_101t4",
@@ -12127,10 +12127,10 @@
       "mechanics": "",
       "text": "Divine Shield, Poisonous",
       "text_sha256": "9cc7d0813339adcfe3caa37fc47fc6aa4c7a496011226134d7f7e6bcfca43543",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_101t5",
@@ -12143,10 +12143,10 @@
       "mechanics": "",
       "text": "Rush, Lifesteal",
       "text_sha256": "0508662f9d9cdcb7b09da58be995b5d093130fbbd68e4801ffc3456b96bd462f",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_101t6",
@@ -12159,10 +12159,10 @@
       "mechanics": "",
       "text": "Rush, Reborn",
       "text_sha256": "8859d9c97fe1c8a9568825ad1a5a5fcc409a9b37677f46d96aa262442a043840",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_101t7",
@@ -12175,10 +12175,10 @@
       "mechanics": "",
       "text": "Rush, Taunt",
       "text_sha256": "b4adb26f1766e9debf76a53b6d9e16dcdb99656b7550d3e036251fad0e7a04cd",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_101t8",
@@ -12191,10 +12191,10 @@
       "mechanics": "",
       "text": "Rush, Poisonous",
       "text_sha256": "0816fb72d06040e61ae551b8a14f358073314ca8088cbc193b758907027a03dc",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_101t9",
@@ -12207,10 +12207,10 @@
       "mechanics": "",
       "text": "Lifesteal, Reborn",
       "text_sha256": "3169821d807bce5aba45883fe2e54b56d75cdd46b06f986c01210b071f1cd2e8",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_102",

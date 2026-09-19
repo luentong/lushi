@@ -4478,6 +4478,43 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(0, game.players[0].corpses)
         self.assertTrue(game.pending_choice["options"])
 
+    def test_dark_gift_option_entities_apply_their_real_instance_effects(self):
+        game = self.game()
+        target = self.add_board(game, "EDR_810t", 0)
+        gift = self.add_hand(game, "EDR_100t")
+        game.step(Action("PLAY", gift.entity_id, 0, target.entity_id))
+        self.assertTrue(target.lifesteal)
+        self.assertEqual(3, target.attack_delta)
+        self.assertIn("waking_terror", target.gifts)
+
+        inner = self.add_hand(game, "EDR_100t4")
+        game.step(Action("PLAY", inner.entity_id, 0, target.entity_id))
+        self.assertEqual(2, target.deathrattle_draw_cards)
+        game.players[0].deck = [game._entity("GAME_005"), game._entity("GAME_005")]
+        game._damage_minion(0, target, target.health)
+        game._resolve_deaths()
+        self.assertEqual(2, len(game.players[0].hand))
+
+        target = self.add_board(game, "EDR_810t", 0)
+        scales = self.add_hand(game, "EDR_100t10")
+        game.step(Action("PLAY", scales.entity_id, 0, target.entity_id))
+        self.assertTrue(target.divine_shield)
+        self.assertEqual(3, target.divine_shield_hits)
+        for _ in range(3):
+            game._damage_minion(0, target, 1)
+            self.assertEqual(target.max_health, target.health)
+        self.assertFalse(target.divine_shield)
+
+    def test_blinding_carapace_options_are_all_registered_and_apply_keywords(self):
+        game = self.game()
+        options = {"EDR_101t", *(f"EDR_101t{index}" for index in range(1, 15))}
+        self.assertTrue(options <= {rule.card_id for rule in game.rule_registry.all_rules()})
+        target = self.add_board(game, "EDR_810t", 0)
+        carapace = self.add_hand(game, "EDR_101t11")
+        game.step(Action("PLAY", carapace.entity_id, 0, target.entity_id))
+        self.assertTrue(target.lifesteal)
+        self.assertTrue(target.poisonous)
+
     def test_frostburn_matriarch_dark_gift_condition(self):
         game = self.game()
         held = self.add_hand(game, "EDR_810t")
