@@ -1634,6 +1634,11 @@ class DragonMirrorGame:
             # Shred of Time is a Casts When Drawn spell.  It never enters the
             # hand: resolving the cast immediately replaces it with a draw.
             result.casts_when_drawn_damage = 3
+        elif result.card_id == "JAIL_443t":
+            # Blight is the generated Casts When Drawn spell created by the
+            # Living Plague family.  Keep it as a real entity so imported
+            # Power.log draws and ordinary deck shuffles resolve identically.
+            result.casts_when_drawn_damage = 2
         if result.card_id in {"EDR_469", "MEND_040", "EDR_979", "TLC_253"}:
             # These use condition-based Dormant rather than a fixed countdown.
             result.dormant_turns = 2_147_483_647

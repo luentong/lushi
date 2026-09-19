@@ -5771,6 +5771,92 @@ class AuxiliaryEntityCoverageTests(unittest.TestCase):
         game.step(Action("PLAY", rebirth.entity_id))
         self.assertTrue(game.players[0].corpse_rebirth_pending)
 
+    def test_cap405_auxiliary_entities_and_effects(self):
+        cap_ids = {
+            "CAP_004a", "CAP_004b", "CAP_405t1", "CAP_405t2", "CAP_405t3",
+            "CAP_405t5", "CAP_405t6", "CAP_405t7", "CAP_405t8", "CAP_405t9",
+            "CAP_405tb1", "CAP_405tb1b", "CAP_405tb2", "CAP_405tb2b",
+            "CAP_405tb3", "CAP_405tb3b",
+        }
+        game = self.game()
+        self.assertTrue(cap_ids <= game.executable_card_ids)
+        self.assertTrue(cap_ids <= {rule.card_id for rule in game.rule_registry.all_rules()})
+
+        # Convicted for Conspiracy permanently takes a random enemy minion.
+        enemy = game._entity("CORE_CS2_065")
+        enemy.summoned_turn = -1
+        game._summon(game.players[1], enemy)
+        option = game._entity("CAP_405t2")
+        game.players[0].mana = 20
+        game.players[0].hand.append(option)
+        game.step(Action("PLAY", option.entity_id))
+        self.assertIn(enemy, game.players[0].board)
+        self.assertNotIn(enemy, game.players[1].board)
+
+        # Criminal Contract summons three random minions from the 3-cost pool.
+        game = self.game()
+        option = game._entity("CAP_405t6")
+        game.players[0].mana = 20
+        game.players[0].hand.append(option)
+        game.step(Action("PLAY", option.entity_id))
+        self.assertEqual(3, len(game.players[0].board))
+        self.assertTrue(all(minion.definition.cost == 3 for minion in game.players[0].board))
+
+        # Spurious Shiv buffs minions both in hand and on board.
+        game = self.game()
+        hand_minion = game._entity("CORE_CS2_065")
+        board_minion = game._entity("CORE_CS2_065")
+        board_minion.summoned_turn = -1
+        game.players[0].hand.append(hand_minion)
+        game._summon(game.players[0], board_minion)
+        option = game._entity("CAP_405t5")
+        game.players[0].mana = 20
+        game.players[0].hand.append(option)
+        hand_before = (hand_minion.attack, hand_minion.max_health)
+        board_before = (board_minion.attack, board_minion.max_health)
+        game.step(Action("PLAY", option.entity_id))
+        self.assertEqual((hand_before[0] + 3, hand_before[1] + 3),
+                         (hand_minion.attack, hand_minion.max_health))
+        self.assertEqual((board_before[0] + 3, board_before[1] + 3),
+                         (board_minion.attack, board_minion.max_health))
+
+        # Potion of Perjury discounts every minion currently in hand.
+        game = self.game()
+        hand_minion = game._entity("CORE_CS2_065")
+        game.players[0].hand.append(hand_minion)
+        option = game._entity("CAP_405t7")
+        game.players[0].mana = 20
+        game.players[0].hand.append(option)
+        before = game._effective_cost(game.players[0], hand_minion)
+        game.step(Action("PLAY", option.entity_id))
+        self.assertEqual(max(0, before - 2), game._effective_cost(game.players[0], hand_minion))
+
+        # Swill of Suggestibility heals the controller and Tonic of Tyranny
+        # summons a Voidlord token/minion.
+        game = self.game()
+        game.players[0].health = 10
+        option = game._entity("CAP_405t8")
+        game.players[0].mana = 20
+        game.players[0].hand.append(option)
+        game.step(Action("PLAY", option.entity_id))
+        self.assertEqual(22, game.players[0].health)
+        option = game._entity("CAP_405t9")
+        game.players[0].hand.append(option)
+        game.step(Action("PLAY", option.entity_id))
+        self.assertTrue(any(minion.card_id == "CORE_LOOT_368" for minion in game.players[0].board))
+
+        # Sentenced for Smuggling moves two random cards and never exceeds a
+        # ten-card hand.  The cards remain the original entities, preserving
+        # their current cost/stat modifications.
+        game = self.game()
+        game.players[1].hand.extend([game._entity("GAME_005"), game._entity("CORE_CS2_065")])
+        option = game._entity("CAP_405t3")
+        game.players[0].mana = 20
+        game.players[0].hand.append(option)
+        game.step(Action("PLAY", option.entity_id))
+        self.assertEqual(0, len(game.players[1].hand))
+        self.assertEqual(2, len(game.players[0].hand))
+
     def test_generated_leyline_options_and_scout_token(self):
         game = self.game()
         discount = game._entity("MEND_505t2")

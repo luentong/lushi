@@ -7,11 +7,11 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 1173,
+      "declarative": 1194,
       "engine_owned_auxiliary": 21,
       "engine_state": 482,
       "legacy_compatibility": 297,
-      "not_implemented": 188
+      "not_implemented": 167
     },
     "collectible_implementation": {
       "declarative": 972,
@@ -159,10 +159,10 @@
       "mechanics": "",
       "text": "This was played on the friendly side.",
       "text_sha256": "87374bd3fcfdc7c22785183298a64aa1dc8a1fa91748e5a866b0551e692deca9",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_004b",
@@ -175,10 +175,10 @@
       "mechanics": "",
       "text": "This was played on the enemy side.",
       "text_sha256": "5104416a69fc5614dc54f6a2ccaeb9777dc8d0fbc5d0d0bf033dc647b66de370",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_005",
@@ -591,10 +591,10 @@
       "mechanics": "",
       "text": "Force each minion to attack another minion.",
       "text_sha256": "f60b59d2dbf29ba143d514e3ff3511273fd7d1035ff6d1fbd5a7c4bdc02e7867",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_405t2",
@@ -607,10 +607,10 @@
       "mechanics": "",
       "text": "Take control of a random enemy minion.",
       "text_sha256": "154e4170aac6d84c7411a1a4f618dc40b3268214202696a7d19c4814a8f747d1",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_405t3",
@@ -623,10 +623,10 @@
       "mechanics": "",
       "text": "Steal 2 cards from your opponent's hand.",
       "text_sha256": "1dbeafe7a1e1ad2e998b6499d0bc15837f8142328f4fae73ae97fe7846d0efe4",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_405t4",
@@ -655,10 +655,10 @@
       "mechanics": "",
       "text": "Give minions in your hand and battlefield +3/+3.",
       "text_sha256": "24b1992132b824ac97fac43f9e57e74ccc7c5faa5f530e4b21ed58653508d6f2",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_405t5e",
@@ -687,10 +687,10 @@
       "mechanics": "",
       "text": "Summon three random 3-Cost minions.",
       "text_sha256": "5fc06e45df2bdb7636941fa4549dcce55b9c193d3fc33bd1a42a7e003e433854",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_405t7",
@@ -703,10 +703,10 @@
       "mechanics": "",
       "text": "Reduce the Cost of minions in your hand by (2).",
       "text_sha256": "7afcf0fbd06fa97ce4868c78b869e2cf30de44d529c1392b5596180b557086d8",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_405t7e",
@@ -735,10 +735,10 @@
       "mechanics": "",
       "text": "Restore #12 Health to your hero.",
       "text_sha256": "982374c3208ab1909198388d914154702a1c749755d622c20050b54991662130",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_405t9",
@@ -751,10 +751,10 @@
       "mechanics": "",
       "text": "Summon a Voidlord.",
       "text_sha256": "05d2437e71c67935711272e9779239ffe90974da754838170bb801038b5db3c2",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_405tb1",
@@ -767,10 +767,10 @@
       "mechanics": "",
       "text": "{0} {1}",
       "text_sha256": "10866a9df5f8be5be75c79314de01412b0b35db060b06fdc333c1d9cd82d73c0",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_405tb1b",
@@ -783,10 +783,10 @@
       "mechanics": "",
       "text": "The trial finishes immediately!",
       "text_sha256": "33638a9e81f46fc8072a6342e065274327c093cecdce9ff34f065488176e9907",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_405tb2",
@@ -799,10 +799,10 @@
       "mechanics": "",
       "text": "In 1 turn, {0} {1}",
       "text_sha256": "0073e44c12a38c58120431c6658f9808374c30e790e9f2a76e57756c5e36614c",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_405tb2b",
@@ -815,10 +815,10 @@
       "mechanics": "",
       "text": "The trial finishes at the start of your next turn.",
       "text_sha256": "81a749bcedaeef3ba06c6c23c5aeb82b9671220e695543e403bbc770ac0776e2",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_405tb3",
@@ -831,10 +831,10 @@
       "mechanics": "",
       "text": "In 4 turns, {0} {1}",
       "text_sha256": "17c48ce52fe58085904d4632da5270a4fab2c9e6312c381954493142f88ccefc",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_405tb3b",
@@ -847,10 +847,10 @@
       "mechanics": "",
       "text": "The trial finishes in 4 turns.",
       "text_sha256": "7c0eaa04bb8d40d20a38e457dc00e0781ef1d1473c57997f6beb8bcfaa8d9d86",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "CAP_406",
@@ -18863,10 +18863,10 @@
       "mechanics": "",
       "text": "Give your hero +2 Attack this turn.",
       "text_sha256": "2bcab32e9d2d89c875cdb041f4a8fa83ef3c18c6bd705c485f95977c8b44948a",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_201ae1",
@@ -18895,10 +18895,10 @@
       "mechanics": "",
       "text": "Get a random Druid card.",
       "text_sha256": "7fa39f3d1c120f192ceb9fd24143bfd40b20929d470fee4675851e3eba6594e5",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_202",
@@ -19183,10 +19183,10 @@
       "mechanics": "",
       "text": "Refresh your options. (20% chance to take 5 damage!)",
       "text_sha256": "70e2ac17122f6c21b0a0397d087799b349d130757dd47bb611119db40e8035a7",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_321",
@@ -19455,10 +19455,10 @@
       "mechanics": "",
       "text": "Casts When Drawn Gain 2 Armor.",
       "text_sha256": "5d5e8607eba4fa79b42038922c6ac6a8343c452dbab4c3f8e6142c03673233ea",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_387",
@@ -20015,10 +20015,10 @@
       "mechanics": "ImmuneToSpellpower",
       "text": "Casts When Drawn Deal 2 damage to your hero.",
       "text_sha256": "4e754e2d144fdad4b8a76b8057b033b9255b9344635e3fc86c162b4cd17d5a78",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_444",

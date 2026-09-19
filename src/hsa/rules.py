@@ -240,6 +240,14 @@ STANDARD_DECLARATIVE_IDS = {
     "TIME_810t1", "TIME_810t2",
     "END_010a", "END_010b", "TIME_000ta", "TIME_000tb", "TIME_036t",
     "TIME_038t1", "TIME_038t2", "TIME_038t3", "TIME_618t",
+    # CAP_405 trial option cards and the two-sided detection tokens.
+    "CAP_004a", "CAP_004b", "CAP_405t1", "CAP_405t2", "CAP_405t3",
+    "CAP_405t5", "CAP_405t6", "CAP_405t7", "CAP_405t8", "CAP_405t9",
+    "CAP_405tb1", "CAP_405tb1b", "CAP_405tb2", "CAP_405tb2b",
+    "CAP_405tb3", "CAP_405tb3b",
+    # Auxiliary choices and Casts When Drawn entities emitted by Escape from
+    # Violet Hold cards.
+    "JAIL_201a", "JAIL_201b", "JAIL_319t", "JAIL_386t", "JAIL_443t",
     # 50-card Standard coverage tranche (23 metadata-keyword cards + 27
     # composable Battlecry/Deathrattle/spell cards).
     "RLK_067", "CORE_BT_921", "EDR_272", "CATA_558", "CORE_CS2_179",
@@ -7116,6 +7124,141 @@ class BuffAllMinionsInHand:
         game._event("buff_minions_in_hand", player=context.player.index,
                     source=context.card.card_id, affected=affected,
                     attack=self.attack, health=self.health)
+
+
+@dataclass(frozen=True)
+class ForceEachMinionToAttackAnother:
+    """Force every living minion to fight a random other living minion."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        all_minions = [
+            (player.index, minion)
+            for player in game.players
+            for minion in player.board
+            if minion.health > 0 and minion.dormant_turns == 0
+        ]
+        pairs = []
+        for owner_index, attacker in list(all_minions):
+            candidates = [
+                (target_owner, target)
+                for target_owner, target in all_minions
+                if target.entity_id != attacker.entity_id and target.health > 0
+            ]
+            if not candidates or attacker.health <= 0:
+                continue
+            target_owner, target = game.rng.choice(candidates)
+            pairs.append((owner_index, attacker, target_owner, target))
+        for owner_index, attacker, target_owner, target in pairs:
+            if attacker.health <= 0 or target.health <= 0:
+                continue
+            game._damage_minion(target_owner, target, attacker.attack, attacker)
+            if target.health > 0 and attacker.health > 0:
+                game._damage_minion(owner_index, attacker, target.attack, target)
+            game._resolve_deaths()
+        game._event("force_minions_attack", player=context.player.index,
+                    source=context.card.card_id, pair_count=len(pairs))
+
+
+@dataclass(frozen=True)
+class TakeRandomEnemyMinion:
+    """Take control of a random enemy minion permanently."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = [m for m in game.players[1 - context.player.index].board
+                      if m.health > 0 and m.dormant_turns == 0]
+        if not candidates or len(context.player.board) + len(context.player.locations) >= 7:
+            return
+        target = game.rng.choice(candidates)
+        enemy = game.players[1 - context.player.index]
+        enemy.board.remove(target)
+        context.player.board.append(target)
+        target.return_control_to = None
+        target.return_control_at_end_of_turn = None
+        target.cant_attack_turn = game.turn
+        game._refresh_continuous(enemy)
+        game._refresh_continuous(context.player)
+        game._event("random_minion_control", player=context.player.index,
+                    source=context.card.card_id, target=target.entity_id,
+                    card=target.card_id)
+
+
+@dataclass(frozen=True)
+class StealEnemyHandCards:
+    count: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        chosen = list(enemy.hand)
+        game.rng.shuffle(chosen)
+        stolen = []
+        for card in chosen[:self.count]:
+            if card not in enemy.hand:
+                continue
+            enemy.hand.remove(card)
+            if len(context.player.hand) < 10:
+                card.created_by = context.card.card_id
+                card.copied_from_opponent = True
+                context.player.hand.append(card)
+                stolen.append(card.card_id)
+            else:
+                game._event("generated_burned", player=context.player.index,
+                            card=card.card_id, source=context.card.card_id)
+        game._event("steal_enemy_hand", player=context.player.index,
+                    source=context.card.card_id, cards=stolen)
+
+
+@dataclass(frozen=True)
+class BuffMinionsInHandAndBoard:
+    attack: int
+    health: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        affected = []
+        for card in context.player.hand:
+            if card.definition.card_type == "MINION":
+                card.attack_delta += self.attack
+                card.health_delta += self.health
+                affected.append(card.entity_id)
+        for minion in context.player.board:
+            if minion.health > 0:
+                minion.attack_delta += self.attack
+                minion.health_delta += self.health
+                affected.append(minion.entity_id)
+        game._event("buff_minions_hand_and_board", player=context.player.index,
+                    source=context.card.card_id, affected=affected,
+                    attack=self.attack, health=self.health)
+
+
+@dataclass(frozen=True)
+class ReduceHandMinionCosts:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        affected = []
+        for card in context.player.hand:
+            if card.definition.card_type == "MINION":
+                card.cost_delta -= self.amount
+                affected.append(card.entity_id)
+        game._event("reduce_hand_minion_costs", player=context.player.index,
+                    source=context.card.card_id, affected=affected,
+                    amount=self.amount)
+
+
+@dataclass(frozen=True)
+class SummonNamedMinion:
+    card_id: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if len(context.player.board) + len(context.player.locations) >= 7:
+            return
+        if self.card_id not in game.card_defs or self.card_id not in game.executable_card_ids:
+            return
+        minion = game._entity(self.card_id, created_by=context.card.card_id)
+        minion.summoned_turn = game.turn
+        game._summon(context.player, minion)
+        game._event("summon_named_minion", player=context.player.index,
+                    source=context.card.card_id, card=self.card_id,
+                    entity=minion.entity_id)
 
 
 @dataclass(frozen=True)
@@ -17060,6 +17203,36 @@ def build_rule_registry() -> RuleRegistry:
         # (rather than only admitted to the card vocabulary) so it follows
         # normal target validation, cloning and rule-source auditing.
         CardRule("CAP_405", {Hook.BATTLECRY: (ArmShamTrial(),)}, _FINAL_48_SOURCE),
+        CardRule("CAP_004a", {}, _AUXILIARY_TOKEN_SOURCE),
+        CardRule("CAP_004b", {}, _AUXILIARY_TOKEN_SOURCE),
+        CardRule("CAP_405t1", {Hook.SPELL: (ForceEachMinionToAttackAnother(),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("CAP_405t2", {Hook.SPELL: (TakeRandomEnemyMinion(),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("CAP_405t3", {Hook.SPELL: (StealEnemyHandCards(2),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("CAP_405t5", {Hook.SPELL: (BuffMinionsInHandAndBoard(3, 3),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("CAP_405t6", {Hook.SPELL: (SummonRandomMinionWithCost(3, count=3),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("CAP_405t7", {Hook.SPELL: (ReduceHandMinionCosts(2),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("CAP_405t8", {Hook.SPELL: (HealHero(12),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("CAP_405t9", {Hook.SPELL: (SummonNamedMinion("CORE_LOOT_368"),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        # The three trial labels are surfaced as selectable entities by the
+        # client. Their actual progression is stored on CAP_405's trial state.
+        *tuple(CardRule(card_id, {}, _AUXILIARY_TOKEN_SOURCE) for card_id in (
+            "CAP_405tb1", "CAP_405tb1b", "CAP_405tb2", "CAP_405tb2b",
+            "CAP_405tb3", "CAP_405tb3b",
+        )),
+        CardRule("JAIL_201a", {Hook.SPELL: (GainHeroAttack(2),)}, _AUXILIARY_TOKEN_SOURCE),
+        CardRule("JAIL_201b", {Hook.SPELL: (AddRandomExecutableClassCard("DRUID"),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("JAIL_319t", {}, _AUXILIARY_TOKEN_SOURCE),
+        CardRule("JAIL_386t", {}, _AUXILIARY_TOKEN_SOURCE),
+        CardRule("JAIL_443t", {}, _AUXILIARY_TOKEN_SOURCE),
         CardRule("CATA_213", {Hook.BATTLECRY: (SplitHundredStatsIfStartingCosts(),)}, _FINAL_48_SOURCE),
         CardRule("CATA_307", {Hook.BATTLECRY: (SetHealthAndArmFullHealDamage(15, 15),)}, _FINAL_48_SOURCE),
         CardRule("CATA_470", {Hook.BATTLECRY: (CraftUndeadDragon(),)}, _FINAL_48_SOURCE),
