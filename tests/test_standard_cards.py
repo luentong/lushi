@@ -5589,5 +5589,84 @@ class NinthStandardCardBatchTests(unittest.TestCase):
         self.assertTrue(any(card.card_id == "CORE_EX1_005" for card in game.players[0].board))
 
 
+class FinalStandardClosureTests(unittest.TestCase):
+    """The final collectible Standard closure is declarative and executable."""
+
+    BATCH = {
+        "CAP_405", "CATA_213", "CATA_307", "CATA_470", "CATA_621",
+        "CORE_CFM_670", "CORE_DAL_575", "CORE_WON_145", "EDR_031",
+        "EDR_209", "EDR_232", "EDR_238", "EDR_259", "EDR_261",
+        "EDR_430", "EDR_489", "EDR_491", "EDR_494", "EDR_517",
+        "EDR_522", "EDR_526", "EDR_527", "EDR_781", "EDR_812",
+        "EDR_819", "EDR_873", "EDR_895", "JAIL_101", "JAIL_122",
+        "JAIL_205", "JAIL_303", "JAIL_313", "JAIL_315", "JAIL_330",
+        "JAIL_434", "JAIL_470", "JAIL_500", "JAIL_802", "JAIL_861",
+        "MEND_100", "MEND_307", "MEND_505", "TIME_030", "TIME_041",
+        "TIME_064", "TIME_103", "TIME_706", "TTN_851",
+    }
+
+    def game(self):
+        game = DragonMirrorGame(CARDS, 113)
+        game.current = 0
+        for player in game.players:
+            player.hand.clear()
+            player.board.clear()
+            player.deck.clear()
+            player.locations.clear()
+            player.secrets.clear()
+            player.mana = 20
+            player.max_mana = 10
+            player.health = player.max_health = 30
+            player.armor = 0
+        return game
+
+    @staticmethod
+    def add_hand(game, card_id, player=0):
+        card = game._entity(card_id)
+        game.players[player].hand.append(card)
+        return card
+
+    def test_final_48_registry_and_smoke(self):
+        game = self.game()
+        self.assertEqual(48, len(self.BATCH))
+        self.assertTrue(self.BATCH <= game.executable_card_ids)
+        self.assertTrue(self.BATCH <= {
+            rule.card_id for rule in game.rule_registry.all_rules()
+        })
+
+    def test_final_48_stateful_effects(self):
+        game = self.game()
+        alex = self.add_hand(game, "CATA_307")
+        game.step(Action("PLAY", alex.entity_id))
+        self.assertEqual(15, game.players[0].health)
+        game._apply_heal(game.players[0], game.players[0], 15)
+        self.assertEqual(15, game.players[1].health)
+
+        game = self.game()
+        agamaggan = self.add_hand(game, "EDR_489")
+        game.step(Action("PLAY", agamaggan.entity_id))
+        coin = self.add_hand(game, "CORE_CS2_023")
+        before = game.players[1].health
+        game.step(Action("PLAY", coin.entity_id))
+        self.assertEqual(before - 3, game.players[1].health)
+
+        game = self.game()
+        aura = self.add_hand(game, "TTN_851")
+        game.step(Action("PLAY", aura.entity_id))
+        spell = self.add_hand(game, "GAME_005")
+        # The generic duration spans the opponent's next two own turns; the
+        # present global turn is deliberately not charged.
+        self.assertEqual(0, game._effective_cost(game.players[0], spell))
+
+        game = self.game()
+        source = self.add_hand(game, "TIME_706")
+        game.players[0].starting_hand_snapshot = [game._entity("GAME_005")]
+        original = self.add_hand(game, "CORE_CS2_023")
+        game.step(Action("PLAY", source.entity_id))
+        self.assertTrue(all(card.card_id == "GAME_005" for card in game.players[0].hand))
+        game._end_turn()
+        self.assertIn(original, game.players[0].hand)
+
+
 if __name__ == "__main__":
     unittest.main()

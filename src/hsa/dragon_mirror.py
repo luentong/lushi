@@ -1326,6 +1326,18 @@ class Player:
     spell_schools_cast_this_turn: set[str] = field(default_factory=set)
     hero_heal_blocked_until_enemy_turn: int = -1
     hero_heal_blocked_by: int | None = None
+    # Final Standard closure state.  These are kept on Player so hidden-zone
+    # copies used by ISMCTS preserve exactly the same delayed effects.
+    starting_hand_snapshot: list[CardInstance] = field(default_factory=list)
+    next_card_uses_opponent_health: bool = False
+    alex_full_heal_damage: int = 0
+    lunar_cycle_turns: int = 0
+    # Final-closure cards inspect the immediately preceding play or replace a
+    # hand only temporarily.  These fields are explicit Player state so MCTS
+    # branches cannot lose them between clone/apply operations.
+    last_played_card_id: str | None = None
+    previous_played_card_id: str | None = None
+    fins_restore_hand: list[CardInstance] = field(default_factory=list)
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "Player":
         """Fast branch copy for the mutable player state used by MCTS."""
@@ -1335,7 +1347,7 @@ class Player:
             "deck", "hand", "board", "dead_minions", "locations", "secrets",
             "overdrawn_cards", "pending_end_turn_returns", "minions_died_this_turn_cards",
             "spells_this_turn_for_replay", "spells_last_turn_for_replay",
-            "delayed_token_summons",
+            "delayed_token_summons", "starting_hand_snapshot", "fins_restore_hand",
         ):
             zone = getattr(self, name)
             # ``clone(skip_hidden_zones_of=...)`` supplies branch-local empty
@@ -1799,6 +1811,11 @@ class DragonMirrorGame:
 
     def _finish_mulligan(self) -> None:
         self.pending_choice = None
+        # Preserve the post-mulligan opening hands for effects such as The
+        # Fins Beyond Time.  These are complete card instances, so later
+        # cost/stat enchantments cannot leak backwards into the snapshot.
+        for player in self.players:
+            player.starting_hand_snapshot = copy.deepcopy(player.hand)
         aya_players = [
             player.index for player in self.players
             if any(card.card_id == "JAIL_504" for card in player.hand + player.deck)
@@ -2234,6 +2251,9 @@ class DragonMirrorGame:
             player.board.append(minion)
         else:
             player.board.insert(position, minion)
+        if minion.card_id == "JAIL_330":
+            minion.dalaran_observed_attack = minion.attack
+            minion.dalaran_observed_health = minion.max_health
         if (
             minion.card_id in {"TLC_605", "CORE_UNG_928"}
             and player.index != self.current
@@ -2594,6 +2614,7 @@ class DragonMirrorGame:
                     entity=card.entity_id, discounted_cost=card.cost,
                 )
         else:
+            card.entered_hand_turn = self.turn
             player.hand.append(card)
             self._event("draw", player=player.index, card=card.card_id)
         self._after_card_draw(player, card)
@@ -2687,6 +2708,24 @@ class DragonMirrorGame:
             card=card.card_id, entity=card.entity_id,
         )
 
+    def _on_enter_hand_from_battlefield(
+        self, player: Player, card: CardInstance, *, source: str
+    ) -> None:
+        """Resolve effects whose trigger is a board-to-hand zone change."""
+        card.entered_hand_turn = self.turn
+        if card.card_id != "EDR_781":
+            return
+        summoned: list[int] = []
+        for _ in range(2):
+            before = len(player.board)
+            self._summon_random_executable_minion(
+                player, source_card_id=card.card_id, cost=2,
+            )
+            if len(player.board) > before:
+                summoned.append(player.board[-1].entity_id)
+        self._event("harbinger_blighted_return", player=player.index,
+                    source=source, entity=card.entity_id, summoned=summoned)
+
     def _arm_secret(self, player: Player, card: CardInstance) -> None:
         """Arm a Secret, enforcing the live seven-secret capacity."""
         if len(player.secrets) >= 7:
@@ -2765,6 +2804,9 @@ class DragonMirrorGame:
             if len(owner.hand) < 10:
                 attacker.cost_delta += 2
                 owner.hand.append(attacker)
+                self._on_enter_hand_from_battlefield(
+                    owner, attacker, source=secret.card_id,
+                )
                 destination = "hand"
             else:
                 destination = "burned"
@@ -2775,6 +2817,29 @@ class DragonMirrorGame:
             )
             return True
         return False
+
+    def _trigger_mystic_misdirection(
+        self, attacker: CardInstance, defender: Player
+    ) -> None:
+        """Transform an attacking enemy minion for Mystic Misdirection."""
+        for secret in list(defender.secrets):
+            if secret.card_id != "JAIL_315":
+                continue
+            self._consume_secret(defender, secret)
+            attacker.definition = CardDef(
+                "JAIL_315t", "Sheep", "MINION", 1, 1, 1, "BEAST", (),
+                "NEUTRAL", ("BEAST",), "ESCAPEFROM_VIOLET_HOLD",
+            )
+            attacker.attack_delta = attacker.health_delta = attacker.damage = 0
+            attacker.taunt = attacker.rush = attacker.charge = False
+            attacker.lifesteal = attacker.elusive = attacker.divine_shield = False
+            attacker.windfury = attacker.reborn = attacker.stealth = False
+            attacker.poisonous = attacker.immune = False
+            self._event(
+                "mystic_misdirection", player=defender.index,
+                source=secret.entity_id, attacker=attacker.entity_id,
+            )
+            return
 
     def _trigger_vaporize(self, attacker: CardInstance, defender: Player) -> bool:
         for secret in list(defender.secrets):
@@ -2982,6 +3047,14 @@ class DragonMirrorGame:
         self.turn += 1
         self.minions_died_this_turn = 0
         player = self.players[index]
+        if player.lunar_cycle_turns:
+            player.lunar_cycle_turns -= 1
+            self._event("lunar_cycle_tick", player=index,
+                        remaining=player.lunar_cycle_turns)
+            if player.lunar_cycle_turns == 0:
+                for card in player.hand + player.deck:
+                    card.cost_delta -= 1
+                self._event("lunar_cycle_full_moon", player=index)
         # Resolve Lost City's "at the start of your next turn" summons using
         # the owner's local turn number.  This remains correct if a turn is
         # skipped, unlike a global-turn offset.
@@ -3363,6 +3436,11 @@ class DragonMirrorGame:
 
     def _end_turn(self) -> None:
         player = self.players[self.current]
+        if player.fins_restore_hand:
+            player.hand = player.fins_restore_hand
+            player.fins_restore_hand = []
+            self._event("fins_restore_hand", player=player.index,
+                        cards=[card.card_id for card in player.hand])
         # Krag'wa reads the spells of the controller's immediately preceding
         # turn.  Snapshot at end-of-turn, then clear the new-turn accumulator
         # so an intervening opponent turn cannot leak into it.
@@ -3483,7 +3561,14 @@ class DragonMirrorGame:
             ):
                 # Declarative end-turn triggers resolve in board order, just
                 # like the engine-owned triggers in this loop.
-                for _ in range(max(0, player.end_turn_effect_repeat_turns)):
+                deios_repeat = any(
+                    source.card_id == "TIME_064" and not source.silenced
+                    and source.dormant_turns == 0 and source.health > 0
+                    for source in player.board
+                )
+                for _ in range(max(
+                    0, player.end_turn_effect_repeat_turns, int(deios_repeat),
+                )):
                     if minion in player.board and minion.health > 0 and not minion.silenced:
                         self.rule_registry.dispatch(
                             Hook.END_TURN, minion.card_id, self,
@@ -3824,7 +3909,7 @@ class DragonMirrorGame:
             cost += max(0, int(getattr(player, "all_card_cost_surcharge", 0)))
         if card.definition.card_type == "SPELL":
             cost -= player.next_spell_cost_reduction
-            if player.spell_cost_surcharge_turn == self.turn:
+            if player.spell_cost_surcharge_turn >= self.turn:
                 cost += player.spell_cost_surcharge
         cost += self.rule_registry.cost_adjustment(self, player, card)
         if (
@@ -5085,6 +5170,23 @@ class DragonMirrorGame:
             self.invalid_actions += 1
             raise ValueError(f"illegal action: {action}")
         action = legal[action.key()]
+        # Mayor Noggenfogger randomises only the selected target, never the
+        # card/action itself.  Choosing from the already-legal actions gives
+        # the targeter the same validation surface as ordinary client play.
+        if any(
+            minion.card_id == "CORE_CFM_670"
+            and not minion.silenced and minion.dormant_turns == 0
+            and minion.health > 0
+            for owner in self.players for minion in owner.board
+        ) and action.kind in {"PLAY", "ATTACK", "HERO_ATTACK", "LOCATION", "HERO_POWER"}:
+            alternatives = [candidate for candidate in legal.values()
+                            if candidate.kind == action.kind
+                            and candidate.source == action.source]
+            if len(alternatives) > 1:
+                chosen = self.rng.choice(alternatives)
+                self._event("noggenfogger_random_target", player=self.current,
+                            source=action.source, selected=chosen.key())
+                action = chosen
         if action.kind == "END_TURN":
             self._end_turn()
         elif action.kind == "MULLIGAN_TOGGLE":
@@ -5138,10 +5240,36 @@ class DragonMirrorGame:
             self._resolve_hand_discard(action.source)
         elif action.kind == "HAND_PICK":
             self._resolve_hand_select(action.source)
+        self._trigger_dalaran_champion_stat_gain()
         for owner in self.players:
             self._normalize_shattered_hand(owner)
         self._resolve_deaths()
         self._check_winner()
+
+    def _trigger_dalaran_champion_stat_gain(self) -> None:
+        """Apply Dalaran Champion once for each observed stat-gain event.
+
+        A snapshot avoids recursively treating the Champion's own +1/+1 as a
+        new event.  Losses merely reset the observation baseline, which also
+        correctly handles silence and temporary enchantment expiry.
+        """
+        for player in self.players:
+            for champion in list(player.board):
+                if (
+                    champion.card_id != "JAIL_330" or champion.silenced
+                    or champion.dormant_turns > 0 or champion.health <= 0
+                ):
+                    continue
+                before_attack = getattr(champion, "dalaran_observed_attack", champion.attack)
+                before_health = getattr(champion, "dalaran_observed_health", champion.max_health)
+                gained = champion.attack > before_attack or champion.max_health > before_health
+                if gained:
+                    champion.attack_delta += 1
+                    champion.health_delta += 1
+                    self._event("dalaran_champion_extra_stats", player=player.index,
+                                source=champion.entity_id, attack=1, health=1)
+                champion.dalaran_observed_attack = champion.attack
+                champion.dalaran_observed_health = champion.max_health
 
     def _resolve_hand_select(self, entity_id: int | None) -> None:
         pending = self.pending_choice
@@ -5529,6 +5657,7 @@ class DragonMirrorGame:
 
     def _play(self, action: Action) -> None:
         player = self.players[self.current]
+        player.previous_played_card_id = player.last_played_card_id
         self._refresh_genn(player)
         # Dynamic costs are evaluated while the card is still in hand.  This
         # matters for effects such as "costs (1) less for each card in your
@@ -5549,6 +5678,7 @@ class DragonMirrorGame:
         hero_heal_health_payment = (
             held.card_id == "CORE_ETC_523" and player.restored_health_this_turn > 0
         )
+        opponent_health_payment = player.next_card_uses_opponent_health
         if (
             held.definition.card_type == "MINION"
             and player.mug_magic_active
@@ -5588,6 +5718,13 @@ class DragonMirrorGame:
                 "spend_corpses", player=player.index,
                 card=card.card_id, amount=effective_cost,
             )
+        elif opponent_health_payment:
+            opponent = self.players[1 - player.index]
+            paid = min(10, max(0, effective_cost))
+            opponent.health = max(0, opponent.health - paid)
+            player.next_card_uses_opponent_health = False
+            self._event("opponent_health_cost_paid", player=player.index,
+                        opponent=opponent.index, card=card.card_id, amount=paid)
         elif card.costs_health_expiry_turn == self.turn:
             self._damage_hero(player, effective_cost, card)
             self._event(
@@ -5835,6 +5972,20 @@ class DragonMirrorGame:
                 controller.magmaw_entity = card.entity_id
                 self._summon_magmaw_bodies(controller)
             self._battlecry(controller, card, action)
+            # Gallagio Goon is intentionally dispatched after the played
+            # Battlecry; other AFTER_PLAY rules use the spell dispatcher.
+            for goon in list(controller.board):
+                if (
+                    goon.entity_id != card.entity_id
+                    and goon.card_id == "JAIL_802"
+                    and not goon.silenced and goon.dormant_turns == 0
+                    and goon.health > 0
+                ):
+                    self.rule_registry.dispatch(
+                        Hook.AFTER_PLAY, goon.card_id, self,
+                        RuleContext(player=controller, card=goon,
+                                    payload={"played": card}),
+                    )
             self._trigger_imbue_passive(controller, card)
             if card in controller.board:
                 self._trigger_secrets_after_enemy_minion_play(controller, card)
@@ -5993,6 +6144,7 @@ class DragonMirrorGame:
                 player,
                 exclude_entity=card.entity_id if card.card_id == "TIME_063" else None,
             )
+        player.last_played_card_id = card.card_id
 
     def _trigger_imbue_passive(self, player: Player, card: CardInstance) -> None:
         """Resolve passive Imbue effects after a minion's Battlecry."""
@@ -6034,7 +6186,14 @@ class DragonMirrorGame:
                 )
 
     def _battlecry(self, player: Player, card: CardInstance, action: Action) -> None:
-        times = 2 if card.battlecry_twice else 1
+        deios_active = any(
+            minion.entity_id != card.entity_id
+            and minion.card_id == "TIME_064"
+            and not minion.silenced and minion.dormant_turns == 0
+            and minion.health > 0
+            for minion in player.board
+        )
+        times = 2 if card.battlecry_twice or deios_active else 1
         if card.card_id == "CORE_RLK_706":
             player.mograine_active = True
             self._event(
@@ -7638,6 +7797,17 @@ class DragonMirrorGame:
                                      "amount": restored, "source": source},
                         ),
                     )
+            if (
+                isinstance(target, Player)
+                and target is owner
+                and owner.alex_full_heal_damage
+                and target.health >= target.max_health
+            ):
+                amount = owner.alex_full_heal_damage
+                owner.alex_full_heal_damage = 0
+                self._damage_hero(self.players[1 - owner.index], amount, source)
+                self._event("alexstrasza_full_heal", player=owner.index,
+                            amount=amount)
         if restored and trigger_black_blood:
             self._black_blood_after_restore(owner, source=source)
         excess = amount - restored
@@ -8935,6 +9105,7 @@ class DragonMirrorGame:
             )
             return "deck"
         elif len(player.hand) < 10:
+            card.entered_hand_turn = self.turn
             player.hand.append(card)
             if card.card_id in {"TLC_817t3", "TLC_817t4"}:
                 self._combine_soletos(player)
@@ -9921,6 +10092,9 @@ class DragonMirrorGame:
         if was_stealthed:
             for held in self.players[self.current].hand:
                 held.stealthed_minion_attacked_while_held = True
+        self._trigger_mystic_misdirection(
+            attacker, self.players[action.target_player]
+        )
         if attacker.card_id == "TLC_107" and not attacker.silenced:
             # Stormbrewer hits the declared target before normal combat.
             if action.target_entity is None:
@@ -10841,6 +11015,47 @@ class DragonMirrorGame:
             Hook.DEATHRATTLE, minion.card_id, self,
             RuleContext(player=player, card=minion),
         )
+        if any(
+            source.card_id == "TIME_064" and not source.silenced
+            and source.dormant_turns == 0 and source.health > 0
+            for source in player.board
+        ):
+            self.rule_registry.dispatch(
+                Hook.DEATHRATTLE, minion.card_id, self,
+                RuleContext(player=player, card=minion),
+            )
+        if getattr(minion, "eaten_deck_minion", None) is not None:
+            eaten = minion.eaten_deck_minion
+            minion.eaten_deck_minion = None
+            self._add_generated(player, eaten)
+            self._event("hungering_ancient_release", player=player.index,
+                        source=minion.entity_id, card=eaten.card_id)
+        if getattr(minion, "deathrattle_friendly_buff", None):
+            attack, health = minion.deathrattle_friendly_buff
+            for target in player.board:
+                target.attack_delta += attack
+                target.health_delta += health
+            self._event("amphibian_spirit_deathrattle", player=player.index,
+                        source=minion.entity_id, attack=attack, health=health)
+        if getattr(minion, "trapped_enemy_entity", None) is not None:
+            enemy = self.players[1 - player.index]
+            discarded = next((card for card in enemy.hand
+                              if card.entity_id == minion.trapped_enemy_entity), None)
+            if discarded is not None:
+                enemy.hand.remove(discarded)
+                self._event("ancient_augur_discard", player=player.index,
+                            source=minion.entity_id, target=discarded.entity_id,
+                            card=discarded.card_id)
+        for killed in getattr(minion, "killed_by_ursoc", []):
+            if len(player.board) + len(player.locations) >= 7:
+                break
+            revived = killed.clone(self.next_entity_id)
+            self.next_entity_id += 1
+            revived.damage = 0
+            revived.summoned_turn = self.turn
+            self._summon(player, revived)
+            self._event("ursoc_resurrect_killed", player=player.index,
+                        source=minion.entity_id, entity=revived.entity_id)
         # Entomologist Toru's jars retain the complete original instance.
         # Releasing happens on death, not on the moment the jar is silenced
         # or otherwise transformed, and consumes the stored instance once.
