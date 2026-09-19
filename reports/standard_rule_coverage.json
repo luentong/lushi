@@ -7,11 +7,11 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 1108,
+      "declarative": 1131,
       "engine_owned_auxiliary": 21,
       "engine_state": 482,
       "legacy_compatibility": 298,
-      "not_implemented": 252
+      "not_implemented": 229
     },
     "collectible_implementation": {
       "declarative": 972,
@@ -12303,10 +12303,10 @@
       "mechanics": "",
       "text": "Give your other minions +1/+3.",
       "text_sha256": "9e437dbcc94216a04ba44ccd96403b347b9b43e55a4d6588eeb78a91e3e7aac6",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_209b",
@@ -12319,10 +12319,10 @@
       "mechanics": "",
       "text": "Summon a 5/5 Ancient with Taunt.",
       "text_sha256": "efed9ff8ac93e909527ee1561cd8272c60b3c5079e914c3c12dc4ad0f19eaa28",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_209e2",
@@ -12479,10 +12479,10 @@
       "mechanics": "",
       "text": "Summon three 2/3 Wolves with Taunt.",
       "text_sha256": "a85976ae98ac7c1bb65dfedee727f33e8e77c76e163683cd5d486b3cc9636874",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_233b",
@@ -12495,10 +12495,10 @@
       "mechanics": "",
       "text": "Summon two 4/3 Falcons with Windfury.",
       "text_sha256": "a548fd66a36d4c7bb2737fb699ff4b879e469dbef2e09e7caeea86d150a782af",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_233t2",
@@ -12751,10 +12751,10 @@
       "mechanics": "",
       "text": "+3 Attack and Divine Shield.",
       "text_sha256": "103fee62ec38d5b0eab4837741cc05115af1d7d84a3e579f34466962b2efd289",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_257ae",
@@ -12783,10 +12783,10 @@
       "mechanics": "",
       "text": "+3 Health and Lifesteal.",
       "text_sha256": "a35ce9798650476234ded139c72c40e22d741686e3fe108a31d20d8e16f47548",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_257be",
@@ -12959,10 +12959,10 @@
       "mechanics": "",
       "text": "Deal $4 damage to the enemy hero.",
       "text_sha256": "b876468e2ecf0c554ff63cd955d172a0ec2bce6a0f3e4d58eaed76d2c5f3a22e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_263b",
@@ -12975,10 +12975,10 @@
       "mechanics": "",
       "text": "Summon two 3/2 Wolves with Rush.",
       "text_sha256": "9898d85b89fed365087e6c6c76274deb44d54b9534af9a66cd27d51e1667cbd0",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_264",
@@ -13439,10 +13439,10 @@
       "mechanics": "LIFESTEAL",
       "text": "Lifesteal Deal $6 damage to a minion.",
       "text_sha256": "7415a28f14e2d71f1c3f053651d9cf4259ab3b56e287dcd6f7dbc3db09b2e6b3",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_461",
@@ -13471,10 +13471,10 @@
       "mechanics": "",
       "text": "Summon two random 6-Cost minions.",
       "text_sha256": "63b16fc06cd5e8f7cb29bd24f3892e6b4f5b6fbf6b7f8742cd963228a1697dd4",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_462",
@@ -14047,10 +14047,10 @@
       "mechanics": "",
       "text": "Summon two 3/6 Demons with Taunt that can't attack.",
       "text_sha256": "6cf20b63305ee81260c139af91304b6042fbb66ee4b961f5af648c107685a166",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_490b",
@@ -14063,10 +14063,10 @@
       "mechanics": "",
       "text": "Destroy an enemy minion.",
       "text_sha256": "72562e1de706442e27e115722d5e083e43f949be4b3c6d3c9503cafff3522041",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_490t",
@@ -14559,10 +14559,10 @@
       "mechanics": "",
       "text": "Gain Poisonous this turn.",
       "text_sha256": "e358c9fdbd64c64bdaa3c50ba61aa4ff48051d5177432edea93732528018dfd6",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_525B",
@@ -14575,10 +14575,10 @@
       "mechanics": "",
       "text": "Gain \"Deathrattle: Deal 2 damage to all enemies.\"",
       "text_sha256": "2742220765f46f2ddfb291dc3302619057ec416d8d476f2e7f5fa84fd96b0ff7",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_525e",
@@ -14783,10 +14783,10 @@
       "mechanics": "",
       "text": "Deal $1 damage to all minions.",
       "text_sha256": "332d278fff06db354f0c9c72c3b45dc517431502585d0f1a4c4cdd796660eb9a",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_570B",
@@ -14799,10 +14799,10 @@
       "mechanics": "",
       "text": "Give a damaged minion +2/+2.",
       "text_sha256": "3eb16f59576637ba30b02dc3ff076f678d6a44785dc0e63967c756d0f26f3d35",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_570e",
@@ -15151,10 +15151,10 @@
       "mechanics": "",
       "text": "Summon two 1/1 Ants.",
       "text_sha256": "b4bed713c8fc94b2328ffef47d7a97d39a14995cca11affe4df75e97a1648faa",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_813at",
@@ -15183,10 +15183,10 @@
       "mechanics": "",
       "text": "Spend 2 Corpses to deal $4 damage to a minion.",
       "text_sha256": "189bdce4756415239918493c82473cbf106e74bb6e6818ed42b6eb151e5f097a",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_814",
@@ -15359,10 +15359,10 @@
       "mechanics": "",
       "text": "Summon two random Dormant Dreadseeds.",
       "text_sha256": "a5f1e70d560f645906f9c2a6d92a449e6a5774440093c0e5831c33b7f6460467",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_820b",
@@ -15375,10 +15375,10 @@
       "mechanics": "",
       "text": "Deal $2 damage to all minions.",
       "text_sha256": "29d8d69660e6efa051f2e502546136a9be19cbb17eeeaa3539cf26a20e7a5f14",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_840",
@@ -16159,10 +16159,10 @@
       "mechanics": "DISCOVER",
       "text": "Discover a Mage spell.",
       "text_sha256": "39dbe2c1910d2e8e617b74676630105d712aac4f11aededea46f41feafb19016",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_872B",
@@ -16175,10 +16175,10 @@
       "mechanics": "DISCOVER",
       "text": "Discover a Druid spell.",
       "text_sha256": "655cbe5bdb72b89c49347d306a7966866ed87390226674c40ab5f1bf3de5e488",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_873",
@@ -18047,10 +18047,10 @@
       "mechanics": "",
       "text": "Give a minion +3/+3. Add a Light of the New Moon to your hand.",
       "text_sha256": "68c644abd7fcd72af62a26687e3583b57233abe782fb348334582e9d523d253c",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "FIR_919",

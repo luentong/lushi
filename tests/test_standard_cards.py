@@ -5678,6 +5678,12 @@ class AuxiliaryEntityCoverageTests(unittest.TestCase):
         "TIME_COIN1", "TIME_COIN2", "TIME_COIN3", "TIME_COIN4", "TIME_EVENT_COIN",
         "JAIL_COIN2", "JAIL_COIN3", "JAIL_EVENT_COIN",
     }
+    EMERALD_OPTIONS = {
+        "EDR_209a", "EDR_209b", "EDR_233a", "EDR_233b", "EDR_257a", "EDR_257b",
+        "EDR_263a", "EDR_263b", "EDR_460t", "EDR_461t", "EDR_490a", "EDR_490b",
+        "EDR_525A", "EDR_525B", "EDR_570A", "EDR_570B", "EDR_813a", "EDR_813b",
+        "EDR_820a", "EDR_820b", "EDR_872A", "EDR_872B", "FIR_918t",
+    }
 
     def game(self):
         game = DragonMirrorGame(CARDS, 31337)
@@ -5726,6 +5732,28 @@ class AuxiliaryEntityCoverageTests(unittest.TestCase):
         game.players[0].hand.append(scout)
         game.step(Action("PLAY", scout.entity_id, 1, target.entity_id))
         self.assertLess(target.health, target.max_health)
+
+    def test_emerald_choice_entities_are_independently_executable(self):
+        game = self.game()
+        self.assertEqual(23, len(self.EMERALD_OPTIONS))
+        self.assertTrue(self.EMERALD_OPTIONS <= game.executable_card_ids)
+        self.assertTrue(self.EMERALD_OPTIONS <= {
+            rule.card_id for rule in game.rule_registry.all_rules()
+        })
+
+        damage = game._entity("EDR_263a")
+        game.players[0].mana = 20
+        game.players[0].hand.append(damage)
+        game.step(Action("PLAY", damage.entity_id))
+        self.assertEqual(26, game.players[1].health)
+
+        game = self.game()
+        ancient = game._entity("EDR_209b")
+        game.players[0].mana = 20
+        game.players[0].hand.append(ancient)
+        game.step(Action("PLAY", ancient.entity_id))
+        self.assertEqual(1, len(game.players[0].board))
+        self.assertEqual("EDR_209t", game.players[0].board[0].card_id)
 
 
 if __name__ == "__main__":

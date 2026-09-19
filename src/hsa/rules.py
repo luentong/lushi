@@ -553,6 +553,12 @@ STANDARD_DECLARATIVE_IDS = {
     # spell/minion dispatcher as deck cards.
     "CATA_158t", "CATA_552t", "CATA_553t", "MEND_100t",
     "MEND_505t", "MEND_505t2", "MEND_505t3",
+    # Emerald Dream option cards.  The parent Choose One card creates these
+    # exact entities in client traces, so each is independently executable.
+    "EDR_209a", "EDR_209b", "EDR_233a", "EDR_233b", "EDR_257a", "EDR_257b",
+    "EDR_263a", "EDR_263b", "EDR_460t", "EDR_461t", "EDR_490a", "EDR_490b",
+    "EDR_525A", "EDR_525B", "EDR_570A", "EDR_570B", "EDR_813a", "EDR_813b",
+    "EDR_820a", "EDR_820b", "EDR_872A", "EDR_872B", "FIR_918t", "EDR_490t",
 }
 
 # These non-collectible entities are emitted and resolved by explicit engine
@@ -8076,6 +8082,26 @@ class ChooseThriceCenarius:
                 picks.append("summon")
         game._event("cenarius_choose_thrice", player=context.player.index,
                     source=context.card.card_id, picks=picks)
+
+
+@dataclass(frozen=True)
+class SummonCenariusAncient:
+    """Create the 5/5 Taunt token used by the standalone Cenarius option."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if len(context.player.board) + len(context.player.locations) >= 7:
+            return
+        ancient = _lost_city_token(
+            game, "EDR_209t", "Ancient", cost=5, attack=5, health=5,
+            mechanics=("TAUNT",), card_class="DRUID",
+        )
+        ancient.taunt = True
+        ancient.summoned_turn = game.turn
+        game._summon(context.player, ancient)
+        game._event(
+            "cenarius_ancient_summoned", player=context.player.index,
+            source=context.card.card_id, entity=ancient.entity_id,
+        )
 
 
 @dataclass(frozen=True)
@@ -16783,4 +16809,53 @@ def build_rule_registry() -> RuleRegistry:
                  _AUXILIARY_TOKEN_SOURCE),
         CardRule("MEND_505t3", {Hook.SPELL: (IncreaseLeylinePower(2),)},
                  _AUXILIARY_TOKEN_SOURCE),
+        # Emerald Dream's Choose One options are emitted as concrete spell
+        # entities in Power.log.  Declare the option surface explicitly so a
+        # replay can resolve either the parent card or the selected entity.
+        CardRule("EDR_209a", {Hook.SPELL: (BuffAllOtherFriendlyMinions(1, 3),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_209b", {Hook.SPELL: (SummonCenariusAncient(),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_233a", {Hook.SPELL: (Summon("DRG_217t", count=3),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_233b", {Hook.SPELL: (Summon("EDR_233t2", count=2),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_257a", {Hook.SPELL: (BuffSelfAttackShield(),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_257b", {Hook.SPELL: (BuffSelfHealthLifesteal(),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_263a", {Hook.SPELL: (DamageEnemyHero(4),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_263b", {Hook.SPELL: (SummonCustomRushWolf(2),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_460t", {Hook.SPELL: (NewMoonDamage(),)},
+                 _AUXILIARY_TOKEN_SOURCE, TargetSpec(TargetKind.ENEMY_MINION)),
+        CardRule("EDR_461t", {Hook.SPELL: (RitualNewMoon(),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_490a", {Hook.SPELL: (Summon("EDR_490t", count=2),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_490b", {Hook.SPELL: (DestroyActionTarget(),)},
+                 _AUXILIARY_TOKEN_SOURCE, TargetSpec(TargetKind.ENEMY_MINION)),
+        CardRule("EDR_525A", {Hook.SPELL: (GiveHeroPoisonousThisTurn(),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_525B", {Hook.SPELL: (SetDeathrattleDamageAllEnemies(2),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_570A", {Hook.SPELL: (DamageAllMinions(1),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_570B", {Hook.SPELL: (BuffActionTargetIfDamaged(2, 2),)},
+                 _AUXILIARY_TOKEN_SOURCE, TargetSpec(TargetKind.DAMAGED_MINION)),
+        CardRule("EDR_813a", {Hook.SPELL: (Summon("EDR_813at", count=2),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_813b", {Hook.SPELL: (SpendCorpseDamageActionTarget(2, 4),)},
+                 _AUXILIARY_TOKEN_SOURCE, TargetSpec(TargetKind.ANY_MINION)),
+        CardRule("EDR_820a", {Hook.SPELL: (SummonRandomDreadseed(count=2),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_820b", {Hook.SPELL: (DamageAllMinions(2),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_872A", {Hook.SPELL: (OfferClassSpellDiscover("MAGE"),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_872B", {Hook.SPELL: (OfferClassSpellDiscover("DRUID"),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("FIR_918t", {Hook.SPELL: (LightNewMoon(),)},
+                 _AUXILIARY_TOKEN_SOURCE, TargetSpec(TargetKind.ANY_MINION)),
     ))
