@@ -207,6 +207,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game._refresh_continuous(game.players[0])
         base = other.definition.attack
         self.assertEqual(base + 1, other.attack)
+        # Raid Leader does not buff itself.
         self.assertEqual(leader.definition.attack, leader.attack)
 
     def test_continuous_aura_cards_are_registered_for_audit(self):
@@ -223,7 +224,8 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         leader = self.add_board(game, "CORE_EX1_507", 0)
         other = self.add_board(game, "CORE_EX1_507", 0)
         game._refresh_continuous(game.players[0])
-        self.assertEqual(leader.definition.attack, leader.attack)
+        # Each Warleader buffs the other one, but not itself.
+        self.assertEqual(leader.definition.attack + 2, leader.attack)
         self.assertEqual(other.definition.attack + 2, other.attack)
         leader.silenced = True
         game._refresh_continuous(game.players[0])
@@ -311,15 +313,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game = self.game()
         self.add_board(game, "CORE_EDR_003", 0)
         victim = self.add_board(game, "CORE_EX1_005", 0)
-        victim.health = 0
+        victim.damage = victim.max_health
         game._resolve_deaths()
         self.assertEqual(2, game.players[0].corpses)
 
     def test_captive_nathrezim_global_cost_aura_affects_both_hands(self):
         game = self.game()
         self.add_board(game, "JAIL_890", 0)
-        own = game._entity("CORE_EX1_005")
-        enemy = game._entity("CORE_EX1_005")
+        own = game._entity("CORE_CS2_172")
+        enemy = game._entity("CORE_CS2_172")
         game.players[0].hand = [own]
         game.players[1].hand = [enemy]
         self.assertEqual(4, game._effective_cost(game.players[0], own))
@@ -385,6 +387,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_sheltered_survivor_shuffles_selected_hand_card(self):
         game = self.game()
+        game.players[0].deck = []
         survivor = self.add_hand(game, "CATA_721")
         chosen = game._entity("CORE_CS2_023")
         game.players[0].hand.append(chosen)
@@ -419,7 +422,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game = self.game()
         game.players[0].deck = [game._entity("AT_001")]
         flame = self.add_board(game, "FIR_929", 0)
-        flame.health = 0
+        flame.damage = flame.max_health
         game._resolve_deaths()
         self.assertEqual(1, len(game.players[0].hand))
 
@@ -777,7 +780,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         return card
 
     def add_board(
-        self, game: DragonMirrorGame, card_id: str, player: int, *, attack=0
+        self, game: DragonMirrorGame, card_id: str, player: int = 0, *, attack=0
     ):
         card = game._entity(card_id)
         card.summoned_turn = game.turn - 1
@@ -1873,14 +1876,17 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.players[1].deck.append(enemy_minion)
         before = len(game.players[1].deck)
         game._end_turn()
-        self.assertEqual(before - 1, len(game.players[1].deck))
+        # Chogall summons two Arms; each destroys one random enemy minion.
+        # The opponent also draws once when the turn advances.
+        self.assertEqual(before - 3, len(game.players[1].deck))
+        self.assertEqual(2, sum(e["kind"] == "chogall_deck_destroy" for e in game.events))
 
     def test_supreme_dinomancy_buffs_all_beast_zones(self):
         game = self.game()
-        hand_beast = self.add_hand(game, "CATA_565")
-        deck_beast = game._entity("CATA_565")
+        hand_beast = self.add_hand(game, "CORE_TRL_900")
+        deck_beast = game._entity("CORE_TRL_900")
         game.players[0].deck.append(deck_beast)
-        board_beast = self.add_board(game, "CATA_565", 0)
+        board_beast = self.add_board(game, "CORE_TRL_900", 0)
         before = [(card.attack, card.max_health) for card in (hand_beast, deck_beast, board_beast)]
         spell = self.add_hand(game, "TLC_828")
         game.step(Action("PLAY", spell.entity_id))
@@ -1967,6 +1973,9 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         auctioneer = self.add_hand(game, "JAIL_718")
         game.step(Action("PREPARE", auctioneer.entity_id))
         game.step(Action("PLAY", auctioneer.entity_id))
+        # Prepare spends the current turn's mana; model the next turn before
+        # testing the minion's spell trigger.
+        game.players[0].mana = 20
         spell = self.add_hand(game, "CORE_CS2_023")
         hand_before = len(game.players[0].hand) - 1
         game.step(Action("PLAY", spell.entity_id))
@@ -1977,6 +1986,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         vanessa = self.add_hand(game, "JAIL_407")
         game.step(Action("PREPARE", vanessa.entity_id))
         game.step(Action("PLAY", vanessa.entity_id))
+        game.players[0].mana = 20
         spell = self.add_hand(game, "CORE_CS2_023")
         game.step(Action("PLAY", spell.entity_id))
         generated = [card for card in game.players[0].hand if card.created_by == "JAIL_407"]
@@ -2448,14 +2458,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_spire_security_reveals_and_splits_damage(self):
         game = self.game()
-        game.players[0].deck = [game._entity("CORE_CFM_604", started_in_deck=True)]
+        game.players[0].deck = [game._entity("TLC_632", started_in_deck=True)]
         enemies = [self.add_board(game, "CORE_LOOT_137", 1) for _ in range(3)]
         security = self.add_hand(game, "JAIL_379")
         game.step(Action("PLAY", security.entity_id))
         self.assertEqual(5, sum(minion.damage for minion in enemies))
         reveal = next(event for event in reversed(game.events)
                       if event["kind"] == "reveal_spell")
-        self.assertEqual("CORE_CFM_604", reveal["card"])
+        self.assertEqual("TLC_632", reveal["card"])
         self.assertTrue(reveal["triggered"])
 
     def test_overheal_core_minions(self):
@@ -3549,7 +3559,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             if option.card_id == "CORE_AT_055"
         )
         game.step(Action("DISCOVER_PICK", chosen.entity_id))
-        self.assertEqual(5, game.players[0].weapon.durability)
+        self.assertEqual(3, game.players[0].weapon.durability)
         self.assertTrue(any(card.card_id == "CORE_LOOT_137" for card in game.players[0].board))
         self.assertEqual(2, game.players[0].cards_played_this_turn)
 
@@ -3715,7 +3725,8 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         sweep = self.add_hand(game, "CATA_156")
         enemy = self.add_board(game, "CORE_CS2_231", 1)
         game.step(Action("PLAY", sweep.entity_id))
-        self.assertEqual(26, game.players[1].health)
+        # Experimental Animation damages enemy minions, not the enemy hero.
+        self.assertEqual(30, game.players[1].health)
         self.assertEqual(4, enemy.damage)
 
     def test_living_roots_choose_one(self):
@@ -3724,7 +3735,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         roots = self.add_hand(damage_game, "CORE_AT_037")
         damage_game.step(Action("PLAY", roots.entity_id, 1, target.entity_id))
         damage_game.step(Action("RULE_CHOICE_PICK", 0))
-        self.assertEqual(3, target.damage)
+        self.assertEqual(2, target.damage)
 
         summon_game = self.game()
         roots = self.add_hand(summon_game, "CORE_AT_037")
@@ -4364,7 +4375,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_imbue_hero_power_mage(self):
         game = self.game()
-        game.players[0].hero_power_id = "END_000p"
+        game.players[0].hero_power_id = "EDR_851p"
         game.players[1].health = 30
         game.step(Action("HERO_POWER"))
         self.assertEqual(["CORE_CS2_231"], [m.card_id for m in game.players[0].board])

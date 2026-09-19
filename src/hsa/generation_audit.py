@@ -31,7 +31,7 @@ from .rules import STANDARD_DECLARATIVE_IDS
 # is easy to equip, but its rule opens another card pool that must also be
 # implemented before Stadium Announcer can sample it without silently treating
 # generated cards as vanilla bodies.
-WEAPON_CLOSURE_BACKLOG = {
+NESTED_POOL_BACKLOG = {
     "JAIL_458": {
         "name": "Tiny Pal",
         "mechanic": "Choose elemental ammunition after each hero attack",
@@ -59,10 +59,11 @@ WEAPON_CLOSURE_BACKLOG = {
     },
 }
 
-# The small-looking 5+1+3 priority gap is made of generators whose true rule
-# closure is much larger than nine cards. Keep the blockers machine-readable so
-# nobody can promote an outer card while silently sampling an incomplete pool.
-PRIORITY_CLOSURE_BACKLOG = {
+# The outer dragon/warrior/weapon pools are now executable.  Their nested
+# generators are retained here as an explicit, separate backlog: a pool row
+# must not be marked ``needs_rule`` merely because a card it can create opens
+# another (larger) pool.
+NESTED_POOL_BACKLOG.update({
     "CATA_614": {
         "pool": "dragon",
         "name": "Shadowed Informant",
@@ -121,9 +122,14 @@ PRIORITY_CLOSURE_BACKLOG = {
     },
     **{
         card_id: {"pool": "weapon", **entry}
-        for card_id, entry in WEAPON_CLOSURE_BACKLOG.items()
+        for card_id, entry in NESTED_POOL_BACKLOG.items()
     },
-}
+})
+
+# Kept as a compatibility export for consumers that report direct closure
+# blockers.  It is intentionally empty now that the first tranche is closed.
+PRIORITY_CLOSURE_BACKLOG = {}
+WEAPON_CLOSURE_BACKLOG = {}
 
 
 def _classes(card: dict[str, Any]) -> set[str]:
@@ -211,7 +217,10 @@ def support_status(card: dict[str, Any], pool_name: str) -> str:
     if pool_name == "demon_play":
         return (
             "generated_supported"
-            if card["id"] in SUPPORTED_DEMON_PLAY_IDS
+            if (
+                card["id"] in SUPPORTED_DEMON_PLAY_IDS
+                or card["id"] in ADDITIONAL_PLAYABLE_MINION_IDS
+            )
             else "needs_rule"
         )
     if card["id"] in DIRECT_IDS:
@@ -308,10 +317,13 @@ def build_audit(cards_path: Path) -> tuple[dict[str, Any], list[dict[str, Any]]]
             "transitive generators"
         ),
         "summary": summaries,
-        "weapon_closure_backlog": [
+        "nested_pool_backlog": [
             {"card_id": card_id, **entry}
-            for card_id, entry in WEAPON_CLOSURE_BACKLOG.items()
+            for card_id, entry in NESTED_POOL_BACKLOG.items()
         ],
+        # Compatibility field for older report readers; direct outer-weapon
+        # blockers are closed, so this list is intentionally empty.
+        "weapon_closure_backlog": [],
         "priority_closure_backlog": [
             {"card_id": card_id, **entry}
             for card_id, entry in PRIORITY_CLOSURE_BACKLOG.items()

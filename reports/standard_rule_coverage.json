@@ -7,15 +7,15 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 1307,
+      "declarative": 1308,
       "engine_owned_auxiliary": 21,
       "engine_state": 482,
-      "legacy_compatibility": 297,
+      "legacy_compatibility": 296,
       "not_implemented": 54
     },
     "collectible_implementation": {
-      "declarative": 972,
-      "legacy_compatibility": 194
+      "declarative": 973,
+      "legacy_compatibility": 193
     },
     "fully_implemented": false
   },
@@ -18559,7 +18559,7 @@
       "mechanics": "BATTLECRY",
       "text": "Immune to Fire spells. Battlecry: Cast 15 Mana worth of Fire spells at random enemies.",
       "text_sha256": "1d6013ea56eb247f3ab4b1dc35bb7b3263277d75db59ce7ae29fc2af4fc7dbf4",
-      "implementation": "legacy_compatibility",
+      "implementation": "declarative",
       "playable_ready": true,
       "runtime_state_ready": true,
       "verification": "focused_or_regression_tests"

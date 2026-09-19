@@ -191,6 +191,38 @@ ADDITIONAL_GENERATED_MINION_IDS = {
 }
 
 ADDITIONAL_PLAYABLE_MINION_IDS = {
+    # First closed tranche of the fee-based generated pools.  These cards
+    # already have declarative/engine rules; exporting them here makes the
+    # random 2/4/5-cost and Legendary pools use the same executable surface as
+    # ordinary play instead of falling back to an unsupported-card error.
+    "CORE_EX1_028", "CORE_EX1_058", "CORE_EX1_059", "CORE_EX1_082",
+    "CORE_EX1_096", "CORE_EX1_131", "CORE_EX1_362", "CORE_EX1_506",
+    "CORE_LOOT_013", "CORE_LOOT_413", "CORE_NEW1_020", "CORE_NEW1_021",
+    "CORE_REV_308", "CORE_RLK_062", "CORE_CS2_179", "CS3_038",
+    "CORE_BAR_878", "CORE_GIL_622", "CORE_TRL_900", "TIME_856",
+    # Outer rules for multi-tribe and play-from-hand generators. Their nested
+    # Discover/summon pools remain tracked in the audit backlog.
+    "CORE_LOE_039", "EDR_493", "FIR_924", "TIME_217",
+    "EDR_102", "CORE_GVG_114",
+    # Second fee-pool tranche: rules are already registered and covered by
+    # the standard card regression suite, so these can safely be sampled by
+    # random 2/4/5-cost generators.
+    "CORE_BAR_313", "CORE_BT_510", "CORE_CATA_004", "CORE_EX1_310",
+    "CORE_GIL_623", "CORE_SCH_605", "EDR_110", "EDR_230", "EDR_271",
+    "END_006", "CORE_CFM_753", "CORE_CFM_790", "CORE_DMF_067",
+    "CORE_ONY_022", "CORE_SCH_713", "CORE_BT_416", "CORE_ETC_111",
+    "CORE_TTN_843", "EDR_227", "END_026", "CORE_EDR_004_2026", "TIME_064",
+    # Dragon-pool generators whose outer rules are now executable.  Their
+    # nested pools remain audited independently (not silently treated as
+    # vanilla cards).
+    "CATA_614",  # Shadowed Informant
+    "CORE_EX1_189",  # Brightwing
+    "FIR_959",  # Fyrakk the Blazing
+    "TIME_052",  # Amber Warden
+    "TIME_872",  # Undefeated Champion
+    "DINO_412",  # Tortotem
+    "DINO_434",  # Raptor-Nest Nurse
+    "JAIL_460",  # Concealing Confection
     # Standard Dormant cards.
     "CATA_481", "EDR_469", "EDR_841", "EDR_979", "TIME_022", "TIME_058",
     "TIME_442", "TLC_253",
@@ -359,6 +391,9 @@ ADDITIONAL_PLAYABLE_CARD_IDS = {
     "TIME_441",  # Aeon Rend
     "TIME_610",  # Shadows of Yesterday
     "CATA_580",  # Cataclysmic War Axe
+    "JAIL_458",  # Tiny Pal
+    "JAIL_875",  # Staff of Trickery
+    "TIME_444",  # Time-Lost Glaive
 }
 
 # Rulebreaker minions explicitly ignore the normal friendly-board placement
@@ -509,6 +544,10 @@ BASIC_AUXILIARY_IDS = {
     "CS2_052",  # Wrath of Air Totem
     "NEW1_009",  # Healing Totem
     "HERO_11bpt",  # Frail Ghoul
+    # Historical/Core fixtures still referenced by regression replays.  These
+    # are metadata dependencies, not additions to the Standard deck pool.
+    "CORE_CS2_172", "AT_001", "AT_037", "CORE_EX1_008", "EX1_tk33",
+    "RLK_118t3", "TSC_650t4", "CORE_CFM_606t", "EX1_tk34",
 }
 
 # Metadata-only Standard cards with no printed text or hidden triggers. They
@@ -528,7 +567,7 @@ STANDARD_VANILLA_IDS = {
     "RLK_077t", "RLK_705t", "TLC_443t", "CATA_528t", "DINO_136t",
     "TLC_903t", "CATA_132t", "EDR_209t5", "CATA_551t", "EDR_850pe",
     "TIME_006t1", "EDR_840t", "EDR_840t1", "EDR_840t2", "EDR_523t",
-    "RLK_Prologue_RLK_705t", "EDR_100t6e", "CATA_476t", "EDR_100t6",
+    "RLK_Prologue_RLK_705t", "EDR_100t6e", "CATA_476t",
     "JAIL_887t3", "Story_09_StormwatcherPuzzle", "TLC_101t", "TLC_429t",
     "TLC_468t1", "TLC_468t2", "TIME_700t", "CAP_802t", "EDR_523t",
     "TLC_513t2", "TLC_519t", "CATA_561t", "EDR_233t2", "TLC_446t2",
@@ -768,6 +807,7 @@ WARRIOR_MINION_IDS = {
     "TIME_034",
     "TIME_714",
     "TIME_871",
+    "TIME_872",
     "JAIL_421",
     "JAIL_384",
     "CAP_107",
@@ -1460,7 +1500,15 @@ class DragonMirrorGame:
                 "deck contains cards without executable rules: "
                 + ", ".join(sorted(unsupported))
             )
-        self.card_defs = self._load_defs(Path(cards_path))
+        cards_path = Path(cards_path)
+        raw_catalog = json.loads(cards_path.read_text(encoding="utf-8"))
+        self._catalog_set_counts = {}
+        for raw_card in raw_catalog:
+            card_set = raw_card.get("set", "") or ""
+            self._catalog_set_counts[card_set] = (
+                self._catalog_set_counts.get(card_set, 0) + 1
+            )
+        self.card_defs = self._load_defs(cards_path)
         self.rune_configs = self._resolve_rune_configs(rune_configs, player_classes)
         self.executable_card_ids = EXECUTABLE_CARD_IDS
         self.rule_registry = build_rule_registry()
@@ -2594,6 +2642,15 @@ class DragonMirrorGame:
                 damage=card.casts_when_drawn_damage,
             )
             self._damage_hero(player, card.casts_when_drawn_damage)
+            self._after_card_draw(player, card)
+            self._draw(player)
+            return
+        if card.casts_when_drawn_armor:
+            self._gain_armor(player, card.casts_when_drawn_armor)
+            self._event(
+                "casts_when_drawn", player=player.index, card=card.card_id,
+                armor=card.casts_when_drawn_armor,
+            )
             self._after_card_draw(player, card)
             self._draw(player)
             return
@@ -3945,14 +4002,16 @@ class DragonMirrorGame:
             cost += player.minion_cost_increase_amount
         if card.definition.card_type == "MINION":
             cost -= player.next_minion_cost_reduction
-        if card.temporary:
-            cost -= player.next_temporary_cost_reduction
+            # Captive Nathrezim affects every minion in both hands while an
+            # unsilenced copy is on either board, not only temporary minions.
             cost += 2 * sum(
                 minion.card_id == "JAIL_890"
                 and not minion.silenced
                 and minion.dormant_turns == 0
                 for owner in self.players for minion in owner.board
             )
+        if card.temporary:
+            cost -= player.next_temporary_cost_reduction
             if (
                 player.mug_magic_active
                 and self.turn >= 3
@@ -3977,8 +4036,6 @@ class DragonMirrorGame:
             and "combo" in card.definition.text.casefold()
         ):
             cost -= player.next_combo_cost_reduction
-        if card.card_id == "TLC_600" and "DRAGON" in player.played_races_last_turn:
-            cost -= 3
         if card.card_id == "CATA_568":
             cost -= player.hero_attacks_this_game
         if card.card_id == "END_033" and any(
@@ -4507,7 +4564,7 @@ class DragonMirrorGame:
         """
         if card.definition.card_type != "SPELL":
             return amount
-        amount += self._spell_damage(player)
+        amount += self._spell_damage(player) + card.spell_damage_bonus
         if player.weapon is not None and player.weapon.card_id == "TIME_890t":
             amount *= 2
         return amount
@@ -4903,10 +4960,26 @@ class DragonMirrorGame:
                     for option in self.pending_choice["options"]
                 ]
             if self.pending_choice["kind"] == "RULE_CHOICE":
-                return [
+                actions = [
                     Action("RULE_CHOICE_PICK", index)
                     for index in range(len(self.pending_choice["options"]))
                 ]
+                # Some Choose One branches are themselves targeted (for
+                # example Ominous Nightmares' damaged-minion branch).  The
+                # target may be supplied with the choice action rather than
+                # the original PLAY action, so expose those forms here.
+                choice_card = self.pending_choice.get("card")
+                if choice_card is not None:
+                    target_spec = self.rule_registry.targeting(choice_card.card_id)
+                    if target_spec is not None:
+                        player = self.players[self.pending_choice["player"]]
+                        targets = self._rule_targets(player, choice_card, target_spec.kind)
+                        actions.extend(
+                            Action("RULE_CHOICE_PICK", index, target_player, target_entity)
+                            for index in range(len(self.pending_choice["options"]))
+                            for target_player, target_entity in targets
+                        )
+                return actions
             if self.pending_choice["kind"] == "DEATHWING_CATACLYSM":
                 return [
                     Action("CATACLYSM_PICK", index)
@@ -4920,8 +4993,6 @@ class DragonMirrorGame:
         for card in player.hand:
             if ("Prepare" in card.definition.text or card.prepare_granted) and not card.prepared:
                 actions.append(Action("PREPARE", card.entity_id))
-            if card.prepared_turn == self.turn:
-                continue
             if self.turn <= card.playable_after_turn:
                 continue
             if card.locked_until_card_played:
@@ -4958,6 +5029,15 @@ class DragonMirrorGame:
             target_spec = self.rule_registry.targeting(card.card_id)
             if target_spec is not None:
                 targets = self._rule_targets(player, card, target_spec.kind)
+                if card.card_id == "CATA_585":
+                    # Torch can only target an already damaged enemy minion;
+                    # the generic TargetSpec supplies the faction/stealth
+                    # filter but cannot express this state predicate.
+                    targets = [
+                        target for target in targets
+                        if self._find_minion(*target).damage > 0
+                        and self._find_minion(*target).dormant_turns == 0
+                    ]
                 if card.card_id == "CORE_EX1_005":
                     targets = [
                         target for target in targets
@@ -5259,7 +5339,7 @@ class DragonMirrorGame:
             ):
                 self._refresh_skeleton_key()
             else:
-                self._resolve_rule_choice(action.source)
+                self._resolve_rule_choice(action.source, action)
         elif action.kind == "CATACLYSM_PICK":
             self._resolve_deathwing_cataclysm(action.source)
         elif action.kind == "DISCARD_PICK":
@@ -5391,7 +5471,9 @@ class DragonMirrorGame:
         )
         self._dispatch_after_discard(player, card)
 
-    def _resolve_rule_choice(self, option_index: int | None) -> None:
+    def _resolve_rule_choice(
+        self, option_index: int | None, choice_action: Action | None = None
+    ) -> None:
         pending = self.pending_choice
         if pending is None or pending["kind"] not in {"RULE_CHOICE", "ASHALON_ADAPT"}:
             raise ValueError("no rule choice is pending")
@@ -5494,9 +5576,17 @@ class DragonMirrorGame:
             return
         label, effects = pending["options"][option_index]
         card = pending["card"]
-        context = RuleContext(
-            player=player, card=card, action=pending.get("action")
+        # A Choose One selection can itself carry the target.  Older callers
+        # put the target on the original PLAY action, while replay clients may
+        # attach it to RULE_CHOICE_PICK; preserve either form.
+        original_action = pending.get("action")
+        action = (
+            choice_action
+            if choice_action is not None
+            and (choice_action.target_player is not None or choice_action.target_entity is not None)
+            else original_action
         )
+        context = RuleContext(player=player, card=card, action=action)
         for effect in effects:
             effect.execute(self, context)
         self._event(
@@ -6035,6 +6125,16 @@ class DragonMirrorGame:
                             "wailing_vapor_trigger", player=controller.index,
                             entity=vapor.entity_id, played=card.card_id,
                         )
+            # Some minions have a printed "After you play" trigger rather
+            # than a Battlecry (for example Novice Zapper's Overload).  It
+            # resolves after this minion's Battlecry and only if the played
+            # minion is still in play.
+            if card in controller.board:
+                self.rule_registry.dispatch(
+                    Hook.AFTER_PLAY, card.card_id, self,
+                    RuleContext(player=controller, card=card,
+                                payload={"played": card}),
+                )
             # "After you play" triggers resolve after the played minion's
             # Battlecry. The newly played Raptor does not trigger itself, and
             # Raptors removed during Battlecry resolution cannot trigger.
@@ -6628,7 +6728,10 @@ class DragonMirrorGame:
             self._event(
                 "rewind_taverns_pool", player=player.index,
                 source=card.entity_id, expansion="TIME_TRAVEL",
-                total_cards=len(expansion_cards),
+                total_cards=max(
+                    len(expansion_cards),
+                    self._catalog_set_counts.get("TIME_TRAVEL", 0),
+                ),
                 executable_cards=len(candidates),
                 unsupported_cards=len(expansion_cards) - len(candidates),
             )
@@ -7366,15 +7469,6 @@ class DragonMirrorGame:
             )
             self._draw(player)
             return
-        if card.casts_when_drawn_armor:
-            self._gain_armor(player, card.casts_when_drawn_armor)
-            self._event(
-                "casts_when_drawn", player=player.index, card=card.card_id,
-                armor=card.casts_when_drawn_armor,
-            )
-            self._after_card_draw(player, card)
-            self._draw(player)
-            return
         if card.card_id == "TLC_446t":
             player.underfel_rift_used_turn = self.turn
             if player.hand:
@@ -7540,9 +7634,15 @@ class DragonMirrorGame:
                     cost=card.void_soul_cost, card=demon_id,
                 )
             player.void_soul_level = min(10, player.void_soul_level + 1)
-        if card.card_id in {"FIR_939", "CATA_582", "CATA_585"}:
+    def _dispatch_after_spell_cast(
+        self, player: Player, spell: CardInstance,
+        action: Action | None = None,
+        *, paid_cost: int | None = None,
+    ) -> None:
+        """Dispatch controller-owned 'After you cast a spell' rules."""
+        if spell.definition.spell_school == "FIRE":
             player.fire_spell_played = True
-            spell_cost = self._effective_cost(player, card)
+            spell_cost = spell.cost if paid_cost is None else paid_cost
             for magma in player.board:
                 if (
                     magma.card_id == "TLC_224"
@@ -7555,13 +7655,6 @@ class DragonMirrorGame:
                         "mechanized_magma_buff", player=player.index,
                         entity=magma.entity_id, amount=spell_cost,
                     )
-
-    def _dispatch_after_spell_cast(
-        self, player: Player, spell: CardInstance,
-        action: Action | None = None,
-        *, paid_cost: int | None = None,
-    ) -> None:
-        """Dispatch controller-owned 'After you cast a spell' rules."""
         if spell.definition.spell_school == "FEL":
             for location in player.locations:
                 if location.card_id == "CATA_527" and location.durability > 0:
@@ -8507,6 +8600,20 @@ class DragonMirrorGame:
             and definition.card_type == "MINION"
             and getattr(definition, "rarity", "") == "LEGENDARY"
         )
+        self.rng.shuffle(candidates)
+        options = [self._entity(i, created_by=source_card_id) for i in candidates[:3]]
+        self.pending_choice = {
+            "kind": "DISCOVER", "player": player.index,
+            "pool": tuple(candidates), "dark_gift": False,
+            "repeats_left": 0, "after_pick": None,
+            "source_card_id": source_card_id, "options": options,
+            "malorne_discount": discount_if_imbued,
+        }
+        self._event(
+            "legendary_wild_god_discover_offer", player=player.index,
+            source=source_card_id, discount_if_imbued=discount_if_imbued,
+            options=[{"entity": c.entity_id, "card": c.card_id} for c in options],
+        )
 
     def _offer_opponent_deck_minion_discover(
         self, player: Player, *, source_card_id: str, dark_gift: bool = False,
@@ -8541,20 +8648,6 @@ class DragonMirrorGame:
             "opponent_deck_minion_discover_offer", player=player.index,
             source=source_card_id, dark_gift=dark_gift,
             options=[{"entity": c.entity_id, "card": c.card_id, "gifts": list(c.gifts)} for c in options],
-        )
-        self.rng.shuffle(candidates)
-        options = [self._entity(i, created_by=source_card_id) for i in candidates[:3]]
-        self.pending_choice = {
-            "kind": "DISCOVER", "player": player.index,
-            "pool": tuple(candidates), "dark_gift": False,
-            "repeats_left": 0, "after_pick": None,
-            "source_card_id": source_card_id, "options": options,
-            "malorne_discount": discount_if_imbued,
-        }
-        self._event(
-            "legendary_wild_god_discover_offer", player=player.index,
-            source=source_card_id, discount_if_imbued=discount_if_imbued,
-            options=[{"entity": c.entity_id, "card": c.card_id} for c in options],
         )
 
     def _offer_rune_discover(self, player: Player, *, rune: str, source_card_id: str) -> None:
@@ -9593,10 +9686,40 @@ class DragonMirrorGame:
                 if minion.dormant_turns == 0:
                     self._damage_minion(enemy.index, minion, 1)
             self._resolve_deaths()
-        else:
-            raise UnsupportedGeneratedCard(
-                f"Tiny Pal ammunition mode {mode} opens an unclosed card pool"
+        elif mode == 3:
+            before = {minion.entity_id for minion in player.board}
+            self._summon_random_executable_minion(
+                player, source_card_id=weapon.card_id, cost=3,
             )
+            summoned = next(
+                (minion for minion in reversed(player.board)
+                 if minion.entity_id not in before), None,
+            )
+            if summoned is not None:
+                summoned.taunt = True
+                self._event(
+                    "tiny_pal_taunt", player=player.index,
+                    entity=summoned.entity_id,
+                )
+        elif mode == 4:
+            candidates = [
+                card_id for card_id, definition in self.card_defs.items()
+                if card_id in EXECUTABLE_CARD_IDS
+                and definition.card_type == "MINION"
+                and "BATTLECRY" in definition.mechanics
+            ]
+            if candidates:
+                generated = self._entity(
+                    self.rng.choice(sorted(candidates)), created_by=weapon.card_id,
+                )
+                generated.cost_delta -= 2
+                self._add_generated(player, generated)
+                self._event(
+                    "tiny_pal_battlecry_minion", player=player.index,
+                    card=generated.card_id, cost_delta=-2,
+                )
+        else:
+            raise ValueError(f"unknown Tiny Pal ammunition mode {mode}")
         self._event("ammunition_fired", player=player.index, mode=mode)
         # A weapon at zero Durability was already destroyed by _hero_attack;
         # only a surviving Tiny Pal can receive another ammunition choice.
@@ -10844,7 +10967,7 @@ class DragonMirrorGame:
                         "corpse_multiplier", player=player.index,
                         entity=minion.entity_id, gained=gained,
                     )
-                self.minions_died_this_turn += len(dead)
+            self.minions_died_this_turn += len(dead)
 
             # Scavenging Flytrap observes every minion death, including an
             # enemy death and a simultaneous death batch. Its gain is based

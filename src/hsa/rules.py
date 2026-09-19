@@ -116,6 +116,8 @@ DECLARATIVE_METADATA_IDS = {
 # runtime ID, but keep the alias explicit and auditable.
 DECLARATIVE_METADATA_ALIASES = {
     "CORE_EX1_277": "EX1_277",  # Arcane Missiles
+    "CORE_CS2_172": "CS2_172",  # Bloodfen Raptor legacy fixture
+    "CORE_CFM_606t": "CFM_606t",  # Mana Geode Overheal token
 }
 
 # New full-Standard rules are kept separate from the historical Dragon slice
@@ -1887,7 +1889,6 @@ class TransformFriendlyMinionRandom:
         if not context.player.board:
             return
         target = game.rng.choice(context.player.board)
-        requested_cost = self.cost + int(getattr(context.card, "boon_summon_cost_bonus", 0))
         candidates = [
             card_id for card_id in game.executable_card_ids
             if card_id in game.card_defs
@@ -2055,6 +2056,8 @@ class OfferSpellSchoolDiscover:
 
 @dataclass(frozen=True)
 class OfferOutcastDiscover:
+    map_followup: bool = False
+
     def execute(self, game: Any, context: RuleContext) -> None:
         candidates = [
             card_id for card_id, definition in game.card_defs.items()
@@ -2981,9 +2984,10 @@ class DamageDamagedTargetWithExcessReturn:
         )
         game._resolve_deaths()
         if excess and len(context.player.hand) < 10:
-            returned = context.card.clone(game.next_entity_id)
-            game.next_entity_id += 1
-            context.player.hand.append(returned)
+            # Returning the spell is a zone move, not creation of a new
+            # entity.  Preserve the original instance so trackers and
+            # generated-card identity remain stable across the round trip.
+            context.player.hand.append(context.card)
         game._event("damaged_target_excess_return", player=context.player.index,
                     source=context.card.card_id, target=target.entity_id,
                     excess=excess)
@@ -4240,6 +4244,20 @@ class SetHeroPower:
             "hero_power_imbued", player=context.player.index,
             source=context.card.card_id, hero_power=self.card_id,
             count=context.player.hero_power_imbues,
+        )
+
+
+@dataclass(frozen=True)
+class SetHeroPowerDirect:
+    """Swap the active Hero Power without marking it as an Imbue power."""
+
+    card_id: str | None
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.hero_power_id = self.card_id
+        game._event(
+            "hero_power_swap", player=context.player.index,
+            source=context.card.card_id, hero_power=self.card_id,
         )
 
 
@@ -9118,11 +9136,20 @@ def _filtered_executable_ids(
             definition.card_class in {"", "NEUTRAL", other_class_for.card_class}
         ):
             continue
-        if mechanic is not None and (
-            mechanic not in definition.mechanics
-            and mechanic.casefold() not in definition.text.casefold()
-        ):
-            continue
+        if mechanic is not None:
+            # The printed word can occur in another card's text (for example
+            # a Battlecry that triggers a token's Deathrattle).  For a
+            # Discover filter that is not the card's own mechanic, that is a
+            # false positive; prefer the structured mechanic tag for the
+            # Deathrattle pool and retain the text fallback for legacy tags.
+            if mechanic == "DEATHRATTLE":
+                if mechanic not in definition.mechanics:
+                    continue
+            elif (
+                mechanic not in definition.mechanics
+                and mechanic.casefold() not in definition.text.casefold()
+            ):
+                continue
         if exclude_card_set is not None and definition.card_set == exclude_card_set:
             continue
         result.append(card_id)
@@ -9253,6 +9280,71 @@ class CastRandomExecutableSpells:
         game._event(
             "random_spells_cast", player=context.player.index,
             source=context.card.card_id, cost=self.cost, cards=cast,
+        )
+
+
+@dataclass(frozen=True)
+class CastRandomFireSpellsMana:
+    """Cast random Fire spells until the printed-mana budget is exhausted."""
+
+    budget: int = 15
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        from .dragon_mirror import Action
+
+        pool = [
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "SPELL"
+            and definition.spell_school == "FIRE"
+            and definition.cost > 0
+            and definition.cost <= self.budget
+        ]
+        remaining = self.budget
+        cast: list[str] = []
+        attempts = 0
+        while pool and remaining > 0 and attempts < self.budget * 3:
+            attempts += 1
+            eligible = [
+                card_id for card_id in pool
+                if game.card_defs[card_id].cost <= remaining
+            ]
+            if not eligible:
+                break
+            card_id = game.rng.choice(sorted(eligible))
+            spell = game._entity(card_id, created_by=context.card.card_id)
+            resolved = False
+            try:
+                game._cast_spell(context.player, spell, Action("PLAY", spell.entity_id))
+                resolved = True
+            except ValueError:
+                candidates = [
+                    (target_player, target_entity)
+                    for target_player, target_entity, _ in
+                    game._random_spell_target_candidates(context.player.index, spell)
+                    if target_player != context.player.index
+                ]
+                game.rng.shuffle(candidates)
+                for target_player, target_entity in candidates:
+                    try:
+                        game._cast_spell(
+                            context.player, spell,
+                            Action("PLAY", spell.entity_id,
+                                   target_player, target_entity),
+                        )
+                        resolved = True
+                        break
+                    except ValueError:
+                        continue
+            if resolved:
+                cast.append(card_id)
+                remaining -= game.card_defs[card_id].cost
+            else:
+                pool.remove(card_id)
+        game._event(
+            "fyrakk_fire_barrage", player=context.player.index,
+            source=context.card.entity_id, budget=self.budget,
+            spent=self.budget - remaining, cards=cast,
         )
 
 
@@ -13252,7 +13344,14 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule(
-            "CATA_723", {Hook.DEATHRATTLE: (SummonRandomMinionWithCost(4),)},
+            "FIR_959", {Hook.BATTLECRY: (CastRandomFireSpellsMana(15),)},
+            RuleSource(
+                "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+                verification=("test_fyrakk_is_immune_to_fire_spell_damage_only",),
+            ),
+        ),
+        CardRule(
+            "CATA_723", {Hook.DEATHRATTLE: (SummonRandomMinionWithCost(4, count=2),)},
             RuleSource(
                 "official_text_and_engine_pattern", "HearthstoneJSON 251332",
                 verification=("test_drakeadon_mongrel_summons_random_four_cost",),
@@ -14577,7 +14676,7 @@ def build_rule_registry() -> RuleRegistry:
         ),
         CardRule(
             "TLC_632",
-            {Hook.SPELL: (SetHeroPower("TLC_632t"),)},
+            {Hook.SPELL: (SetHeroPowerDirect("TLC_632t"),)},
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_story_of_sulfuras_last_two_uses_then_restores_hero_power",),
@@ -14585,7 +14684,7 @@ def build_rule_registry() -> RuleRegistry:
         ),
         CardRule(
             "TLC_632t",
-            {Hook.HERO_POWER: (DamageRandomEnemyCharacters(8, 1), SetHeroPower("TLC_632t2"))},
+            {Hook.HERO_POWER: (DamageRandomEnemyCharacters(8, 1), SetHeroPowerDirect("TLC_632t2"))},
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_story_of_sulfuras_last_two_uses_then_restores_hero_power",),
@@ -14593,7 +14692,7 @@ def build_rule_registry() -> RuleRegistry:
         ),
         CardRule(
             "TLC_632t2",
-            {Hook.HERO_POWER: (DamageRandomEnemyCharacters(8, 1), SetHeroPower(None))},
+            {Hook.HERO_POWER: (DamageRandomEnemyCharacters(8, 1), SetHeroPowerDirect(None))},
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_story_of_sulfuras_last_two_uses_then_restores_hero_power",),
@@ -15118,7 +15217,7 @@ def build_rule_registry() -> RuleRegistry:
             TargetSpec(TargetKind.ENEMY_MINION),
         ),
         CardRule(
-            "CATA_582", {Hook.SPELL: (DamageBoard(1), GainHeroAttack(3))},
+            "CATA_582", {Hook.SPELL: (DamageAllOtherMinions(1), GainHeroAttack(3))},
             RuleSource("upstream_adapted", rosetta, "CATA_582", "AGPL-3.0", ("test_standard_searing_fissure",)),
         ),
         CardRule(
@@ -15593,7 +15692,8 @@ def build_rule_registry() -> RuleRegistry:
                             verification=("test_king_maluk_discards_hand_for_infinite_banana",))),
         CardRule("TIME_042t", {Hook.SPELL: (BuffActionTarget(1, 1, event="infinite_banana"),)},
                  RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
-                            verification=("test_king_maluk_discards_hand_for_infinite_banana",))),
+                            verification=("test_king_maluk_discards_hand_for_infinite_banana",)),
+                 TargetSpec(TargetKind.FRIENDLY_MINION)),
         CardRule("TIME_617", {},
                  RuleSource("official_text_and_engine_verified", "start-turn draw engine",
                             verification=("test_chronochiller_skips_start_turn_draw",))),

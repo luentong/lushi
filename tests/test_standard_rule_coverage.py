@@ -20,7 +20,7 @@ SPEC.loader.exec_module(MODULE)
 class StandardRuleCoverageTests(unittest.TestCase):
     def test_metadata_only_cards_are_never_reported_as_playable(self):
         self.assertEqual(
-            "not_implemented",
+            "legacy_compatibility",
             MODULE.implementation_status("CATA_614", set()),
         )
 

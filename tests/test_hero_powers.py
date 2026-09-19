@@ -116,7 +116,7 @@ class BasicHeroPowerTests(unittest.TestCase):
         ):
             DragonMirrorGame(
                 CARDS,
-                deck_counts=({"CATA_614": 30}, {"CATA_614": 30}),
+                deck_counts=({"CORE_EX1_001": 30}, {"CORE_EX1_001": 30}),
             )
 
 
