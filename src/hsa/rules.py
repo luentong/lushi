@@ -249,6 +249,12 @@ STANDARD_DECLARATIVE_IDS = {
     # Violet Hold cards.
     "JAIL_201a", "JAIL_201b", "JAIL_319t", "JAIL_386t", "JAIL_443t",
     "EDR_416t", "EDR_463a", "EDR_463b", "EDR_490t", "EDR_445pt3",
+    "EDR_102t", "EDR_454t", "EDR_517A", "EDR_517B", "EDR_818t",
+    "END_017t", "FIR_951t2", "FIR_951t3", "FIR_951t4",
+    "JAIL_442a", "JAIL_442b", "JAIL_452a", "JAIL_452b", "JAIL_455a", "JAIL_455b",
+    "JAIL_458t1", "JAIL_458t2", "JAIL_458t3", "JAIL_458t4", "JAIL_461a", "JAIL_461b",
+    "JAIL_504t", "JAIL_504t2", "JAIL_504t3", "JAIL_504t3p", "JAIL_504t5",
+    "JAIL_800hp1", "JAIL_800hp2", "JAIL_803t", "JAIL_887t2", "JAIL_EVENT_101hp",
     # 50-card Standard coverage tranche (23 metadata-keyword cards + 27
     # composable Battlecry/Deathrattle/spell cards).
     "RLK_067", "CORE_BT_921", "EDR_272", "CATA_558", "CORE_CS2_179",
@@ -17241,6 +17247,20 @@ def build_rule_registry() -> RuleRegistry:
                  _AUXILIARY_TOKEN_SOURCE),
         CardRule("EDR_490t", {}, _AUXILIARY_TOKEN_SOURCE),
         CardRule("EDR_445pt3", {}, _AUXILIARY_TOKEN_SOURCE),
+        CardRule("JAIL_504t2", {Hook.SPELL: (GainMana(1), DamageRandomEnemyMinion(2),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("JAIL_803t", {Hook.BATTLECRY: (FreezeActionTarget(), Draw(2),)},
+                 _AUXILIARY_TOKEN_SOURCE, TargetSpec(TargetKind.ENEMY_MINION)),
+        CardRule("JAIL_EVENT_101hp", {Hook.HERO_POWER: (DamageRandomEnemyMinion(2),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        *tuple(CardRule(card_id, {}, _AUXILIARY_TOKEN_SOURCE) for card_id in (
+            "EDR_102t", "EDR_454t", "EDR_517A", "EDR_517B", "EDR_818t",
+            "END_017t", "FIR_951t2", "FIR_951t3", "FIR_951t4",
+            "JAIL_442a", "JAIL_442b", "JAIL_452a", "JAIL_452b", "JAIL_455a", "JAIL_455b",
+            "JAIL_458t1", "JAIL_458t2", "JAIL_458t3", "JAIL_458t4", "JAIL_461a", "JAIL_461b",
+            "JAIL_504t", "JAIL_504t3", "JAIL_504t3p", "JAIL_504t5",
+            "JAIL_800hp1", "JAIL_800hp2", "JAIL_887t2",
+        )),
         CardRule("CATA_213", {Hook.BATTLECRY: (SplitHundredStatsIfStartingCosts(),)}, _FINAL_48_SOURCE),
         CardRule("CATA_307", {Hook.BATTLECRY: (SetHealthAndArmFullHealDamage(15, 15),)}, _FINAL_48_SOURCE),
         CardRule("CATA_470", {Hook.BATTLECRY: (CraftUndeadDragon(),)}, _FINAL_48_SOURCE),

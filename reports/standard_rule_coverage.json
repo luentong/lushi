@@ -7,11 +7,11 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 1199,
+      "declarative": 1230,
       "engine_owned_auxiliary": 21,
       "engine_state": 482,
       "legacy_compatibility": 297,
-      "not_implemented": 162
+      "not_implemented": 131
     },
     "collectible_implementation": {
       "declarative": 972,
@@ -12239,10 +12239,10 @@
       "mechanics": "DISCOVER",
       "text": "Executes nightmare bonus",
       "text_sha256": "bf09016140df2c55d15f649e3af7733939ede03843542f67bce3fea0d80eb164",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_105",
@@ -13327,10 +13327,10 @@
       "mechanics": "",
       "text": "Deathrattle: Summon {0}.",
       "text_sha256": "079d4dece4a68c69b72997b914c192c01052cc860b1e28570a05520b99d6eb92",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_455",
@@ -14319,10 +14319,10 @@
       "mechanics": "",
       "text": "Keep the spell.",
       "text_sha256": "080adc9dc009cb7ad502782149a1849f67f82b3d1296cd21092ed28427747912",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_517B",
@@ -14335,10 +14335,10 @@
       "mechanics": "",
       "text": "Put it on top of your opponent's deck.",
       "text_sha256": "3912e30b276f40e1f20001e300d85bed19ea96b51e196a66fc5c1a5bbcbae73c",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_518",
@@ -15295,10 +15295,10 @@
       "mechanics": "TRIGGER_VISUAL",
       "text": "At the start of your turn, combine with any other friendly Beetles and reform Nythendra.",
       "text_sha256": "bcbf7adaf6695a81a484c5365048874ca7bfb85d9ba61d94a056abe416ffadd6",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_819",
@@ -17167,10 +17167,10 @@
       "mechanics": "BATTLECRY,DEATHRATTLE",
       "text": "Battlecry: Draw until your hand is full. Deathrattle: Empty the opponent's hand.",
       "text_sha256": "e8d12ef0559472637bd8276187ea7cc85cb0845838e7980a7c433315e48cc594",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "END_018",
@@ -18399,10 +18399,10 @@
       "mechanics": "",
       "text": "Spend 10 Corpses to gain +10/+10.",
       "text_sha256": "86d49d586e290d1886fcb602854bcea52792a296980ac2c0e3fea051c2e5acc9",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "FIR_951t3",
@@ -18415,10 +18415,10 @@
       "mechanics": "",
       "text": "Spend 20 Corpses to gain +20/+20.",
       "text_sha256": "8eaf16bc174a1117e2f6ce602aa5e0017ba501241c724edea3b3d5642cca1614",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "FIR_951t4",
@@ -18431,10 +18431,10 @@
       "mechanics": "",
       "text": "Spend 30 Corpses to gain +30/+30.",
       "text_sha256": "2a41620e88c47b5e34bbdc769fba89d801ec9728e83ac6fae60cd10e55041e41",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "FIR_952",
@@ -19967,10 +19967,10 @@
       "mechanics": "",
       "text": "This was played on the friendly side.",
       "text_sha256": "87374bd3fcfdc7c22785183298a64aa1dc8a1fa91748e5a866b0551e692deca9",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_442b",
@@ -19983,10 +19983,10 @@
       "mechanics": "",
       "text": "This was played on the enemy side.",
       "text_sha256": "5104416a69fc5614dc54f6a2ccaeb9777dc8d0fbc5d0d0bf033dc647b66de370",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_443",
@@ -20239,10 +20239,10 @@
       "mechanics": "",
       "text": "This was played on the friendly side.",
       "text_sha256": "87374bd3fcfdc7c22785183298a64aa1dc8a1fa91748e5a866b0551e692deca9",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_452b",
@@ -20255,10 +20255,10 @@
       "mechanics": "",
       "text": "This was played on the enemy side.",
       "text_sha256": "5104416a69fc5614dc54f6a2ccaeb9777dc8d0fbc5d0d0bf033dc647b66de370",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_453",
@@ -20351,10 +20351,10 @@
       "mechanics": "",
       "text": "This was played on the friendly side.",
       "text_sha256": "87374bd3fcfdc7c22785183298a64aa1dc8a1fa91748e5a866b0551e692deca9",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_455b",
@@ -20367,10 +20367,10 @@
       "mechanics": "",
       "text": "This was played on the enemy side.",
       "text_sha256": "5104416a69fc5614dc54f6a2ccaeb9777dc8d0fbc5d0d0bf033dc647b66de370",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_456",
@@ -20447,10 +20447,10 @@
       "mechanics": "TRIGGER_VISUAL",
       "text": "After your hero attacks, Freeze 2 other random enemies. Choose another ammunition.",
       "text_sha256": "cd2925d570372e2b60c1bf1bc0dcec4bcffcab7405f22eba95bbc4f177e58ac7",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_458t2",
@@ -20463,10 +20463,10 @@
       "mechanics": "TRIGGER_VISUAL",
       "text": "After your hero attacks, deal 1 damage to all enemies. Choose another ammunition.",
       "text_sha256": "592fd7d31c504c7d1629623d711106ff9fa68c764272f675530bb634eae6f8a7",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_458t3",
@@ -20479,10 +20479,10 @@
       "mechanics": "TRIGGER_VISUAL",
       "text": "After your hero attacks, summon a random 3-Cost minion. Give it Taunt. Choose another ammunition.",
       "text_sha256": "6218453f0b2b1915567260ae69a65f816a9137981abf3ea6d533488221c66ea5",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_458t4",
@@ -20495,10 +20495,10 @@
       "mechanics": "TRIGGER_VISUAL",
       "text": "After your hero attacks, get a random Battlecry minion. It costs (2) less. Choose another ammunition.",
       "text_sha256": "ecdd5ddc7db591f2ffbb249ee08d37cebde77beb4cdad71886436a4e2b82ad75",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_459",
@@ -20575,10 +20575,10 @@
       "mechanics": "",
       "text": "This was played on the friendly side.",
       "text_sha256": "87374bd3fcfdc7c22785183298a64aa1dc8a1fa91748e5a866b0551e692deca9",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_461b",
@@ -20591,10 +20591,10 @@
       "mechanics": "",
       "text": "This was played on the enemy side.",
       "text_sha256": "5104416a69fc5614dc54f6a2ccaeb9777dc8d0fbc5d0d0bf033dc647b66de370",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_462",
@@ -20767,10 +20767,10 @@
       "mechanics": "",
       "text": "Gain 1 Mana Crystal this turn only. Summon a{1} {0} Jade Golem.",
       "text_sha256": "be4cedbd80cfc4c261a3dadafd2c9d9a94fd329cc41bb94d6d12d4ccd1e7689a",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_504t2",
@@ -20783,10 +20783,10 @@
       "mechanics": "",
       "text": "Gain 1 Mana Crystal this turn only. Deal $2 damage to a random enemy minion.",
       "text_sha256": "f4702b44d05cb227d7a807054bf9bdaa52c20f82957fb81c38549e51097fae3f",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_504t3",
@@ -20799,10 +20799,10 @@
       "mechanics": "",
       "text": "Gain 1 Mana Crystal this turn only. Get a random 1-Cost Kazakus Potion.",
       "text_sha256": "043193b00266099a8a85b262e40d3a7ead64ec353ad278e60bb5a30fa4d580c1",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_504t3p",
@@ -20815,10 +20815,10 @@
       "mechanics": "",
       "text": "{0} {1}",
       "text_sha256": "10866a9df5f8be5be75c79314de01412b0b35db060b06fdc333c1d9cd82d73c0",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_504t5",
@@ -20831,10 +20831,10 @@
       "mechanics": "",
       "text": "Get a random 1-Cost Potion.",
       "text_sha256": "52b815856f477dd3f047894a9f235b1640217d2c2eeee6de3f83c3c2caa31461",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_504tt01",
@@ -21423,10 +21423,10 @@
       "mechanics": "",
       "text": "Passive Your first minion each turn costs (2) less. (Unlocks on Turn 3.)",
       "text_sha256": "0fa3cab886ec9543fb26f87cae02a4768c8e8085acced9015fed419045d65897",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_800hp1e",
@@ -21455,10 +21455,10 @@
       "mechanics": "TRIGGER_VISUAL",
       "text": "Passive Every fifth minion you play triggers its Battlecry twice.@ ({0} left!)@ (Ready!)",
       "text_sha256": "52b5f8255accc88a1b675710f9438ac6dd77dbe1b458a76d914540332e4e2574",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_800hp2e",
@@ -21567,10 +21567,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Freeze an enemy. Draw two cards.",
       "text_sha256": "0edce6b0c9cd2a100823b0aa68c12db497bfc7fb7f3ee67825ad00c84fd06974",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_805",
@@ -22143,10 +22143,10 @@
       "mechanics": "TRIGGER_VISUAL",
       "text": "At the end of your turn, play a card discarded by Zuramat's Prison.",
       "text_sha256": "4e402be424da487a07546d3b59aaf7c23604ff7e5d3788f49bb0aba0c5e0dd5e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_887t2e",
@@ -22735,10 +22735,10 @@
       "mechanics": "",
       "text": "Deal 2 damage to a random enemy. Whenever you summon a Demon, refresh this.",
       "text_sha256": "e1c43ec424e430b542896a472f65c09b893a73e523bd87a3e9b55de610062306",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "JAIL_EVENT_COIN",
