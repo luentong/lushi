@@ -7,11 +7,11 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 1230,
+      "declarative": 1257,
       "engine_owned_auxiliary": 21,
       "engine_state": 482,
       "legacy_compatibility": 297,
-      "not_implemented": 131
+      "not_implemented": 104
     },
     "collectible_implementation": {
       "declarative": 972,
@@ -29471,10 +29471,10 @@
       "mechanics": "DEATHRATTLE",
       "text": "Deathrattle: Deal 1 damage to all enemies.",
       "text_sha256": "96e1f9c3a7b9b0b79252173cdd13db52d12b2817321e1da44575fb8874ec4cd7",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t12",
@@ -29487,10 +29487,10 @@
       "mechanics": "",
       "text": "Your next spell has Spell Damage +1.",
       "text_sha256": "d9861decefcab9e2d085c4c92c04d713c6811f00c790d08afb566b04aed758a4",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t12e",
@@ -29519,10 +29519,10 @@
       "mechanics": "DISCOVER",
       "text": "Discover a spell. It costs (1) less.",
       "text_sha256": "22ef2341f0460d6ae60b1377679a687d1df939e7ef88715257c3af0da0a7e49e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t14",
@@ -29535,10 +29535,10 @@
       "mechanics": "",
       "text": "Give your characters +1 Attack this turn.",
       "text_sha256": "26d40800a3fd83a20a69e0f4533604e9a3cb2a2257c59d8d225120fd09537259",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t14e",
@@ -29583,10 +29583,10 @@
       "mechanics": "",
       "text": "Summon a 2/1 Raptor with Rush.",
       "text_sha256": "c713d508f9d61f0d1b4fcedacc5ed1e572c1ecaa95f1ab6dee4cfa56eeb2dfb5",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t16",
@@ -29599,10 +29599,10 @@
       "mechanics": "",
       "text": "Gain 3 Armor.",
       "text_sha256": "ebd71c201ebd60de96636b5c60b7d4185e0cde184a661ae6c42fb6e18125513d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t17",
@@ -29615,10 +29615,10 @@
       "mechanics": "",
       "text": "Summon a 1/1 copy of a friendly minion.",
       "text_sha256": "14b9e5d5149944fb421a51dbeee78ca73a02c1b161442bf0790b5a0def190255",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t17e",
@@ -29663,10 +29663,10 @@
       "mechanics": "DEATHRATTLE",
       "text": "Deathrattle: Deal 3 damage to all enemies.",
       "text_sha256": "e3822385922c026074a6ad52a12495d93bd1c4ab2b22043e29f696337b65f0c9",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t22",
@@ -29679,10 +29679,10 @@
       "mechanics": "",
       "text": "Your next spell has Spell Damage +2.",
       "text_sha256": "92a34aa30cd9a56bbc6810a092084abeacc0867d74d85fce790c7cdd4c29f5ce",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t22e",
@@ -29711,10 +29711,10 @@
       "mechanics": "DISCOVER",
       "text": "Discover a spell. It costs (4) less.",
       "text_sha256": "1e02fdac0d439095a741977b6fb836ac64aeb3837eb18c9b10cebe042d882c3f",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t24",
@@ -29727,10 +29727,10 @@
       "mechanics": "",
       "text": "Give your characters +2 Attack this turn.",
       "text_sha256": "aae646e97eb08906e911c3df151e3b677dc63526f951f6c109f17e4ae9e7dea8",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t24e",
@@ -29775,10 +29775,10 @@
       "mechanics": "",
       "text": "Summon two 2/1 Raptors with Rush.",
       "text_sha256": "e2af93ed578519470b82df495ebfcf9c4a60f7394e2a68ac4fe3e42d2d6db67f",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t26",
@@ -29791,10 +29791,10 @@
       "mechanics": "",
       "text": "Gain 6 Armor.",
       "text_sha256": "1cb598aa73ff628de6c74efb98594b913b3d3b2ba5738e40960c60a5d6862800",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t27",
@@ -29807,10 +29807,10 @@
       "mechanics": "",
       "text": "Summon a 3/3 copy of a friendly minion.",
       "text_sha256": "569574d630fcf05643979db4663c51a5151c44a121c696bf93a3c1cb08cb1669",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t27e",
@@ -29855,10 +29855,10 @@
       "mechanics": "DEATHRATTLE",
       "text": "Deathrattle: Deal 5 damage to all enemies.",
       "text_sha256": "2a0d0bd70eca2854bf9609e244ec8a6b427a1ffdc14354c908149109f84a251a",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t32",
@@ -29871,10 +29871,10 @@
       "mechanics": "",
       "text": "Your next spell has Spell Damage +4.",
       "text_sha256": "fff21cd8e72e3a834acfd538bad2b9f3671baedd63ebf0cb627f1c15172a66a0",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t32e",
@@ -29903,10 +29903,10 @@
       "mechanics": "DISCOVER",
       "text": "Discover a spell. It costs (7) less.",
       "text_sha256": "78a0260e6796a3b25a22ae210f6107e3c02fde322a82272ab6854bea082964a6",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t34",
@@ -29919,10 +29919,10 @@
       "mechanics": "",
       "text": "Give your characters +4 Attack this turn.",
       "text_sha256": "fc2b51daf1ac30cafe74bda69818b05e4784e117b854f96fe5a6701d4cdd8333",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t34e",
@@ -29967,10 +29967,10 @@
       "mechanics": "",
       "text": "Summon four 2/1 Raptors with Rush.",
       "text_sha256": "d7452780f39b9fc383a0867f00a3c074223c71a2eaa1c64360a6da4facd42f7d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t36",
@@ -29983,10 +29983,10 @@
       "mechanics": "",
       "text": "Gain 12 Armor.",
       "text_sha256": "af4e43de3b9290377b49b313208157d7d2d155eb2bd032c45bf80a626a2b8bb7",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t37",
@@ -29999,10 +29999,10 @@
       "mechanics": "",
       "text": "Summon a 5/5 copy of a friendly minion.",
       "text_sha256": "40f8793653c210b07b70b3d1ea252b42a11cb0b17571108b2e1ae445acd9e99a",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_100t37e",
@@ -30383,10 +30383,10 @@
       "mechanics": "BATTLECRY,RUSH",
       "text": "Rush. Battlecry: Adapt twice. For the rest of the game, give minions you play those Adaptations.",
       "text_sha256": "88e99828cf31b2c3e3acd2706e5c8b9b2ccc1f0cf2e86a5e5543932682f74ffe",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_229t14e",
@@ -30671,10 +30671,10 @@
       "mechanics": "TRIGGER_VISUAL",
       "text": "After your hero attacks, give your minions +2/+2.",
       "text_sha256": "0dcf448c27fcdb245516059a44d6b614b0be49d23ee1bf61f956d8553a98e6cf",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_240",
@@ -31327,10 +31327,10 @@
       "mechanics": "",
       "text": "Whenever you summon a Murloc, give it +1/+1.",
       "text_sha256": "ca9737d2db5bfc4401923f40a2dea1e73bab36a5862bf259befc21fa0a1d3ddf",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_427",
@@ -31471,10 +31471,10 @@
       "mechanics": "DEATHRATTLE",
       "text": "Deathrattle: Open Terror's Grave. It has \"Deathrattle: Resummon Tyrax.\"",
       "text_sha256": "539f48cc27d8be7e0a4d0505851014a2fd3ea393bae48c3d0f8b59b5e5d344a5",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_433t2",
@@ -31487,10 +31487,10 @@
       "mechanics": "DEATHRATTLE",
       "text": "Deal 4 damage. Deathrattle: Resummon Tyrax, Bone Terror.",
       "text_sha256": "913396675165f1ecc3f16a5b13f2876e3739668ae3520095f5e016c48e13b811",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_434",
@@ -31807,10 +31807,10 @@
       "mechanics": "UNTOUCHABLE",
       "text": "Select the Rift to activate. Throw a card in to summon 2 random Fel Beasts. (Once per turn.)",
       "text_sha256": "3739d100d73224840f669af565506b82521393c5f9849a646e776ff457f46dfe",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_446t2",

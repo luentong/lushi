@@ -255,6 +255,13 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_458t1", "JAIL_458t2", "JAIL_458t3", "JAIL_458t4", "JAIL_461a", "JAIL_461b",
     "JAIL_504t", "JAIL_504t2", "JAIL_504t3", "JAIL_504t3p", "JAIL_504t5",
     "JAIL_800hp1", "JAIL_800hp2", "JAIL_803t", "JAIL_887t2", "JAIL_EVENT_101hp",
+    # Elise's generated Map locations and quest/treasure follow-up entities.
+    "TLC_100t11", "TLC_100t12", "TLC_100t13", "TLC_100t14", "TLC_100t15",
+    "TLC_100t16", "TLC_100t17", "TLC_100t21", "TLC_100t22", "TLC_100t23",
+    "TLC_100t24", "TLC_100t25", "TLC_100t26", "TLC_100t27", "TLC_100t31",
+    "TLC_100t32", "TLC_100t33", "TLC_100t34", "TLC_100t35", "TLC_100t36",
+    "TLC_100t37", "TLC_229t14", "TLC_239t", "TLC_426t", "TLC_433t",
+    "TLC_433t2", "TLC_446t1",
     # 50-card Standard coverage tranche (23 metadata-keyword cards + 27
     # composable Battlecry/Deathrattle/spell cards).
     "RLK_067", "CORE_BT_921", "EDR_272", "CATA_558", "CORE_CS2_179",
@@ -17260,6 +17267,18 @@ def build_rule_registry() -> RuleRegistry:
             "JAIL_458t1", "JAIL_458t2", "JAIL_458t3", "JAIL_458t4", "JAIL_461a", "JAIL_461b",
             "JAIL_504t", "JAIL_504t3", "JAIL_504t3p", "JAIL_504t5",
             "JAIL_800hp1", "JAIL_800hp2", "JAIL_887t2",
+        )),
+        # These generated entities are resolved by the engine-owned Map and
+        # quest lifecycles (custom location effects, quest counters and
+        # deathrattle follow-ups); an empty rule map prevents a second,
+        # conflicting generic script from firing.
+        *tuple(CardRule(card_id, {}, _AUXILIARY_TOKEN_SOURCE) for card_id in (
+            "TLC_100t11", "TLC_100t12", "TLC_100t13", "TLC_100t14", "TLC_100t15",
+            "TLC_100t16", "TLC_100t17", "TLC_100t21", "TLC_100t22", "TLC_100t23",
+            "TLC_100t24", "TLC_100t25", "TLC_100t26", "TLC_100t27", "TLC_100t31",
+            "TLC_100t32", "TLC_100t33", "TLC_100t34", "TLC_100t35", "TLC_100t36",
+            "TLC_100t37", "TLC_229t14", "TLC_239t", "TLC_426t", "TLC_433t",
+            "TLC_433t2", "TLC_446t1",
         )),
         CardRule("CATA_213", {Hook.BATTLECRY: (SplitHundredStatsIfStartingCosts(),)}, _FINAL_48_SOURCE),
         CardRule("CATA_307", {Hook.BATTLECRY: (SetHealthAndArmFullHealDamage(15, 15),)}, _FINAL_48_SOURCE),
