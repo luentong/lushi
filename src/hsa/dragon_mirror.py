@@ -1648,6 +1648,9 @@ class DragonMirrorGame:
             result.dormant_turns = 3
         if result.card_id == "JAIL_942":
             result.cant_attack = True
+        elif result.card_id == "EDR_490t":
+            # Night Terror is a summoned token with Taunt that cannot attack.
+            result.cant_attack = True
         if result.card_id == "HERO_11bpt":
             result.dies_at_end_of_turn = True
         return result

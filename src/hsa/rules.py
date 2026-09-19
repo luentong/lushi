@@ -248,6 +248,7 @@ STANDARD_DECLARATIVE_IDS = {
     # Auxiliary choices and Casts When Drawn entities emitted by Escape from
     # Violet Hold cards.
     "JAIL_201a", "JAIL_201b", "JAIL_319t", "JAIL_386t", "JAIL_443t",
+    "EDR_416t", "EDR_463a", "EDR_463b", "EDR_490t", "EDR_445pt3",
     # 50-card Standard coverage tranche (23 metadata-keyword cards + 27
     # composable Battlecry/Deathrattle/spell cards).
     "RLK_067", "CORE_BT_921", "EDR_272", "CATA_558", "CORE_CS2_179",
@@ -17233,6 +17234,13 @@ def build_rule_registry() -> RuleRegistry:
         CardRule("JAIL_319t", {}, _AUXILIARY_TOKEN_SOURCE),
         CardRule("JAIL_386t", {}, _AUXILIARY_TOKEN_SOURCE),
         CardRule("JAIL_443t", {}, _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_416t", {}, _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_463a", {Hook.SPELL: (DestroyActionTargetIfAttackAtMost(3),)},
+                 _AUXILIARY_TOKEN_SOURCE, TargetSpec(TargetKind.ENEMY_MINION)),
+        CardRule("EDR_463b", {Hook.SPELL: (SummonRandomExecutableMinion(cost=2),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_490t", {}, _AUXILIARY_TOKEN_SOURCE),
+        CardRule("EDR_445pt3", {}, _AUXILIARY_TOKEN_SOURCE),
         CardRule("CATA_213", {Hook.BATTLECRY: (SplitHundredStatsIfStartingCosts(),)}, _FINAL_48_SOURCE),
         CardRule("CATA_307", {Hook.BATTLECRY: (SetHealthAndArmFullHealDamage(15, 15),)}, _FINAL_48_SOURCE),
         CardRule("CATA_470", {Hook.BATTLECRY: (CraftUndeadDragon(),)}, _FINAL_48_SOURCE),

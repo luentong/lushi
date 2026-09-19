@@ -7,11 +7,11 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 1194,
+      "declarative": 1199,
       "engine_owned_auxiliary": 21,
       "engine_state": 482,
       "legacy_compatibility": 297,
-      "not_implemented": 167
+      "not_implemented": 162
     },
     "collectible_implementation": {
       "declarative": 972,
@@ -13119,10 +13119,10 @@
       "mechanics": "",
       "text": "Dormant for 2 turns.",
       "text_sha256": "6c3d77ec3a6359c23cab7cdcd1c3043f0e48ad8f0cfda6321ff14c876bf7653e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_416te",
@@ -13199,10 +13199,10 @@
       "mechanics": "",
       "text": "Casts When Drawn Summon a random 1-Cost Dragon.",
       "text_sha256": "5f6e2981df86ef0703069361d2c185e975a0cbb63ee51730c8fd4054fb68154e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_448p",
@@ -13519,10 +13519,10 @@
       "mechanics": "",
       "text": "Destroy a minion with 3 or less Attack.",
       "text_sha256": "0d0531feb458f5528206bb9078c50e5227091f7dcbb20b4b1083ca5a4050b363",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_463b",
@@ -13535,10 +13535,10 @@
       "mechanics": "",
       "text": "Summon a random 2-Cost minion.",
       "text_sha256": "1f7bca7e7d1d1fe9832d558f6cbb9019c79cb5dab438e31afbd79b114e681ff6",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_464",
@@ -14079,10 +14079,10 @@
       "mechanics": "CANT_ATTACK,TAUNT",
       "text": "Taunt Can't attack.",
       "text_sha256": "ec4fa29b79ceddcb003b4bbd48bf6ac132a28dfd454e430148066b477dc0e89b",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_491",
