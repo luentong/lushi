@@ -997,6 +997,13 @@ class CardInstance:
     stored_spell: CardInstance | None = None
     original_cost_delta: int | None = None
     stealthed_minion_attacked_while_held: bool = False
+    # Standard tranche 50H: persistent upgrade / Deathrattle payloads.  They
+    # are instance state because copied and transformed cards must retain the
+    # payload rather than looking it up by their original card ID.
+    smoldering_stage: int = 0
+    deathrattle_summon_token_id: str | None = None
+    deathrattle_summon_token_count: int = 1
+    deathrattle_summon_mechanic: str | None = None
 
     @property
     def card_id(self) -> str:
@@ -1290,6 +1297,13 @@ class Player:
     end_turn_effect_repeat_turns: int = 0
     weapon_attack_reset_turn: int = -1
     slime_resummon: list[CardInstance] = field(default_factory=list)
+    # Tranche 50H deck/turn state.  Lists hold cloned card instances so
+    # Krag'wa's replay remains stable under ISMCTS branch copies.
+    deck_started_with_spells: bool = False
+    two_cost_cards_played_this_game: int = 0
+    reinforcement_aura_turns: int = 0
+    spells_this_turn_for_replay: list[CardInstance] = field(default_factory=list)
+    spells_last_turn_for_replay: list[CardInstance] = field(default_factory=list)
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "Player":
         """Fast branch copy for the mutable player state used by MCTS."""
@@ -1298,6 +1312,7 @@ class Player:
         for name in (
             "deck", "hand", "board", "dead_minions", "locations", "secrets",
             "overdrawn_cards", "pending_end_turn_returns", "minions_died_this_turn_cards",
+            "spells_this_turn_for_replay", "spells_last_turn_for_replay",
         ):
             zone = getattr(self, name)
             # ``clone(skip_hidden_zones_of=...)`` supplies branch-local empty
@@ -1416,6 +1431,9 @@ class DragonMirrorGame:
         ]
         for player in self.players:
             player.deck = self._new_deck(player.index)
+            player.deck_started_with_spells = any(
+                card.definition.card_type == "SPELL" for card in player.deck
+            )
         self._apply_pre_game_deck_rules()
         for player in self.players:
             self.rng.shuffle(player.deck)
@@ -2496,6 +2514,12 @@ class DragonMirrorGame:
             self._split_shatter_card(player, card)
             self._after_card_draw(player, card)
             return
+        if card.card_id in {"JAIL_879t", "JAIL_881t"}:
+            self._cast_spell(player, card, Action("PLAY", card.entity_id))
+            self._event("casts_when_drawn", player=player.index, card=card.card_id)
+            self._after_card_draw(player, card)
+            self._draw(player)
+            return
         if card.casts_when_drawn_damage:
             self._event(
                 "casts_when_drawn", player=player.index, card=card.card_id,
@@ -2849,6 +2873,22 @@ class DragonMirrorGame:
     def _trigger_secrets_after_enemy_spell_cast(self, player: Player) -> None:
         owner = self.players[1 - player.index]
         for secret in list(owner.secrets):
+            if secret.card_id == "CORE_ULD_152":
+                self._consume_secret(owner, secret)
+                candidates = [
+                    minion for minion in player.board
+                    if minion.dormant_turns == 0 and minion.health > 0
+                ]
+                if candidates:
+                    victim = self.rng.choice(candidates)
+                    victim.damage = victim.max_health
+                    self._resolve_deaths()
+                    self._event("pressure_plate", player=owner.index,
+                                source=secret.entity_id, target=victim.entity_id)
+                else:
+                    self._event("pressure_plate", player=owner.index,
+                                source=secret.entity_id, target=None)
+                continue
             if secret.card_id != "CORE_KAR_004":
                 continue
             self._consume_secret(owner, secret)
@@ -2868,6 +2908,25 @@ class DragonMirrorGame:
                 "cat_trick", player=owner.index,
                 source=secret.entity_id, summoned=panther.entity_id,
             )
+
+    def _trigger_rat_trap_if_due(self, player: Player) -> None:
+        """Resolve Rat Trap once the opponent's third card is played."""
+        if player.cards_played_this_turn < 3:
+            return
+        owner = self.players[1 - player.index]
+        for secret in list(owner.secrets):
+            if secret.card_id != "CORE_GIL_577":
+                continue
+            self._consume_secret(owner, secret)
+            if len(owner.board) + len(owner.locations) < 7:
+                rat = self._entity("GIL_577t", created_by=secret.card_id)
+                rat.summoned_turn = self.turn
+                self._summon(owner, rat)
+                self._event("rat_trap", player=owner.index,
+                            source=secret.entity_id, summoned=rat.entity_id)
+            else:
+                self._event("rat_trap", player=owner.index,
+                            source=secret.entity_id, summoned=None)
 
     def _start_turn(self, index: int) -> None:
         self.current = index
@@ -2993,7 +3052,21 @@ class DragonMirrorGame:
                         "delayed_destroy", player=owner.index,
                         entity=minion.entity_id,
                     )
-            for card in owner.hand:
+            for card in list(owner.hand):
+                # Smoldering cards upgrade through one owner start and are
+                # discarded on the following owner start if not played.  The
+                # counter stays on the card instance, so copies behave
+                # independently and search cloning is deterministic.
+                if owner.index == index and card.card_id in {"FIR_911", "FIR_914", "FIR_916"}:
+                    if card.smoldering_stage >= 1:
+                        owner.hand.remove(card)
+                        self._event("smoldering_discard", player=owner.index,
+                                    card=card.card_id, entity=card.entity_id)
+                        continue
+                    card.smoldering_stage = 1
+                    self._event("smoldering_upgrade", player=owner.index,
+                                card=card.card_id, entity=card.entity_id,
+                                stage=card.smoldering_stage)
                 if card.costs_health_expiry_turn == index:
                     card.costs_health_expiry_turn = -1
                 if owner.index == index and card.card_id in {"EDR_843", "CATA_498"}:
@@ -3222,6 +3295,11 @@ class DragonMirrorGame:
 
     def _end_turn(self) -> None:
         player = self.players[self.current]
+        # Krag'wa reads the spells of the controller's immediately preceding
+        # turn.  Snapshot at end-of-turn, then clear the new-turn accumulator
+        # so an intervening opponent turn cannot leak into it.
+        player.spells_last_turn_for_replay = copy.deepcopy(player.spells_this_turn_for_replay)
+        player.spells_this_turn_for_replay.clear()
         # Foxy Fraud's discount cannot carry into a later turn, even when its
         # controller chose not to play another Combo card this turn.
         player.next_combo_cost_reduction = 0
@@ -3254,6 +3332,21 @@ class DragonMirrorGame:
                 if turns_left > 1:
                     remaining.append(turns_left - 1)
             player.chronological_aura_turns = remaining
+        if player.reinforcement_aura_turns > 0:
+            candidates = [
+                card for card in player.deck
+                if card.definition.card_type == "MINION" and card.cost <= 2
+            ]
+            summoned = None
+            if candidates and len(player.board) + len(player.locations) < 7:
+                summoned = self.rng.choice(candidates)
+                player.deck.remove(summoned)
+                summoned.summoned_turn = self.turn
+                self._summon(player, summoned)
+            player.reinforcement_aura_turns -= 1
+            self._event("reinforcement_aura", player=player.index,
+                        summoned=None if summoned is None else summoned.entity_id,
+                        remaining=player.reinforcement_aura_turns)
         lakkari_turns = max(0, int(getattr(player, "lakkari_turns", 0)))
         if lakkari_turns:
             if player.hand:
@@ -5477,6 +5570,8 @@ class DragonMirrorGame:
         card.paid_cost = effective_cost
         player.cards_played_this_turn += 1
         player.last_played_card_cost = effective_cost
+        if effective_cost == 2:
+            player.two_cost_cards_played_this_game += 1
         if card.definition.card_type == "SPELL":
             player.spells_cast_this_turn += 1
             player.spells_cast_this_game += 1
@@ -5616,14 +5711,14 @@ class DragonMirrorGame:
                 card.rush = True
             if card.card_id == "DINO_435" and self._kindred_repeats(controller, card):
                 if len(controller.board) + len(controller.locations) < 7:
-                    copy = card.clone(self.next_entity_id)
+                    summoned_copy = card.clone(self.next_entity_id)
                     self.next_entity_id += 1
-                    copy.damage = 0
-                    copy.summoned_turn = self.turn
-                    copy.created_by = card.card_id
-                    self._summon(controller, copy)
+                    summoned_copy.damage = 0
+                    summoned_copy.summoned_turn = self.turn
+                    summoned_copy.created_by = card.card_id
+                    self._summon(controller, summoned_copy)
                     self._event("crater_experiment_kindred", player=controller.index,
-                                source=card.entity_id, copy=copy.entity_id)
+                                source=card.entity_id, copy=summoned_copy.entity_id)
             self._update_mirrex_trackers(self.players[1 - player.index], card)
             if "DEATHRATTLE" in card.definition.mechanics and any(
                 minion.entity_id != card.entity_id
@@ -5773,6 +5868,10 @@ class DragonMirrorGame:
                 player, card, action, paid_cost=effective_cost
             )
             self._trigger_secrets_after_enemy_spell_cast(player)
+            # Store the completed spell (rather than the pre-cast hand copy)
+            # so effects such as Krag'wa replay the card with its resolved
+            # per-instance changes but never retain a stale target/action.
+            player.spells_this_turn_for_replay.append(copy.deepcopy(card))
             recipient = self.players[1 - player.index]
             for lorewalker in lorewalkers:
                 copied = card.clone(self.next_entity_id)
@@ -5810,6 +5909,7 @@ class DragonMirrorGame:
             self._offer_discover(player, options, dark_gift=False, source_card_id=card.card_id)
             self._event("map_followup_offer", player=player.index,
                         source=card.card_id, options=options)
+        self._trigger_rat_trap_if_due(player)
         if card.definition.card_set == "TIME_TRAVEL":
             self._accelerate_timelords(
                 player,
@@ -7244,14 +7344,17 @@ class DragonMirrorGame:
                 entity=held.entity_id, copied=spell.card_id,
             )
         for held in list(player.hand):
-            if held.card_id != "JAIL_801":
+            if held.card_id not in {"JAIL_801", "FIR_918", "JAIL_805"}:
                 continue
             held.spells_cast_while_held += 1
-            if held.spells_cast_while_held >= 3:
+            if held.card_id == "JAIL_801" and held.spells_cast_while_held >= 3:
                 held.definition = self.card_defs["JAIL_801t"]
+            elif held.card_id == "JAIL_805" and held.spells_cast_while_held >= 3:
+                held.definition = self.card_defs["JAIL_805t"]
             self._event(
-                "molten_gold_transform", player=player.index,
+                "held_spell_counter", player=player.index,
                 entity=held.entity_id, spells=held.spells_cast_while_held,
+                card=held.card_id,
             )
 
     def _holding_dragon(self, player: Player) -> bool:
@@ -7840,6 +7943,25 @@ class DragonMirrorGame:
             options=[{"entity": card.entity_id, "card": card.card_id} for card in options],
         )
 
+    def _offer_enemy_deck_top_discover(
+        self, player: Player, enemy: Player, *, source_card_id: str,
+    ) -> None:
+        """Discover an enemy-deck minion and place the selected original on top."""
+        candidates = [card for card in enemy.deck if card.definition.card_type == "MINION"]
+        if not candidates:
+            self._event("enemy_deck_discover_unavailable", player=player.index,
+                        source=source_card_id)
+            return
+        options = self.rng.sample(candidates, min(3, len(candidates)))
+        self.pending_choice = {
+            "kind": "ENEMY_DECK_TOP_DISCOVER", "player": player.index,
+            "enemy": enemy.index, "source_card_id": source_card_id,
+            "options": options,
+        }
+        self._event("enemy_deck_discover_offer", player=player.index,
+                    source=source_card_id,
+                    options=[{"entity": card.entity_id, "card": card.card_id} for card in options])
+
     def _offer_imbue_options(self, player: Player, *, source_card_id: str) -> None:
         """Offer one playable Priest minion and spell for Blessing of the Moon.
 
@@ -8289,6 +8411,17 @@ class DragonMirrorGame:
                 destination=destination,
             )
             return
+        if pending["kind"] == "ENEMY_DECK_TOP_DISCOVER":
+            enemy = self.players[pending["enemy"]]
+            if option in enemy.deck:
+                enemy.deck.remove(option)
+                enemy.deck.append(option)
+            self._event(
+                "enemy_deck_discover_top", player=player.index,
+                source=pending["source_card_id"], enemy=enemy.index,
+                card=option.card_id, entity=option.entity_id,
+            )
+            return
         # Faceless Enigma chooses one of two Secrets for its controller while
         # the other immediately arms for the opponent.  These cards never
         # enter either hand, so it must resolve before the normal Discover
@@ -8360,6 +8493,25 @@ class DragonMirrorGame:
                 card=option.card_id, entity=option.entity_id,
             )
             return
+        elif after_pick == "summon_freeze":
+            if len(player.board) + len(player.locations) < 7:
+                minion = option.clone(self.next_entity_id)
+                self.next_entity_id += 1
+                minion.created_by = pending.get("source_card_id")
+                minion.summoned_turn = self.turn
+                minion.frozen_turn = self.turn
+                self._summon(player, minion)
+            return
+        elif after_pick == "resummon_discover":
+            if len(player.board) + len(player.locations) < 7:
+                minion = option.clone(self.next_entity_id)
+                self.next_entity_id += 1
+                minion.created_by = pending.get("source_card_id")
+                minion.summoned_turn = self.turn
+                self._summon(player, minion)
+            return
+        elif after_pick == "spell_twice":
+            option.spell_casts_twice = True
         elif after_pick in {
             "summon_discover", "legendary_ten", "copy_two_three",
         }:
@@ -10558,10 +10710,24 @@ class DragonMirrorGame:
             RuleContext(player=player, card=minion),
         )
         if minion.deathrattle_summon_random_cost:
-            self._summon_random_executable_minion(
-                player, source_card_id=minion.card_id,
-                cost=minion.deathrattle_summon_random_cost,
-            )
+            for _ in range(minion.deathrattle_summon_token_count):
+                if minion.deathrattle_summon_mechanic is None:
+                    self._summon_random_executable_minion(
+                        player, source_card_id=minion.card_id,
+                        cost=minion.deathrattle_summon_random_cost,
+                    )
+                    continue
+                candidates = [
+                    card_id for card_id, definition in self.card_defs.items()
+                    if card_id in self.executable_card_ids
+                    and definition.card_type == "MINION"
+                    and definition.cost == minion.deathrattle_summon_random_cost
+                    and minion.deathrattle_summon_mechanic in definition.mechanics
+                ]
+                if candidates and len(player.board) + len(player.locations) < 7:
+                    summoned = self._entity(self.rng.choice(sorted(candidates)), created_by=minion.card_id)
+                    summoned.summoned_turn = self.turn
+                    self._summon(player, summoned)
         if minion.deathrattle_summon_hand_minion:
             candidates = [
                 card for card in player.hand
@@ -10758,6 +10924,18 @@ class DragonMirrorGame:
                 source=minion.entity_id, summoned=token.entity_id,
                 card=token.card_id,
             )
+        if minion.deathrattle_summon_token_id == "__ancient_raptor_plant":
+            for _ in range(minion.deathrattle_summon_token_count):
+                if len(player.board) + len(player.locations) >= 7:
+                    break
+                plant = self._instance_from_definition(CardDef(
+                    "TLC_245t", "Plant", "MINION", 1, 1, 1, "",
+                    (), "NEUTRAL", (), "THE_LOST_CITY",
+                ), created_by=minion.card_id)
+                plant.summoned_turn = self.turn
+                self._summon(player, plant)
+                self._event("ancient_raptor_plants", player=player.index,
+                            source=minion.entity_id, summoned=plant.entity_id)
         if minion.card_id in {
             "DINO_410", "DINO_410t2", "DINO_410t3", "DINO_410t4",
             "DINO_410t5",

@@ -5316,9 +5316,9 @@ class SeventhStandardCardBatchTests(unittest.TestCase):
         conspirator = self.add_board(game, "CAP_400")
         game._damage_minion(0, conspirator, conspirator.health)
         game._resolve_deaths()
-        self.assertEqual(2, sum(card.card_id == "CAP_400t" for card in game.players[1].deck))
+        self.assertEqual(2, sum(card.card_id == "CAP_400t2t" for card in game.players[1].deck))
         game._draw(game.players[1])
-        self.assertTrue(any(card.card_id == "CAP_400t" for card in game.players[0].board))
+        self.assertTrue(any(card.card_id == "CAP_400t2t" for card in game.players[0].board))
 
         game = self.game()
         target = self.add_board(game, "CORE_EX1_005")
@@ -5369,6 +5369,113 @@ class SeventhStandardCardBatchTests(unittest.TestCase):
         game._damage_minion(1, victim, victim.health)
         game._resolve_deaths()
         self.assertEqual(flytrap.definition.attack + victim.attack, flytrap.attack)
+
+
+class EighthStandardCardBatchTests(unittest.TestCase):
+    """Regression coverage for 50H deck/secret/upgrade card mechanics."""
+
+    BATCH = {
+        "CAP_401", "CAP_402", "CAP_403", "CAP_406", "CORE_AV_107",
+        "CORE_CATA_006", "CORE_GIL_577", "CORE_TRL_345", "CORE_ULD_152",
+        "EDR_455", "FIR_911", "FIR_914", "FIR_916", "FIR_918", "FIR_927",
+        "FIR_940", "FIR_952", "JAIL_030", "JAIL_123", "JAIL_125", "JAIL_204",
+        "JAIL_225", "JAIL_312", "JAIL_327", "JAIL_387", "JAIL_436", "JAIL_447",
+        "JAIL_448", "JAIL_474", "JAIL_507", "JAIL_515", "JAIL_516", "JAIL_706",
+        "JAIL_733", "JAIL_734", "JAIL_805", "JAIL_806", "JAIL_876", "JAIL_878",
+        "JAIL_879", "JAIL_881", "JAIL_883", "JAIL_940", "JAIL_974", "JAIL_986",
+        "TLC_234", "TLC_237", "TLC_244", "TLC_245", "TLC_256",
+    }
+
+    def game(self):
+        game = DragonMirrorGame(CARDS, 59)
+        game.current = 0
+        for player in game.players:
+            player.hand.clear()
+            player.board.clear()
+            player.locations.clear()
+            player.deck.clear()
+            player.secrets.clear()
+            player.mana = 20
+            player.max_mana = 10
+            player.health = 30
+            player.armor = 0
+        return game
+
+    @staticmethod
+    def add_hand(game, card_id, player=0):
+        card = game._entity(card_id)
+        game.players[player].hand.append(card)
+        return card
+
+    @staticmethod
+    def add_board(game, card_id, player=0):
+        card = game._entity(card_id)
+        card.summoned_turn = -1
+        game._summon(game.players[player], card)
+        return card
+
+    def test_batch_has_exactly_fifty_registered_cards(self):
+        game = self.game()
+        self.assertEqual(50, len(self.BATCH))
+        self.assertTrue(self.BATCH <= game.executable_card_ids)
+        self.assertTrue(self.BATCH <= {rule.card_id for rule in game.rule_registry.all_rules()})
+
+    def test_deck_secret_and_discover_rules(self):
+        game = self.game()
+        ordinary = self.add_hand(game, "CORE_EX1_005")
+        evidence = self.add_hand(game, "CAP_402")
+        game.step(Action("PLAY", evidence.entity_id))
+        self.assertEqual(1, sum(card.card_id == "CAP_400t2t" for card in game.players[1].deck))
+        self.assertEqual("CAP_402", ordinary.temporary_play_effect)
+
+        game = self.game()
+        spell = self.add_hand(game, "CORE_CS2_029", player=0)
+        plate = self.add_hand(game, "CORE_ULD_152", player=1)
+        target = self.add_board(game, "CORE_EX1_005", player=0)
+        game.current = 1
+        game.step(Action("PLAY", plate.entity_id))
+        game.current = 0
+        game.step(Action("PLAY", spell.entity_id, 1, None))
+        self.assertNotIn(target, game.players[0].board)
+
+        game = self.game()
+        glacial = self.add_hand(game, "CORE_AV_107")
+        game.step(Action("PLAY", glacial.entity_id))
+        option = game.pending_choice["options"][0]
+        game.step(Action("DISCOVER_PICK", option.entity_id))
+        selected = next(card for card in game.players[0].board if card.card_id == option.card_id)
+        self.assertEqual(game.turn, selected.frozen_turn)
+
+    def test_damage_deathrattle_and_hand_rules(self):
+        game = self.game()
+        victim = self.add_board(game, "CORE_EX1_005", player=1)
+        nab = self.add_hand(game, "JAIL_225")
+        game.step(Action("PLAY", nab.entity_id, 1, victim.entity_id))
+        copied = game.players[0].deck[-1]
+        self.assertEqual("CORE_EX1_005", copied.card_id)
+        self.assertEqual(2, copied.cost)
+
+        game = self.game()
+        target = self.add_board(game, "CORE_EX1_005")
+        dig = self.add_hand(game, "JAIL_876")
+        game.step(Action("PLAY", dig.entity_id, 0, target.entity_id))
+        self.assertEqual(4, target.deathrattle_summon_random_cost)
+        self.assertEqual(2, target.deathrattle_summon_token_count)
+
+        game = self.game()
+        bite = self.add_hand(game, "JAIL_436")
+        game.step(Action("PLAY", bite.entity_id))
+        self.assertEqual(1, game.players[0].hero_attack_bonus)
+        self.assertEqual(1, game.players[0].armor)
+        self.assertTrue(any(card.card_id == "JAIL_436t" for card in game.players[0].hand))
+
+        game = self.game()
+        card = self.add_hand(game, "FIR_911")
+        game._start_turn(0)
+        self.assertEqual(1, card.smoldering_stage)
+        game._start_turn(1)
+        game._start_turn(0)
+        self.assertNotIn(card, game.players[0].hand)
 
 
 if __name__ == "__main__":
