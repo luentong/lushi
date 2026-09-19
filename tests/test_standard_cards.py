@@ -5095,5 +5095,132 @@ class FifthStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(max(0, coyote.cost - 2), game._effective_cost(game.players[0], coyote))
 
 
+class SixthStandardCardBatchTests(unittest.TestCase):
+    """Regression coverage for Cataclysm/Mending tranche 50F."""
+
+    BATCH = {
+        "CATA_132", "CATA_136", "CATA_180", "CATA_186", "CATA_208", "CATA_216",
+        "CATA_305", "CATA_452", "CATA_458", "CATA_471", "CATA_473", "CATA_474",
+        "CATA_475", "CATA_478", "CATA_483", "CATA_487", "CATA_493", "CATA_498",
+        "CATA_499", "CATA_528", "CATA_529", "CATA_551", "CATA_553", "CATA_560",
+        "CATA_564", "CATA_566", "CATA_567", "CATA_610", "CATA_614", "CATA_616",
+        "CATA_697", "CATA_699", "CATA_786", "CATA_897", "CATA_978", "CATA_979",
+        "MEND_041", "MEND_045", "MEND_300", "MEND_301", "MEND_303", "MEND_304",
+        "MEND_305", "MEND_800", "MEND_801", "MEND_802", "MEND_803", "MEND_804",
+        "MEND_805", "MEND_900",
+    }
+
+    def game(self):
+        game = DragonMirrorGame(CARDS, 47)
+        game.current = 0
+        for player in game.players:
+            player.hand.clear()
+            player.board.clear()
+            player.locations.clear()
+            player.deck.clear()
+            player.secrets.clear()
+            player.mana = 20
+            player.max_mana = 10
+            player.health = 30
+            player.armor = 0
+        return game
+
+    @staticmethod
+    def add_hand(game, card_id, player=0):
+        card = game._entity(card_id)
+        game.players[player].hand.append(card)
+        return card
+
+    @staticmethod
+    def add_board(game, card_id, player=0):
+        card = game._entity(card_id)
+        card.summoned_turn = -1
+        game._summon(game.players[player], card)
+        return card
+
+    def test_batch_has_exactly_fifty_registered_cards(self):
+        game = self.game()
+        self.assertEqual(50, len(self.BATCH))
+        self.assertTrue(self.BATCH <= game.executable_card_ids)
+        self.assertTrue(self.BATCH <= {rule.card_id for rule in game.rule_registry.all_rules()})
+
+    def test_cataclysm_persistent_state_and_tokens(self):
+        game = self.game()
+        broodwatcher = self.add_hand(game, "CATA_132")
+        broodwatcher.mana_spent_while_held = 8
+        game.step(Action("PLAY", broodwatcher.entity_id))
+        self.assertEqual(2, sum(card.card_id == "CATA_132t" for card in game.players[0].board))
+
+        game = self.game()
+        left = self.add_hand(game, "CORE_EX1_005")
+        sabotage = self.add_hand(game, "CATA_186t")
+        self.add_hand(game, "CORE_CS2_029")
+        self.assertEqual(left.cost + 1, game._effective_cost(game.players[0], left))
+        self.assertEqual(sabotage.cost, game._effective_cost(game.players[0], sabotage))
+
+        game = self.game()
+        spell = self.add_hand(game, "CORE_CS2_029")
+        game.players[0].deck.append(game._entity("CORE_CS2_029"))
+        kalec = self.add_hand(game, "CATA_458")
+        game.step(Action("PLAY", kalec.entity_id))
+        self.assertEqual(1, spell.spell_damage_bonus)
+        self.assertEqual(1, game.players[0].deck[0].spell_damage_bonus)
+
+        game = self.game()
+        sigil = self.add_hand(game, "CATA_528")
+        game.step(Action("PLAY", sigil.entity_id))
+        game._start_turn(1)
+        game._start_turn(0)
+        self.assertTrue(any(card.card_id == "CATA_528t" for card in game.players[0].board))
+
+        game = self.game()
+        transformed = self.add_hand(game, "CATA_551")
+        dragon = self.add_hand(game, "CATA_132")
+        game.step(Action("PLAY", dragon.entity_id))
+        self.assertEqual("CATA_551t", transformed.card_id)
+
+    def test_animal_companion_and_recruit_package(self):
+        game = self.game()
+        game.players[0].deck.append(game._entity("CORE_EX1_005"))
+        tame = self.add_hand(game, "MEND_300")
+        game.step(Action("PLAY", tame.entity_id))
+        self.assertEqual(1, game.players[0].animal_companion_cost_increase)
+        self.assertEqual(1, len(game.players[0].hand))
+
+        game = self.game()
+        spiritspeaker = self.add_hand(game, "MEND_301")
+        game.step(Action("PLAY", spiritspeaker.entity_id))
+        self.assertEqual("RULE_CHOICE", game.pending_choice["kind"])
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        self.assertTrue(any(card.card_id == "NEW1_032" for card in game.players[0].board))
+
+        game = self.game()
+        spell = self.add_hand(game, "MEND_802")
+        game.step(Action("PLAY", spell.entity_id))
+        recruits = [card for card in game.players[0].board if card.card_id == "CS2_101t"]
+        self.assertEqual(2, len(recruits))
+        self.assertTrue(all(card.divine_shield for card in recruits))
+
+        game = self.game()
+        blade = self.add_hand(game, "MEND_803")
+        game.step(Action("PLAY", blade.entity_id))
+        teamwork = self.add_hand(game, "MEND_900")
+        game.step(Action("PLAY", teamwork.entity_id))
+        recruits = [card for card in game.players[0].board if card.card_id == "CS2_101t"]
+        self.assertEqual(4, len(recruits))
+        self.assertTrue(all(card.attack >= 2 and card.max_health >= 2 for card in recruits))
+
+        game = self.game()
+        dead = self.add_board(game, "CORE_EX1_005")
+        game._damage_minion(0, dead, dead.health)
+        game._resolve_deaths()
+        charity = self.add_hand(game, "MEND_805")
+        game.step(Action("PLAY", charity.entity_id))
+        copied = game.players[0].hand[-1]
+        self.assertEqual("CORE_EX1_005", copied.card_id)
+        self.assertEqual(7, copied.attack)
+        self.assertEqual(5, copied.max_health)
+
+
 if __name__ == "__main__":
     unittest.main()

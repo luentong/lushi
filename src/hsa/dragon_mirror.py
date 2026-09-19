@@ -975,6 +975,17 @@ class CardInstance:
     # intact, makes silence immediately remove the effective bonus, and is
     # naturally branch-safe for MCTS cloning.
     opponent_turn_attack_bonus_active: bool = False
+    # Sixth Standard tranche: held-card, temporary combat and delayed
+    # deathrattle state. Scalars stay cheap under the branch copier below;
+    # the one embedded card is explicitly deep-copied.
+    mega_windfury: bool = False
+    spell_damage_triggered_turn: int = -1
+    deathrattle_summon_random_cost: int = 0
+    deathrattle_summon_hand_minion: bool = False
+    cost_reduction_each_own_start: int = 0
+    shadowed_class: str | None = None
+    stored_discarded_card: CardInstance | None = None
+    chaos_supplicant_depth: int = 0
 
     @property
     def card_id(self) -> str:
@@ -1040,6 +1051,7 @@ class CardInstance:
         result.gifts = list(self.gifts)
         result.temporary_attack_modifiers = list(self.temporary_attack_modifiers)
         result.temporary_health_modifiers = list(self.temporary_health_modifiers)
+        result.stored_discarded_card = copy.deepcopy(self.stored_discarded_card, memo)
         return result
 
     def clone(self, entity_id: int) -> "CardInstance":
@@ -1243,6 +1255,19 @@ class Player:
     enemy_hero_damage_this_turn: int = 0
     chronological_aura_turns: list[int] = field(default_factory=list)
     timelooper_remaining: dict[int, int] = field(default_factory=dict)
+    next_murloc_costs_health: bool = False
+    healing_bonus: int = 0
+    spell_damage_dealt_this_turn: int = 0
+    discarded_this_game: int = 0
+    fel_spells_cast_this_game: int = 0
+    last_played_card_cost: int = 0
+    sigil_of_seas_trigger_turn: int = -1
+    animal_companion_cost_increase: int = 0
+    animal_companion_extra_count: int = 0
+    dragons_have_rush: bool = False
+    recruit_attack_bonus: int = 0
+    recruit_health_bonus: int = 0
+    minions_died_this_turn_cards: list[CardInstance] = field(default_factory=list)
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "Player":
         """Fast branch copy for the mutable player state used by MCTS."""
@@ -1250,7 +1275,7 @@ class Player:
         memo[id(self)] = result
         for name in (
             "deck", "hand", "board", "dead_minions", "locations", "secrets",
-            "overdrawn_cards", "pending_end_turn_returns",
+            "overdrawn_cards", "pending_end_turn_returns", "minions_died_this_turn_cards",
         ):
             zone = getattr(self, name)
             # ``clone(skip_hidden_zones_of=...)`` supplies branch-local empty
@@ -2126,6 +2151,11 @@ class DragonMirrorGame:
     ) -> None:
         if minion.divine_shield and minion.divine_shield_hits <= 0:
             minion.divine_shield_hits = 1
+        if minion.has_race("DRAGON") and player.dragons_have_rush:
+            minion.rush = True
+        if minion.card_id == "CS2_101t":
+            minion.attack_delta += player.recruit_attack_bonus
+            minion.health_delta += player.recruit_health_bonus
         tidecallers = [
             other for other in player.board
             if other.card_id == "CORE_EX1_509"
@@ -2814,6 +2844,19 @@ class DragonMirrorGame:
         self.turn += 1
         self.minions_died_this_turn = 0
         player = self.players[index]
+        # This timer is armed when Sigil of Seas is played and resolves at the
+        # controller's next start of turn (the global turn counter advances
+        # once for the intervening opponent turn).
+        if player.sigil_of_seas_trigger_turn == self.turn:
+            player.sigil_of_seas_trigger_turn = -1
+            if len(player.board) + len(player.locations) < 7:
+                naga = self._entity("CATA_528t", created_by="CATA_528")
+                naga.summoned_turn = self.turn
+                self._summon(player, naga)
+                self._event("sigil_of_seas_trigger", player=index,
+                            entity=naga.entity_id)
+            else:
+                self._event("sigil_of_seas_blocked", player=index)
         if (
             player.hero_power_cost_surcharge
             and player.hero_power_cost_surcharge_expiry_turn < self.turn
@@ -2843,6 +2886,7 @@ class DragonMirrorGame:
                 amount=amount, hits=hits,
             )
         player.friendly_minions_died_this_turn = 0
+        player.minions_died_this_turn_cards.clear()
         if player.hero_immune_expiry_turn == self.turn:
             player.hero_immune = False
             player.hero_immune_expiry_turn = -1
@@ -2903,9 +2947,9 @@ class DragonMirrorGame:
             for card in owner.hand:
                 if card.costs_health_expiry_turn == index:
                     card.costs_health_expiry_turn = -1
-                if card.card_id == "EDR_843":
+                if owner.index == index and card.card_id in {"EDR_843", "CATA_498"}:
                     card.held_turns += 1
-                    if card.held_turns >= 3 and "EDR_843t1" in self.card_defs:
+                    if card.card_id == "EDR_843" and card.held_turns >= 3 and "EDR_843t1" in self.card_defs:
                         card.definition = self.card_defs["EDR_843t1"]
                         self._event(
                             "reforestation_upgraded", player=owner.index,
@@ -2915,6 +2959,11 @@ class DragonMirrorGame:
                         "health_cost_expire", player=owner.index,
                         card=card.card_id, entity=card.entity_id,
                     )
+                if owner.index == index and card.cost_reduction_each_own_start:
+                    card.cost_delta -= card.cost_reduction_each_own_start
+                    self._event("held_card_start_discount", player=owner.index,
+                                entity=card.entity_id,
+                                amount=card.cost_reduction_each_own_start)
         self._resolve_deaths()
         player.turns_taken += 1
         # Tar Creeper/Tar Tyrant have conditional attack while their controller
@@ -3033,6 +3082,7 @@ class DragonMirrorGame:
         player.cards_played_this_turn = 0
         player.cards_drawn_this_turn = 0
         player.spells_cast_this_turn = 0
+        player.spell_damage_dealt_this_turn = 0
         player.mug_magic_used_this_turn = False
         player.dragons_played_this_turn = 0
         player.damaged_characters_this_turn.clear()
@@ -3541,6 +3591,13 @@ class DragonMirrorGame:
 
     def _effective_cost(self, player: Player, card: CardInstance) -> int:
         cost = card.cost
+        # Sabotage is a hand-position enchantment: both immediate neighbours
+        # cost one more while the sabotage card remains in that hand.
+        for index, held in enumerate(player.hand):
+            if held.card_id != "CATA_186t":
+                continue
+            if card is not held and abs(player.hand.index(card) - index) == 1:
+                cost += 1
         if getattr(player, "all_card_cost_surcharge_turn", -1) == self.turn:
             cost += max(0, int(getattr(player, "all_card_cost_surcharge", 0)))
         if card.definition.card_type == "SPELL":
@@ -4392,6 +4449,12 @@ class DragonMirrorGame:
         ) else [(enemy.index, None)]
         if target_kind == TargetKind.FRIENDLY_MINION:
             return friendly_minions
+        if target_kind == TargetKind.FRIENDLY_BEAST:
+            return [
+                (player.index, minion.entity_id)
+                for minion in player.board
+                if minion.dormant_turns == 0 and minion.has_race("BEAST")
+            ]
         if target_kind == TargetKind.FRIENDLY_HAND_MINION:
             return [
                 (player.index, card.entity_id)
@@ -4459,6 +4522,11 @@ class DragonMirrorGame:
             if self.pending_choice["kind"] == "HAND_DISCARD":
                 return [
                     Action("DISCARD_PICK", card.entity_id)
+                    for card in self.pending_choice["options"]
+                ]
+            if self.pending_choice["kind"] == "HAND_SELECT":
+                return [
+                    Action("HAND_PICK", card.entity_id)
                     for card in self.pending_choice["options"]
                 ]
             if self.pending_choice["kind"] in {
@@ -4530,6 +4598,13 @@ class DragonMirrorGame:
                     continue
             elif card.costs_health_expiry_turn == self.turn:
                 # Health costs cannot reduce the hero to zero.
+                if effective_cost >= player.health:
+                    continue
+            elif (
+                player.next_murloc_costs_health
+                and card.has_race("MURLOC")
+                and effective_cost <= 3
+            ):
                 if effective_cost >= player.health:
                     continue
             elif effective_cost > player.mana:
@@ -4684,7 +4759,7 @@ class DragonMirrorGame:
         for minion in player.board:
             if minion.dormant_turns > 0:
                 continue
-            max_attacks = 2 if minion.windfury else 1
+            max_attacks = 4 if minion.mega_windfury else (2 if minion.windfury else 1)
             ready = minion.summoned_turn < self.turn or minion.charge or minion.rush
             if (
                 not ready
@@ -4833,10 +4908,65 @@ class DragonMirrorGame:
             self._resolve_deathwing_cataclysm(action.source)
         elif action.kind == "DISCARD_PICK":
             self._resolve_hand_discard(action.source)
+        elif action.kind == "HAND_PICK":
+            self._resolve_hand_select(action.source)
         for owner in self.players:
             self._normalize_shattered_hand(owner)
         self._resolve_deaths()
         self._check_winner()
+
+    def _resolve_hand_select(self, entity_id: int | None) -> None:
+        pending = self.pending_choice
+        if pending is None or pending.get("kind") != "HAND_SELECT":
+            raise ValueError("no hand selection is pending")
+        player = self.players[pending["player"]]
+        selected = next((card for card in player.hand if card.entity_id == entity_id), None)
+        if selected is None:
+            raise ValueError("invalid hand selection")
+        source = pending["source"]
+        mode = pending["mode"]
+        self.pending_choice = None
+        if mode == "tolvir_discount":
+            selected.cost_reduction_each_own_start += 1
+            self._event("tolvir_carver_select", player=player.index,
+                        source=source.entity_id, target=selected.entity_id)
+            return
+        if mode == "fel_copy":
+            copy_card = selected.clone(self.next_entity_id)
+            self.next_entity_id += 1
+            copy_card.created_by = source.card_id
+            destination = self._add_generated(player, copy_card)
+            self._event("malevolent_mutant_copy", player=player.index,
+                        source=source.entity_id, target=selected.entity_id,
+                        copy=copy_card.entity_id, destination=destination)
+            return
+        if mode == "gemstone_discard":
+            player.hand.remove(selected)
+            source.stored_discarded_card = selected
+            self._dispatch_after_discard(player, selected)
+            self._event("gemstone_hoarder_discard", player=player.index,
+                        source=source.entity_id, target=selected.entity_id)
+            return
+        if mode == "split_spell":
+            player.hand.remove(selected)
+            candidates = [
+                card_id for card_id, definition in self.card_defs.items()
+                if card_id in self.executable_card_ids
+                and definition.card_type == "SPELL"
+                and definition.cost == selected.definition.cost
+            ]
+            generated: list[int] = []
+            for _ in range(2):
+                if not candidates:
+                    break
+                spell = self._entity(self.rng.choice(candidates), created_by=source.card_id)
+                if self._add_generated(player, spell) == "hand":
+                    generated.append(spell.entity_id)
+            self._event("conjuration_specialist_split", player=player.index,
+                        source=source.entity_id, target=selected.entity_id,
+                        generated=generated)
+            return
+        raise ValueError(f"unknown hand selection mode: {mode}")
 
     def _resolve_hand_discard(self, entity_id: int | None) -> None:
         pending = self.pending_choice
@@ -5174,6 +5304,11 @@ class DragonMirrorGame:
         held = player.hand[held_index]
         held.outcast_active = held_index in {0, len(player.hand) - 1}
         effective_cost = self._effective_cost(player, held)
+        murloc_health_payment = (
+            player.next_murloc_costs_health
+            and held.has_race("MURLOC")
+            and effective_cost <= 3
+        )
         if (
             held.definition.card_type == "MINION"
             and player.mug_magic_active
@@ -5219,6 +5354,11 @@ class DragonMirrorGame:
                 "health_cost_paid", player=player.index,
                 card=card.card_id, amount=effective_cost,
             )
+        elif murloc_health_payment:
+            self._damage_hero(player, effective_cost, card)
+            player.next_murloc_costs_health = False
+            self._event("murloc_health_cost_paid", player=player.index,
+                        card=card.card_id, amount=effective_cost)
         else:
             self._spend_mana(player, effective_cost)
         if card.has_race("DEMON") and player.next_demon_free:
@@ -5256,8 +5396,11 @@ class DragonMirrorGame:
             created_by=card.created_by,
         )
         player.cards_played_this_turn += 1
+        player.last_played_card_cost = effective_cost
         if card.definition.card_type == "SPELL":
             player.spells_cast_this_turn += 1
+            if card.definition.spell_school == "FEL":
+                player.fel_spells_cast_this_game += 1
         player.played_card_counts[card.card_id] = player.played_card_counts.get(card.card_id, 0) + 1
         toki_origin = getattr(card, "timelooper_origin", None)
         if toki_origin is not None and toki_origin in player.timelooper_remaining:
@@ -5393,6 +5536,17 @@ class DragonMirrorGame:
                 player.played_races_this_game.add(card.definition.race)
             if card.has_race("DRAGON"):
                 player.dragons_played_this_turn += 1
+                transforms = {
+                    "CATA_551": "CATA_551t",
+                    "CATA_553": "CATA_553t",
+                }
+                for held_card in player.hand:
+                    target_id = transforms.get(held_card.card_id)
+                    if target_id and target_id in self.card_defs:
+                        held_card.definition = self.card_defs[target_id]
+                        self._event("held_dragon_transform", player=player.index,
+                                    entity=held_card.entity_id, card=target_id,
+                                    source=card.entity_id)
             if card.card_id == "CATA_150":
                 self._summon_ragnaros_hands(controller, source=card.card_id)
             if card.card_id == "CATA_550":
@@ -7145,6 +7299,8 @@ class DragonMirrorGame:
     ) -> int:
         """Apply healing and dispatch Overheal only for actual excess."""
         amount = max(0, int(amount))
+        if amount:
+            amount += max(0, owner.healing_bonus)
         if owner.ruby_sanctum_turn == self.turn and amount:
             owner.ruby_sanctum_turn = -1
             if isinstance(target, Player):
@@ -7192,6 +7348,14 @@ class DragonMirrorGame:
 
     def _dispatch_after_discard(self, player: Player, discarded: CardInstance) -> None:
         """Notify board minions that a card was discarded by their controller."""
+        player.discarded_this_game += 1
+        if discarded.card_id == "CATA_499":
+            for _ in range(2):
+                self._summon_random_executable_minion(
+                    player, source_card_id=discarded.card_id, cost=1,
+                )
+            self._event("disposable_acolytes_discard", player=player.index,
+                        card=discarded.entity_id)
         for minion in list(player.board):
             if (
                 minion not in player.board
@@ -9556,6 +9720,29 @@ class DragonMirrorGame:
                 return player
         return self.players[self.current]
 
+    def _record_spell_damage(self, source: CardInstance | None, dealt: int) -> None:
+        """Record actual spell damage and fire Raincaller once per turn."""
+        if (
+            source is None
+            or source.definition.card_type != "SPELL"
+            or dealt <= 0
+        ):
+            return
+        owner = self._source_controller(source)
+        owner.spell_damage_dealt_this_turn += dealt
+        for minion in owner.board:
+            if (
+                minion.card_id == "CATA_487"
+                and not minion.silenced
+                and minion.dormant_turns == 0
+                and minion.health > 0
+                and minion.spell_damage_triggered_turn != self.turn
+            ):
+                minion.spell_damage_triggered_turn = self.turn
+                minion.attack_delta += 2
+                self._event("raincaller_spell_damage", player=owner.index,
+                            source=minion.entity_id, amount=2)
+
     def _modified_damage(
         self, amount: int, source: CardInstance | None
     ) -> int:
@@ -9663,6 +9850,7 @@ class DragonMirrorGame:
             )
             return
         player.health -= health_loss
+        self._record_spell_damage(source, absorbed + health_loss)
         if health_loss > 0:
             player.hero_health_changed_this_turn = True
         if player.health <= 0 and player.corpse_rebirth_pending:
@@ -9675,7 +9863,7 @@ class DragonMirrorGame:
                             amount=amount, source=getattr(source, "card_id", None))
         self.players[player.index].damaged_characters_this_turn.add(f"hero:{player.index}")
         if source and source.lifesteal:
-            owner = self.players[1 - player.index]
+            owner = self._source_controller(source)
             owner.health = min(owner.max_health, owner.health + amount)
         self._check_warptooth(player.index)
 
@@ -9700,6 +9888,8 @@ class DragonMirrorGame:
             )
             return
         amount = self._modified_damage(amount, source)
+        if minion.card_id == "CATA_208" and not minion.silenced:
+            amount += 1
         if minion.card_id == "TIME_060" and not minion.silenced:
             amount *= 2
         # These Time Travel Shaman minions replace, rather than react after,
@@ -9737,9 +9927,22 @@ class DragonMirrorGame:
             if minion.divine_shield_hits == 0:
                 minion.divine_shield = False
                 minion.divine_shield_toreth = False
+                if minion.card_id == "MEND_801" and not minion.silenced:
+                    owner = self.players[player_index]
+                    owner.recruit_health_bonus += 1
+                    affected = []
+                    for recruit in owner.board:
+                        if recruit.card_id == "CS2_101t":
+                            recruit.health_delta += 1
+                            affected.append(recruit.entity_id)
+                    self._event("recruit_divine_shield_lost", player=player_index,
+                                source=minion.entity_id, affected=affected)
             return
         health_before_damage = max(0, minion.health)
         minion.damage += amount
+        self._record_spell_damage(
+            source, health_before_damage - max(0, minion.health),
+        )
         if minion.health <= 0 and source is not None:
             # Preserve the lethal minion for deathrattles such as Faceless
             # Replicator, including non-combat damage caused by a minion.
@@ -9902,6 +10105,8 @@ class DragonMirrorGame:
             for player, minion in dead:
                 player.board.remove(minion)
                 player.dead_minions.append(copy.deepcopy(minion))
+                if player.index == self.current:
+                    player.minions_died_this_turn_cards.append(copy.deepcopy(minion))
                 self._event(
                     "minion_died", player=player.index, card=minion.card_id,
                     entity=minion.entity_id,
@@ -10138,6 +10343,23 @@ class DragonMirrorGame:
             Hook.DEATHRATTLE, minion.card_id, self,
             RuleContext(player=player, card=minion),
         )
+        if minion.deathrattle_summon_random_cost:
+            self._summon_random_executable_minion(
+                player, source_card_id=minion.card_id,
+                cost=minion.deathrattle_summon_random_cost,
+            )
+        if minion.deathrattle_summon_hand_minion:
+            candidates = [
+                card for card in player.hand
+                if card.definition.card_type == "MINION"
+            ]
+            if candidates and len(player.board) + len(player.locations) < 7:
+                chosen = self.rng.choice(candidates)
+                player.hand.remove(chosen)
+                chosen.summoned_turn = self.turn
+                self._summon(player, chosen)
+                self._event("deathrattle_summon_hand_minion", player=player.index,
+                            source=minion.entity_id, summoned=chosen.entity_id)
         if minion.deathrattle_damage_all_enemies:
             amount = minion.deathrattle_damage_all_enemies
             opponent = self.players[1 - player.index]
