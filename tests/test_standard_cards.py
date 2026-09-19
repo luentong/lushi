@@ -4991,5 +4991,109 @@ class FourthStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(1, game.players[0].deck[0].cost)
 
 
+class FifthStandardCardBatchTests(unittest.TestCase):
+    """Regression coverage for the Time Travel 50E Standard tranche."""
+
+    BATCH = {
+        "TIME_006", "TIME_016", "TIME_025", "TIME_026", "TIME_027",
+        "TIME_028", "TIME_029", "TIME_036", "TIME_040", "TIME_047",
+        "TIME_049", "TIME_050", "TIME_052", "TIME_055", "TIME_057",
+        "TIME_061", "TIME_062", "TIME_100", "TIME_102", "TIME_212",
+        "TIME_214", "TIME_215", "TIME_217", "TIME_428", "TIME_429",
+        "TIME_434", "TIME_435", "TIME_444", "TIME_447", "TIME_448",
+        "TIME_449", "TIME_616", "TIME_620", "TIME_700", "TIME_703",
+        "TIME_704", "TIME_705", "TIME_707", "TIME_710", "TIME_711",
+        "TIME_712", "TIME_716", "TIME_730", "TIME_857", "TIME_859",
+        "TIME_860", "TIME_861", "TIME_870", "TIME_872", "TIME_873",
+    }
+
+    def game(self):
+        game = DragonMirrorGame(CARDS, 43)
+        game.current = 0
+        for player in game.players:
+            player.hand.clear()
+            player.board.clear()
+            player.locations.clear()
+            player.deck.clear()
+            player.secrets.clear()
+            player.mana = 20
+            player.max_mana = 10
+            player.health = 30
+            player.armor = 0
+        return game
+
+    @staticmethod
+    def add_hand(game, card_id, player=0):
+        card = game._entity(card_id)
+        game.players[player].hand.append(card)
+        return card
+
+    @staticmethod
+    def add_board(game, card_id, player=0):
+        card = game._entity(card_id)
+        card.summoned_turn = -1
+        game._summon(game.players[player], card)
+        return card
+
+    def test_batch_has_exactly_fifty_registered_cards(self):
+        game = self.game()
+        self.assertEqual(50, len(self.BATCH))
+        self.assertTrue(self.BATCH <= game.executable_card_ids)
+        self.assertTrue(self.BATCH <= {rule.card_id for rule in game.rule_registry.all_rules()})
+
+    def test_shreds_and_time_summons(self):
+        game = self.game()
+        hopper = self.add_hand(game, "TIME_025")
+        game.step(Action("PLAY", hopper.entity_id))
+        self.assertEqual(2, sum(card.card_id == "TIME_025t" for card in game.players[0].deck))
+        replacement = game._entity("CORE_AT_055")
+        game.players[0].deck.append(replacement)
+        shred = next(card for card in game.players[0].deck if card.card_id == "TIME_025t")
+        game.players[0].deck.remove(shred)
+        game.players[0].deck.append(shred)
+        game._draw(game.players[0])
+        self.assertEqual(27, game.players[0].health)
+        self.assertIn(replacement, game.players[0].hand)
+
+        game = self.game()
+        self.add_hand(game, "CATA_111")
+        dimension = self.add_hand(game, "TIME_006")
+        game.step(Action("PLAY", dimension.entity_id))
+        self.assertEqual(2, sum(card.card_id == "TIME_006t1" for card in game.players[0].board))
+
+    def test_past_discover_and_time_state(self):
+        game = self.game()
+        neon = self.add_hand(game, "TIME_016")
+        game.step(Action("PLAY", neon.entity_id))
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        option = game.pending_choice["options"][0]
+        game.step(Action("DISCOVER_PICK", option.entity_id))
+        selected = next(card for card in game.players[0].hand if card.entity_id == option.entity_id)
+        self.assertEqual(option.definition.attack + 5, selected.attack)
+        self.assertEqual(option.definition.health + 5, selected.max_health)
+
+        game = self.game()
+        alter = self.add_hand(game, "TIME_857")
+        game.step(Action("PLAY", alter.entity_id))
+        option = game.pending_choice["options"][0]
+        game.step(Action("DISCOVER_PICK", option.entity_id))
+        selected = next(card for card in game.players[0].hand if card.entity_id == option.entity_id)
+        self.assertEqual(max(0, option.definition.cost - 2), selected.cost)
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+
+        game = self.game()
+        aura = self.add_hand(game, "TIME_700")
+        game.step(Action("PLAY", aura.entity_id))
+        game._end_turn()
+        self.assertEqual(2, game.players[0].chronological_aura_turns[0])
+        self.assertTrue(any(card.card_id == "TIME_700t" for card in game.players[0].board))
+
+        game = self.game()
+        coyote = self.add_hand(game, "TIME_047")
+        game._damage_hero(game.players[1], 1)
+        game._damage_hero(game.players[1], 1)
+        self.assertEqual(max(0, coyote.cost - 2), game._effective_cost(game.players[0], coyote))
+
+
 if __name__ == "__main__":
     unittest.main()
