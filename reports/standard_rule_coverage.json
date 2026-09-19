@@ -7,11 +7,11 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 1300,
+      "declarative": 1307,
       "engine_owned_auxiliary": 21,
       "engine_state": 482,
       "legacy_compatibility": 297,
-      "not_implemented": 61
+      "not_implemented": 54
     },
     "collectible_implementation": {
       "declarative": 972,
@@ -12847,10 +12847,10 @@
       "mechanics": "",
       "text": "At the end of your turn, cast {0}. Lasts 0 turns.",
       "text_sha256": "2d05b93781912c374d19dad49ae7b027186597d38361fbac1b00e72de3ff4a0f",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "EDR_260",
@@ -23567,10 +23567,10 @@
       "mechanics": "RUSH",
       "text": "Rush Doesn't leave a Corpse.",
       "text_sha256": "8e3517ce77774e39f8bba81b5828babe9eb1154cfa7ca6e87d3fca68da22d867",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "RLK_024",
@@ -23615,10 +23615,10 @@
       "mechanics": "",
       "text": "Casts When Drawn Summon a 2/2 Undead Peasant.",
       "text_sha256": "8b17a107031e2dd0d535982fec8f1929f80e70316714ae98acc566d754f92acd",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "RLK_048",
@@ -23695,10 +23695,10 @@
       "mechanics": "TAUNT",
       "text": "Taunt Doesn't leave a Corpse.",
       "text_sha256": "932eea5ebb211a7923fc3e5b11b2fc2855d9ed30e46cfddf3c30d3988b56d119",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "RLK_067",
@@ -23743,10 +23743,10 @@
       "mechanics": "RUSH",
       "text": "Rush Doesn't leave a Corpse.",
       "text_sha256": "8e3517ce77774e39f8bba81b5828babe9eb1154cfa7ca6e87d3fca68da22d867",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "RLK_223",
@@ -23775,10 +23775,10 @@
       "mechanics": "TAUNT",
       "text": "Taunt Doesn't leave a Corpse.",
       "text_sha256": "932eea5ebb211a7923fc3e5b11b2fc2855d9ed30e46cfddf3c30d3988b56d119",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "RLK_503",
@@ -23903,10 +23903,10 @@
       "mechanics": "DEATHRATTLE",
       "text": "Deathrattle: Deal 2 damage to a random enemy.",
       "text_sha256": "74e391a0daa46d1c8a98bf9ae64a17dfce9b68870ea0017660b0352092854803",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "RLK_958",

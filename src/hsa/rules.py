@@ -276,6 +276,8 @@ STANDARD_DECLARATIVE_IDS = {
     "TLC_452t8", "TLC_452t9", "TLC_460t", "TLC_513hp", "TLC_513t",
     "TLC_602t", "TLC_631t", "TLC_817t", "TLC_817t2", "TLC_817t3",
     "TLC_817t4", "TLC_817t5", "TLC_830t", "TLC_841t",
+    "EDR_259e1", "RLK_008t", "RLK_039t", "RLK_061t", "RLK_085t",
+    "RLK_226t", "RLK_907t",
     # 50-card Standard coverage tranche (23 metadata-keyword cards + 27
     # composable Battlecry/Deathrattle/spell cards).
     "RLK_067", "CORE_BT_921", "EDR_272", "CATA_558", "CORE_CS2_179",
@@ -17306,6 +17308,11 @@ def build_rule_registry() -> RuleRegistry:
             "TLC_452t8", "TLC_452t9", "TLC_460t", "TLC_513hp", "TLC_513t",
             "TLC_602t", "TLC_631t", "TLC_817t", "TLC_817t2", "TLC_817t3",
             "TLC_817t4", "TLC_817t5", "TLC_830t", "TLC_841t",
+        )),
+        CardRule("RLK_907t", {Hook.DEATHRATTLE: (DamageRandomEnemyMinion(2),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        *tuple(CardRule(card_id, {}, _AUXILIARY_TOKEN_SOURCE) for card_id in (
+            "EDR_259e1", "RLK_008t", "RLK_039t", "RLK_061t", "RLK_085t", "RLK_226t",
         )),
         CardRule("CATA_213", {Hook.BATTLECRY: (SplitHundredStatsIfStartingCosts(),)}, _FINAL_48_SOURCE),
         CardRule("CATA_307", {Hook.BATTLECRY: (SetHealthAndArmFullHealDamage(15, 15),)}, _FINAL_48_SOURCE),
