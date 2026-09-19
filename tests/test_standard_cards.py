@@ -4756,5 +4756,134 @@ class SecondStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(7, sum(m.card_id == "Story_09_Imp" for m in game.players[0].board))
 
 
+class ThirdStandardCardBatchTests(unittest.TestCase):
+    """Regression coverage for the independent 50-card 50C tranche."""
+
+    BATCH = {
+        "TLC_817", "CATA_139", "TLC_513", "TLC_446", "TLC_433", "TLC_460",
+        "TLC_239", "TLC_229", "TLC_631", "TLC_830", "TLC_602", "JAIL_450",
+        "TLC_426", "JAIL_430", "TLC_833", "JAIL_458", "EDR_847",
+        "CORE_RLK_086", "CORE_LOOT_044", "TLC_478", "TLC_107", "JAIL_730",
+        "JAIL_376", "JAIL_329", "FIR_907", "END_016", "DINO_408",
+        "CORE_OG_031", "CORE_DAL_720", "CORE_BT_781", "CATA_472", "CATA_467",
+        "CAP_103", "CORE_DMF_067", "CORE_DRG_403", "CORE_EX1_059",
+        "CORE_GIL_534", "CORE_GIL_623", "CORE_KAR_062", "CORE_SCH_713",
+        "CORE_UNG_928", "EDR_254", "EDR_470", "EDR_861", "END_008",
+        "TLC_101", "TLC_468", "TIME_443", "END_031", "TLC_242",
+    }
+
+    def game(self):
+        game = DragonMirrorGame(CARDS, 37)
+        game.current = 0
+        for player in game.players:
+            player.hand.clear()
+            player.board.clear()
+            player.locations.clear()
+            player.deck.clear()
+            player.mana = 20
+            player.max_mana = 10
+            player.health = 30
+            player.armor = 0
+        return game
+
+    @staticmethod
+    def add_hand(game, card_id, player=0):
+        card = game._entity(card_id)
+        game.players[player].hand.append(card)
+        return card
+
+    @staticmethod
+    def add_board(game, card_id, player=0):
+        card = game._entity(card_id)
+        card.summoned_turn = -1
+        game._summon(game.players[player], card)
+        return card
+
+    def test_batch_has_exactly_fifty_registered_cards(self):
+        game = self.game()
+        self.assertEqual(50, len(self.BATCH))
+        self.assertTrue(self.BATCH <= game.executable_card_ids)
+        self.assertTrue(self.BATCH <= {rule.card_id for rule in game.rule_registry.all_rules()})
+
+    def test_cost_windows_and_hero_power_triggers(self):
+        game = self.game()
+        game.players[0].card_class = "WARRIOR"
+        game.players[0].mana = 2
+        game.players[0].max_mana = 5
+        sentinel = self.add_board(game, "EDR_470")
+        self.add_board(game, "END_008")
+        game.step(Action("HERO_POWER"))
+        self.assertEqual(2, sentinel.health_delta)
+        self.assertEqual(2, game.players[0].mana)
+
+        game = self.game()
+        saboteur = self.add_hand(game, "CORE_DRG_403")
+        game.step(Action("PLAY", saboteur.entity_id))
+        game._start_turn(1)
+        self.assertEqual(4, game._hero_power_cost(game.players[1]))
+        game.step(Action("HERO_POWER"))
+        self.assertEqual(0, game.players[1].hero_power_cost_surcharge)
+
+        game = self.game()
+        neophyte = self.add_hand(game, "CORE_SCH_713")
+        game.step(Action("PLAY", neophyte.entity_id))
+        game._start_turn(1)
+        spell = self.add_hand(game, "CORE_AT_055", 1)
+        self.assertEqual(spell.cost + 1, game._effective_cost(game.players[1], spell))
+
+    def test_blob_hounds_and_conditional_attack(self):
+        game = self.game()
+        blob = self.add_board(game, "TLC_468")
+        game._damage_minion(0, blob, blob.health)
+        game._resolve_deaths()
+        self.assertEqual(
+            {"TLC_468t1", "TLC_468t2"},
+            {minion.card_id for minion in game.players[0].board},
+        )
+
+        game = self.game()
+        hounds = self.add_hand(game, "TIME_443")
+        game.step(Action("PLAY", hounds.entity_id))
+        self.assertEqual(2, sum(
+            minion.card_id in {"TIME_443t", "TIME_443t2"}
+            for minion in game.players[0].board
+        ))
+        self.assertLess(game.players[1].health, 30)
+
+        game = self.game()
+        creeper = self.add_board(game, "CORE_UNG_928")
+        self.assertEqual(creeper.definition.attack, creeper.attack)
+        game._start_turn(1)
+        self.assertEqual(creeper.definition.attack + 2, creeper.attack)
+        game._start_turn(0)
+        self.assertEqual(creeper.definition.attack, creeper.attack)
+
+    def test_swap_discover_and_choice_rules(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_EX1_005", 1)
+        target.attack_delta = 2
+        target.health_delta = 5
+        before_attack, before_health = target.attack, target.max_health
+        alchemist = self.add_hand(game, "CORE_EX1_059")
+        game.step(Action("PLAY", alchemist.entity_id, 1, target.entity_id))
+        self.assertEqual(before_health, target.attack)
+        self.assertEqual(before_attack, target.max_health)
+
+        game = self.game()
+        self.add_hand(game, "CATA_111")
+        historian = self.add_hand(game, "CORE_KAR_062")
+        game.step(Action("PLAY", historian.entity_id))
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        self.assertTrue(all(option.has_race("DRAGON") for option in game.pending_choice["options"]))
+
+        game = self.game()
+        stegodon = self.add_hand(game, "TLC_242")
+        game.step(Action("PLAY", stegodon.entity_id))
+        game.step(Action("RULE_CHOICE_PICK", 2))
+        stegodon = next(m for m in game.players[0].board if m.entity_id == stegodon.entity_id)
+        self.assertEqual(1, stegodon.attack_delta)
+        self.assertEqual(1, stegodon.health_delta)
+
+
 if __name__ == "__main__":
     unittest.main()

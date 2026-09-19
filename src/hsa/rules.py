@@ -20,6 +20,7 @@ class Hook(StrEnum):
     AFTER_PLAY = "after_play"
     AFTER_ATTACK = "after_attack"
     AFTER_HERO_ATTACK = "after_hero_attack"
+    AFTER_HERO_POWER = "after_hero_power"
     AFTER_SUMMON = "after_summon"
     AFTER_DISCARD = "after_discard"
     AFTER_DAMAGE = "after_damage"
@@ -428,6 +429,18 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_552", "EDR_262", "MEND_302", "TIME_856", "TLC_365", "TLC_605",
     "TLC_621", "TLC_829", "TLC_987", "CATA_494", "JAIL_803", "END_026",
     "EDR_979", "EDR_540", "JAIL_503", "TLC_466", "JAIL_719",
+    # Standard coverage tranche 50C.  The first group is engine-owned
+    # lifecycle behavior; the remaining declarations are composable rules.
+    "TLC_817", "CATA_139", "TLC_513", "TLC_446", "TLC_433", "TLC_460",
+    "TLC_239", "TLC_229", "TLC_631", "TLC_830", "TLC_602", "JAIL_450",
+    "TLC_426", "JAIL_430", "TLC_833", "JAIL_458", "EDR_847",
+    "CORE_RLK_086", "CORE_LOOT_044", "TLC_478", "TLC_107", "JAIL_730",
+    "JAIL_376", "JAIL_329", "FIR_907", "END_016", "DINO_408",
+    "CORE_OG_031", "CORE_DAL_720", "CORE_BT_781", "CATA_472",
+    "CATA_467", "CAP_103", "CORE_DMF_067", "CORE_DRG_403",
+    "CORE_EX1_059", "CORE_GIL_534", "CORE_GIL_623", "CORE_KAR_062",
+    "CORE_SCH_713", "CORE_UNG_928", "EDR_254", "EDR_470", "EDR_861",
+    "END_008", "TLC_101", "TLC_468", "TIME_443", "END_031", "TLC_242",
 }
 
 
@@ -6931,6 +6944,15 @@ _BATCH_50B_SOURCE = RuleSource(
     ),
 )
 
+_BATCH_50C_SOURCE = RuleSource(
+    "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+    verification=(
+        "ThirdStandardCardBatchTests.test_batch_has_exactly_fifty_registered_cards",
+        "ThirdStandardCardBatchTests.test_cost_windows_and_hero_power_triggers",
+        "ThirdStandardCardBatchTests.test_blob_hounds_and_conditional_attack",
+    ),
+)
+
 
 @dataclass(frozen=True)
 class SetPlayerAttributes:
@@ -6946,6 +6968,248 @@ class SetPlayerAttributes:
                 source=context.card.card_id,
                 values=dict(self.values),
             )
+
+
+# ---- Standard tranche 50C -------------------------------------------------
+# This tranche is deliberately grouped around shared state transitions:
+# temporary cost windows, post-Hero-Power triggers, conditional turn stats,
+# generated tokens, and small Discover pools.  That keeps the declarations
+# below readable and avoids scattering card-id checks through the engine.
+
+
+@dataclass(frozen=True)
+class EachPlayerDraw:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for player in game.players:
+            game._draw(player)
+
+
+@dataclass(frozen=True)
+class ApplyHeroPowerSurcharge:
+    amount: int = 2
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        opponent = game.players[1 - context.player.index]
+        opponent.hero_power_cost_surcharge += self.amount
+        # The next call to _start_turn belongs to the opponent.  The engine's
+        # global turn increments at that boundary, so this is a one-turn
+        # window rather than an unbounded "next power" discount.
+        opponent.hero_power_cost_surcharge_expiry_turn = game.turn + 1
+        game._event(
+            "hero_power_surcharge", player=opponent.index,
+            source=context.card.card_id, amount=self.amount,
+            expiry_turn=opponent.hero_power_cost_surcharge_expiry_turn,
+        )
+
+
+@dataclass(frozen=True)
+class SwapActionTargetAttackHealth:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("minion target is required")
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        attack, health = target.attack, target.max_health
+        target.attack_delta += health - attack
+        target.health_delta += attack - health
+        game._event(
+            "swap_attack_health", player=context.player.index,
+            source=context.card.card_id, target=target.entity_id,
+            attack=target.attack, health=target.max_health,
+        )
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class HenchClanThugAfterHeroAttack:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.card.attack_delta += 1
+        context.card.health_delta += 1
+        game._event(
+            "hench_clan_thug_buff", player=context.player.index,
+            entity=context.card.entity_id,
+        )
+
+
+@dataclass(frozen=True)
+class WitchwoodGrizzlyBattlecry:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        lost_health = len(game.players[1 - context.player.index].hand)
+        context.card.health_delta -= lost_health
+        game._event(
+            "witchwood_grizzly_health", player=context.player.index,
+            entity=context.card.entity_id, lost=lost_health,
+        )
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class OfferDragonDiscoverIfHolding:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if not game._holding_dragon(context.player):
+            return
+        pool = [
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "MINION"
+            and (definition.race == "DRAGON" or "DRAGON" in definition.races)
+        ]
+        game._offer_discover(
+            context.player, pool, False, source_card_id=context.card.card_id
+        )
+
+
+@dataclass(frozen=True)
+class ApplyOpponentSpellSurchargeNextTurn:
+    amount: int = 1
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        opponent = game.players[1 - context.player.index]
+        expiry_turn = game.turn + 1
+        if opponent.spell_cost_surcharge_turn == expiry_turn:
+            opponent.spell_cost_surcharge += self.amount
+        else:
+            opponent.spell_cost_surcharge = self.amount
+            opponent.spell_cost_surcharge_turn = expiry_turn
+        game._event(
+            "spell_cost_surcharge", player=opponent.index,
+            source=context.card.card_id, amount=opponent.spell_cost_surcharge,
+            expiry_turn=expiry_turn,
+        )
+
+
+@dataclass(frozen=True)
+class AnimatedMoonwellAfterSpell:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        spell = context.payload.get("spell")
+        if spell is None:
+            return
+        amount = max(0, int(context.payload.get("paid_cost", spell.cost)))
+        context.card.attack_delta += amount
+        game._event(
+            "animated_moonwell_attack", player=context.player.index,
+            entity=context.card.entity_id, spell=spell.card_id, amount=amount,
+        )
+
+
+@dataclass(frozen=True)
+class GainSourceHealth:
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.card.health_delta += self.amount
+        game._event(
+            "source_health_gain", player=context.player.index,
+            entity=context.card.entity_id, amount=self.amount,
+        )
+
+
+@dataclass(frozen=True)
+class GainEmptyManaForBothPlayers:
+    amount: int = 1
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        gained: dict[int, int] = {}
+        for player in game.players:
+            before = player.max_mana
+            player.max_mana = min(10, player.max_mana + self.amount)
+            gained[player.index] = player.max_mana - before
+        game._event(
+            "gain_empty_mana_both", player=context.player.index,
+            source=context.card.card_id, gained=gained,
+        )
+
+
+@dataclass(frozen=True)
+class RefreshManaAfterHeroPower:
+    amount: int = 2
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        restored = min(
+            self.amount, max(0, context.player.max_mana - context.player.mana)
+        )
+        context.player.mana += restored
+        game._event(
+            "refresh_mana_after_hero_power", player=context.player.index,
+            entity=context.card.entity_id, amount=restored,
+        )
+
+
+@dataclass(frozen=True)
+class BlobOfTarDeathrattle:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        Summon("TLC_468t1").execute(game, context)
+        Summon("TLC_468t2").execute(game, context)
+
+
+@dataclass(frozen=True)
+class HoundsOfFurySpell:
+    """Summon the two printed Demon tokens then force their attacks."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        player = context.player
+        hounds = []
+        for card_id in ("TIME_443t", "TIME_443t2"):
+            if len(player.board) + len(player.locations) >= 7:
+                break
+            hound = game._entity(card_id, created_by=context.card.card_id)
+            hound.summoned_turn = game.turn
+            game._summon(player, hound)
+            hounds.append(hound)
+        if any(card.definition.card_type == "MINION" for card in player.deck):
+            return
+        for hound in hounds:
+            if hound not in player.board or hound.health <= 0:
+                continue
+            candidates = game._enemy_characters(player.index)
+            if not candidates:
+                break
+
+            def health_of(candidate: tuple[int, int | None]) -> int:
+                owner, entity = candidate
+                return (
+                    game.players[owner].health
+                    if entity is None
+                    else game._find_minion(owner, entity).health
+                )
+
+            lowest = min(health_of(candidate) for candidate in candidates)
+            targets = [
+                candidate for candidate in candidates
+                if health_of(candidate) == lowest
+            ]
+            target_owner, target_entity = game.rng.choice(targets)
+            if target_entity is None:
+                # A forced minion attack on a hero has no return damage.
+                hound.attacks_this_turn += 1
+                game._deal_to_target(
+                    player.index, (target_owner, None), hound.attack, source=hound
+                )
+            else:
+                game._forced_minion_attack(
+                    player.index, hound, target_owner,
+                    game._find_minion(target_owner, target_entity),
+                )
+            game._event(
+                "hounds_of_fury_attack", player=player.index,
+                source=context.card.card_id, hound=hound.entity_id,
+                target_player=target_owner, target_entity=target_entity,
+            )
+
+
+@dataclass(frozen=True)
+class GainSourceStats:
+    attack: int
+    health: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.card.attack_delta += self.attack
+        context.card.health_delta += self.health
+        game._event(
+            "source_stats_gain", player=context.player.index,
+            entity=context.card.entity_id, attack=self.attack, health=self.health,
+        )
 
 
 # ---- Standard tranche 50B -------------------------------------------------
@@ -11155,4 +11419,57 @@ def build_rule_registry() -> RuleRegistry:
         CardRule("EDR_540", {Hook.AFTER_SUMMON: (TwistedWebweaverAfterSummon(),)}, _BATCH_50B_SOURCE),
         CardRule("JAIL_503", {Hook.DEATHRATTLE: (BlackpawsWhipDeathrattle(),)}, _BATCH_50B_SOURCE),
         CardRule("TLC_466", {Hook.SPELL: (StoryOfLakkariSpell(),)}, _BATCH_50B_SOURCE),
+        # ---- 50-card Standard tranche 50C -----------------------------
+        # These cards already have an engine-owned lifecycle (pre-game deck
+        # setup, generated card handling, keywords, weapons, locations, or
+        # conditional metadata).  A registry row makes that ownership
+        # auditable without replaying the lifecycle as a second card script.
+        *tuple(CardRule(card_id, {}, _BATCH_50C_SOURCE) for card_id in (
+            "TLC_817", "CATA_139", "TLC_513", "TLC_446", "TLC_433",
+            "TLC_460", "TLC_239", "TLC_229", "TLC_631", "TLC_830",
+            "TLC_602", "JAIL_450", "TLC_426", "JAIL_430", "TLC_833",
+            "JAIL_458", "EDR_847", "CORE_RLK_086", "CORE_LOOT_044",
+            "TLC_478", "TLC_107", "JAIL_730", "JAIL_376", "JAIL_329",
+            "FIR_907", "END_016", "DINO_408", "CORE_OG_031",
+            "CORE_DAL_720", "CORE_BT_781", "CATA_472", "CATA_467",
+            "CAP_103", "CORE_UNG_928", "TLC_101", "END_031",
+        )),
+        CardRule(
+            "CORE_DMF_067",
+            {Hook.BATTLECRY: (EachPlayerDraw(),), Hook.DEATHRATTLE: (EachPlayerDraw(),)},
+            _BATCH_50C_SOURCE,
+        ),
+        CardRule("CORE_DRG_403", {Hook.BATTLECRY: (ApplyHeroPowerSurcharge(),)},
+                 _BATCH_50C_SOURCE),
+        CardRule("CORE_EX1_059", {Hook.BATTLECRY: (SwapActionTargetAttackHealth(),)},
+                 _BATCH_50C_SOURCE, TargetSpec(TargetKind.ANY_MINION)),
+        CardRule("CORE_GIL_534", {Hook.AFTER_HERO_ATTACK: (HenchClanThugAfterHeroAttack(),)},
+                 _BATCH_50C_SOURCE),
+        CardRule("CORE_GIL_623", {Hook.BATTLECRY: (WitchwoodGrizzlyBattlecry(),)},
+                 _BATCH_50C_SOURCE),
+        CardRule("CORE_KAR_062", {Hook.BATTLECRY: (OfferDragonDiscoverIfHolding(),)},
+                 _BATCH_50C_SOURCE),
+        CardRule("CORE_SCH_713", {Hook.BATTLECRY: (ApplyOpponentSpellSurchargeNextTurn(),)},
+                 _BATCH_50C_SOURCE),
+        CardRule("EDR_254", {Hook.AFTER_PLAY: (AnimatedMoonwellAfterSpell(),)},
+                 _BATCH_50C_SOURCE),
+        CardRule("EDR_470", {Hook.AFTER_HERO_POWER: (GainSourceHealth(2),)},
+                 _BATCH_50C_SOURCE),
+        CardRule("EDR_861", {Hook.DEATHRATTLE: (GainEmptyManaForBothPlayers(),)},
+                 _BATCH_50C_SOURCE),
+        CardRule("END_008", {Hook.AFTER_HERO_POWER: (RefreshManaAfterHeroPower(),)},
+                 _BATCH_50C_SOURCE),
+        CardRule("TLC_468", {Hook.DEATHRATTLE: (BlobOfTarDeathrattle(),)},
+                 _BATCH_50C_SOURCE),
+        CardRule("TIME_443", {Hook.SPELL: (HoundsOfFurySpell(),)},
+                 _BATCH_50C_SOURCE),
+        CardRule(
+            "TLC_242",
+            {Hook.BATTLECRY: (OfferEffectChoice((
+                ("taunt", (GrantKeyword("taunt"),)),
+                ("poisonous", (GrantKeyword("poisonous"),)),
+                ("stats", (GainSourceStats(1, 1),)),
+            )),)},
+            _BATCH_50C_SOURCE,
+        ),
     ))

@@ -957,11 +957,11 @@ class CardInstance:
     colossal_parent_entity: int | None = None
     wickerfang_inherited_attack: int = 0
     wickerfang_inherited_health: int = 0
-    # Tar Tyrant's conditional attack is represented as a state flag rather
-    # than mutating attack_delta.  This keeps the printed/base stats intact,
-    # makes silence immediately remove the effective bonus, and survives
-    # search-state cloning like the other instance fields.
-    tar_tyrant_bonus_active: bool = False
+    # Conditional "during your opponent's turn" attack is represented as a
+    # state flag rather than mutating attack_delta. This keeps printed stats
+    # intact, makes silence immediately remove the effective bonus, and is
+    # naturally branch-safe for MCTS cloning.
+    opponent_turn_attack_bonus_active: bool = False
 
     @property
     def card_id(self) -> str:
@@ -973,7 +973,7 @@ class CardInstance:
         if self.damage > 0 and not self.silenced:
             if self.card_id == "CORE_EX1_414":
                 enraged = 6
-            elif self.card_id == "CORE_OG_218":
+            elif self.card_id in {"CORE_OG_218", "TLC_101"}:
                 enraged = 3
         threshold = 0 if self.silenced else self.deck_threshold_attack
         # External auras continue to affect a silenced recipient. Self-owned
@@ -984,7 +984,9 @@ class CardInstance:
             + self.weapon_attack_bonus
         )
         conditional = (
-            6 if self.tar_tyrant_bonus_active and not self.silenced else 0
+            {"TLC_605": 6, "CORE_UNG_928": 2}.get(self.card_id, 0)
+            if self.opponent_turn_attack_bonus_active and not self.silenced
+            else 0
         )
         return max(
             0,
@@ -1116,6 +1118,14 @@ class Player:
     leyline_extra_triggers: int = 0
     hero_power_used: bool = False
     hero_power_cost_override: int | None = None
+    # One-shot surcharge used by Blowtorch Saboteur.  Its expiry is recorded
+    # in the global turn counter so it cannot leak past the opponent's next
+    # turn when that player elects not to use their Hero Power.
+    hero_power_cost_surcharge: int = 0
+    hero_power_cost_surcharge_expiry_turn: int = -1
+    # Cult Neophyte applies only through the target player's next turn.
+    spell_cost_surcharge: int = 0
+    spell_cost_surcharge_turn: int = -1
     hero_power_armor: int = 2
     hero_power_id: str | None = None
     hero_power_imbues: int = 0
@@ -2095,15 +2105,17 @@ class DragonMirrorGame:
         else:
             player.board.insert(position, minion)
         if (
-            minion.card_id == "TLC_605"
+            minion.card_id in {"TLC_605", "CORE_UNG_928"}
             and player.index != self.current
             and not minion.silenced
             and minion.dormant_turns == 0
         ):
-            minion.tar_tyrant_bonus_active = True
+            minion.opponent_turn_attack_bonus_active = True
             self._event(
-                "tar_tyrant_attack_toggle", player=player.index,
-                entity=minion.entity_id, active=True, attack_bonus=6,
+                "opponent_turn_attack_toggle", player=player.index,
+                entity=minion.entity_id, card=minion.card_id,
+                active=True,
+                attack_bonus={"TLC_605": 6, "CORE_UNG_928": 2}[minion.card_id],
             )
         if minion.has_race("MURLOC") and player.murloc_quest_buff:
             minion.attack_delta += 1
@@ -2770,6 +2782,16 @@ class DragonMirrorGame:
         self.turn += 1
         self.minions_died_this_turn = 0
         player = self.players[index]
+        if (
+            player.hero_power_cost_surcharge
+            and player.hero_power_cost_surcharge_expiry_turn < self.turn
+        ):
+            self._event(
+                "hero_power_surcharge_expired", player=player.index,
+                amount=player.hero_power_cost_surcharge,
+            )
+            player.hero_power_cost_surcharge = 0
+            player.hero_power_cost_surcharge_expiry_turn = -1
         if player.sigil_of_cinder_turn == self.turn:
             amount = max(0, player.sigil_of_cinder_damage)
             player.sigil_of_cinder_turn = -1
@@ -2863,14 +2885,13 @@ class DragonMirrorGame:
                     )
         self._resolve_deaths()
         player.turns_taken += 1
-        # Tar Tyrant has a conditional +6 Attack while its controller is
-        # waiting through the opponent's turn.  Toggle the flag at the turn
-        # boundary instead of permanently changing attack_delta; this makes
-        # the condition deterministic in cloned MCTS states and naturally
-        # disappear when the controller's next turn begins.
+        # Tar Creeper/Tar Tyrant have conditional attack while their controller
+        # waits through the opponent's turn. Toggle a flag at the turn boundary
+        # instead of permanently changing attack_delta; this is deterministic
+        # in cloned MCTS states and naturally disappears on the owner's turn.
         for owner in self.players:
             for minion in owner.board:
-                if minion.card_id != "TLC_605":
+                if minion.card_id not in {"TLC_605", "CORE_UNG_928"}:
                     continue
                 active = (
                     owner.index != index
@@ -2878,13 +2899,17 @@ class DragonMirrorGame:
                     and minion.dormant_turns == 0
                     and minion.health > 0
                 )
-                if minion.tar_tyrant_bonus_active == active:
+                if minion.opponent_turn_attack_bonus_active == active:
                     continue
-                minion.tar_tyrant_bonus_active = active
+                minion.opponent_turn_attack_bonus_active = active
                 self._event(
-                    "tar_tyrant_attack_toggle", player=owner.index,
+                    "opponent_turn_attack_toggle", player=owner.index,
                     entity=minion.entity_id, active=active,
-                    attack_bonus=6 if active else 0,
+                    card=minion.card_id,
+                    attack_bonus=(
+                        {"TLC_605": 6, "CORE_UNG_928": 2}[minion.card_id]
+                        if active else 0
+                    ),
                 )
         for owner in self.players:
             for minion in owner.board:
@@ -3443,6 +3468,8 @@ class DragonMirrorGame:
         cost = card.cost
         if card.definition.card_type == "SPELL":
             cost -= player.next_spell_cost_reduction
+            if player.spell_cost_surcharge_turn == self.turn:
+                cost += player.spell_cost_surcharge
         cost += self.rule_registry.cost_adjustment(self, player, card)
         if (
             card.definition.card_type == "MINION"
@@ -4010,18 +4037,23 @@ class DragonMirrorGame:
 
     def _hero_power_cost(self, player: Player) -> int:
         if player.hero_power_cost_override is not None:
-            return player.hero_power_cost_override
-        if player.hero_power_id is not None:
-            return self.card_defs[player.hero_power_id].cost
-        free = any(
-            minion.card_id == "TIME_606"
-            and not minion.silenced
-            and minion.dormant_turns == 0
-            for minion in player.board
-        ) and len(player.hand) <= 3
-        if free:
-            return 0
-        return 1 if player.card_class == "DEMONHUNTER" else 2
+            base_cost = player.hero_power_cost_override
+        elif player.hero_power_id is not None:
+            base_cost = self.card_defs[player.hero_power_id].cost
+        else:
+            free = any(
+                minion.card_id == "TIME_606"
+                and not minion.silenced
+                and minion.dormant_turns == 0
+                for minion in player.board
+            ) and len(player.hand) <= 3
+            base_cost = 0 if free else (1 if player.card_class == "DEMONHUNTER" else 2)
+        surcharge = (
+            player.hero_power_cost_surcharge
+            if player.hero_power_cost_surcharge_expiry_turn == self.turn
+            else 0
+        )
+        return max(0, base_cost + surcharge)
 
     def _hero_power_actions(self, player: Player) -> list[Action]:
         if player.hero_power_id == "END_003p":
@@ -4067,6 +4099,17 @@ class DragonMirrorGame:
             )
         else:
             self._spend_mana(player, self._hero_power_cost(player))
+        if (
+            player.hero_power_cost_surcharge
+            and player.hero_power_cost_surcharge_expiry_turn == self.turn
+        ):
+            surcharge = player.hero_power_cost_surcharge
+            player.hero_power_cost_surcharge = 0
+            player.hero_power_cost_surcharge_expiry_turn = -1
+            self._event(
+                "hero_power_surcharge_consumed", player=player.index,
+                amount=surcharge,
+            )
         # Effects such as Fleeing Treant make exactly the next Hero Power
         # free; consume the override at resolution time.
         if player.hero_power_cost_override is not None:
@@ -4087,6 +4130,7 @@ class DragonMirrorGame:
                 target_player=action.target_player,
                 target_entity=action.target_entity,
             )
+            self._dispatch_after_hero_power(player)
             # Some Imbue cards temporarily transform the hero power while it
             # is used.  Restore the imbued power afterward without resetting
             # its cumulative progress.
@@ -4152,6 +4196,7 @@ class DragonMirrorGame:
             target_player=action.target_player,
             target_entity=action.target_entity,
         )
+        self._dispatch_after_hero_power(player)
         for minion in player.board:
             if minion.card_id == "EDR_469" and minion.dormant_turns > 0:
                 minion.dormant_turns = 0
@@ -4175,6 +4220,21 @@ class DragonMirrorGame:
                         "dragonbane", player=player.index,
                         entity=dragonbane.entity_id,
                     )
+
+    def _dispatch_after_hero_power(self, player: Player) -> None:
+        """Run friendly minion triggers after a fully resolved Hero Power."""
+        for minion in list(player.board):
+            if (
+                minion not in player.board
+                or minion.silenced
+                or minion.dormant_turns > 0
+                or minion.health <= 0
+            ):
+                continue
+            self.rule_registry.dispatch(
+                Hook.AFTER_HERO_POWER, minion.card_id, self,
+                RuleContext(player=player, card=minion),
+            )
 
     def _refresh_genn(self, player: Player) -> None:
         for held in player.hand:
@@ -5311,7 +5371,9 @@ class DragonMirrorGame:
                         "hamuul_spell_threshold", player=player.index,
                         spells=player.hamuul_spells_cast,
                     )
-            self._dispatch_after_spell_cast(player, card, action)
+            self._dispatch_after_spell_cast(
+                player, card, action, paid_cost=effective_cost
+            )
             self._trigger_secrets_after_enemy_spell_cast(player)
             recipient = self.players[1 - player.index]
             for lorewalker in lorewalkers:
@@ -6731,6 +6793,7 @@ class DragonMirrorGame:
     def _dispatch_after_spell_cast(
         self, player: Player, spell: CardInstance,
         action: Action | None = None,
+        *, paid_cost: int | None = None,
     ) -> None:
         """Dispatch controller-owned 'After you cast a spell' rules."""
         if spell.definition.spell_school == "FEL":
@@ -6755,6 +6818,7 @@ class DragonMirrorGame:
                     player=player, card=minion,
                     payload={
                         "spell": spell,
+                        "paid_cost": spell.cost if paid_cost is None else paid_cost,
                         "target_player": None if action is None else action.target_player,
                         "target_entity": None if action is None else action.target_entity,
                     },
