@@ -262,6 +262,16 @@ STANDARD_DECLARATIVE_IDS = {
     "TLC_100t32", "TLC_100t33", "TLC_100t34", "TLC_100t35", "TLC_100t36",
     "TLC_100t37", "TLC_229t14", "TLC_239t", "TLC_426t", "TLC_433t",
     "TLC_433t2", "TLC_446t1",
+    # Titanographer Osk's generated ability entities.  Osk stores the
+    # selected ability on the parent Titan and the engine resolves the
+    # ability state; these IDs must still be executable for imported logs and
+    # generated-card validation.
+    "TLC_452t1", "TLC_452t2", "TLC_452t3", "TLC_452t4", "TLC_452t5",
+    "TLC_452t6", "TLC_452t7", "TLC_452t13", "TLC_452t14", "TLC_452t15",
+    "TLC_452t16", "TLC_452t17", "TLC_452t18", "TLC_452t19", "TLC_452t20",
+    "TLC_452t21", "TLC_452t22", "TLC_452t23", "TLC_452t24", "TLC_452t26",
+    "TLC_452t27", "TLC_452t28", "TLC_452t29", "TLC_452t30", "TLC_452t31",
+    "TLC_452t32", "TLC_452t33", "TLC_452t34", "TLC_452t35",
     # 50-card Standard coverage tranche (23 metadata-keyword cards + 27
     # composable Battlecry/Deathrattle/spell cards).
     "RLK_067", "CORE_BT_921", "EDR_272", "CATA_558", "CORE_CS2_179",
@@ -17279,6 +17289,14 @@ def build_rule_registry() -> RuleRegistry:
             "TLC_100t32", "TLC_100t33", "TLC_100t34", "TLC_100t35", "TLC_100t36",
             "TLC_100t37", "TLC_229t14", "TLC_239t", "TLC_426t", "TLC_433t",
             "TLC_433t2", "TLC_446t1",
+        )),
+        *tuple(CardRule(card_id, {}, _AUXILIARY_TOKEN_SOURCE) for card_id in (
+            "TLC_452t1", "TLC_452t2", "TLC_452t3", "TLC_452t4", "TLC_452t5",
+            "TLC_452t6", "TLC_452t7", "TLC_452t13", "TLC_452t14", "TLC_452t15",
+            "TLC_452t16", "TLC_452t17", "TLC_452t18", "TLC_452t19", "TLC_452t20",
+            "TLC_452t21", "TLC_452t22", "TLC_452t23", "TLC_452t24", "TLC_452t26",
+            "TLC_452t27", "TLC_452t28", "TLC_452t29", "TLC_452t30", "TLC_452t31",
+            "TLC_452t32", "TLC_452t33", "TLC_452t34", "TLC_452t35",
         )),
         CardRule("CATA_213", {Hook.BATTLECRY: (SplitHundredStatsIfStartingCosts(),)}, _FINAL_48_SOURCE),
         CardRule("CATA_307", {Hook.BATTLECRY: (SetHealthAndArmFullHealDamage(15, 15),)}, _FINAL_48_SOURCE),

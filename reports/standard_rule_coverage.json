@@ -7,11 +7,11 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 1257,
+      "declarative": 1286,
       "engine_owned_auxiliary": 21,
       "engine_state": 482,
       "legacy_compatibility": 297,
-      "not_implemented": 104
+      "not_implemented": 75
     },
     "collectible_implementation": {
       "declarative": 972,
@@ -31967,10 +31967,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Destroy an enemy minion. This minion and your hero gain its Health.",
       "text_sha256": "b5fa90b697d3e307c043ba9a5824458b03429585d6b36c848ce2e6161ae51858",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t13",
@@ -31983,10 +31983,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Deal 5 damage.",
       "text_sha256": "e1bb6e142e875210cc4ce59258a3b60bfe7b278ddb44491a5a12bf8b2957bcbd",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t14",
@@ -31999,10 +31999,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Cast 1 random Mage Secret.",
       "text_sha256": "ea47eeeabfc18630677545bbfd5d42f8c78cb1ee4c9a18257fa998e0a9cf9441",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t15",
@@ -32015,10 +32015,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Enemy cards cost (1) more next turn.",
       "text_sha256": "f1f20f58fd26973f12042c0195dbefd21955de26308032d3e89b3518d802c901",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t16",
@@ -32031,10 +32031,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Set the Attack and Health of all enemy minions to 2.",
       "text_sha256": "c919a0fe64c14f638ee9497450c5d42785c4a77cb5039f2c7471985a6299d358",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t17",
@@ -32047,10 +32047,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Give your other minions +2/+2.",
       "text_sha256": "6173b8d922ce75c411cae79e43da3b6fa9f6e563c893e6751aa28e4a3a63641c",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t18",
@@ -32063,10 +32063,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Draw 2 minions. Set their Attack, Health, and Cost to 2.",
       "text_sha256": "46834ce4c7f1fef3fca84b9f076c41e67b2d871b10f0356b45a55a7ca7474419",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t19",
@@ -32079,10 +32079,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Choose a non-Titan minion. Summon a copy of it with +2/+2.",
       "text_sha256": "6bfb37fce5e244cd8aeb209426596be8205098ae998cb4d14751a3cff6cf44d9",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t2",
@@ -32095,10 +32095,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: The next spell you cast costs (3) less and has Spell Damage +3.",
       "text_sha256": "61150d4b8bd94630f1c53c796d5096db893b1707234667a26a22f57baec0bcc1",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t20",
@@ -32111,10 +32111,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Summon a random 6-Cost minion. Give it Taunt and Lifesteal.",
       "text_sha256": "4f8e00f689c68c253c9bd53f69f8ab0b56f20224c0ef4093eb9e08cd7069d88a",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t21",
@@ -32127,10 +32127,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Choose two enemy minions. Remove them from the game.",
       "text_sha256": "2bc2e7d1b3fb2c4e7dfabc387cd73cae8b5f728255d239d0448f22ad4bfaa9c8",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t22",
@@ -32143,10 +32143,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Gain +2/+1. Deal 4 damage to a random enemy.",
       "text_sha256": "3fbb31d57640c8ca4ee633831d333ef5a284b4ec7a2fe7204c69aaaf4f52709f",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t23",
@@ -32159,10 +32159,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Gain +1/+2. Draw a card.",
       "text_sha256": "3ab8450f3fddf0e16f9a7b29f732de912a79b2474d10a525624cd06cf01c665a",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t24",
@@ -32175,10 +32175,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Gain +3 Health and Elusive.",
       "text_sha256": "7fb2a05e0d9dec033047c3d36d16ee7ba5749cab7530e9dbc11eb6bd64d3ba8e",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t26",
@@ -32191,10 +32191,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Deal 20 damage to another minion.",
       "text_sha256": "e71002afbb609718d3af818cfa906553bff41b64b00fdcd45cd67156193c70ae",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t27",
@@ -32207,10 +32207,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Deal 3 damage to all enemies and restore 6 Health to all friendly characters.",
       "text_sha256": "334f291ce05c976588ddbb8ce0ef2e2896050b23be852511b5cfc9de3b3e0451",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t28",
@@ -32223,10 +32223,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Summon two 6/6 Infernals.",
       "text_sha256": "e821e51ae0c811d12a98bf0558ebdd7900076eb26a7e70e789c58446fa43d1a6",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t29",
@@ -32239,10 +32239,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Send all other minions into the Twisting Nether.",
       "text_sha256": "f3d46af7641b056a425e42eb4ce11e7e04a6dc4412948368d7e76e63c54232a1",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t3",
@@ -32255,10 +32255,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Summon two 3/3 Undead with Taunt and Reborn.",
       "text_sha256": "b60fd79722a7b9e5aa2f2df2f8f3a4ee66cc29f880664d50f3a7209242122d35",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t30",
@@ -32271,10 +32271,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Gain +5 Health. Give your hero 5 Armor.",
       "text_sha256": "11872c3a69f63ca2dc383e59b98848a4d624d1c70bdfbbb7edcaa694f04adfe0",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t31",
@@ -32287,10 +32287,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Gain +5 Attack. Give your hero +5 Attack this turn.",
       "text_sha256": "07bfa08c0a706448faff464c52cf7960bbce04417b833fc43af86bf9da063ef4",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t32",
@@ -32303,10 +32303,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Gain +2/+2. Draw a weapon.",
       "text_sha256": "18df3aa37650d38238e977d7cdda28e43c3af180c8a086416c6cb901267ff7a8",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t33",
@@ -32319,10 +32319,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Fill your hand with 1/1 Chaotic Tendrils.",
       "text_sha256": "1b3acdaabece32c8bc4a9be88f129a698aa724a36067726374d928207a40732d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t34",
@@ -32335,10 +32335,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Force each enemy minion to attack a random enemy minion.",
       "text_sha256": "f40e45f633bb22a60e6441d95a6ca6bca7fff91ebaa11c3d3a6b0a6222ff06c9",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t35",
@@ -32351,10 +32351,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Take control of an enemy minion.",
       "text_sha256": "4d73139485ed965f8f6b0d7432df646d4f63712098bcd25a4d7aecc2df4067ee",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t4",
@@ -32367,10 +32367,10 @@
       "mechanics": "BATTLECRY,DISCOVER",
       "text": "Battlecry: Discover a Deathrattle minion. It costs (3) less.",
       "text_sha256": "19ba9e7ce6e80cbe20fa40096b5a7ed08a1930fc4b5c7ef69cdd8fecce9f2e1d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t5",
@@ -32383,10 +32383,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Reduce the Cost of all minions in your hand by (2).",
       "text_sha256": "e249d03cda5b4ac8f00cfe172ccd0b931b3601bc105390dce5d44b5f6bb734ad",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t6",
@@ -32399,10 +32399,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Summon four 2/2 Elementals with Taunt.",
       "text_sha256": "7aeb99f64e084ae4092bd205e95b2208ddd73ab294d53d98fd77385b3ed58101",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t7",
@@ -32415,10 +32415,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Draw cards until your hand is full.",
       "text_sha256": "6357d3ad3cb12d884b01a5a1fec23d3736d07a33644ef8986118bbbed166a54b",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t8",
