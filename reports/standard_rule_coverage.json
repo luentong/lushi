@@ -7,11 +7,11 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 1164,
+      "declarative": 1173,
       "engine_owned_auxiliary": 21,
       "engine_state": 482,
       "legacy_compatibility": 297,
-      "not_implemented": 197
+      "not_implemented": 188
     },
     "collectible_implementation": {
       "declarative": 972,
@@ -16943,10 +16943,10 @@
       "mechanics": "",
       "text": "Set the Attack of all other minions to 1.",
       "text_sha256": "a0283702f507a356f5fddd38758d880f8a8c46041ada2b87c8dc745fd1f91e30",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "END_010ae",
@@ -16975,10 +16975,10 @@
       "mechanics": "",
       "text": "Set the Health of all other minions to 1.",
       "text_sha256": "b9f678f07ca5e49f19848759bc16e64c2e0fd96ebdc77079696b2a24141a56e4",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "END_010be",
@@ -24751,10 +24751,10 @@
       "mechanics": "",
       "text": "Do nothing. This timeline is perfect as-is!",
       "text_sha256": "31cea9500a7028cf719dcb37696299cb6178d6edc0f42774ffc592eaf1ae62aa",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_000tb",
@@ -24767,10 +24767,10 @@
       "mechanics": "",
       "text": "Rewind the card's effect.",
       "text_sha256": "8b468f8e67a82bc8196cef3495e2928906853f941a3d3b6171bddb4761c09eab",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_001",
@@ -25871,10 +25871,10 @@
       "mechanics": "",
       "text": "Increase the Cost of your opponent's card by (2).",
       "text_sha256": "e4d7e11385049e36a2d42308071e240d677625ce68ae4e387abcd5577ec621f9",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_037",
@@ -25935,10 +25935,10 @@
       "mechanics": "BATTLECRY",
       "text": "Rewind, Rewind Battlecry: Summon 2 random Legendary minions.",
       "text_sha256": "af4b4c057a3b86204fe2da9f5d666fe75532fa7b2c1649be826544b49dd8c77f",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_038t2",
@@ -25951,10 +25951,10 @@
       "mechanics": "BATTLECRY",
       "text": "Rewind Battlecry: Summon 2 random Legendary minions.",
       "text_sha256": "7145a1b3df2882de9e93cc3b3388397e505aa95d4847e4228c280225212da053",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_038t3",
@@ -25967,10 +25967,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Summon 2 random Legendary minions.",
       "text_sha256": "9f3d14d2aaa6d6d277d16e98fa8256e8cd12f30d148c0b2689406901f0b8da6d",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_039",
@@ -28047,10 +28047,10 @@
       "mechanics": "DEATHRATTLE",
       "text": "Deathrattle: Spend up to 20 Corpses to resurrect with that much Health.",
       "text_sha256": "e0582fb7e9a0a3c086481ef9e9850bd5a5e8c49f40a0969e225144b5f868fadc",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_619",

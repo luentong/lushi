@@ -5750,6 +5750,27 @@ class AuxiliaryEntityCoverageTests(unittest.TestCase):
         self.assertTrue(ENGINE_OWNED_AUXILIARY_IDS <= game.executable_card_ids)
         self.assertTrue(ENGINE_OWNED_AUXILIARY_IDS <= set(game.card_defs))
 
+    def test_time_auxiliary_entities_use_parent_effects(self):
+        game = self.game()
+        time_ids = {
+            "END_010a", "END_010b", "TIME_000ta", "TIME_000tb", "TIME_036t",
+            "TIME_038t1", "TIME_038t2", "TIME_038t3", "TIME_618t",
+        }
+        self.assertTrue(time_ids <= game.executable_card_ids)
+        self.assertTrue(time_ids <= {rule.card_id for rule in game.rule_registry.all_rules()})
+
+        enemy_card = game._entity("GAME_005")
+        game.players[1].hand.append(enemy_card)
+        option = game._entity("TIME_036t")
+        game.players[0].hand.append(option)
+        game.step(Action("PLAY", option.entity_id))
+        self.assertEqual(2, enemy_card.cost_delta)
+
+        rebirth = game._entity("TIME_618t")
+        game.players[0].hand.append(rebirth)
+        game.step(Action("PLAY", rebirth.entity_id))
+        self.assertTrue(game.players[0].corpse_rebirth_pending)
+
     def test_generated_leyline_options_and_scout_token(self):
         game = self.game()
         discount = game._entity("MEND_505t2")

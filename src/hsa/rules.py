@@ -238,6 +238,8 @@ STANDARD_DECLARATIVE_IDS = {
     # Past/Present/Future Location variants use one shared transition model.
     "TIME_044t1", "TIME_044t2", "TIME_436t1", "TIME_436t2",
     "TIME_810t1", "TIME_810t2",
+    "END_010a", "END_010b", "TIME_000ta", "TIME_000tb", "TIME_036t",
+    "TIME_038t1", "TIME_038t2", "TIME_038t3", "TIME_618t",
     # 50-card Standard coverage tranche (23 metadata-keyword cards + 27
     # composable Battlecry/Deathrattle/spell cards).
     "RLK_067", "CORE_BT_921", "EDR_272", "CATA_558", "CORE_CS2_179",
@@ -9229,6 +9231,25 @@ class RoyalInformantBattlecry:
 
 
 @dataclass(frozen=True)
+class IncreaseRightmostOpponentCardCost:
+    """Resolve Royal Informant's explicit cost-increase option."""
+
+    amount: int = 2
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        opponent = game.players[1 - context.player.index]
+        if not opponent.hand:
+            return
+        target = opponent.hand[-1]
+        target.cost_delta += self.amount
+        game._event(
+            "royal_informant_cost_increase", player=context.player.index,
+            source=context.card.card_id, target=target.entity_id,
+            card=target.card_id, amount=self.amount,
+        )
+
+
+@dataclass(frozen=True)
 class TransformSourceIntoRandomPast:
     cost: int
 
@@ -15211,6 +15232,48 @@ def build_rule_registry() -> RuleRegistry:
             )),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
                        verification=("test_twilight_timereaver_choose_one_stats",)),
+        ),
+        CardRule(
+            "END_010a", {Hook.SPELL: (SetOtherMinionsStat("attack", 1),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; parent Choose One", ("test_time_auxiliary_entities",)),
+        ),
+        CardRule(
+            "END_010b", {Hook.SPELL: (SetOtherMinionsStat("health", 1),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; parent Choose One", ("test_time_auxiliary_entities",)),
+        ),
+        CardRule(
+            "TIME_000ta", {},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Rewind keep branch", ("test_time_auxiliary_entities",)),
+        ),
+        CardRule(
+            "TIME_000tb", {},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Rewind retry branch", ("test_time_auxiliary_entities",)),
+        ),
+        CardRule(
+            "TIME_036t", {Hook.SPELL: (IncreaseRightmostOpponentCardCost(2),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Royal Informant choice", ("test_time_auxiliary_entities",)),
+        ),
+        CardRule(
+            "TIME_038t1", {Hook.BATTLECRY: (
+                SummonRandomLegendaryMinion(), SummonRandomLegendaryMinion(),
+            )},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Rewind x2", ("test_time_auxiliary_entities",)),
+        ),
+        CardRule(
+            "TIME_038t2", {Hook.BATTLECRY: (
+                SummonRandomLegendaryMinion(), SummonRandomLegendaryMinion(),
+            )},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Rewind x1", ("test_time_auxiliary_entities",)),
+        ),
+        CardRule(
+            "TIME_038t3", {Hook.BATTLECRY: (
+                SummonRandomLegendaryMinion(), SummonRandomLegendaryMinion(),
+            )},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; no Rewind", ("test_time_auxiliary_entities",)),
+        ),
+        CardRule(
+            "TIME_618t", {Hook.SPELL: (ArmCorpseRebirth(),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Husk hero Deathrattle", ("test_time_auxiliary_entities",)),
         ),
         CardRule(
             "CORE_AT_052", {Hook.AFTER_PLAY: (Overload(1),)},
