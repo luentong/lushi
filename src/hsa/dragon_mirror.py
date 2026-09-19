@@ -957,6 +957,11 @@ class CardInstance:
     colossal_parent_entity: int | None = None
     wickerfang_inherited_attack: int = 0
     wickerfang_inherited_health: int = 0
+    # Tar Tyrant's conditional attack is represented as a state flag rather
+    # than mutating attack_delta.  This keeps the printed/base stats intact,
+    # makes silence immediately remove the effective bonus, and survives
+    # search-state cloning like the other instance fields.
+    tar_tyrant_bonus_active: bool = False
 
     @property
     def card_id(self) -> str:
@@ -978,9 +983,13 @@ class CardInstance:
             self.pirate_aura_stats + self.aura_attack_bonus
             + self.weapon_attack_bonus
         )
+        conditional = (
+            6 if self.tar_tyrant_bonus_active and not self.silenced else 0
+        )
         return max(
             0,
             self.definition.attack + self.attack_delta + enraged + threshold
+            + conditional
             + continuous,
         )
 
@@ -1113,6 +1122,7 @@ class Player:
     undead_died_after_last_turn: bool = False
     mograine_active: bool = False
     friendly_minions_died_this_turn: int = 0
+    friendly_minions_died_this_game: int = 0
     # Endtime Murozond skips the controller's next turn.  This is a turn-level
     # flag rather than a card-local effect so it survives state cloning and
     # resolves before start-of-turn draws/mana refresh.
@@ -2084,6 +2094,17 @@ class DragonMirrorGame:
             player.board.append(minion)
         else:
             player.board.insert(position, minion)
+        if (
+            minion.card_id == "TLC_605"
+            and player.index != self.current
+            and not minion.silenced
+            and minion.dormant_turns == 0
+        ):
+            minion.tar_tyrant_bonus_active = True
+            self._event(
+                "tar_tyrant_attack_toggle", player=player.index,
+                entity=minion.entity_id, active=True, attack_bonus=6,
+            )
         if minion.has_race("MURLOC") and player.murloc_quest_buff:
             minion.attack_delta += 1
             minion.health_delta += 1
@@ -2207,6 +2228,22 @@ class DragonMirrorGame:
                 self._event("corpse_flower_trigger", player=opponent.index,
                             source=flower.entity_id, target=minion.entity_id)
                 self._resolve_deaths()
+        # Generic summon window used by Elemental and repeated-play cards.
+        # It runs after token/Colossal side effects, so the payload represents
+        # the final summoned entity and board position.
+        for watcher in list(player.board):
+            if (
+                watcher not in player.board
+                or watcher.silenced
+                or watcher.dormant_turns > 0
+                or watcher.health <= 0
+            ):
+                continue
+            self.rule_registry.dispatch(
+                Hook.AFTER_SUMMON, watcher.card_id, self,
+                RuleContext(player=player, card=watcher,
+                            payload={"summoned": minion}),
+            )
 
     def _summon_colossal_appendages(
         self, player: Player, parent: CardInstance, card_id: str, count: int
@@ -2826,6 +2863,29 @@ class DragonMirrorGame:
                     )
         self._resolve_deaths()
         player.turns_taken += 1
+        # Tar Tyrant has a conditional +6 Attack while its controller is
+        # waiting through the opponent's turn.  Toggle the flag at the turn
+        # boundary instead of permanently changing attack_delta; this makes
+        # the condition deterministic in cloned MCTS states and naturally
+        # disappear when the controller's next turn begins.
+        for owner in self.players:
+            for minion in owner.board:
+                if minion.card_id != "TLC_605":
+                    continue
+                active = (
+                    owner.index != index
+                    and not minion.silenced
+                    and minion.dormant_turns == 0
+                    and minion.health > 0
+                )
+                if minion.tar_tyrant_bonus_active == active:
+                    continue
+                minion.tar_tyrant_bonus_active = active
+                self._event(
+                    "tar_tyrant_attack_toggle", player=owner.index,
+                    entity=minion.entity_id, active=active,
+                    attack_bonus=6 if active else 0,
+                )
         for owner in self.players:
             for minion in owner.board:
                 if (
@@ -2957,6 +3017,19 @@ class DragonMirrorGame:
                                     entity=minion.entity_id, attack=3)
         # Rotate hand-held bonus effects before the draw for cards such as
         # Twisted Monstrosity.
+        for minion in list(player.board):
+            if (
+                minion not in player.board
+                or minion.silenced
+                or minion.dormant_turns > 0
+                or minion.health <= 0
+            ):
+                continue
+            self.rule_registry.dispatch(
+                Hook.START_TURN, minion.card_id, self,
+                RuleContext(player=player, card=minion),
+            )
+            self._resolve_deaths()
         for held in list(player.hand):
             self.rule_registry.dispatch(
                 Hook.START_TURN, held.card_id, self,
@@ -2979,6 +3052,29 @@ class DragonMirrorGame:
 
     def _end_turn(self) -> None:
         player = self.players[self.current]
+        lakkari_turns = max(0, int(getattr(player, "lakkari_turns", 0)))
+        if lakkari_turns:
+            if player.hand:
+                discarded = self.rng.choice(player.hand)
+                player.hand.remove(discarded)
+                self._event(
+                    "discard", player=player.index, card=discarded.card_id,
+                    source="TLC_466", entity=discarded.entity_id,
+                )
+                self._dispatch_after_discard(player, discarded)
+            while len(player.board) + len(player.locations) < 7:
+                if "Story_09_Imp" not in self.card_defs:
+                    break
+                imp = self._entity("Story_09_Imp", created_by="TLC_466")
+                imp.attack_delta += 2
+                imp.health_delta += 1
+                imp.summoned_turn = self.turn
+                self._summon(player, imp)
+            player.lakkari_turns = lakkari_turns - 1
+            self._event(
+                "story_of_lakkari_tick", player=player.index,
+                remaining=player.lakkari_turns,
+            )
         # Start the new observation window before end-of-turn triggers. Any
         # Undead dying in those triggers belongs to the next opponent turn.
         player.undead_died_after_last_turn = False
@@ -3886,7 +3982,17 @@ class DragonMirrorGame:
             for minion in player.board
             if not minion.silenced and minion.dormant_turns == 0
         )
-        return dynamic_seer_damage + generic_damage + player.next_spell_damage_bonus
+        algethar_instructor = sum(
+            2 for minion in player.board
+            if minion.card_id == "TIME_856"
+            and not minion.silenced
+            and minion.dormant_turns == 0
+            and minion.health > 0
+        )
+        return (
+            dynamic_seer_damage + generic_damage + algethar_instructor
+            + player.next_spell_damage_bonus
+        )
 
     def _spell_effect_amount(self, player: Player, card: CardInstance, amount: int) -> int:
         """Apply shared spell-damage and spell-doubling replacement effects.
@@ -4613,6 +4719,7 @@ class DragonMirrorGame:
             "zuramat_prison_discard", player=player.index,
             source=pending["source"], discarded=card.card_id,
         )
+        self._dispatch_after_discard(player, card)
 
     def _resolve_rule_choice(self, option_index: int | None) -> None:
         pending = self.pending_choice
@@ -5204,7 +5311,7 @@ class DragonMirrorGame:
                         "hamuul_spell_threshold", player=player.index,
                         spells=player.hamuul_spells_cast,
                     )
-            self._dispatch_after_spell_cast(player, card)
+            self._dispatch_after_spell_cast(player, card, action)
             self._trigger_secrets_after_enemy_spell_cast(player)
             recipient = self.players[1 - player.index]
             for lorewalker in lorewalkers:
@@ -5826,6 +5933,7 @@ class DragonMirrorGame:
                         started_in_deck=target.started_in_deck,
                         created_by=target.created_by,
                     )
+                    self._dispatch_after_discard(player, target)
             elif card.card_id == "EDR_521":
                 opponent = self.players[1 - player.index]
                 if opponent.hand and len(player.hand) < 10:
@@ -5886,6 +5994,7 @@ class DragonMirrorGame:
                         started_in_deck=discarded.started_in_deck,
                         created_by=discarded.created_by,
                     )
+                    self._dispatch_after_discard(player, discarded)
             elif card.card_id == "CORE_ULD_165" and action.target_entity is not None:
                 target = self._find_minion(action.target_player, action.target_entity)
                 health = target.health
@@ -6233,6 +6342,7 @@ class DragonMirrorGame:
                     self._event("discard", player=recipient.index,
                                 card=discarded.card_id, entity=discarded.entity_id,
                                 source=card.card_id)
+                    self._dispatch_after_discard(recipient, discarded)
             elif card.card_id == "TLC_825" and (repeats := self._kindred_repeats(player, card)):
                 if action.target_player is not None and action.target_entity is not None:
                     target = self._find_minion(action.target_player, action.target_entity)
@@ -6619,7 +6729,8 @@ class DragonMirrorGame:
                     )
 
     def _dispatch_after_spell_cast(
-        self, player: Player, spell: CardInstance
+        self, player: Player, spell: CardInstance,
+        action: Action | None = None,
     ) -> None:
         """Dispatch controller-owned 'After you cast a spell' rules."""
         if spell.definition.spell_school == "FEL":
@@ -6640,7 +6751,14 @@ class DragonMirrorGame:
                 continue
             self.rule_registry.dispatch(
                 Hook.AFTER_PLAY, minion.card_id, self,
-                RuleContext(player=player, card=minion, payload={"spell": spell}),
+                RuleContext(
+                    player=player, card=minion,
+                    payload={
+                        "spell": spell,
+                        "target_player": None if action is None else action.target_player,
+                        "target_entity": None if action is None else action.target_entity,
+                    },
+                ),
             )
         for held in list(player.hand):
             if held.card_id != "CORE_RLK_567":
@@ -6664,10 +6782,10 @@ class DragonMirrorGame:
             held.spells_cast_while_held += 1
             if held.spells_cast_while_held >= 3:
                 held.definition = self.card_defs["JAIL_801t"]
-                self._event(
-                    "molten_gold_transform", player=player.index,
-                    entity=held.entity_id, spells=held.spells_cast_while_held,
-                )
+            self._event(
+                "molten_gold_transform", player=player.index,
+                entity=held.entity_id, spells=held.spells_cast_while_held,
+            )
 
     def _holding_dragon(self, player: Player) -> bool:
         return any(card.has_race("DRAGON") for card in player.hand)
@@ -6866,6 +6984,22 @@ class DragonMirrorGame:
                 amount=excess,
             )
         return restored
+
+    def _dispatch_after_discard(self, player: Player, discarded: CardInstance) -> None:
+        """Notify board minions that a card was discarded by their controller."""
+        for minion in list(player.board):
+            if (
+                minion not in player.board
+                or minion.silenced
+                or minion.dormant_turns > 0
+                or minion.health <= 0
+            ):
+                continue
+            self.rule_registry.dispatch(
+                Hook.AFTER_DISCARD, minion.card_id, self,
+                RuleContext(player=player, card=minion,
+                            payload={"discarded": discarded}),
+            )
 
     def _finja_kill(
         self, attacker_owner: int, attacker: CardInstance,
@@ -7642,6 +7776,14 @@ class DragonMirrorGame:
         if pending.get("source_card_id") == "CAP_407":
             option.prepare_granted = True
         destination = self._add_generated(player, option)
+        if pending.get("ivory_heal"):
+            healed = option.definition.cost
+            player.health = min(player.max_health, player.health + healed)
+            self._event(
+                "ivory_knight_heal", player=player.index,
+                source=pending.get("source_card_id"), amount=healed,
+                chosen_spell=option.card_id,
+            )
         if pending.get("map_followup") and destination == "hand":
             player.map_followup_options = [
                 other.card_id for other in pending["options"]
@@ -8082,16 +8224,6 @@ class DragonMirrorGame:
                     minion.health_delta += 2
         elif weapon.card_id == "CATA_467" and player.board:
             self.rng.choice(player.board).attack_delta += 2
-        elif weapon.card_id == "EDR_253":
-            self._draw(player)
-        elif weapon.card_id == "EDR_842":
-            targets = [
-                target for target in self._random_enemy_characters(player.index)
-                if target != attacked
-            ]
-            if targets:
-                self._deal_to_target(player.index, self.rng.choice(targets), attack_amount)
-                self._resolve_deaths()
         elif weapon.card_id == "EDR_416" and len(player.board) + len(player.locations) < 7:
             sheep = CardInstance(
                 self.next_entity_id,
@@ -8111,6 +8243,7 @@ class DragonMirrorGame:
             discarded = self.rng.choice(candidates)
             player.hand.remove(discarded)
             self._event("discard", player=player.index, card=discarded.card_id)
+            self._dispatch_after_discard(player, discarded)
         elif weapon.card_id == "JAIL_450" and len(player.board) + len(player.locations) < 7:
             token = CardInstance(
                 self.next_entity_id,
@@ -8459,6 +8592,7 @@ class DragonMirrorGame:
                     "discard", player=owner.index, card=card.card_id,
                     entity=card.entity_id, source="TIME_008",
                 )
+                self._dispatch_after_discard(owner, card)
             return discarded
         if effect == "chrono_daggers":
             hits = []
@@ -9434,6 +9568,7 @@ class DragonMirrorGame:
                     player.undead_died_after_last_turn = True
                 if player.index == self.current:
                     player.friendly_minions_died_this_turn += 1
+                player.friendly_minions_died_this_game += 1
                 gained = corpse_multipliers[player.index]
                 player.corpses += gained
                 if gained > 1:
@@ -10279,6 +10414,7 @@ class DragonMirrorGame:
                 "undead_died_after_last_turn": player.undead_died_after_last_turn,
                 "mograine_active": player.mograine_active,
                 "friendly_minions_died_this_turn": player.friendly_minions_died_this_turn,
+                "friendly_minions_died_this_game": player.friendly_minions_died_this_game,
                 "secrets": [card.card_id for card in player.secrets],
                 "pending_end_turn_returns": [
                     card.card_id for card in player.pending_end_turn_returns

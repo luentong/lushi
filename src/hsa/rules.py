@@ -20,6 +20,8 @@ class Hook(StrEnum):
     AFTER_PLAY = "after_play"
     AFTER_ATTACK = "after_attack"
     AFTER_HERO_ATTACK = "after_hero_attack"
+    AFTER_SUMMON = "after_summon"
+    AFTER_DISCARD = "after_discard"
     AFTER_DAMAGE = "after_damage"
     LOCATION = "location"
     HERO_POWER = "hero_power"
@@ -95,6 +97,7 @@ DECLARATIVE_METADATA_IDS = {
     # Generated entities used by the 50-card Standard tranche below.
     "CORE_EX1_506a", "CORE_CS2_065", "CS2_101t", "NEW1_032", "NEW1_033",
     "NEW1_034", "UNG_810", "AV_337t", "TSC_076t", "TSC_076t2", "TSC_076t3",
+    "CS2_008", "EX1_173", "BAR_878t", "DRG_217t",
 }
 
 # Some Core printings retain the historical behavior ID while the pinned JSON
@@ -414,6 +417,17 @@ STANDARD_DECLARATIVE_IDS = {
     "TLC_632t2",
     "SW_108t",
     "TLC_COIN1",
+    # Standard coverage tranche 50B.  These IDs are loaded from the pinned
+    # HearthstoneJSON snapshot and become executable through the rules below.
+    "CORE_RLK_121", "CORE_EX1_007", "EDR_253", "EDR_256", "CORE_TRL_240",
+    "CORE_NEW1_020", "CORE_NEW1_021", "EDR_110", "TLC_633", "CORE_KAR_057",
+    "EDR_255", "FIR_961", "JAIL_118", "TIME_018", "TIME_019", "CAP_803",
+    "CATA_304", "FIR_777", "TIME_427", "TIME_431", "TIME_855", "END_014",
+    "TIME_600", "EDR_941", "EDR_874", "TLC_220", "END_023", "CATA_209",
+    "CORE_BAR_878", "JAIL_461", "CORE_RLK_706", "EDR_842", "FIR_904",
+    "CATA_552", "EDR_262", "MEND_302", "TIME_856", "TLC_365", "TLC_605",
+    "TLC_621", "TLC_829", "TLC_987", "CATA_494", "JAIL_803", "END_026",
+    "EDR_979", "EDR_540", "JAIL_503", "TLC_466", "JAIL_719",
 }
 
 
@@ -1720,6 +1734,18 @@ class OfferSpellDiscover:
 
 
 @dataclass(frozen=True)
+class OfferIvoryKnightDiscover:
+    """Ivory Knight's spell Discover with its chosen-cost heal callback."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._offer_spell_discover(
+            context.player, source_card_id=context.card.card_id
+        )
+        if game.pending_choice is not None:
+            game.pending_choice["ivory_heal"] = True
+
+
+@dataclass(frozen=True)
 class OfferTypeDiscover:
     """Discover three executable cards of one card type."""
 
@@ -2140,6 +2166,12 @@ class AddMinionsMatchingSourceAttack:
         for _ in range(self.count):
             if not candidates:
                 break
+            card = game._entity(
+                game.rng.choice(sorted(candidates)),
+                created_by=context.card.card_id,
+            )
+            card.cost_delta = 1 - card.definition.cost
+            game._add_generated(context.player, card)
 
 
 @dataclass(frozen=True)
@@ -2157,9 +2189,6 @@ class DrawTwoGainChargeIfMinions:
                 "getaway_hogdriver_charge", player=context.player.index,
                 source=context.card.card_id,
             )
-            card = game._entity(game.rng.choice(sorted(candidates)), created_by=context.card.card_id)
-            card.cost_delta = 1 - card.definition.cost
-            game._add_generated(context.player, card)
 
 
 @dataclass(frozen=True)
@@ -6893,6 +6922,15 @@ _BATCH_50_SOURCE = RuleSource(
     verification=("test_standard_batch_50_registry_and_smoke",),
 )
 
+_BATCH_50B_SOURCE = RuleSource(
+    "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+    verification=(
+        "SecondStandardCardBatchTests.test_batch_has_exactly_fifty_registered_cards",
+        "SecondStandardCardBatchTests.test_tar_tyrant_attack_bonus_tracks_opponent_turn",
+        "SecondStandardCardBatchTests.test_maloriak_and_story_of_lakkari_cross_turn_hooks",
+    ),
+)
+
 
 @dataclass(frozen=True)
 class SetPlayerAttributes:
@@ -6908,6 +6946,428 @@ class SetPlayerAttributes:
                 source=context.card.card_id,
                 values=dict(self.values),
             )
+
+
+# ---- Standard tranche 50B -------------------------------------------------
+# These effects are intentionally small and composable.  They describe the
+# printed card behavior while delegating targeting, damage, draw, death and
+# hand-cap semantics to the simulator's existing primitives.
+
+
+@dataclass(frozen=True)
+class DreamwardenBattlecry:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        game._draw_matching(
+            context.player, lambda held: not held.started_in_deck
+        )
+        context.card.attack_delta += 2
+        context.card.health_delta += 2
+
+
+@dataclass(frozen=True)
+class SavageStrikerBattlecry:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_entity is None:
+            raise ValueError("enemy minion target is required")
+        amount = max(0, context.player.attack)
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        game._damage_minion(
+            context.action.target_player, target, amount, context.card
+        )
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class BugsquasherBattlecry:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_entity is None:
+            raise ValueError("enemy minion target is required")
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        if not target.definition.races and not target.definition.race:
+            raise ValueError("Bugsquasher requires a minion with a type")
+        game._damage_minion(
+            context.action.target_player, target,
+            game._spell_effect_amount(context.player, context.card, 6),
+            context.card,
+        )
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class AshleafPixieBattlecry:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if any(held.definition.card_type == "SPELL" and held.cost >= 5
+               for held in context.player.hand):
+            context.card.divine_shield = True
+            context.card.divine_shield_hits = max(1, context.card.divine_shield_hits)
+            context.card.lifesteal = True
+
+
+@dataclass(frozen=True)
+class DestroyNonPaladinMinions:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for owner in game.players:
+            for minion in list(owner.board):
+                if minion.definition.card_class != "PALADIN" and minion.dormant_turns == 0:
+                    minion.damage = minion.max_health
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class ManifestedTimewaysBattlecry:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        has_aura = any(
+            not minion.silenced and minion.dormant_turns == 0
+            and ("AURA" in minion.definition.mechanics
+                 or minion.aura_attack_bonus or minion.aura_health_bonus)
+            for minion in context.player.board
+        )
+        if has_aura:
+            DamageAllEnemies(3).execute(game, context)
+
+
+@dataclass(frozen=True)
+class SpiritKaldoreiBattlecry:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.player.hero_power_used:
+            context.card.attack_delta += 3
+            context.card.health_delta += 3
+
+
+@dataclass(frozen=True)
+class CleansingLightspawnBattlecry:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_entity is None:
+            raise ValueError("enemy minion target is required")
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        game._damage_minion(
+            context.action.target_player, target,
+            game._spell_effect_amount(context.player, context.card, context.card.max_health),
+            context.card,
+        )
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class AmberPriestessBattlecry:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("character target is required")
+        amount = context.card.max_health
+        if context.action.target_entity is None:
+            target = game.players[context.action.target_player]
+            game._apply_heal(target, target, amount, source=context.card)
+        else:
+            owner = game.players[context.action.target_player]
+            target = game._find_minion(owner.index, context.action.target_entity)
+            game._apply_heal(owner, target, amount, source=context.card)
+
+
+@dataclass(frozen=True)
+class ArcaneBarrageEffect:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("enemy target is required")
+        primary = (context.action.target_player, context.action.target_entity)
+        game._deal_to_target(
+            context.player.index, primary,
+            game._spell_effect_amount(context.player, context.card, 3),
+            source=context.card,
+        )
+        others = [candidate for candidate in game._random_enemy_characters(context.player.index)
+                  if candidate != primary]
+        if others:
+            for _ in range(2):
+                game._deal_to_target(
+                    context.player.index, game.rng.choice(others),
+                    game._spell_effect_amount(context.player, context.card, 2),
+                    source=context.card,
+                )
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class SynchronizedSparkEffect:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_entity is None:
+            raise ValueError("enemy minion target is required")
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        game._damage_minion(
+            context.action.target_player, target,
+            game._spell_effect_amount(context.player, context.card, 3),
+            context.card,
+        )
+        killed = target.health <= 0
+        game._resolve_deaths()
+        if killed:
+            candidates = [minion for minion in context.player.board if minion.health > 0]
+            if candidates:
+                chosen = game.rng.choice(candidates)
+                chosen.attack_delta += 3
+                chosen.health_delta += 3
+
+
+@dataclass(frozen=True)
+class PreciseShotEffect:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player is None:
+            raise ValueError("enemy target is required")
+        try:
+            position = next(
+                index for index, held in enumerate(context.player.hand)
+                if held.entity_id == context.card.entity_id
+            )
+        except StopIteration:
+            position = -1
+        exactly_center = len(context.player.hand) % 2 == 1 and position == len(context.player.hand) // 2
+        amount = 5 if exactly_center else 3
+        game._deal_to_target(
+            context.player.index,
+            (context.action.target_player, context.action.target_entity),
+            game._spell_effect_amount(context.player, context.card, amount),
+            source=context.card,
+        )
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class StarsurgeEffect:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_entity is None:
+            raise ValueError("minion target is required")
+        target = game._find_minion(
+            context.action.target_player, context.action.target_entity
+        )
+        amount = 1 + max(0, context.player.friendly_minions_died_this_game)
+        game._damage_minion(
+            context.action.target_player, target,
+            game._spell_effect_amount(context.player, context.card, amount),
+            context.card,
+        )
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class StellarBalanceEffect:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for card_id in ("CS2_008", "EX1_173"):
+            generated = game._entity(card_id, created_by=context.card.card_id)
+            generated.spell_damage_bonus += 1
+            game._add_generated(context.player, generated)
+
+
+@dataclass(frozen=True)
+class BitterEndEffect:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_entity is None:
+            raise ValueError("minion target is required")
+        owner = game.players[context.action.target_player]
+        target = game._find_minion(owner.index, context.action.target_entity)
+        index = owner.board.index(target)
+        affected = owner.board[max(0, index - 1): index + 2]
+        for minion in affected:
+            minion.frozen_turn = game.turn
+        for minion in list(affected):
+            if minion.damage > 0:
+                minion.damage = minion.max_health
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class BattlefieldBlasterBattlecry:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        spells = [held for held in context.player.hand
+                  if held.definition.card_type == "SPELL"]
+        if spells:
+            game.rng.choice(spells).spell_damage_bonus += 1
+
+
+@dataclass(frozen=True)
+class VeteranWarmedicAfterHoly:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        spell = context.payload.get("spell")
+        if spell is None or spell.definition.spell_school != "HOLY":
+            return
+        if len(context.player.board) + len(context.player.locations) >= 7:
+            return
+        medic = game._entity("BAR_878t", created_by=context.card.card_id)
+        medic.lifesteal = True
+        medic.summoned_turn = game.turn
+        game._summon(context.player, medic)
+
+
+@dataclass(frozen=True)
+class DefiledSpearAfterHeroAttack:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        attacked = context.payload.get("attacked")
+        candidates = [target for target in game._random_enemy_characters(context.player.index)
+                      if target != attacked]
+        if not candidates:
+            return
+        amount = max(0, int(context.payload.get("hero_attack") or context.player.attack))
+        game._deal_to_target(context.player.index, game.rng.choice(candidates), amount, context.card)
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class FelfireBlazeAfterFel:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        spell = context.payload.get("spell")
+        if spell is None or spell.definition.spell_school != "FEL":
+            return
+        if context.card in context.player.board:
+            context.card.damage = context.card.max_health
+        DamageAllEnemies(2).execute(game, context)
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class EbonscaleScoutBattlecry:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_entity is None:
+            raise ValueError("enemy minion target is required")
+        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        game._damage_minion(
+            context.action.target_player, target,
+            game._spell_effect_amount(context.player, context.card, context.card.attack),
+            context.card,
+        )
+        game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class SpiritBondEffect:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_entity is None:
+            raise ValueError("minion target is required")
+        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        game._damage_minion(
+            context.action.target_player, target,
+            game._spell_effect_amount(context.player, context.card, 3),
+            context.card,
+        )
+        killed = target.health <= 0
+        game._resolve_deaths()
+        if killed and "DRG_217t" in game.card_defs:
+            Summon("DRG_217t").execute(game, context)
+
+
+@dataclass(frozen=True)
+class WastelandVanguardEffect:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        before = {m.entity_id for m in enemy.board}
+        for _ in range(3):
+            targets = game._random_enemy_characters(context.player.index)
+            if not targets:
+                break
+            game._deal_to_target(context.player.index, game.rng.choice(targets), 1, context.card)
+        game._resolve_deaths()
+        killed = len(before - {m.entity_id for m in enemy.board})
+        if killed:
+            for _ in range(3):
+                targets = game._random_enemy_characters(context.player.index)
+                if not targets:
+                    break
+                game._deal_to_target(context.player.index, game.rng.choice(targets), 1, context.card)
+            game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class AfterSummonElementalDamage:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        summoned = context.payload.get("summoned")
+        if summoned is None or not summoned.has_race("ELEMENTAL"):
+            return
+        targets = game._random_enemy_characters(context.player.index)
+        if targets:
+            game._deal_to_target(context.player.index, game.rng.choice(targets), 3, context.card)
+            game._resolve_deaths()
+
+
+@dataclass(frozen=True)
+class WillfulWatcherDeathrattle:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        destroyed = []
+        for _ in range(min(3, len(context.player.deck))):
+            card = context.player.deck.pop()
+            destroyed.append(card.card_id)
+        game._event("destroy_top_deck", player=context.player.index,
+                    source=context.card.card_id, cards=destroyed)
+
+
+@dataclass(frozen=True)
+class RavenousDevilsaurBattlecry:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_entity is None:
+            raise ValueError("minion target is required")
+        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        attack, health = target.attack, target.max_health
+        target.damage = target.max_health
+        game._resolve_deaths()
+        if game._kindred_active(context.player, context.card):
+            context.card.attack_delta += attack
+            context.card.health_delta += health
+
+
+@dataclass(frozen=True)
+class TwistedWebweaverAfterSummon:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        summoned = context.payload.get("summoned")
+        if summoned is None or summoned.entity_id == context.card.entity_id:
+            return
+        if context.player.played_card_counts.get(summoned.card_id, 0) > 1:
+            game._draw(context.player)
+
+
+@dataclass(frozen=True)
+class BlackpawsWhipDeathrattle:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        Draw().execute(game, context)
+
+
+@dataclass(frozen=True)
+class MaloriakAfterDiscard:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        discarded = context.payload.get("discarded")
+        if discarded is None or discarded.definition.card_type != "MINION":
+            return
+        if len(context.player.board) + len(context.player.locations) >= 7:
+            return
+        copy_card = discarded.clone(game.next_entity_id)
+        game.next_entity_id += 1
+        copy_card.created_by = context.card.card_id
+        copy_card.damage = 0
+        copy_card.summoned_turn = game.turn
+        game._summon(context.player, copy_card)
+
+
+@dataclass(frozen=True)
+class FragmentOfNothingAfterSpell:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.payload.get("target_entity") is not None:
+            game._draw(context.player)
+
+
+@dataclass(frozen=True)
+class StoryOfLakkariSpell:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.lakkari_turns = 3
+        game._event("story_of_lakkari_started", player=context.player.index, turns=3)
+
+
+@dataclass(frozen=True)
+class InjuredAttendantBattlecry:
+    def execute(self, game: Any, context: RuleContext) -> None:
+        DamageSelf(4).execute(game, context)
 
 
 @dataclass(frozen=True)
@@ -10628,4 +11088,71 @@ def build_rule_registry() -> RuleRegistry:
                  _BATCH_50_SOURCE),
         CardRule("CORE_RLK_657", {Hook.BATTLECRY: (GainArmor(6),), Hook.DEATHRATTLE: (GainArmor(6),)},
                  _BATCH_50_SOURCE),
+        # ---- 50-card Standard tranche 50B -----------------------------
+        # Engine-owned triggers are registered with an empty hook map when
+        # dragon_mirror.py already owns their complete lifecycle (or when the
+        # card is a metadata-only conditional).  This keeps coverage audits
+        # honest without duplicating state transitions here.
+        *tuple(CardRule(card_id, {}, _BATCH_50B_SOURCE) for card_id in (
+            "CORE_RLK_121", "CORE_EX1_007", "JAIL_461", "CORE_RLK_706",
+            "TLC_987", "EDR_979", "JAIL_719", "TIME_856", "TLC_605",
+        )),
+        CardRule("EDR_253", {Hook.AFTER_HERO_ATTACK: (Draw(),)}, _BATCH_50B_SOURCE),
+        CardRule("EDR_256", {Hook.BATTLECRY: (DreamwardenBattlecry(),)}, _BATCH_50B_SOURCE),
+        CardRule("CORE_TRL_240", {Hook.BATTLECRY: (SavageStrikerBattlecry(),)},
+                 _BATCH_50B_SOURCE, TargetSpec(TargetKind.ENEMY_MINION)),
+        CardRule("CORE_NEW1_020", {Hook.AFTER_PLAY: (DamageAllMinions(1),)}, _BATCH_50B_SOURCE),
+        CardRule("CORE_NEW1_021", {Hook.START_TURN: (DamageAllMinions(99),)}, _BATCH_50B_SOURCE),
+        CardRule("EDR_110", {Hook.DEATHRATTLE: (DamageRandomEnemyMinion(1),)}, _BATCH_50B_SOURCE),
+        CardRule("TLC_633", {Hook.BATTLECRY: (BugsquasherBattlecry(),)},
+                 _BATCH_50B_SOURCE, TargetSpec(TargetKind.ENEMY_MINION)),
+        CardRule("CORE_KAR_057", {Hook.BATTLECRY: (OfferIvoryKnightDiscover(),)}, _BATCH_50B_SOURCE),
+        CardRule("EDR_255", {Hook.SPELL: (DamageLowestHealthEnemyRepeated(5, 2),)}, _BATCH_50B_SOURCE),
+        CardRule("FIR_961", {Hook.BATTLECRY: (AshleafPixieBattlecry(),)}, _BATCH_50B_SOURCE),
+        CardRule("JAIL_118", {Hook.BATTLECRY: (DestroyNonPaladinMinions(),)}, _BATCH_50B_SOURCE),
+        # Mend the Timeline is resolved by the engine's Rewind dispatcher;
+        # keeping the registry entry empty prevents a generic Discover from
+        # bypassing its two-random-Holy-spells + healing semantics.
+        CardRule("TIME_018", {}, _BATCH_50B_SOURCE),
+        CardRule("TIME_019", {Hook.BATTLECRY: (ManifestedTimewaysBattlecry(),)}, _BATCH_50B_SOURCE),
+        CardRule("CAP_803", {Hook.DEATHRATTLE: (HealHero(3),)}, _BATCH_50B_SOURCE),
+        CardRule("CATA_304", {Hook.BATTLECRY: (InjuredAttendantBattlecry(),)}, _BATCH_50B_SOURCE),
+        CardRule("FIR_777", {Hook.BATTLECRY: (SpiritKaldoreiBattlecry(),)}, _BATCH_50B_SOURCE),
+        CardRule("TIME_427", {Hook.BATTLECRY: (CleansingLightspawnBattlecry(),)},
+                 _BATCH_50B_SOURCE, TargetSpec(TargetKind.ENEMY_MINION)),
+        CardRule("TIME_431", {Hook.BATTLECRY: (AmberPriestessBattlecry(),)},
+                 _BATCH_50B_SOURCE, TargetSpec(TargetKind.ANY_CHARACTER)),
+        CardRule("TIME_855", {Hook.SPELL: (ArcaneBarrageEffect(),)},
+                 _BATCH_50B_SOURCE, TargetSpec(TargetKind.ENEMY_CHARACTER)),
+        CardRule("END_014", {Hook.SPELL: (SynchronizedSparkEffect(),)},
+                 _BATCH_50B_SOURCE, TargetSpec(TargetKind.ENEMY_MINION)),
+        CardRule("TIME_600", {Hook.SPELL: (PreciseShotEffect(),)},
+                 _BATCH_50B_SOURCE, TargetSpec(TargetKind.ENEMY_CHARACTER)),
+        CardRule("EDR_941", {Hook.SPELL: (StarsurgeEffect(),)},
+                 _BATCH_50B_SOURCE, TargetSpec(TargetKind.ANY_MINION)),
+        CardRule("EDR_874", {Hook.SPELL: (StellarBalanceEffect(),)}, _BATCH_50B_SOURCE),
+        CardRule("TLC_220", {Hook.AFTER_SUMMON: (AfterSummonElementalDamage(),)}, _BATCH_50B_SOURCE),
+        CardRule("END_023", {Hook.SPELL: (BitterEndEffect(),)},
+                 _BATCH_50B_SOURCE, TargetSpec(TargetKind.ANY_MINION)),
+        CardRule("CATA_209", {Hook.BATTLECRY: (BattlefieldBlasterBattlecry(),)}, _BATCH_50B_SOURCE),
+        CardRule("CORE_BAR_878", {Hook.AFTER_PLAY: (VeteranWarmedicAfterHoly(),)}, _BATCH_50B_SOURCE),
+        CardRule("EDR_842", {Hook.AFTER_HERO_ATTACK: (DefiledSpearAfterHeroAttack(),)}, _BATCH_50B_SOURCE),
+        CardRule("FIR_904", {Hook.AFTER_PLAY: (FelfireBlazeAfterFel(),)}, _BATCH_50B_SOURCE),
+        CardRule("CATA_552", {Hook.BATTLECRY: (EbonscaleScoutBattlecry(),)},
+                 _BATCH_50B_SOURCE, TargetSpec(TargetKind.ENEMY_MINION)),
+        CardRule("EDR_262", {Hook.SPELL: (SpiritBondEffect(),)},
+                 _BATCH_50B_SOURCE, TargetSpec(TargetKind.ANY_MINION)),
+        CardRule("MEND_302", {Hook.BATTLECRY: (WastelandVanguardEffect(),)}, _BATCH_50B_SOURCE),
+        CardRule("TLC_365", {Hook.SPELL: (DamageActionTarget(3),)},
+                 _BATCH_50B_SOURCE, TargetSpec(TargetKind.ANY_MINION)),
+        CardRule("TLC_621", {Hook.DEATHRATTLE: (WillfulWatcherDeathrattle(),)}, _BATCH_50B_SOURCE),
+        CardRule("TLC_829", {Hook.BATTLECRY: (RavenousDevilsaurBattlecry(),)},
+                 _BATCH_50B_SOURCE, TargetSpec(TargetKind.ANY_MINION)),
+        CardRule("CATA_494", {Hook.AFTER_DISCARD: (MaloriakAfterDiscard(),)}, _BATCH_50B_SOURCE),
+        CardRule("JAIL_803", {Hook.SPELL: (FreezeActionTarget(), Draw(2),)},
+                 _BATCH_50B_SOURCE, TargetSpec(TargetKind.ENEMY_CHARACTER)),
+        CardRule("END_026", {Hook.AFTER_PLAY: (FragmentOfNothingAfterSpell(),)}, _BATCH_50B_SOURCE),
+        CardRule("EDR_540", {Hook.AFTER_SUMMON: (TwistedWebweaverAfterSummon(),)}, _BATCH_50B_SOURCE),
+        CardRule("JAIL_503", {Hook.DEATHRATTLE: (BlackpawsWhipDeathrattle(),)}, _BATCH_50B_SOURCE),
+        CardRule("TLC_466", {Hook.SPELL: (StoryOfLakkariSpell(),)}, _BATCH_50B_SOURCE),
     ))

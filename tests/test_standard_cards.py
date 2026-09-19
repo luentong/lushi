@@ -784,6 +784,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.players[player].board.append(card)
         return card
 
+
     def test_power_word_shield(self):
         game = self.game()
         target = self.add_board(game, "CAP_107t", 0)
@@ -4643,6 +4644,116 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         aspect = self.add_hand(shaman, "EDR_231")
         shaman.step(Action("PLAY", aspect.entity_id, 0, None))
         self.assertEqual("EDR_448p", shaman.players[0].hero_power_id)
+
+
+class SecondStandardCardBatchTests(unittest.TestCase):
+    """Smoke/regression coverage for the 50-card 50B tranche."""
+
+    BATCH = {
+        "CORE_RLK_121", "CORE_EX1_007", "EDR_253", "EDR_256", "CORE_TRL_240",
+        "CORE_NEW1_020", "CORE_NEW1_021", "EDR_110", "TLC_633", "CORE_KAR_057",
+        "EDR_255", "FIR_961", "JAIL_118", "TIME_018", "TIME_019", "CAP_803",
+        "CATA_304", "FIR_777", "TIME_427", "TIME_431", "TIME_855", "END_014",
+        "TIME_600", "EDR_941", "EDR_874", "TLC_220", "END_023", "CATA_209",
+        "CORE_BAR_878", "JAIL_461", "CORE_RLK_706", "EDR_842", "FIR_904",
+        "CATA_552", "EDR_262", "MEND_302", "TIME_856", "TLC_365", "TLC_605",
+        "TLC_621", "TLC_829", "TLC_987", "CATA_494", "JAIL_803", "END_026",
+        "EDR_979", "EDR_540", "JAIL_503", "TLC_466", "JAIL_719",
+    }
+
+    def game(self):
+        game = DragonMirrorGame(CARDS, 31)
+        game.current = 0
+        for player in game.players:
+            player.hand.clear()
+            player.board.clear()
+            player.locations.clear()
+            player.mana = 20
+            player.max_mana = 10
+            player.health = 30
+            player.armor = 0
+        return game
+
+    def add_hand(self, game, card_id):
+        card = game._entity(card_id)
+        game.players[0].hand.append(card)
+        return card
+
+    def add_board(self, game, card_id, player=0):
+        card = game._entity(card_id)
+        card.summoned_turn = -1
+        game._summon(game.players[player], card)
+        return card
+
+    def test_batch_has_exactly_fifty_registered_cards(self):
+        game = self.game()
+        self.assertEqual(50, len(self.BATCH))
+        self.assertTrue(self.BATCH <= game.executable_card_ids)
+        self.assertTrue(self.BATCH <= {rule.card_id for rule in game.rule_registry.all_rules()})
+
+    def test_after_spell_and_after_attack_windows(self):
+        game = self.game()
+        self.add_board(game, "CORE_NEW1_020")
+        spell = self.add_hand(game, "CORE_AT_055")
+        enemy = self.add_board(game, "CORE_EX1_005", 1)
+        game.step(Action("PLAY", spell.entity_id, 1, None))
+        self.assertGreater(enemy.damage, 0)
+
+        game = self.game()
+        game.players[0].weapon = Weapon("EDR_253", "Ursine Maul", 2, 2)
+        game.players[0].deck = [game._entity("CORE_AT_055")]
+        game.step(Action("HERO_ATTACK", None, 1, None))
+        self.assertTrue(game.players[0].hand)
+
+    def test_start_turn_doomsayer_and_acolyte_death(self):
+        game = self.game()
+        self.add_board(game, "CORE_NEW1_021")
+        self.add_board(game, "CORE_EX1_005", 1)
+        game._start_turn(0)
+        self.assertFalse(game.players[1].board)
+
+        game = self.game()
+        self.add_board(game, "CORE_RLK_121")
+        undead = self.add_board(game, "CAP_800")
+        game.players[0].deck = [game._entity("CORE_AT_055")]
+        game._damage_minion(0, undead, 99)
+        game._resolve_deaths()
+        self.assertTrue(any(event["kind"] == "acolyte_of_death_draw" for event in game.events))
+
+    def test_targeted_spell_smoke(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_EX1_005", 1)
+        spell = self.add_hand(game, "EDR_262")
+        game.step(Action("PLAY", spell.entity_id, 1, target.entity_id))
+        self.assertNotIn(target, game.players[1].board)
+        self.assertTrue(any(m.card_id == "DRG_217t" for m in game.players[0].board))
+
+    def test_tar_tyrant_attack_bonus_tracks_opponent_turn(self):
+        game = self.game()
+        tar = self.add_board(game, "TLC_605", 0)
+        self.assertEqual(1, tar.attack)
+        game._start_turn(1)
+        self.assertEqual(7, tar.attack)
+        game._start_turn(0)
+        self.assertEqual(1, tar.attack)
+        tar.silenced = True
+        self.assertEqual(1, tar.attack)
+
+    def test_maloriak_and_story_of_lakkari_cross_turn_hooks(self):
+        game = self.game()
+        maloriak = self.add_board(game, "CATA_494")
+        discarded = game._entity("CORE_EX1_005")
+        game._dispatch_after_discard(game.players[0], discarded)
+        self.assertTrue(any(m.card_id == discarded.card_id for m in game.players[0].board))
+        self.assertIn(maloriak, game.players[0].board)
+
+        game = self.game()
+        story = self.add_hand(game, "TLC_466")
+        game.step(Action("PLAY", story.entity_id))
+        self.assertEqual(3, game.players[0].lakkari_turns)
+        game._end_turn()
+        self.assertEqual(2, game.players[0].lakkari_turns)
+        self.assertEqual(7, sum(m.card_id == "Story_09_Imp" for m in game.players[0].board))
 
 
 if __name__ == "__main__":
