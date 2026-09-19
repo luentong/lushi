@@ -34,6 +34,20 @@ class StandardRuleCoverageTests(unittest.TestCase):
             MODULE.implementation_status("CAP_107t", {"CAP_107t"}),
         )
 
+    def test_enchantments_are_engine_state_not_missing_cards(self):
+        self.assertEqual(
+            "engine_state",
+            MODULE.implementation_status(
+                "CATA_307e", set(), card_type="ENCHANTMENT",
+            ),
+        )
+
+    def test_engine_owned_auxiliary_has_its_own_audit_status(self):
+        self.assertEqual(
+            "engine_owned_auxiliary",
+            MODULE.implementation_status("CATA_150t", set()),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -541,7 +541,40 @@ STANDARD_DECLARATIVE_IDS = {
     "JAIL_315", "JAIL_330", "JAIL_434", "JAIL_470", "JAIL_500", "JAIL_802",
     "JAIL_861", "MEND_100", "MEND_307", "MEND_505", "TIME_030", "TIME_041",
     "TIME_064", "TIME_103", "TIME_706", "TTN_851",
+    # Non-collectible Coin variants are separate client entities, not aliases
+    # of GAME_005.  They share the same temporary-mana rule, but keeping each
+    # ID executable matters when a current-standard effect creates its own
+    # printing of The Coin.
+    "CATA_COIN1", "CATA_COIN2", "CATA_COIN3", "CATA_COIN4", "CATA_COIN5", "CATA_COIN6",
+    "DINO_COIN1", "DINO_COIN2", "EDR_COIN1", "EDR_COIN2", "TLC_COIN2",
+    "TIME_COIN1", "TIME_COIN2", "TIME_COIN3", "TIME_COIN4", "TIME_EVENT_COIN",
+    "JAIL_COIN2", "JAIL_COIN3", "JAIL_EVENT_COIN",
+    # Current-standard generated cards that resolve through the same normal
+    # spell/minion dispatcher as deck cards.
+    "CATA_158t", "CATA_552t", "CATA_553t", "MEND_100t",
+    "MEND_505t", "MEND_505t2", "MEND_505t3",
 }
+
+# These non-collectible entities are emitted and resolved by explicit engine
+# lifecycle code instead of a composable CardRule.  They are deliberately not
+# called "vanilla": each has a tested source-side trigger (summon, spell cast,
+# deathrattle, or custom Location state).  The audit imports this manifest so
+# they cannot be mistaken for an unimplemented generated card merely because
+# their behavior does not live in ``build_rule_registry``.
+ENGINE_OWNED_AUXILIARY_IDS = frozenset({
+    "CATA_158t",                 # Soldier of Sinestra on-summon trigger
+    "CATA_150t", "CATA_150t1",  # Hand of Ragnaros Herald forms
+    "CATA_151t1",                # Azshara's upgraded Tentacle
+    "CATA_464t",                 # Blackwing Experiment's Dragon Breath
+    "CATA_550t", "CATA_550t2", "CATA_550t3", "CATA_550t4",
+    "CATA_550t5", "CATA_550t6",  # Magmaw body variants
+    "CATA_580t",                 # Soldier of Ragnaros
+    "CATA_186t",                 # hand-position Sabotage state
+    "CATA_190t10", "CATA_190t11", "CATA_190t12", "CATA_190t13",
+    # Deathwing Cataclysm modes (resolved by _unleash_deathwing_cataclysm)
+    "TLC_100t1", "TLC_100t2", "TLC_100t3",  # Elise-created Maps
+    "TLC_446t",                  # Underfel Rift activation
+})
 
 
 @dataclass(frozen=True)
@@ -1618,7 +1651,7 @@ class AddRandomLeyline:
 
 
 @dataclass(frozen=True)
-class UpgradeLeylines:
+class IncreaseLeylinePower:
     amount: int = 1
 
     def execute(self, game: Any, context: RuleContext) -> None:
@@ -1639,6 +1672,23 @@ class AddLeylineExtraTrigger:
         game._event("leyline_extra_trigger", player=context.player.index,
                     source=context.card.card_id, amount=self.amount,
                     total=context.player.leyline_extra_triggers)
+
+
+@dataclass(frozen=True)
+class ReduceLeylineCosts:
+    """Apply a persistent discount only to the three Leyline cards."""
+
+    amount: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        context.player.leyline_cost_reduction = max(
+            0, int(getattr(context.player, "leyline_cost_reduction", 0))
+        ) + max(0, self.amount)
+        game._event(
+            "leyline_cost_reduction", player=context.player.index,
+            source=context.card.card_id, amount=self.amount,
+            total=context.player.leyline_cost_reduction,
+        )
 
 
 @dataclass(frozen=True)
@@ -8255,7 +8305,7 @@ class ShootRandomEnemy:
 
 
 @dataclass(frozen=True)
-class UpgradeLeylines:
+class GrantAllLeylinesAndUpgrade:
     def execute(self, game: Any, context: RuleContext) -> None:
         for card_id in ("MEND_500", "MEND_502", "MEND_504"):
             game._add_generated(context.player, game._entity(card_id, created_by=context.card.card_id))
@@ -8532,6 +8582,14 @@ _FINAL_48_SOURCE = RuleSource(
     ),
 )
 
+_AUXILIARY_TOKEN_SOURCE = RuleSource(
+    "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+    verification=(
+        "AuxiliaryEntityCoverageTests.test_every_coin_variant_grants_temporary_mana",
+        "AuxiliaryEntityCoverageTests.test_engine_owned_auxiliaries_are_executable",
+    ),
+)
+
 
 _BATCH_50_SOURCE = RuleSource(
     "official_text_and_engine_pattern", "HearthstoneJSON 251332",
@@ -8737,6 +8795,75 @@ class AddRandomFilteredCards:
                 game.rng.choice(candidates), created_by=context.card.card_id,
             )
             game._add_generated(context.player, generated)
+
+
+@dataclass(frozen=True)
+class AddRandomOtherClassSpellDiscount:
+    """Soldier of Sinestra's on-summon random off-class spell."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = _filtered_executable_ids(
+            game, card_type="SPELL", other_class_for=context.player,
+        )
+        if not candidates:
+            return
+        generated = game._entity(
+            game.rng.choice(candidates), created_by=context.card.card_id,
+        )
+        discount = max(0, int(getattr(context.card, "herald_power", 1)))
+        generated.cost_delta -= discount
+        destination = game._add_generated(context.player, generated)
+        game._event(
+            "sinestra_soldier_spell", player=context.player.index,
+            source=context.card.entity_id, card=generated.card_id,
+            discount=discount, destination=destination,
+        )
+
+
+@dataclass(frozen=True)
+class CastRandomExecutableSpells:
+    """Cast a bounded number of random executable spells without mana cost."""
+
+    count: int
+    cost: int
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        from .dragon_mirror import Action
+
+        pool = _filtered_executable_ids(
+            game, card_type="SPELL", cost=self.cost,
+        )
+        cast: list[str] = []
+        for _ in range(self.count):
+            if not pool:
+                break
+            spell = game._entity(
+                game.rng.choice(pool), created_by=context.card.card_id,
+            )
+            # Try target-free casting first.  For targeted spells, choose only
+            # from the engine's legal target candidates, never fabricate a
+            # target merely to satisfy the generated effect.
+            try:
+                game._cast_spell(context.player, spell, Action("PLAY", spell.entity_id))
+            except ValueError:
+                for target_player, target_entity, _ in game._random_spell_target_candidates(
+                    context.player.index, spell
+                ):
+                    try:
+                        game._cast_spell(
+                            context.player, spell,
+                            Action("PLAY", spell.entity_id, target_player, target_entity),
+                        )
+                        break
+                    except ValueError:
+                        continue
+                else:
+                    continue
+            cast.append(spell.card_id)
+        game._event(
+            "random_spells_cast", player=context.player.index,
+            source=context.card.card_id, cost=self.cost, cards=cast,
+        )
 
 
 # ---- Standard tranche 50E -------------------------------------------------
@@ -13722,7 +13849,7 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule(
-            "MEND_506", {Hook.BATTLECRY: (UpgradeLeylines(),)},
+            "MEND_506", {Hook.BATTLECRY: (IncreaseLeylinePower(),)},
             RuleSource(
                 "official_text_and_engine_verified", "HearthstoneJSON 251332",
                 verification=("test_mystic_runesaber_upgrades_leylines",),
@@ -16622,11 +16749,38 @@ def build_rule_registry() -> RuleRegistry:
         CardRule("JAIL_861", {Hook.SPELL: (OfferChooseOneAndCopyEnemy(),)}, _FINAL_48_SOURCE),
         CardRule("MEND_100", {Hook.BATTLECRY: (AddBulb(),)}, _FINAL_48_SOURCE),
         CardRule("MEND_307", {Hook.SPELL: (SetAnimalCompanionUpgrade(2), SummonAnimalCompanion())}, _FINAL_48_SOURCE),
-        CardRule("MEND_505", {Hook.SPELL: (UpgradeLeylines(),)}, _FINAL_48_SOURCE),
+        CardRule("MEND_505", {Hook.SPELL: (GrantAllLeylinesAndUpgrade(),)}, _FINAL_48_SOURCE),
         CardRule("TIME_030", {Hook.SPELL: (SplitRandomHandMinion(),)}, _FINAL_48_SOURCE),
         CardRule("TIME_041", {Hook.BATTLECRY: (GuessEnemyHandGainHealth(),)}, _FINAL_48_SOURCE),
         CardRule("TIME_064", {}, _FINAL_48_SOURCE),
         CardRule("TIME_103", {Hook.DEATHRATTLE: (DrawPlayedCardCopy(),)}, _FINAL_48_SOURCE),
         CardRule("TIME_706", {Hook.BATTLECRY: (RestoreStartingHandUntilEndTurn(),)}, _FINAL_48_SOURCE),
         CardRule("TTN_851", {Hook.SPELL: (ArmSpellSurchargeTwoEnemyTurns(),)}, _FINAL_48_SOURCE),
+        # Every current-standard generated Coin remains a distinct entity in
+        # Power.log.  Their effect is intentionally shared, not inferred from
+        # the display name, so future non-Coin cards named "Coin" cannot gain
+        # mana accidentally.
+        *tuple(
+            CardRule(card_id, {Hook.SPELL: (GainMana(1),)}, _AUXILIARY_TOKEN_SOURCE)
+            for card_id in (
+                "CATA_COIN1", "CATA_COIN2", "CATA_COIN3", "CATA_COIN4", "CATA_COIN5", "CATA_COIN6",
+                "DINO_COIN1", "DINO_COIN2", "EDR_COIN1", "EDR_COIN2", "TLC_COIN2",
+                "TIME_COIN1", "TIME_COIN2", "TIME_COIN3", "TIME_COIN4", "TIME_EVENT_COIN",
+                "JAIL_COIN2", "JAIL_COIN3", "JAIL_EVENT_COIN",
+            )
+        ),
+        # Cataclysm and Mending generated forms.  These are real hand/board
+        # entities in the client, not presentation-only option labels.
+        CardRule("CATA_552t", {Hook.BATTLECRY: (EbonscaleScoutBattlecry(),)},
+                 _AUXILIARY_TOKEN_SOURCE, TargetSpec(TargetKind.ENEMY_MINION)),
+        CardRule("CATA_553t", {Hook.BATTLECRY: (GrantDragonsRush(),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("MEND_100t", {Hook.SPELL: (CastRandomExecutableSpells(3, 1),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("MEND_505t", {Hook.SPELL: (AddLeylineExtraTrigger(),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("MEND_505t2", {Hook.SPELL: (ReduceLeylineCosts(2),)},
+                 _AUXILIARY_TOKEN_SOURCE),
+        CardRule("MEND_505t3", {Hook.SPELL: (IncreaseLeylinePower(2),)},
+                 _AUXILIARY_TOKEN_SOURCE),
     ))

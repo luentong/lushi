@@ -12,6 +12,7 @@ from hsa.dragon_mirror import (
     Action, DragonMirrorGame, HERALD_COLLECTIBLE_IDS, Location, LOST_CITY_QUEST_IDS,
     LOST_CITY_QUEST_REWARDS, STANDARD_VANILLA_IDS, Weapon,
 )
+from hsa.rules import ENGINE_OWNED_AUXILIARY_IDS
 
 
 CARDS = ROOT / "cards.251332.enUS.json"
@@ -5666,6 +5667,65 @@ class FinalStandardClosureTests(unittest.TestCase):
         self.assertTrue(all(card.card_id == "GAME_005" for card in game.players[0].hand))
         game._end_turn()
         self.assertIn(original, game.players[0].hand)
+
+
+class AuxiliaryEntityCoverageTests(unittest.TestCase):
+    """Regression coverage for non-collectible current-Standard entities."""
+
+    COINS = {
+        "CATA_COIN1", "CATA_COIN2", "CATA_COIN3", "CATA_COIN4", "CATA_COIN5", "CATA_COIN6",
+        "DINO_COIN1", "DINO_COIN2", "EDR_COIN1", "EDR_COIN2", "TLC_COIN2",
+        "TIME_COIN1", "TIME_COIN2", "TIME_COIN3", "TIME_COIN4", "TIME_EVENT_COIN",
+        "JAIL_COIN2", "JAIL_COIN3", "JAIL_EVENT_COIN",
+    }
+
+    def game(self):
+        game = DragonMirrorGame(CARDS, 31337)
+        game.current = 0
+        for player in game.players:
+            player.hand.clear()
+            player.board.clear()
+            player.deck.clear()
+            player.locations.clear()
+            player.secrets.clear()
+            player.mana = 0
+            player.max_mana = 10
+        return game
+
+    def test_every_coin_variant_grants_temporary_mana(self):
+        self.assertEqual(19, len(self.COINS))
+        for card_id in self.COINS:
+            with self.subTest(card_id=card_id):
+                game = self.game()
+                coin = game._entity(card_id)
+                game.players[0].hand.append(coin)
+                game.step(Action("PLAY", coin.entity_id))
+                self.assertEqual(1, game.players[0].mana)
+
+    def test_engine_owned_auxiliaries_are_executable(self):
+        game = self.game()
+        self.assertTrue(ENGINE_OWNED_AUXILIARY_IDS <= game.executable_card_ids)
+        self.assertTrue(ENGINE_OWNED_AUXILIARY_IDS <= set(game.card_defs))
+
+    def test_generated_leyline_options_and_scout_token(self):
+        game = self.game()
+        discount = game._entity("MEND_505t2")
+        game.players[0].hand.append(discount)
+        leyline = game._entity("MEND_500")
+        game.players[0].hand.append(leyline)
+        before = game._effective_cost(game.players[0], leyline)
+        game.step(Action("PLAY", discount.entity_id))
+        self.assertEqual(before - 2, game._effective_cost(game.players[0], leyline))
+
+        game = self.game()
+        target = game._entity("CORE_CS2_231")
+        target.summoned_turn = -1
+        game._summon(game.players[1], target)
+        scout = game._entity("CATA_552t")
+        game.players[0].mana = 20
+        game.players[0].hand.append(scout)
+        game.step(Action("PLAY", scout.entity_id, 1, target.entity_id))
+        self.assertLess(target.health, target.max_health)
 
 
 if __name__ == "__main__":

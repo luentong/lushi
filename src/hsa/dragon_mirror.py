@@ -19,6 +19,7 @@ from .config import DRAGON_DECKSTRING, RULESET
 from .rules import (
     DECLARATIVE_METADATA_ALIASES,
     DECLARATIVE_METADATA_IDS,
+    ENGINE_OWNED_AUXILIARY_IDS,
     Hook,
     HolmesInspect,
     RuleContext,
@@ -681,6 +682,7 @@ SUPPORTED_IDS = (
     | SPECIAL_TOKEN_IDS | BLOCKED_GENERATOR_IDS | STANDARD_VANILLA_IDS
     | DECLARATIVE_METADATA_IDS
     | DECLARATIVE_METADATA_ALIASES.keys()
+    | ENGINE_OWNED_AUXILIARY_IDS
 )
 EXECUTABLE_CARD_IDS = SUPPORTED_IDS | STANDARD_DECLARATIVE_IDS
 
@@ -1171,6 +1173,7 @@ class Player:
     leyline_level: int = 5
     leyline_upgrade: int = 0
     leyline_extra_triggers: int = 0
+    leyline_cost_reduction: int = 0
     hero_power_used: bool = False
     hero_power_cost_override: int | None = None
     # One-shot surcharge used by Blowtorch Saboteur.  Its expiry is recorded
@@ -2304,18 +2307,26 @@ class DragonMirrorGame:
             minion.card_id in {
                 "CATA_525t", "CATA_565t", "CATA_725t", "CATA_726t",
                 "CATA_726t1", "CATA_780t", "CATA_153t", "CATA_153t1",
-                "CATA_154t", "CATA_154t1",
+                "CATA_154t", "CATA_154t1", "CATA_158t",
             }
             and minion.herald_power == 1
         ):
             minion.herald_power = self._herald_power(player.herald_count)
         self._refresh_continuous(player)
-        if minion.card_id == "CATA_151t":
+        if minion.card_id in {"CATA_151t", "CATA_151t1"}:
             amount = self._herald_power(player.herald_count)
             player.hero_attack_bonus += amount
             self._event(
                 "azshara_tentacle", player=player.index,
                 entity=minion.entity_id, attack=amount,
+            )
+        elif minion.card_id == "CATA_158t":
+            # This token's text says "When summoned", rather than
+            # Battlecry: it must also fire when another effect summons it.
+            from .rules import AddRandomOtherClassSpellDiscount
+
+            AddRandomOtherClassSpellDiscount().execute(
+                self, RuleContext(player=player, card=minion)
             )
         elif minion.card_id in {"CATA_154t", "CATA_154t1"}:
             # The Wing token's generated spell is discounted by the current
@@ -3896,6 +3907,8 @@ class DragonMirrorGame:
 
     def _effective_cost(self, player: Player, card: CardInstance) -> int:
         cost = card.cost
+        if card.card_id in {"MEND_500", "MEND_502", "MEND_504"}:
+            cost -= player.leyline_cost_reduction
         if card.definition.card_type == "MINION" and player.minion_cost_fixed is not None:
             cost = player.minion_cost_fixed
         # Sabotage is a hand-position enchantment: both immediate neighbours
@@ -11395,7 +11408,10 @@ class DragonMirrorGame:
                     source=minion.card_id, target=murloc.entity_id,
                     effect=effect,
                 )
-        elif minion.card_id == "CATA_550t":
+        elif minion.card_id in {
+            "CATA_550t", "CATA_550t2", "CATA_550t3", "CATA_550t4",
+            "CATA_550t5", "CATA_550t6",
+        }:
             candidates = [other for other in player.board if other.health > 0]
             if candidates:
                 target = self.rng.choice(candidates)
@@ -11621,7 +11637,7 @@ class DragonMirrorGame:
                 death_count=player.ysondre_deaths, cards=summoned,
                 profile="closed_pool",
             )
-        elif minion.card_id in {"CATA_580t", "CATA_150t"}:
+        elif minion.card_id in {"CATA_580t", "CATA_150t", "CATA_150t1"}:
             targets = self._random_enemy_characters(player.index)
             if targets:
                 self._deal_to_target(

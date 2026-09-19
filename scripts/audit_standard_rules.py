@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from hsa.dragon_mirror import SUPPORTED_IDS
-from hsa.rules import build_rule_registry
+from hsa.rules import ENGINE_OWNED_AUXILIARY_IDS, build_rule_registry
 from hsa.standard_catalog import CARDS_BUILD, StandardCatalog
 
 
@@ -28,9 +28,22 @@ def normalized_text(text: str) -> str:
     return " ".join(TAG_RE.sub("", text).split())
 
 
-def implementation_status(card_id: str, declarative: set[str]) -> str:
+def implementation_status(
+    card_id: str,
+    declarative: set[str],
+    *,
+    card_type: str | None = None,
+) -> str:
+    # Enchantments are client-side state records attached to another entity;
+    # they are neither deck cards nor independently playable generated cards.
+    # Their runtime representation is the corresponding engine state on the
+    # owning card/minion (cost deltas, keywords, temporary attack, and so on).
+    if card_type == "ENCHANTMENT":
+        return "engine_state"
     if card_id in declarative:
         return "declarative"
+    if card_id in ENGINE_OWNED_AUXILIARY_IDS:
+        return "engine_owned_auxiliary"
     if card_id in SUPPORTED_IDS:
         return "legacy_compatibility"
     return "not_implemented"
@@ -57,7 +70,9 @@ def main() -> int:
     }
     rows = []
     for card in catalog.all():
-        status = implementation_status(card.card_id, declarative)
+        status = implementation_status(
+            card.card_id, declarative, card_type=card.card_type,
+        )
         text = normalized_text(card.text)
         rows.append({
             "card_id": card.card_id,
@@ -71,10 +86,12 @@ def main() -> int:
             "text": text,
             "text_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
             "implementation": status,
-            "playable_ready": status != "not_implemented",
+            "playable_ready": status not in {"not_implemented", "engine_state"},
+            "runtime_state_ready": status != "not_implemented",
             "verification": (
                 "focused_or_regression_tests"
-                if status != "not_implemented" else "missing"
+                if status not in {"not_implemented", "engine_state"}
+                else "engine_state_owned" if status == "engine_state" else "missing"
             ),
         })
 
