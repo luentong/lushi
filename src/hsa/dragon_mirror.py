@@ -455,6 +455,10 @@ WILD_QUICKDRAW_IDS = frozenset({
 })
 
 SPECIAL_TOKEN_IDS = {
+    "EX1_131t",  # Defias Bandit
+    "EX1_383t",  # Ashbringer
+    "TRL_348t",  # Lynx
+    "MEND_046t",  # Bashana Runetotem's carved-spell Treant
     "CATA_300t1", "CATA_300t2", "CATA_300t3",
     "CATA_432t1", "CATA_432t2", "CATA_432t3", "CATA_432t4",
     "CATA_561t",  # Breezling
@@ -1170,11 +1174,18 @@ class Player:
     overloaded_mana_this_game: int = 0
     overload_next_turn: int = 0
     next_spell_cost_reduction: int = 0
+    next_demon_cost_reduction: int = 0
+    # Foxy Fraud applies only during the current turn and only once a later
+    # card actually satisfies Combo.
+    next_combo_cost_reduction: int = 0
     locked_mana: int = 0
     next_demon_free: bool = False
     next_beast_cost_reduction: int = 0
     next_murloc_cost_reduction: int = 0
     next_minion_cost_reduction: int = 0
+    # Hatching Ceremony is resolved at the end of the controller's following
+    # turn; ``turns_taken`` gives that delayed window a branch-safe identity.
+    hatching_ceremony_trigger_turn: int = -1
     ruby_sanctum_turn: int = -1
     kindred_triggers_twice: int = 0
     map_followup_options: list[str] = field(default_factory=list)
@@ -3077,6 +3088,21 @@ class DragonMirrorGame:
 
     def _end_turn(self) -> None:
         player = self.players[self.current]
+        # Foxy Fraud's discount cannot carry into a later turn, even when its
+        # controller chose not to play another Combo card this turn.
+        player.next_combo_cost_reduction = 0
+        if player.hatching_ceremony_trigger_turn == player.turns_taken:
+            affected = []
+            for minion in player.board:
+                if minion.dormant_turns > 0:
+                    continue
+                minion.attack_delta += 2
+                minion.health_delta += 2
+                affected.append(minion.entity_id)
+            player.hatching_ceremony_trigger_turn = -1
+            self._event(
+                "hatching_ceremony", player=player.index, affected=affected,
+            )
         lakkari_turns = max(0, int(getattr(player, "lakkari_turns", 0)))
         if lakkari_turns:
             if player.hand:
@@ -3500,6 +3526,14 @@ class DragonMirrorGame:
             cost -= player.next_beast_cost_reduction
         if card.has_race("MURLOC"):
             cost -= player.next_murloc_cost_reduction
+        if card.has_race("DEMON"):
+            cost -= player.next_demon_cost_reduction
+        if (
+            player.next_combo_cost_reduction
+            and player.cards_played_this_turn > 0
+            and "combo" in card.definition.text.casefold()
+        ):
+            cost -= player.next_combo_cost_reduction
         if card.card_id == "TLC_600" and "DRAGON" in player.played_races_last_turn:
             cost -= 3
         if card.card_id == "CATA_568":
@@ -5120,6 +5154,14 @@ class DragonMirrorGame:
             player.next_beast_cost_reduction = 0
         if card.has_race("MURLOC") and player.next_murloc_cost_reduction:
             player.next_murloc_cost_reduction = 0
+        if card.has_race("DEMON") and player.next_demon_cost_reduction:
+            player.next_demon_cost_reduction = 0
+        if (
+            player.next_combo_cost_reduction
+            and player.cards_played_this_turn > 0
+            and "combo" in card.definition.text.casefold()
+        ):
+            player.next_combo_cost_reduction = 0
         if card.definition.card_type == "MINION" and player.next_minion_cost_reduction:
             player.next_minion_cost_reduction = 0
         if card.definition.card_type == "SPELL" and player.next_spell_cost_reduction:
@@ -7171,6 +7213,47 @@ class DragonMirrorGame:
                 zone="hand", attack=1, health=1,
                 card_types=["MINION"], require_attribute=None,
                 affected_count=len(affected), affected=affected,
+            )
+
+        # Declarative "Whenever this attacks" effects resolve only while the
+        # attacker remains a live, unsilenced board entity after combat.
+        if (
+            attacker in player.board
+            and attacker.health > 0
+            and attacker.dormant_turns == 0
+            and not attacker.silenced
+        ):
+            self.rule_registry.dispatch(
+                Hook.AFTER_ATTACK, attacker.card_id, self,
+                RuleContext(
+                    player=player, card=attacker,
+                    payload={"attacked_minion": attacked_minion},
+                ),
+            )
+
+        # Rehgar observes its own and its surviving adjacent minions' attacks.
+        # The board may have changed during combat, so recompute adjacency
+        # after deaths have resolved rather than retaining stale positions.
+        for rehgar in list(player.board):
+            if (
+                rehgar.card_id != "CORE_CATA_004"
+                or rehgar.silenced
+                or rehgar.dormant_turns > 0
+                or rehgar.health <= 0
+            ):
+                continue
+            index = player.board.index(rehgar)
+            adjacent = player.board[max(0, index - 1):index] + player.board[index + 1:index + 2]
+            if attacker.entity_id != rehgar.entity_id and all(
+                attacker.entity_id != minion.entity_id for minion in adjacent
+            ):
+                continue
+            bolt = self._entity("CORE_EX1_238", created_by=rehgar.card_id)
+            destination = self._add_generated(player, bolt)
+            self._event(
+                "rehgar_lightning_bolt", player=player.index,
+                source=rehgar.entity_id, attacker=attacker.entity_id,
+                card=bolt.card_id, destination=destination,
             )
 
     def _after_minion_attacked(

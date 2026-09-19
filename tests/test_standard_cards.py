@@ -4885,5 +4885,111 @@ class ThirdStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(1, stegodon.health_delta)
 
 
+class FourthStandardCardBatchTests(unittest.TestCase):
+    """Regression coverage for the fourth independent Standard card tranche."""
+
+    BATCH = {
+        "CATA_140", "CATA_190h", "DINO_435", "END_015", "JAIL_200", "TLC_825",
+        "CORE_BOT_576", "CORE_BT_321", "CORE_BT_416", "CORE_CATA_002",
+        "CORE_CATA_004", "CORE_CFM_781", "CORE_CFM_790", "CORE_DMF_511",
+        "CORE_EDR_001", "CORE_EX1_131", "CORE_EX1_383", "CORE_EX1_559",
+        "CORE_GIL_531", "CORE_ICC_210", "CORE_ICC_407", "CORE_LOE_039",
+        "CORE_ONY_022", "CORE_SCH_181", "CORE_TID_931", "CORE_TRL_111",
+        "CORE_TRL_900", "CORE_ULD_280", "CORE_WON_096", "Core_UNG_072",
+        "DINO_130", "DINO_131", "DINO_403", "DINO_405", "DINO_412",
+        "DINO_422", "DINO_433", "DINO_434", "EDR_001", "EDR_060", "EDR_105",
+        "EDR_230", "EDR_252", "EDR_273", "EDR_481", "EDR_531", "EDR_848",
+        "EDR_890", "EDR_942", "EDR_978",
+    }
+
+    def game(self):
+        game = DragonMirrorGame(CARDS, 41)
+        game.current = 0
+        for player in game.players:
+            player.hand.clear()
+            player.board.clear()
+            player.locations.clear()
+            player.deck.clear()
+            player.mana = 20
+            player.max_mana = 10
+            player.health = 30
+            player.armor = 0
+        return game
+
+    @staticmethod
+    def add_hand(game, card_id, player=0):
+        card = game._entity(card_id)
+        game.players[player].hand.append(card)
+        return card
+
+    @staticmethod
+    def add_board(game, card_id, player=0):
+        card = game._entity(card_id)
+        card.summoned_turn = -1
+        game._summon(game.players[player], card)
+        return card
+
+    def test_batch_has_exactly_fifty_registered_cards(self):
+        game = self.game()
+        self.assertEqual(50, len(self.BATCH))
+        self.assertTrue(self.BATCH <= game.executable_card_ids)
+        self.assertTrue(self.BATCH <= {rule.card_id for rule in game.rule_registry.all_rules()})
+
+    def test_cost_reductions_and_generated_cards(self):
+        game = self.game()
+        felscreamer = self.add_hand(game, "CORE_BT_416")
+        game.step(Action("PLAY", felscreamer.entity_id))
+        demon = self.add_hand(game, "CORE_CS2_065")
+        self.assertEqual(max(0, demon.cost - 2), game._effective_cost(game.players[0], demon))
+        game.step(Action("PLAY", demon.entity_id))
+        self.assertEqual(0, game.players[0].next_demon_cost_reduction)
+
+        game = self.game()
+        self.add_hand(game, "GAME_005")
+        game.step(Action("PLAY", game.players[0].hand[0].entity_id))
+        foxy = self.add_hand(game, "CORE_DMF_511")
+        game.step(Action("PLAY", foxy.entity_id))
+        defias = self.add_hand(game, "CORE_EX1_131")
+        self.assertEqual(0, game._effective_cost(game.players[0], defias))
+        game.step(Action("PLAY", defias.entity_id))
+        self.assertTrue(any(minion.card_id == "EX1_131t" for minion in game.players[0].board))
+
+        game = self.game()
+        dryad = self.add_hand(game, "EDR_001")
+        game.step(Action("PLAY", dryad.entity_id))
+        self.assertEqual(1, len(game.players[0].hand))
+        self.assertTrue(game.players[0].hand[0].card_id.startswith("DREAM_"))
+
+    def test_deathrattle_and_delayed_windows(self):
+        game = self.game()
+        rat = self.add_hand(game, "CORE_CFM_790")
+        self.add_hand(game, "CORE_EX1_005", player=1)
+        game.step(Action("PLAY", rat.entity_id))
+        self.assertEqual(1, len(game.players[1].board))
+
+        game = self.game()
+        egg = self.add_board(game, "DINO_130")
+        game._damage_minion(0, egg, egg.health)
+        game._resolve_deaths()
+        self.assertTrue(any(minion.card_id == "DINO_130t" for minion in game.players[0].board))
+
+        game = self.game()
+        target = self.add_board(game, "CORE_EX1_005")
+        ceremony = self.add_hand(game, "DINO_405")
+        game.step(Action("PLAY", ceremony.entity_id))
+        game._start_turn(1)
+        game._start_turn(0)
+        game._end_turn()
+        self.assertEqual(2, target.attack_delta)
+        self.assertEqual(2, target.health_delta)
+
+        game = self.game()
+        strider = self.add_board(game, "EDR_978")
+        game._damage_minion(0, strider, strider.health)
+        game._resolve_deaths()
+        self.assertEqual("EDR_978", game.players[0].deck[0].card_id)
+        self.assertEqual(1, game.players[0].deck[0].cost)
+
+
 if __name__ == "__main__":
     unittest.main()
