@@ -7,11 +7,11 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 1286,
+      "declarative": 1300,
       "engine_owned_auxiliary": 21,
       "engine_state": 482,
       "legacy_compatibility": 297,
-      "not_implemented": 75
+      "not_implemented": 61
     },
     "collectible_implementation": {
       "declarative": 972,
@@ -32431,10 +32431,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Restore your hero to full Health.",
       "text_sha256": "de0d7fd69c9fca097e9719bf4f0f75b3b941cf77b0bc72fd2fb6dfa54c9928c5",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_452t9",
@@ -32447,10 +32447,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Refresh your Mana Crystals.",
       "text_sha256": "6af3caa7eafea8c81ad421e74be7b00835a302da6cb6d80953bc14eee3d0eb3a",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_454",
@@ -32495,10 +32495,10 @@
       "mechanics": "TRIGGER_VISUAL",
       "text": "After you Discover a card, this plays the other options. Lose 1 Durability.",
       "text_sha256": "9fb39b3ed262b596e0a0f12a7adb80a9f2adae015cedb6b556b663d5ef648c77",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_461",
@@ -32911,10 +32911,10 @@
       "mechanics": "",
       "text": "Draw 2 cards that didn't start in your deck.",
       "text_sha256": "ca718748f9cc5492dafdf4f4d9f186a2f8ac51ea5a5b69b4c6aa1235c25fb155",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_513t",
@@ -32927,10 +32927,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Summon two 3/3 Ninjas with Stealth. Your Ninjas now shuffle back into your deck when they die.",
       "text_sha256": "08faaf3e008efdb49a98ccea91f9f02ee525e84d9f534e15755eb6e154e2e3cc",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_513t2",
@@ -33199,10 +33199,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: Get 2 random 'Journey to Un'Goro' Quest Rewards. Shuffle the rest into your deck.",
       "text_sha256": "f49df0f728283f462d548900d52bbd67f77866539e3d84abbc7fdab2eb41e67f",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_603",
@@ -33503,10 +33503,10 @@
       "mechanics": "BATTLECRY",
       "text": "Battlecry: For the rest of the game, whenever you deal exactly 2 damage to an enemy, deal 2 more.",
       "text_sha256": "73a37cc0bafa1e110edce76ddb32e2dc154f692bb6fa8f1d58b32656a6675794",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_632",
@@ -33743,10 +33743,10 @@
       "mechanics": "QUEST",
       "text": "Quest: Cast 4 Holy spells. Reward: Life's Breath.",
       "text_sha256": "1666fe121c4964789df7d6bb213f29fb6d2743227a08df0e9101eff6e12fbe12",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_817t2",
@@ -33759,10 +33759,10 @@
       "mechanics": "QUEST",
       "text": "Quest: Cast 4 Shadow spells. Reward: Death's Touch.",
       "text_sha256": "f2a8f281af399857004abbc9f743d231650d45a3f1d77d2d05af44af35a32bf3",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_817t3",
@@ -33775,10 +33775,10 @@
       "mechanics": "BATTLECRY,TAUNT",
       "text": "Taunt. Battlecry: Summon a copy of this. If you're holding both halves of Sol'etos, combine!",
       "text_sha256": "aa349e023527c4e1c26d131cf51a621361ca750255533c8f0bb51ae133dd60c4",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_817t4",
@@ -33791,10 +33791,10 @@
       "mechanics": "DEATHRATTLE,REBORN",
       "text": "Reborn. Deathrattle: Deal 5 damage to a random enemy. If you're holding both halves of Sol'etos, combine!",
       "text_sha256": "83d3a6fb0bb33979ba04af430434f427b71e274d666c6fb93cb72d91714e9912",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_817t5",
@@ -33807,10 +33807,10 @@
       "mechanics": "BATTLECRY,DEATHRATTLE,REBORN,TAUNT",
       "text": "Taunt, Reborn. Battlecry: Summon a copy of this. Deathrattle: Deal 5 damage to a random enemy.",
       "text_sha256": "67f624f36fab4d1fe642556b70ea741831fb6a831612f23b88e0ddf0d81e69ea",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_818",
@@ -34143,10 +34143,10 @@
       "mechanics": "BATTLECRY,RUSH",
       "text": "Rush Battlecry: Discover any 8, 6, and 4-Attack Beast. Set their Costs to (2).",
       "text_sha256": "eaf54a2206ddaf5ee4bec899fd6afb7a5bdbafcc67256c3401a9ec323eb76af2",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_831",
@@ -34367,10 +34367,10 @@
       "mechanics": "",
       "text": "Deathrattle: Release nothing. (It's just an empty jar.)",
       "text_sha256": "4d7fecd401def05ab04363f0287d0a8773a9f96e905a92c57a2f0b3dac1940ca",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TLC_888",
