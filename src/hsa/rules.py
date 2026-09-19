@@ -17309,7 +17309,7 @@ def build_rule_registry() -> RuleRegistry:
             "TLC_602t", "TLC_631t", "TLC_817t", "TLC_817t2", "TLC_817t3",
             "TLC_817t4", "TLC_817t5", "TLC_830t", "TLC_841t",
         )),
-        CardRule("RLK_907t", {Hook.DEATHRATTLE: (DamageRandomEnemyMinion(2),)},
+        CardRule("RLK_907t", {Hook.DEATHRATTLE: (DamageRandomEnemyCharacters(2, 1),)},
                  _AUXILIARY_TOKEN_SOURCE),
         *tuple(CardRule(card_id, {}, _AUXILIARY_TOKEN_SOURCE) for card_id in (
             "EDR_259e1", "RLK_008t", "RLK_039t", "RLK_061t", "RLK_085t", "RLK_226t",

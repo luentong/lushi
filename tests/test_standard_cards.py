@@ -5857,6 +5857,15 @@ class AuxiliaryEntityCoverageTests(unittest.TestCase):
         self.assertEqual(0, len(game.players[1].hand))
         self.assertEqual(2, len(game.players[0].hand))
 
+    def test_rime_elemental_token_deathrattle_damages_random_enemy(self):
+        game = self.game()
+        token = game._entity("RLK_907t")
+        token.summoned_turn = -1
+        game._summon(game.players[0], token)
+        token.damage = token.max_health
+        game._resolve_deaths()
+        self.assertEqual(28, game.players[1].health)
+
     def test_generated_leyline_options_and_scout_token(self):
         game = self.game()
         discount = game._entity("MEND_505t2")
