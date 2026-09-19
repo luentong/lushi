@@ -950,6 +950,7 @@ class CardInstance:
     # Keep the count on the instance so copied, transformed and reborn cards
     # retain every independently granted copy of the Gift.
     deathrattle_draw_cards: int = 0
+    deathrattle_damage_enemy_hero: int = 0
     deathrattle_damage_all_enemies: int = 0
     killed_by_entity: int | None = None
     devoured_cards: list[CardInstance] = field(default_factory=list)
@@ -8826,6 +8827,40 @@ class DragonMirrorGame:
                 minion.summoned_turn = self.turn
                 self._summon(player, minion)
             return
+        elif after_pick == "time_location_dragon":
+            summoned = None
+            if len(player.board) + len(player.locations) < 7:
+                summoned = option.clone(self.next_entity_id)
+                self.next_entity_id += 1
+                summoned.created_by = pending.get("source_card_id")
+                summoned.damage = 0
+                summoned.summoned_turn = self.turn
+                self._summon(player, summoned)
+            if pending.get("location_add_copy"):
+                copied = option.clone(self.next_entity_id)
+                self.next_entity_id += 1
+                copied.created_by = pending.get("source_card_id")
+                self._add_generated(player, copied)
+            location = next(
+                (item for item in player.locations
+                 if item.entity_id == pending.get("location_entity")),
+                None,
+            )
+            next_card_id = pending.get("location_advance_to")
+            if location is not None and next_card_id is not None:
+                previous = location.card_id
+                location.card_id = next_card_id
+                self._event(
+                    "location_advance", player=player.index, source=location.entity_id,
+                    previous=previous, current=next_card_id,
+                )
+            self._event(
+                "time_location_dragon_pick", player=player.index,
+                source=pending.get("source_card_id"), card=option.card_id,
+                entity=None if summoned is None else summoned.entity_id,
+                copied=bool(pending.get("location_add_copy")),
+            )
+            return
         elif after_pick == "spell_twice":
             option.spell_casts_twice = True
         elif after_pick in {
@@ -11044,6 +11079,13 @@ class DragonMirrorGame:
             self._event(
                 "deathrattle_draw", player=player.index, source=minion.entity_id,
                 cards=minion.deathrattle_draw_cards,
+            )
+        if minion.deathrattle_damage_enemy_hero:
+            enemy = self.players[1 - player.index]
+            self._damage_hero(enemy, minion.deathrattle_damage_enemy_hero, minion)
+            self._event(
+                "deathrattle_damage_enemy_hero", player=player.index,
+                source=minion.entity_id, amount=minion.deathrattle_damage_enemy_hero,
             )
         if any(
             source.card_id == "TIME_064" and not source.silenced

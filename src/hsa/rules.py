@@ -235,6 +235,9 @@ STANDARD_DECLARATIVE_IDS = {
     "EDR_101t", "EDR_101t1", "EDR_101t2", "EDR_101t3", "EDR_101t4",
     "EDR_101t5", "EDR_101t6", "EDR_101t7", "EDR_101t8", "EDR_101t9",
     "EDR_101t10", "EDR_101t11", "EDR_101t12", "EDR_101t13", "EDR_101t14",
+    # Past/Present/Future Location variants use one shared transition model.
+    "TIME_044t1", "TIME_044t2", "TIME_436t1", "TIME_436t2",
+    "TIME_810t1", "TIME_810t2",
     # 50-card Standard coverage tranche (23 metadata-keyword cards + 27
     # composable Battlecry/Deathrattle/spell cards).
     "RLK_067", "CORE_BT_921", "EDR_272", "CATA_558", "CORE_CS2_179",
@@ -1621,6 +1624,122 @@ class DamageRandomEnemyMinionExcess:
             game._event("random_minion_excess_damage", player=context.player.index,
                         source=context.card.card_id, target=target.entity_id,
                         amount=amount, excess=excess)
+
+
+def _advance_location(game: Any, context: RuleContext, next_card_id: str | None) -> None:
+    """Transform the exact Location that supplied a staged time effect.
+
+    The Location object persists across the transformation, retaining its
+    durability and the normal two-turn cooldown applied by ``_use_location``.
+    This deliberately happens before that common cooldown code so every Past
+    -> Present -> Future chain obeys the ordinary Location timing rules.
+    """
+
+    if next_card_id is None or context.action is None:
+        return
+    location = next(
+        (item for item in context.player.locations if item.entity_id == context.action.source),
+        None,
+    )
+    if location is None:
+        return
+    previous = location.card_id
+    location.card_id = next_card_id
+    game._event(
+        "location_advance", player=context.player.index, source=location.entity_id,
+        previous=previous, current=next_card_id,
+    )
+
+
+@dataclass(frozen=True)
+class BuffLocationTargetAndAdvance:
+    attack: int
+    health: int
+    next_card_id: str | None = None
+    divine_shield: bool = False
+    deathrattle_damage_enemy_hero: int = 0
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_player != context.player.index:
+            raise ValueError("friendly minion target is required")
+        target = game._find_minion(context.player.index, context.action.target_entity)
+        target.attack_delta += self.attack
+        target.health_delta += self.health
+        if self.divine_shield:
+            target.divine_shield = True
+            target.divine_shield_hits = max(1, target.divine_shield_hits)
+        target.deathrattle_damage_enemy_hero += self.deathrattle_damage_enemy_hero
+        _advance_location(game, context, self.next_card_id)
+
+
+@dataclass(frozen=True)
+class SummonRandomDragonMinCostAndAdvance:
+    min_cost: int
+    next_card_id: str | None
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        SummonRandomDragonMinCost(self.min_cost).execute(game, context)
+        _advance_location(game, context, self.next_card_id)
+
+
+@dataclass(frozen=True)
+class OfferDragonSummonLocation:
+    """Discover a Dragon, summon it, then optionally advance/copy it."""
+
+    min_cost: int
+    next_card_id: str | None = None
+    add_copy: bool = False
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        candidates = sorted(
+            card_id for card_id, definition in game.card_defs.items()
+            if card_id in game.executable_card_ids
+            and definition.card_type == "MINION"
+            and "DRAGON" in definition.races
+            and definition.cost >= self.min_cost
+        )
+        if not candidates:
+            return
+        game._offer_discover(
+            context.player, candidates, dark_gift=False,
+            after_pick="time_location_dragon", source_card_id=context.card.card_id,
+        )
+        game.pending_choice["location_entity"] = context.action.source if context.action else None
+        game.pending_choice["location_advance_to"] = self.next_card_id
+        game.pending_choice["location_add_copy"] = self.add_copy
+
+
+@dataclass(frozen=True)
+class DamageLocationEnemyMinionAndAdvance:
+    amount: int
+    next_card_id: str | None = None
+    excess_to_hero: bool = False
+    lowest_health: bool = False
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        enemy = game.players[1 - context.player.index]
+        candidates = [
+            minion for minion in enemy.board
+            if minion.health > 0 and minion.dormant_turns == 0
+        ]
+        if candidates:
+            if self.lowest_health:
+                minimum = min(minion.health for minion in candidates)
+                candidates = [minion for minion in candidates if minion.health == minimum]
+            target = game.rng.choice(candidates)
+            before = target.health
+            game._damage_minion(enemy.index, target, self.amount, context.card)
+            excess = max(0, self.amount - before)
+            if self.excess_to_hero and excess:
+                game._damage_hero(enemy, excess, context.card)
+            game._resolve_deaths()
+            game._event(
+                "time_location_damage", player=context.player.index,
+                source=context.card.card_id, target=target.entity_id,
+                amount=self.amount, excess=excess if self.excess_to_hero else 0,
+                lowest_health=self.lowest_health,
+            )
+        _advance_location(game, context, self.next_card_id)
 
 
 @dataclass(frozen=True)
@@ -12867,21 +12986,51 @@ def build_rule_registry() -> RuleRegistry:
             TargetSpec(TargetKind.FRIENDLY_MINION),
         ),
         CardRule(
-            "TIME_044", {Hook.LOCATION: (BuffActionTarget(2, 1),)},
+            "TIME_044", {Hook.LOCATION: (BuffLocationTargetAndAdvance(2, 1, "TIME_044t1"),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
             TargetSpec(TargetKind.FRIENDLY_MINION),
         ),
         CardRule(
-            "TIME_436", {Hook.LOCATION: (SummonRandomDragonMinCost(5),)},
+            "TIME_044t1", {Hook.LOCATION: (
+                BuffLocationTargetAndAdvance(2, 1, "TIME_044t2", deathrattle_damage_enemy_hero=2),
+            )},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_time_location_progression",)),
+            TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "TIME_044t2", {Hook.LOCATION: (
+                BuffLocationTargetAndAdvance(2, 1, divine_shield=True, deathrattle_damage_enemy_hero=2),
+            )},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_time_location_progression",)),
+            TargetSpec(TargetKind.FRIENDLY_MINION),
+        ),
+        CardRule(
+            "TIME_436", {Hook.LOCATION: (SummonRandomDragonMinCostAndAdvance(5, "TIME_436t1"),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "TIME_436t1", {Hook.LOCATION: (OfferDragonSummonLocation(5, "TIME_436t2"),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_time_location_progression",)),
+        ),
+        CardRule(
+            "TIME_436t2", {Hook.LOCATION: (OfferDragonSummonLocation(5, add_copy=True),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_time_location_progression",)),
         ),
         CardRule(
             "TIME_446", {Hook.LOCATION: (OfferDemonDiscoverMinCost(5),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
         ),
         CardRule(
-            "TIME_810", {Hook.LOCATION: (DamageRandomEnemyMinion(5),)},
+            "TIME_810", {Hook.LOCATION: (DamageLocationEnemyMinionAndAdvance(5, "TIME_810t1"),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
+        ),
+        CardRule(
+            "TIME_810t1", {Hook.LOCATION: (DamageLocationEnemyMinionAndAdvance(5, "TIME_810t2", excess_to_hero=True),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_time_location_progression",)),
+        ),
+        CardRule(
+            "TIME_810t2", {Hook.LOCATION: (DamageLocationEnemyMinionAndAdvance(5, excess_to_hero=True, lowest_health=True),)},
+            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ("test_time_location_progression",)),
         ),
         CardRule(
             "TLC_449", {Hook.LOCATION: (DiscoverTemporaryOneCostMinion(),)},

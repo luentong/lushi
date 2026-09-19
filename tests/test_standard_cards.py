@@ -5792,6 +5792,47 @@ class AuxiliaryEntityCoverageTests(unittest.TestCase):
         self.assertEqual(1, len(game.players[0].board))
         self.assertEqual("EDR_209t", game.players[0].board[0].card_id)
 
+    def test_time_locations_advance_with_their_actual_upgraded_effects(self):
+        game = self.game()
+        target = game._entity("CORE_CS2_231")
+        target.summoned_turn = -1
+        game._summon(game.players[0], target)
+        location = Location(91_001, "TIME_044", durability=3, cooldown=0)
+        game.players[0].locations.append(location)
+        game.step(Action("LOCATION", location.entity_id, 0, target.entity_id))
+        self.assertEqual("TIME_044t1", location.card_id)
+        self.assertEqual((2, 1), (target.attack_delta, target.health_delta))
+
+        location.cooldown = 0
+        game.step(Action("LOCATION", location.entity_id, 0, target.entity_id))
+        self.assertEqual("TIME_044t2", location.card_id)
+        self.assertEqual(2, target.deathrattle_damage_enemy_hero)
+
+        location.cooldown = 0
+        game.step(Action("LOCATION", location.entity_id, 0, target.entity_id))
+        self.assertTrue(target.divine_shield)
+        self.assertEqual(4, target.deathrattle_damage_enemy_hero)
+
+        game = self.game()
+        dragon_location = Location(91_002, "TIME_436t1", durability=3, cooldown=0)
+        game.players[0].locations.append(dragon_location)
+        game.step(Action("LOCATION", dragon_location.entity_id))
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        game.step(Action("DISCOVER_PICK", game.pending_choice["options"][0].entity_id))
+        self.assertEqual("TIME_436t2", dragon_location.card_id)
+        self.assertTrue(game.players[0].board)
+
+        game = self.game()
+        enemy = game._entity("CORE_CS2_065")
+        enemy.summoned_turn = -1
+        game._summon(game.players[1], enemy)
+        enemy.damage = enemy.max_health - 3
+        damage_location = Location(91_003, "TIME_810t1", durability=3, cooldown=0)
+        game.players[0].locations.append(damage_location)
+        game.step(Action("LOCATION", damage_location.entity_id))
+        self.assertEqual("TIME_810t2", damage_location.card_id)
+        self.assertEqual(28, game.players[1].health)
+
 
 if __name__ == "__main__":
     unittest.main()

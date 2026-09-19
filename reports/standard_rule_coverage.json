@@ -7,11 +7,11 @@
     "collectible_cards": 1166,
     "generated_or_auxiliary_entities": 995,
     "implementation": {
-      "declarative": 1158,
+      "declarative": 1164,
       "engine_owned_auxiliary": 21,
       "engine_state": 482,
       "legacy_compatibility": 297,
-      "not_implemented": 203
+      "not_implemented": 197
     },
     "collectible_implementation": {
       "declarative": 972,
@@ -26175,10 +26175,10 @@
       "mechanics": "",
       "text": "Give a minion +2/+1 and \"Deathrattle: Deal 2 damage to the enemy hero.\" Advance to the future!",
       "text_sha256": "0081bf1f05656de53cec377296aed1bfcbf0ba6d67e81061a8dbb01c50500ce2",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_044t1e",
@@ -26207,10 +26207,10 @@
       "mechanics": "",
       "text": "Give a minion +2/+1, Divine Shield, and \"Deathrattle: Deal 2 damage to the enemy hero.\"",
       "text_sha256": "482bdc594bb43f99c121a69ce92c91244c76e7bac60758c072461428fc71f9bb",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_045",
@@ -27391,10 +27391,10 @@
       "mechanics": "DISCOVER",
       "text": "Discover a Dragon that costs (5) or more and summon it. Advance to the future!",
       "text_sha256": "d70b079531085f2e9154aeb841c2382dd36d60738604eeb939951711ceabca37",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_436t2",
@@ -27407,10 +27407,10 @@
       "mechanics": "DISCOVER",
       "text": "Discover a Dragon that costs (5) or more and summon it. Also get a copy of it.",
       "text_sha256": "5681cd3ca38a80accbe4a4e6b9fe89955a947553f56f702056ca643c0427a8dc",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_441",
@@ -28767,10 +28767,10 @@
       "mechanics": "",
       "text": "Deal 5 damage to a random enemy minion. Excess hits the enemy hero. Advance to the future!",
       "text_sha256": "32f32e291a153ed3609a727d1dd6e111a51fc919568b755bf9f60bbeffe73b8c",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_810t2",
@@ -28783,10 +28783,10 @@
       "mechanics": "",
       "text": "Deal 5 damage to the lowest Health enemy minion. Excess damage hits the enemy hero.",
       "text_sha256": "9dd8c2b728d095dbb53b0cab748ddf3ce8212136fdf01adb1dfd97f694b50da7",
-      "implementation": "not_implemented",
-      "playable_ready": false,
-      "runtime_state_ready": false,
-      "verification": "missing"
+      "implementation": "declarative",
+      "playable_ready": true,
+      "runtime_state_ready": true,
+      "verification": "focused_or_regression_tests"
     },
     {
       "card_id": "TIME_850",
