@@ -83,15 +83,6 @@ NESTED_POOL_BACKLOG.update({
             "summon-time rules for every eligible historical minion",
         ],
     },
-    "TIME_872": {
-        "pool": "warrior_minion",
-        "name": "Undefeated Champion",
-        "mechanic": "Battlecry fills the opponent board with random 1-Cost minions",
-        "transitive_dependencies": [
-            "complete collectible Standard 1-Cost summon pool",
-            "five remaining summon-time triggered/Deathrattle rules",
-        ],
-    },
     **{
         card_id: {"pool": "weapon", **entry}
         for card_id, entry in NESTED_POOL_BACKLOG.items()

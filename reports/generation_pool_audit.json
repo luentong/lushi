@@ -264,16 +264,6 @@
         "build-251332 historical 'from the past' pool definition",
         "summon-time rules for every eligible historical minion"
       ]
-    },
-    {
-      "card_id": "TIME_872",
-      "pool": "warrior_minion",
-      "name": "Undefeated Champion",
-      "mechanic": "Battlecry fills the opponent board with random 1-Cost minions",
-      "transitive_dependencies": [
-        "complete collectible Standard 1-Cost summon pool",
-        "five remaining summon-time triggered/Deathrattle rules"
-      ]
     }
   ],
   "weapon_closure_backlog": [],

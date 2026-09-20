@@ -261,8 +261,8 @@ class GenerationAuditTests(unittest.TestCase):
 
     def test_nested_generator_backlog_is_reported_separately(self):
         backlog = self.summary["nested_pool_backlog"]
-        self.assertEqual(6, len(backlog))
-        self.assertTrue({"JAIL_458", "JAIL_875", "TIME_444", "CATA_614", "TIME_052", "TIME_872"} == {
+        self.assertEqual(5, len(backlog))
+        self.assertTrue({"JAIL_458", "JAIL_875", "TIME_444", "CATA_614", "TIME_052"} == {
             row["card_id"] for row in backlog
         })
         for row in backlog:
