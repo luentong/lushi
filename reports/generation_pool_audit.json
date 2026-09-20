@@ -9,7 +9,7 @@
     "THE_LOST_CITY",
     "TIME_TRAVEL"
   ],
-  "pool_semantics": "Discover uses the fixed deck's eligible Warrior/Neutral pool and excludes Fabled plus conditionally banned Herald cards; Stadium random equip uses all collectible Standard weapons; Undefeated Champion uses all collectible Standard 1-Cost minions; Champion and Void Soul pools are evaluated in summon context where Battlecries do not execute; Void Soul tiers 1-10 are closed; Demon, Mech, 5-Cost, 2-Cost, and 4-Cost play-from-hand pools plus Warrior/Neutral Legendary minions track the remaining transitive generators",
+  "pool_semantics": "Discover uses the fixed deck's eligible Warrior/Neutral pool and excludes Fabled plus conditionally banned Herald cards; Stadium random equip uses all collectible Standard weapons; Undefeated Champion uses all collectible Standard 1-Cost minions; Champion and Void Soul pools are evaluated in summon context where Battlecries do not execute; Void Soul tiers 1-10 are closed; Demon, Mech, 5-Cost, 2-Cost, and 4-Cost play-from-hand pools plus Warrior/Neutral Legendary minions are closed; nested Tiny Pal, Staff of Trickery, and Shadowed Informant pools are checked against the executable Standard catalogue",
   "summary": {
     "dragon": {
       "candidate_count": 47,

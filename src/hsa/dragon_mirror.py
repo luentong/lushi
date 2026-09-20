@@ -273,6 +273,16 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "TIME_062", "TIME_100", "TIME_427", "TIME_429", "TIME_710",
     "TLC_220", "TLC_234", "TLC_247", "TLC_250", "TLC_430", "TLC_516",
     "TLC_621", "TLC_633", "TLC_825",
+    # Historical past-pool tranche: simple collectible bodies with no
+    # unresolved Battlecry/Deathrattle/random dependencies.  Promoting these
+    # makes the 1/3/4/5/7-Cost and Demon/Elemental/Beast branches useful while
+    # keeping complex historical effects fail-closed.
+    "AT_020",  # Fearsome Doomguard (7-Cost Demon)
+    "AT_092",  # Ice Rager (3-Cost Elemental)
+    "AT_097",  # Tournament Attendee (1-Cost Taunt)
+    "AT_101",  # Pit Fighter (5-Cost)
+    "AT_102",  # Captured Jormungar (7-Cost Beast)
+    "AT_114",  # Evil Heckler (4-Cost Taunt)
     # Legendary-pool tranche: the remaining registered legendary outcomes.
     # Pack/Discover and historical-death sub-pools stay explicitly audited.
     "CATA_213", "CORE_CFM_670", "CORE_ULD_178", "CORE_WON_145",

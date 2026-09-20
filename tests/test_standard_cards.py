@@ -12,7 +12,7 @@ from hsa.dragon_mirror import (
     Action, DragonMirrorGame, HERALD_COLLECTIBLE_IDS, Location, LOST_CITY_QUEST_IDS,
     LOST_CITY_QUEST_REWARDS, STANDARD_VANILLA_IDS, Weapon,
 )
-from hsa.rules import ENGINE_OWNED_AUXILIARY_IDS
+from hsa.rules import ENGINE_OWNED_AUXILIARY_IDS, _past_ids
 
 
 CARDS = ROOT / "cards.251332.enUS.json"
@@ -3504,6 +3504,51 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             )
             and game._is_standard_collectible(card.definition)
             for card in options
+        ))
+
+    def test_past_pool_promotes_multiple_historical_costs_and_tribes(self):
+        game = self.game()
+        promoted = {
+            "AT_020", "AT_092", "AT_097", "AT_101", "AT_102", "AT_114",
+        }
+        self.assertTrue(promoted <= game.executable_card_ids)
+        past_minions = set(_past_ids(game, card_type="MINION"))
+        self.assertTrue(promoted <= past_minions)
+        self.assertEqual(
+            {1, 3, 4, 5, 7},
+            {game.card_defs[card_id].cost for card_id in promoted},
+        )
+        self.assertEqual(
+            {"DEMON", "ELEMENTAL", "BEAST", ""},
+            {
+                game.card_defs[card_id].race for card_id in promoted
+            },
+        )
+
+    def test_farseer_wo_excludes_current_time_travel_nature_spells(self):
+        game = self.game()
+        self.add_board(game, "TIME_013")
+        spell = self.add_hand(game, "CORE_CS2_029")
+        game.step(Action("PLAY", spell.entity_id, target_player=1))
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        self.assertTrue(all(
+            option.definition.card_type == "SPELL"
+            and option.definition.spell_school == "NATURE"
+            and option.definition.card_set != "TIME_TRAVEL"
+            for option in game.pending_choice["options"]
+        ))
+
+    def test_wings_of_eternity_uses_past_dragons_for_dark_gift(self):
+        game = self.game()
+        spell = self.add_hand(game, "END_027")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        self.assertTrue(all(
+            option.definition.card_type == "MINION"
+            and "DRAGON" in option.definition.races
+            and option.definition.card_set != "TIME_TRAVEL"
+            and option.gifts
+            for option in game.pending_choice["options"]
         ))
 
     def test_horn_of_plenty_discovers_discounted_nature_spell(self):

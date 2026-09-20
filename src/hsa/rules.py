@@ -2196,32 +2196,39 @@ class OfferMinionDarkGiftDiscover:
     min_cost: int | None = None
     cost_delta: int = 0
     spend_corpses: int = 0
+    past: bool = False
 
     def execute(self, game: Any, context: RuleContext) -> None:
         if self.spend_corpses:
             if context.player.corpses < self.spend_corpses:
                 return
             context.player.corpses -= self.spend_corpses
+        candidate_ids = (
+            _past_ids(game, card_type="MINION", race=self.race,
+                      min_cost=self.min_cost)
+            if self.past else list(game.card_defs)
+        )
         pool = [
-            card_id for card_id, definition in game.card_defs.items()
+            card_id for card_id in candidate_ids
             if card_id in game.executable_card_ids
-            and definition.card_type == "MINION"
-            and (self.rarity is None or definition.rarity == self.rarity)
-            and (self.race is None or self.race in definition.races)
+            and game.card_defs[card_id].card_type == "MINION"
+            and (not self.past or game.card_defs[card_id].card_set != "TIME_TRAVEL")
+            and (self.rarity is None or game.card_defs[card_id].rarity == self.rarity)
+            and (self.race is None or self.race in game.card_defs[card_id].races)
+            and (self.min_cost is None or game.card_defs[card_id].cost >= self.min_cost)
             and (
                 self.mechanic is None
-                or self.mechanic in definition.mechanics
-                or self.mechanic.casefold() in definition.text.casefold()
+                or self.mechanic in game.card_defs[card_id].mechanics
+                or self.mechanic.casefold() in game.card_defs[card_id].text.casefold()
             )
             and (
                 not self.mechanics
                 or any(
-                    m in definition.mechanics
-                    or m.casefold() in definition.text.casefold()
+                    m in game.card_defs[card_id].mechanics
+                    or m.casefold() in game.card_defs[card_id].text.casefold()
                     for m in self.mechanics
                 )
             )
-            and (self.min_cost is None or definition.cost >= self.min_cost)
         ]
         game._offer_discover(
             context.player, pool, dark_gift=True,
@@ -5179,14 +5186,11 @@ class SummonRandomDragonMinCost:
 
 @dataclass(frozen=True)
 class DiscoverNatureSpell:
-    """Farseer Wo's post-cast Discover from the executable Nature pool."""
+    """Farseer Wo's post-cast Discover from the historical Nature pool."""
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        candidates = sorted(
-            card_id for card_id, definition in game.card_defs.items()
-            if card_id in game.executable_card_ids
-            and definition.card_type == "SPELL"
-            and definition.spell_school == "NATURE"
+        candidates = _past_ids(
+            game, card_type="SPELL", spell_school="NATURE",
         )
         if candidates:
             game._offer_discover(context.player, candidates, dark_gift=False,
@@ -13676,7 +13680,7 @@ def build_rule_registry() -> RuleRegistry:
         ),
         CardRule(
             "END_027", {Hook.SPELL: (
-                OfferMinionDarkGiftDiscover(race="DRAGON"),
+                OfferMinionDarkGiftDiscover(race="DRAGON", past=True),
             )},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332", ("test_wings_of_eternity_dark_gift_discover",)),
         ),
