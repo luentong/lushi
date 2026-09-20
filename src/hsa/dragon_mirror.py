@@ -260,6 +260,13 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "TLC_244", "TLC_245", "TLC_254", "TLC_427", "TLC_438",
     "TLC_450", "TLC_521", "TLC_822", "TIME_211",
     "JAIL_303", "JAIL_330", "JAIL_440", "JAIL_447", "TIME_013", "TIME_019",
+    # Tenth tranche: all remaining 4-Cost candidates with registered rules.
+    # Past/Secret/weapon/random-spell sub-pools are still tracked separately
+    # by the nested-closure audit.
+    "TIME_028", "TIME_040", "TIME_041", "TIME_042", "TIME_057",
+    "TIME_062", "TIME_100", "TIME_427", "TIME_429", "TIME_710",
+    "TLC_220", "TLC_234", "TLC_247", "TLC_250", "TLC_430", "TLC_516",
+    "TLC_621", "TLC_633", "TLC_825",
     # Dragon-pool generators whose outer rules are now executable.  Their
     # nested pools remain audited independently (not silently treated as
     # vanilla cards).
