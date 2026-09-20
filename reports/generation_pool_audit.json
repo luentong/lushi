@@ -86,26 +86,26 @@
     "five_cost_minion_play": {
       "candidate_count": 83,
       "direct_supported": 3,
-      "generated_supported": 59,
+      "generated_supported": 78,
       "metadata_only": 0,
-      "needs_rule": 21,
-      "unimplemented": 21
+      "needs_rule": 2,
+      "unimplemented": 2
     },
     "two_cost_minion_play": {
       "candidate_count": 121,
       "direct_supported": 3,
-      "generated_supported": 54,
+      "generated_supported": 69,
       "metadata_only": 0,
-      "needs_rule": 64,
-      "unimplemented": 64
+      "needs_rule": 49,
+      "unimplemented": 49
     },
     "four_cost_minion_play": {
       "candidate_count": 127,
       "direct_supported": 7,
-      "generated_supported": 63,
+      "generated_supported": 69,
       "metadata_only": 0,
-      "needs_rule": 57,
-      "unimplemented": 57
+      "needs_rule": 51,
+      "unimplemented": 51
     },
     "legendary_minion_play": {
       "candidate_count": 54,

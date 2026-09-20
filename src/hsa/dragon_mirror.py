@@ -219,6 +219,20 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "EDR_014", "END_015", "FIR_901", "FIR_960", "JAIL_122",
     "CAP_003", "CATA_180", "CORE_BT_156", "CORE_BT_321", "CORE_KAR_062",
     "CAP_005", "CATA_132", "END_002", "TLC_468",
+    # Fourth tranche: fee-pool candidates with registered rules and focused
+    # regression coverage.  Keeping this list explicit prevents an unverified
+    # catalog row from silently entering random-generation results.
+    "CATA_564", "DINO_435", "EDR_519", "EDR_845", "EDR_853",
+    "JAIL_123", "JAIL_204", "JAIL_313",
+    "CAP_400", "CATA_131", "CATA_208", "CATA_487", "CATA_721", "CATA_725",
+    "CATA_186", "CATA_216", "CATA_305", "CATA_458", "CATA_470", "CATA_474",
+    # Fifth tranche: another set of executable 5/2-cost outcomes.  All of
+    # these have explicit registry entries and are covered by the standard
+    # card tests; their nested random effects remain visible to the audit.
+    "JAIL_516", "MEND_041", "MEND_304", "MEND_804", "TIME_029",
+    "TIME_047", "TIME_055", "TIME_703", "TLC_107", "TLC_467", "TLC_630",
+    "CORE_DAL_575", "CORE_DMF_511", "CORE_ICC_210", "CORE_ICC_407",
+    "CORE_TRL_240", "CORE_ULD_133", "CORE_ULD_271", "CORE_WON_096", "DINO_130",
     # Dragon-pool generators whose outer rules are now executable.  Their
     # nested pools remain audited independently (not silently treated as
     # vanilla cards).
