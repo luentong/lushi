@@ -390,7 +390,7 @@ five_cost_minion_play,EDR_519,Wisprider,MAGE,EMERALD_DREAM,MINION,5,4,4,,BATTLEC
 five_cost_minion_play,EDR_572,Tormented Dreadwing,NEUTRAL,EMERALD_DREAM,MINION,5,5,5,DRAGON,DEATHRATTLE,<b>Deathrattle:</b> Draw 2 Dragons. Reduce their Costs by (1).,generated_supported
 five_cost_minion_play,EDR_845,Hamuul Runetotem,DRUID,EMERALD_DREAM,MINION,5,5,6,,START_OF_GAME_KEYWORD,"[x]<b>Start of Game:</b> If each spell in your deck is Nature, <b>Imbue</b> your Hero Power. Repeat this  every 3 spells you cast.",generated_supported
 five_cost_minion_play,EDR_853,Broll Bearmantle,HUNTER,EMERALD_DREAM,MINION,5,3,5,,TRIGGER_VISUAL,"After you cast a spell, summon a random Animal Companion.",generated_supported
-five_cost_minion_play,EDR_891,Ravenous Felhunter,DEMONHUNTER,EMERALD_DREAM,MINION,5,5,3,DEMON,DEATHRATTLE,<b>Deathrattle:</b> Resurrect a friendly <b>Deathrattle</b> minion that costs (4) or less. Summon a copy of it.,needs_rule
+five_cost_minion_play,EDR_891,Ravenous Felhunter,DEMONHUNTER,EMERALD_DREAM,MINION,5,5,3,DEMON,DEATHRATTLE,<b>Deathrattle:</b> Resurrect a friendly <b>Deathrattle</b> minion that costs (4) or less. Summon a copy of it.,direct_supported
 five_cost_minion_play,EDR_979,Ancient of Yore,NEUTRAL,EMERALD_DREAM,MINION,5,5,5,,,"[x]<b>Dormant</b> for 2 turns. While <b>Dormant</b>, gain 3 Armor and draw a card at the end of your turn.",generated_supported
 five_cost_minion_play,END_006,Chronikar,DEMONHUNTER,TIME_TRAVEL,MINION,5,3,5,DRAGON,BATTLECRY,"[x]<b>Battlecry:</b> Give your hero +3 Attack this turn, next turn, and the turn after.",generated_supported
 five_cost_minion_play,END_015,Triennium Rex,HUNTER,TIME_TRAVEL,MINION,5,5,5,BEAST,DEATHRATTLE,[x]<b>Kindred and Deathrattle:</b> Get a random <b>Deathrattle</b>  minion. It costs (2) less.,generated_supported
@@ -444,7 +444,7 @@ two_cost_minion_play,CATA_208,Selfless Protector,NEUTRAL,CATACLYSM,MINION,2,2,6,
 two_cost_minion_play,CATA_464,Blackwing Experiment,DEATHKNIGHT,CATACLYSM,MINION,2,3,1,"DRAGON,UNDEAD",DEATHRATTLE,[x]<b>Deathrattle:</b> Get a 2-Cost spell that deals this minion's Attack damage.,generated_supported
 two_cost_minion_play,CATA_487,Raincaller,MAGE,CATACLYSM,MINION,2,1,4,ELEMENTAL,TRIGGER_VISUAL,"The first time you deal damage with a spell each turn, gain +2 Attack.",generated_supported
 two_cost_minion_play,CATA_565,Skywall Sentinel,SHAMAN,CATACLYSM,MINION,2,0,2,ELEMENTAL,"BATTLECRY,TAUNT",<b>Taunt</b> <b>Battlecry:</b> <b>Herald</b> {0}.,generated_supported
-two_cost_minion_play,CATA_612,Frostbitten Imp,NEUTRAL,CATACLYSM,MINION,2,5,3,DEMON,BATTLECRY,<b>Battlecry:</b> <b>Freeze</b> this.,needs_rule
+two_cost_minion_play,CATA_612,Frostbitten Imp,NEUTRAL,CATACLYSM,MINION,2,5,3,DEMON,BATTLECRY,<b>Battlecry:</b> <b>Freeze</b> this.,direct_supported
 two_cost_minion_play,CATA_614,Shadowed Informant,NEUTRAL,CATACLYSM,MINION,2,2,2,DRAGON,"BATTLECRY,DISCOVER",[x]<b>Battlecry:</b> <b>Discover</b> a spell from your class. <i>(Swaps class each turn!)</i>,generated_supported
 two_cost_minion_play,CATA_721,Sheltered Survivor,NEUTRAL,CATACLYSM,MINION,2,2,3,,BATTLECRY,[x]<b>Battlecry:</b> Choose a card in your hand to shuffle into your deck. Draw a card.,generated_supported
 two_cost_minion_play,CATA_725,Shadowsworn Disciple,WARLOCK,CATACLYSM,MINION,2,2,1,,"BATTLECRY,DEATHRATTLE",<b><b>Battlecry:</b> Herald</b> {0}. <b>Deathrattle:</b> Restore #3 Health to your hero.,generated_supported
@@ -607,7 +607,7 @@ four_cost_minion_play,EDR_462,Selenic Drake,PRIEST,EMERALD_DREAM,MINION,4,3,6,DR
 four_cost_minion_play,EDR_468,Eggbasher,WARRIOR,EMERALD_DREAM,MINION,4,3,5,,BATTLECRY,<b>Battlecry:</b> Deal 1 damage to a minion and give it +4 Attack.,generated_supported
 four_cost_minion_play,EDR_481,Mythical Runebear,HUNTER,EMERALD_DREAM,MINION,4,3,4,BEAST,"BATTLECRY,TAUNT","<b>Taunt</b>. <b>Battlecry:</b> If this has 4 or more Attack, summon a copy of this.",generated_supported
 four_cost_minion_play,EDR_492,Mother Duck,NEUTRAL,EMERALD_DREAM,MINION,4,2,3,BEAST,BATTLECRY,<b>Battlecry:</b> Summon three 1/1 Ducklings with <b>Rush</b>.,direct_supported
-four_cost_minion_play,EDR_524,Shadowcloaked Assailant,ROGUE,EMERALD_DREAM,MINION,4,3,5,DEMON,BATTLECRY,"[x]<b>Battlecry:</b> If you're holding one of the same cards as your opponent, shuffle theirs into their deck.",needs_rule
+four_cost_minion_play,EDR_524,Shadowcloaked Assailant,ROGUE,EMERALD_DREAM,MINION,4,3,5,DEMON,BATTLECRY,"[x]<b>Battlecry:</b> If you're holding one of the same cards as your opponent, shuffle theirs into their deck.",direct_supported
 four_cost_minion_play,EDR_654,Overgrown Horror,WARLOCK,EMERALD_DREAM,MINION,4,3,5,,"BATTLECRY,TAUNT",[x]<b>Taunt</b> <b>Battlecry:</b> Reduce the Cost of minions in your hand with <b>Dark Gifts</b> by (2).,generated_supported
 four_cost_minion_play,EDR_800,Flutterwing Guardian,NEUTRAL,EMERALD_DREAM,MINION,4,4,4,,"BATTLECRY,DIVINE_SHIELD,TAUNT","<b><b>Taunt</b>, Divine Shield</b> <b>Battlecry:</b> <b>Imbue</b> your Hero Power.",generated_supported
 four_cost_minion_play,EDR_841,Dreadsoul Corrupter,DEMONHUNTER,EMERALD_DREAM,MINION,4,4,4,,"BATTLECRY,DEATHRATTLE",[x]<b>Battlecry and Deathrattle:</b> Summon a random <b>Dormant</b> Dreadseed.,generated_supported
@@ -789,7 +789,7 @@ void_soul_demon_1,CORE_BT_351,Battlefiend,DEMONHUNTER,CORE,MINION,1,1,2,DEMON,TR
 void_soul_demon_1,CORE_EX1_319,Flame Imp,WARLOCK,CORE,MINION,1,3,2,DEMON,BATTLECRY,<b>Battlecry:</b> Deal 3 damage to your hero.,generated_supported
 void_soul_demon_1,CORE_YOD_026,Fiendish Servant,WARLOCK,CORE,MINION,1,2,1,DEMON,DEATHRATTLE,[x]<b>Deathrattle:</b> Give this minion's Attack to a random friendly minion.,generated_supported
 void_soul_demon_1,EDR_456,Darkrider,WARRIOR,EMERALD_DREAM,MINION,1,1,1,DEMON,"BATTLECRY,DISCOVER","<b>Battlecry:</b> If you're holding a Dragon, <b>Discover</b> a Dragon with a <b>Dark Gift</b>.",direct_supported
-void_soul_demon_2,CATA_612,Frostbitten Imp,NEUTRAL,CATACLYSM,MINION,2,5,3,DEMON,BATTLECRY,<b>Battlecry:</b> <b>Freeze</b> this.,generated_supported
+void_soul_demon_2,CATA_612,Frostbitten Imp,NEUTRAL,CATACLYSM,MINION,2,5,3,DEMON,BATTLECRY,<b>Battlecry:</b> <b>Freeze</b> this.,direct_supported
 void_soul_demon_2,CORE_BT_156,Imprisoned Vilefiend,NEUTRAL,CORE,MINION,2,3,5,DEMON,RUSH,<b>Dormant</b> for 2 turns. <b>Rush</b>,generated_supported
 void_soul_demon_2,CORE_LOOT_013,Vulgar Homunculus,WARLOCK,CORE,MINION,2,2,4,DEMON,"BATTLECRY,TAUNT",<b>Taunt</b> <b>Battlecry:</b> Deal 2 damage to your hero.,generated_supported
 void_soul_demon_3,CATA_490,Ocular Occultist,WARLOCK,CATACLYSM,MINION,3,3,6,DEMON,"BATTLECRY,TAUNT",[x]<b>Taunt</b> <b>Battlecry:</b> Choose a card in your hand to discard.,generated_supported
@@ -798,13 +798,13 @@ void_soul_demon_3,EDR_780,Bloodthistle Illusionist,NEUTRAL,EMERALD_DREAM,MINION,
 void_soul_demon_3,JAIL_399,Imp Gang Stooge,WARLOCK,ESCAPEFROM_VIOLET_HOLD,MINION,3,2,5,DEMON,"DEATHRATTLE,TAUNT",[x]<b>Taunt</b>. <b>Deathrattle:</b> Put two 8/8 Demons with <b>Taunt</b> and <b>Lifesteal</b> on the bottom of your deck.,generated_supported
 void_soul_demon_4,CORE_TTN_843,Eredar Deceptor,DEMONHUNTER,CORE,MINION,4,3,5,DEMON,TRIGGER_VISUAL,"Whenever you draw a card, summon a 1/1 Demon with <b>Rush</b>.",generated_supported
 void_soul_demon_4,EDR_102,Treacherous Tormentor,NEUTRAL,EMERALD_DREAM,MINION,4,5,4,DEMON,"BATTLECRY,DISCOVER",<b>Battlecry:</b> <b>Discover</b> a <b>Legendary</b> minion with a <b>Dark Gift</b>.,generated_supported
-void_soul_demon_4,EDR_524,Shadowcloaked Assailant,ROGUE,EMERALD_DREAM,MINION,4,3,5,DEMON,BATTLECRY,"[x]<b>Battlecry:</b> If you're holding one of the same cards as your opponent, shuffle theirs into their deck.",generated_supported
+void_soul_demon_4,EDR_524,Shadowcloaked Assailant,ROGUE,EMERALD_DREAM,MINION,4,3,5,DEMON,BATTLECRY,"[x]<b>Battlecry:</b> If you're holding one of the same cards as your opponent, shuffle theirs into their deck.",direct_supported
 void_soul_demon_4,EDR_856,Nightmare Lord Xavius,NEUTRAL,EMERALD_DREAM,MINION,4,4,4,DEMON,"BATTLECRY,DISCOVER",<b>Battlecry:</b> <b>Discover</b> a minion from your deck. Give it a <b>Dark Gift</b>.,generated_supported
 void_soul_demon_4,TLC_463,Razidir,WARLOCK,THE_LOST_CITY,MINION,4,7,7,"BEAST,DEMON",BATTLECRY,[x]<b>Battlecry:</b> Discard a random card from your hand. <b>Kindred:</b> Your opponent's hand instead.,generated_supported
 void_soul_demon_5,CORE_BT_510,Wrathspike Brute,DEMONHUNTER,CORE,MINION,5,3,6,DEMON,"TAUNT,TRIGGER_VISUAL","[x]<b>Taunt</b> After this is attacked, deal 1 damage to all enemies.",generated_supported
 void_soul_demon_5,CORE_EX1_310,Doomguard,WARLOCK,CORE,MINION,5,5,7,DEMON,"BATTLECRY,CHARGE",<b>Charge</b>. <b>Battlecry:</b> Discard two random cards.,generated_supported
 void_soul_demon_5,EDR_493,Alara'shi,DEMONHUNTER,EMERALD_DREAM,MINION,5,5,5,"BEAST,DEMON",BATTLECRY,[x]<b>Battlecry:</b> Transform minions in your hand into random Demons. <i>(They keep their   original stats and Cost.)</I>,generated_supported
-void_soul_demon_5,EDR_891,Ravenous Felhunter,DEMONHUNTER,EMERALD_DREAM,MINION,5,5,3,DEMON,DEATHRATTLE,<b>Deathrattle:</b> Resurrect a friendly <b>Deathrattle</b> minion that costs (4) or less. Summon a copy of it.,generated_supported
+void_soul_demon_5,EDR_891,Ravenous Felhunter,DEMONHUNTER,EMERALD_DREAM,MINION,5,5,3,DEMON,DEATHRATTLE,<b>Deathrattle:</b> Resurrect a friendly <b>Deathrattle</b> minion that costs (4) or less. Summon a copy of it.,direct_supported
 void_soul_demon_6,CORE_ULD_165,Riftcleaver,WARLOCK,CORE,MINION,6,7,5,DEMON,BATTLECRY,<b>Battlecry:</b> Destroy a minion. Your hero takes damage equal to its Health.,generated_supported
 void_soul_demon_6,DINO_138,Diabolus Rex,DEMONHUNTER,THE_LOST_CITY,MINION,6,6,5,"BEAST,DEMON",,<b>Kindred:</b> Deal 6 damage to your opponent's left and right-most minions.,generated_supported
 void_soul_demon_6,JAIL_007,Sewer Imp,NEUTRAL,ESCAPEFROM_VIOLET_HOLD,MINION,6,4,6,DEMON,"DEATHRATTLE,TAUNT",[x]<b>Taunt</b> <b>Deathrattle:</b> Deal 2  damage to all enemies.,generated_supported
