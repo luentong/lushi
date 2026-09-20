@@ -254,6 +254,12 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "JAIL_974", "JAIL_986", "MEND_045", "MEND_301", "MEND_302",
     "MEND_503", "MEND_506", "MEND_800", "RLK_511", "TIME_025",
     "TIME_049", "TIME_061", "TIME_213", "TIME_214", "TIME_428",
+    # Ninth tranche: close the remaining registered 2-Cost rows and the last
+    # 5-Cost row; add the first six registered 4-Cost time/jail outcomes.
+    "MEND_303", "TIME_431", "TIME_706", "TIME_730", "TIME_860",
+    "TLC_244", "TLC_245", "TLC_254", "TLC_427", "TLC_438",
+    "TLC_450", "TLC_521", "TLC_822", "TIME_211",
+    "JAIL_303", "JAIL_330", "JAIL_440", "JAIL_447", "TIME_013", "TIME_019",
     # Dragon-pool generators whose outer rules are now executable.  Their
     # nested pools remain audited independently (not silently treated as
     # vanilla cards).
