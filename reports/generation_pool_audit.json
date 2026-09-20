@@ -110,10 +110,10 @@
     "legendary_minion_play": {
       "candidate_count": 54,
       "direct_supported": 2,
-      "generated_supported": 44,
+      "generated_supported": 52,
       "metadata_only": 0,
-      "needs_rule": 8,
-      "unimplemented": 8
+      "needs_rule": 0,
+      "unimplemented": 0
     },
     "rewind_card_play": {
       "candidate_count": 18,

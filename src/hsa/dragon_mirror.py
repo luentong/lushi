@@ -267,6 +267,10 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "TIME_062", "TIME_100", "TIME_427", "TIME_429", "TIME_710",
     "TLC_220", "TLC_234", "TLC_247", "TLC_250", "TLC_430", "TLC_516",
     "TLC_621", "TLC_633", "TLC_825",
+    # Legendary-pool tranche: the remaining registered legendary outcomes.
+    # Pack/Discover and historical-death sub-pools stay explicitly audited.
+    "CATA_213", "CORE_CFM_670", "CORE_ULD_178", "CORE_WON_145",
+    "DINO_430", "EDR_888", "TIME_103", "TLC_106",
     # Dragon-pool generators whose outer rules are now executable.  Their
     # nested pools remain audited independently (not silently treated as
     # vanilla cards).
