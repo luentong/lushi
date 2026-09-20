@@ -49,14 +49,6 @@ NESTED_POOL_BACKLOG = {
             "persistent generated-card Cost modifier",
         ],
     },
-    "TIME_444": {
-        "name": "Time-Lost Glaive",
-        "mechanic": "Deathrattle generates a random Demon from the past",
-        "transitive_dependencies": [
-            "historical Demon pool definition for build 251332",
-            "rules for every eligible generated Demon",
-        ],
-    },
 }
 
 # The outer dragon/warrior/weapon pools are now executable.  Their nested
@@ -72,15 +64,6 @@ NESTED_POOL_BACKLOG.update({
             "turn-indexed class identity",
             "complete eligible Standard class-spell Discover pools",
             "playable rules for every offered spell",
-        ],
-    },
-    "TIME_052": {
-        "pool": "dragon",
-        "name": "Amber Warden",
-        "mechanic": "Deathrattle summons a random minion from the past",
-        "transitive_dependencies": [
-            "build-251332 historical 'from the past' pool definition",
-            "summon-time rules for every eligible historical minion",
         ],
     },
     **{
