@@ -6128,6 +6128,97 @@ class AuxiliaryEntityCoverageTests(unittest.TestCase):
         self.assertEqual("TIME_810t2", damage_location.card_id)
         self.assertEqual(28, game.players[1].health)
 
+class EventCardRegressionTests(unittest.TestCase):
+    """Focused coverage for the four Event-set deck-construction blockers."""
+
+    def game(self, *, player_classes=("WARRIOR", "WARRIOR")):
+        game = DragonMirrorGame(CARDS, 71, player_classes=player_classes)
+        game.current = 0
+        for player in game.players:
+            player.hand.clear()
+            player.board.clear()
+            player.deck.clear()
+            player.locations.clear()
+            player.mana = 20
+            player.max_mana = 10
+        return game
+
+    def add_hand(self, game, card_id, player=0):
+        card = game._entity(card_id)
+        game.players[player].hand.append(card)
+        return card
+
+    def add_board(self, game, card_id, player=0):
+        card = game._entity(card_id)
+        card.summoned_turn = -1
+        game._summon(game.players[player], card)
+        return card
+
+    def test_event_blockers(self):
+        game = self.game(player_classes=("DEMONHUNTER", "WARRIOR"))
+        event_ids = {
+            "JAIL_EVENT_100", "TLC_EVENT_402", "JAIL_EVENT_101",
+            "CATA_EVENT_402",
+        }
+        self.assertTrue(event_ids <= game.executable_card_ids)
+        self.assertTrue(event_ids <= {rule.card_id for rule in game.rule_registry.all_rules()})
+
+    def test_watfin_marks_one_discover_option_and_buffs_when_picked(self):
+        game = self.game()
+        watfin = self.add_hand(game, "JAIL_EVENT_100")
+        game.step(Action("PLAY", watfin.entity_id))
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        options = game.pending_choice["options"]
+        suspicious = game.pending_choice["watfin_suspicious_entity"]
+        self.assertEqual(1, sum(option.watfin_suspicious for option in options))
+        self.assertEqual(suspicious, next(option.entity_id for option in options if option.watfin_suspicious))
+        game.step(Action("DISCOVER_PICK", suspicious))
+        self.assertEqual((4, 3), (watfin.attack, watfin.max_health))
+
+    def test_staff_of_the_endbringer_destroys_both_boards(self):
+        game = self.game()
+        self.add_board(game, "CORE_EX1_005", 0)
+        dormant = self.add_board(game, "CORE_EX1_005", 1)
+        dormant.dormant_turns = 2
+        live = self.add_board(game, "CORE_CS2_065", 1)
+        staff = self.add_hand(game, "TLC_EVENT_402")
+        game.step(Action("PLAY", staff.entity_id))
+        game._destroy_weapon(game.players[0])
+        self.assertEqual([], game.players[0].board)
+        self.assertEqual([dormant], game.players[1].board)
+        self.assertNotIn(live, game.players[1].board)
+
+    def test_soul_immolation_upgrades_and_demon_refreshes_power(self):
+        game = self.game(player_classes=("DEMONHUNTER", "WARRIOR"))
+        first = self.add_hand(game, "JAIL_EVENT_101")
+        game.step(Action("PLAY", first.entity_id))
+        self.assertEqual(("JAIL_EVENT_101hp", 2),
+                         (game.players[0].hero_power_id, game.players[0].collapsing_star_damage))
+        game.step(Action("HERO_POWER"))
+        self.assertTrue(game.players[0].hero_power_used)
+        second = self.add_hand(game, "JAIL_EVENT_101")
+        game.players[0].hero_power_used = False
+        game.step(Action("PLAY", second.entity_id))
+        self.assertEqual(3, game.players[0].collapsing_star_damage)
+        demon = self.add_board(game, "CORE_CS2_065")
+        self.assertFalse(game.players[0].hero_power_used)
+
+    def test_deadly_bribe_gives_coin_to_opponent_and_combo_controller(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_EX1_005", 1)
+        bribe = self.add_hand(game, "CATA_EVENT_402")
+        game.step(Action("PLAY", bribe.entity_id, 1, target.entity_id))
+        self.assertNotIn(target, game.players[1].board)
+        self.assertEqual(["GAME_005"], [card.card_id for card in game.players[1].hand])
+        # A second card first makes the spell a Combo play.
+        game = self.game()
+        target = self.add_board(game, "CORE_EX1_005", 1)
+        coin = self.add_hand(game, "GAME_005")
+        bribe = self.add_hand(game, "CATA_EVENT_402")
+        game.step(Action("PLAY", coin.entity_id))
+        game.step(Action("PLAY", bribe.entity_id, 1, target.entity_id))
+        self.assertEqual(1, sum(card.card_id == "GAME_005" for card in game.players[0].hand))
+
 
 if __name__ == "__main__":
     unittest.main()

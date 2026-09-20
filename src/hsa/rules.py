@@ -2043,6 +2043,36 @@ class OfferClassDiscoverDiscountedByHeroAttack:
 
 
 @dataclass(frozen=True)
+class OfferWatfinDiscover:
+    """Discover a Standard minion and mark one option as suspicious.
+
+    Watfin's “wrong printing” is a hidden per-offer property in the client.
+    The simulator keeps that property on the offered CardInstance and in the
+    pending choice, so replay/search branches cannot accidentally re-roll it
+    when the player makes a selection.
+    """
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        pool = game._standard_collectible_minion_ids()
+        game._offer_discover(
+            context.player, pool, False, repeats=1,
+            after_pick="watfin", source_card_id=context.card.card_id,
+            source_entity_id=context.card.entity_id,
+        )
+        pending = game.pending_choice
+        if pending is None or not pending.get("options"):
+            return
+        suspicious = game.rng.choice(pending["options"])
+        suspicious.watfin_suspicious = True
+        pending["watfin_suspicious_entity"] = suspicious.entity_id
+        game._event(
+            "watfin_suspicious_option", player=context.player.index,
+            source=context.card.card_id, entity=suspicious.entity_id,
+            card=suspicious.card_id,
+        )
+
+
+@dataclass(frozen=True)
 class OfferSpellSchoolDiscover:
     spell_school: str
     cost_delta: int = 0
@@ -3963,7 +3993,10 @@ class DestroyAllMinions:
     def execute(self, game: Any, context: RuleContext) -> None:
         for player in game.players:
             for minion in player.board:
-                minion.damage = minion.max_health
+                # Dormant minions are not valid targets for destroy effects;
+                # keep the same immunity used by targeted destroy rules.
+                if minion.dormant_turns <= 0:
+                    minion.damage = minion.max_health
 
 
 @dataclass(frozen=True)
@@ -4269,6 +4302,41 @@ class SetHeroPowerDirect:
 
 
 @dataclass(frozen=True)
+class SoulImmolationSpell:
+    """Install or upgrade the Demon Hunter Collapsing Star Hero Power."""
+
+    hero_power_id: str = "JAIL_EVENT_101hp"
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.player.hero_power_id == self.hero_power_id:
+            context.player.collapsing_star_damage = max(
+                2, int(getattr(context.player, "collapsing_star_damage", 2))
+            ) + 1
+            upgraded = True
+        else:
+            context.player.collapsing_star_damage = 2
+            upgraded = False
+        context.player.hero_power_id = self.hero_power_id
+        # Soul Immolation is a direct replacement, not an Imbue effect.  Do
+        # not leave an older temporary/imbued power scheduled for restoration.
+        context.player.imbued_hero_power_id = None
+        game._event(
+            "soul_immolation", player=context.player.index,
+            source=context.card.card_id, hero_power=self.hero_power_id,
+            damage=context.player.collapsing_star_damage, upgraded=upgraded,
+        )
+
+
+@dataclass(frozen=True)
+class CollapsingStarHeroPower:
+    """Deal upgraded damage to one random enemy character."""
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        amount = max(2, int(getattr(context.player, "collapsing_star_damage", 2)))
+        DamageRandomEnemyCharacters(amount, 1).execute(game, context)
+
+
+@dataclass(frozen=True)
 class SetHeroPowerCostOverride:
     cost: int | None
 
@@ -4417,6 +4485,27 @@ class DestroyActionTarget:
             context.action.target_player, context.action.target_entity
         )
         target.damage = target.max_health
+
+
+@dataclass(frozen=True)
+class DeadlyBribeSpell:
+    """Destroy a chosen enemy minion and pay the printed Coin costs.
+
+    The normal play path has already populated ``combo_active`` before the
+    spell hook is dispatched.  Resolving the death before generating Coins
+    also preserves the ordinary Hearthstone ordering for deathrattles.
+    """
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        DestroyActionTarget().execute(game, context)
+        game._resolve_deaths()
+        AddToHand("GAME_005", side="opponent").execute(game, context)
+        if context.card.combo_active:
+            AddToHand("GAME_005").execute(game, context)
+        game._event(
+            "deadly_bribe", player=context.player.index,
+            source=context.card.card_id, combo=context.card.combo_active,
+        )
 
 
 @dataclass(frozen=True)
@@ -9001,6 +9090,11 @@ _AUXILIARY_TOKEN_SOURCE = RuleSource(
         "AuxiliaryEntityCoverageTests.test_every_coin_variant_grants_temporary_mana",
         "AuxiliaryEntityCoverageTests.test_engine_owned_auxiliaries_are_executable",
     ),
+)
+
+_EVENT_BLOCKER_SOURCE = RuleSource(
+    "official_text_and_engine_pattern", "HearthstoneJSON 251332",
+    verification=("EventCardRegressionTests.test_event_blockers",),
 )
 
 
@@ -17413,7 +17507,15 @@ def build_rule_registry() -> RuleRegistry:
                  _AUXILIARY_TOKEN_SOURCE),
         CardRule("JAIL_803t", {Hook.BATTLECRY: (FreezeActionTarget(), Draw(2),)},
                  _AUXILIARY_TOKEN_SOURCE, TargetSpec(TargetKind.ENEMY_MINION)),
-        CardRule("JAIL_EVENT_101hp", {Hook.HERO_POWER: (DamageRandomEnemyMinion(2),)},
+        CardRule("JAIL_EVENT_100", {Hook.BATTLECRY: (OfferWatfinDiscover(),)},
+                 _EVENT_BLOCKER_SOURCE),
+        CardRule("TLC_EVENT_402", {Hook.DEATHRATTLE: (DestroyAllMinions(), ResolveDeaths(),)},
+                 _EVENT_BLOCKER_SOURCE),
+        CardRule("JAIL_EVENT_101", {Hook.SPELL: (SoulImmolationSpell(),)},
+                 _EVENT_BLOCKER_SOURCE),
+        CardRule("CATA_EVENT_402", {Hook.SPELL: (DeadlyBribeSpell(),)},
+                 _EVENT_BLOCKER_SOURCE, TargetSpec(TargetKind.ENEMY_MINION)),
+        CardRule("JAIL_EVENT_101hp", {Hook.HERO_POWER: (CollapsingStarHeroPower(),)},
                  _AUXILIARY_TOKEN_SOURCE),
         *tuple(CardRule(card_id, {}, _AUXILIARY_TOKEN_SOURCE) for card_id in (
             "EDR_102t", "EDR_454t", "EDR_517A", "EDR_517B", "EDR_818t",

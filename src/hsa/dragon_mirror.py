@@ -456,6 +456,8 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "RLK_503",  # Body Bagger
     "CORE_RLK_745",  # Malignant Horror
     "TIME_618",  # Husk, Eternal Reaper
+    # Event-set collectible minion used by the Standard deck audit.
+    "JAIL_EVENT_100",  # Watfin
 }
 
 # Closed Rewind cards whose random outcomes can be played from hand without
@@ -483,6 +485,7 @@ ADDITIONAL_PLAYABLE_CARD_IDS = {
     "JAIL_458",  # Tiny Pal
     "JAIL_875",  # Staff of Trickery
     "TIME_444",  # Time-Lost Glaive
+    "TLC_EVENT_402",  # Staff of the Endbringer
 }
 
 # Rulebreaker minions explicitly ignore the normal friendly-board placement
@@ -501,6 +504,8 @@ PLAYABLE_ON_EITHER_SIDE_IDS = frozenset({
 # being exactly the Rewind cards, while this set will grow by school/pool.
 ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "EDR_820", "JAIL_997",
+    "JAIL_EVENT_101",  # Soul Immolation
+    "CATA_EVENT_402",  # Deadly Bribe
     # Standard Quickdraw spells.
     "RLK_048",  # Anti-Magic Shell
     "CAP_001",  # Silent Strike
@@ -1071,6 +1076,9 @@ class CardInstance:
     cant_attack_heroes_turn: int = -1
     dies_at_end_of_turn: bool = False
     combo_active: bool = False
+    # Watfin marks one Discover option as the intentionally "suspicious"
+    # printing.  The marker is branch-local and is consumed on selection.
+    watfin_suspicious: bool = False
     mana_spent_while_held: int = 0
     minion_played_while_held: bool = False
     higher_cost_card_played_while_held: bool = False
@@ -1325,6 +1333,11 @@ class Player:
     hero_power_armor: int = 2
     hero_power_id: str | None = None
     hero_power_imbues: int = 0
+    # Soul Immolation's replacement Hero Power keeps its upgraded damage
+    # across uses until another copy replaces it.  This is state on the
+    # player, not on the generated Hero Power CardDef, so search clones and
+    # replay logs observe the same value.
+    collapsing_star_damage: int = 2
     undead_died_after_last_turn: bool = False
     mograine_active: bool = False
     friendly_minions_died_this_turn: int = 0
@@ -2433,6 +2446,15 @@ class DragonMirrorGame:
             entity=minion.entity_id,
         )
         if minion.has_race("DEMON"):
+            # Collapsing Star is refreshed whenever its controller summons a
+            # Demon.  Keep this in the common summon path so plays, tokens,
+            # Discover results, and random summons all behave identically.
+            if player.hero_power_id == "JAIL_EVENT_101hp":
+                player.hero_power_used = False
+                self._event(
+                    "collapsing_star_refresh", player=player.index,
+                    source=minion.card_id, entity=minion.entity_id,
+                )
             parasites = [
                 candidate for candidate in player.board
                 if candidate.card_id == "JAIL_721"
@@ -8994,7 +9016,25 @@ class DragonMirrorGame:
         if pending.get("source_card_id") == "CAP_407":
             option.prepare_granted = True
         after_pick = pending.get("after_pick")
-        if after_pick == "neon_innovation":
+        if after_pick == "watfin":
+            suspicious = pending.get("watfin_suspicious_entity")
+            buffed = entity_id == suspicious
+            source = next(
+                (candidate for candidate in player.board
+                 if candidate.entity_id == pending.get("source_entity_id")),
+                None,
+            )
+            if buffed and source is not None:
+                source.attack_delta += 1
+                source.health_delta += 1
+            self._event(
+                "watfin_pick", player=player.index,
+                source=pending.get("source_card_id"),
+                source_entity=pending.get("source_entity_id"),
+                card=option.card_id, entity=option.entity_id,
+                suspicious=buffed,
+            )
+        elif after_pick == "neon_innovation":
             option.attack_delta += 5
             option.health_delta += 5
         elif after_pick == "taunt_buff":
@@ -9487,6 +9527,18 @@ class DragonMirrorGame:
         player.weapon = None
         self._refresh_continuous(player)
         self._event("weapon_destroyed", player=player.index, card=weapon.card_id)
+        # Weapons normally have no deathrattle hook in this simulator.  The
+        # Staff of the Endbringer is the current Standard exception, so fire
+        # its registered deathrattle at the moment the weapon leaves play
+        # (durability loss, replacement, or explicit destruction).
+        if weapon.card_id == "TLC_EVENT_402":
+            from .rules import Hook, RuleContext
+
+            card = self._entity(weapon.card_id, created_by="weapon_deathrattle")
+            self.rule_registry.dispatch(
+                Hook.DEATHRATTLE, weapon.card_id, self,
+                RuleContext(player=player, card=card),
+            )
         if weapon.card_id == "JAIL_376":
             for minion in player.board:
                 if minion.damage > 0:
