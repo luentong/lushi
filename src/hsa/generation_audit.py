@@ -74,34 +74,6 @@ NESTED_POOL_BACKLOG.update({
             "playable rules for every offered spell",
         ],
     },
-    "CATA_723": {
-        "pool": "dragon",
-        "name": "Drakeadon Mongrel",
-        "mechanic": "Deathrattle summons two random 4-Cost minions",
-        "transitive_dependencies": [
-            "complete collectible Standard 4-Cost minion summon pool",
-            "summon-time static, aura, Deathrattle and trigger behavior",
-        ],
-    },
-    "CORE_EX1_189": {
-        "pool": "dragon",
-        "name": "Brightwing",
-        "mechanic": "Battlecry adds a random Legendary minion to hand",
-        "transitive_dependencies": [
-            "complete eligible Standard Legendary-minion pool",
-            "playable rules for every generated Legendary",
-        ],
-    },
-    "FIR_959": {
-        "pool": "dragon",
-        "name": "Fyrakk the Blazing",
-        "mechanic": "Immune to Fire spells; casts 15 Mana of Fire spells at random enemies",
-        "transitive_dependencies": [
-            "complete eligible Standard Fire-spell pool",
-            "automatic target selection and repeated-cast semantics",
-            "Fire-spell immunity in damage resolution",
-        ],
-    },
     "TIME_052": {
         "pool": "dragon",
         "name": "Amber Warden",
