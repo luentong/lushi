@@ -2205,7 +2205,7 @@ class OfferMinionDarkGiftDiscover:
             context.player.corpses -= self.spend_corpses
         candidate_ids = (
             _past_ids(game, card_type="MINION", race=self.race,
-                      min_cost=self.min_cost)
+                      min_cost=self.min_cost, collectible_only=True)
             if self.past else list(game.card_defs)
         )
         pool = [
@@ -5191,6 +5191,7 @@ class DiscoverNatureSpell:
     def execute(self, game: Any, context: RuleContext) -> None:
         candidates = _past_ids(
             game, card_type="SPELL", spell_school="NATURE",
+            collectible_only=True,
         )
         if candidates:
             game._offer_discover(context.player, candidates, dark_gift=False,
@@ -9114,6 +9115,7 @@ def _filtered_executable_ids(
     other_class_for: Any | None = None,
     mechanic: str | None = None,
     exclude_card_set: str | None = None,
+    collectible_only: bool = False,
 ) -> list[str]:
     """Return a stable, runtime-safe random/Discover pool.
 
@@ -9123,6 +9125,8 @@ def _filtered_executable_ids(
     result: list[str] = []
     for card_id, definition in game.card_defs.items():
         if card_id not in game.executable_card_ids:
+            continue
+        if collectible_only and not definition.collectible:
             continue
         if card_type is not None and definition.card_type != card_type:
             continue
@@ -9360,6 +9364,12 @@ class CastRandomFireSpellsMana:
 
 
 def _past_ids(game: Any, **filters: Any) -> list[str]:
+    # "From the past" refers to historical cards, not generated tokens or
+    # engine-only entities whose metadata happens to predate TIME_TRAVEL.
+    # Keep this default centralized so a newly added past effect cannot
+    # accidentally reintroduce token candidates; callers may explicitly
+    # override it if a future card text requires a broader pool.
+    filters.setdefault("collectible_only", True)
     return _filtered_executable_ids(
         game, exclude_card_set="TIME_TRAVEL", **filters,
     )
@@ -9429,6 +9439,7 @@ class OfferPastDiscover:
             game, card_type=self.card_type, cost=self.cost,
             min_cost=self.min_cost, race=self.race,
             spell_school=self.spell_school, card_class=self.card_class,
+            collectible_only=True,
         )
         if candidates:
             game._offer_discover(
@@ -9446,7 +9457,10 @@ class AddRandomPast:
     count: int = 1
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        candidates = _past_ids(game, card_type=self.card_type, cost=self.cost, race=self.race)
+        candidates = _past_ids(
+            game, card_type=self.card_type, cost=self.cost, race=self.race,
+            collectible_only=True,
+        )
         for _ in range(self.count):
             if not candidates:
                 return
@@ -9460,7 +9474,9 @@ class SummonRandomPast:
     count: int = 1
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        candidates = _past_ids(game, card_type="MINION", cost=self.cost)
+        candidates = _past_ids(
+            game, card_type="MINION", cost=self.cost, collectible_only=True,
+        )
         for _ in range(self.count):
             if not candidates or len(context.player.board) + len(context.player.locations) >= 7:
                 break
@@ -9527,7 +9543,9 @@ class TransformSourceIntoRandomPast:
         owner = context.player
         if source not in owner.board or source.health <= 0:
             return
-        candidates = _past_ids(game, card_type="MINION", cost=self.cost)
+        candidates = _past_ids(
+            game, card_type="MINION", cost=self.cost, collectible_only=True,
+        )
         if not candidates:
             return
         replacement = game._entity(game.rng.choice(candidates), created_by=source.card_id)
@@ -9596,7 +9614,9 @@ class IfHoldingDragon:
 @dataclass(frozen=True)
 class CircadiamancerBattlecry:
     def execute(self, game: Any, context: RuleContext) -> None:
-        candidates = _past_ids(game, card_type="MINION", cost=8)
+        candidates = _past_ids(
+            game, card_type="MINION", cost=8, collectible_only=True,
+        )
         if not candidates:
             return
         generated = game._entity(game.rng.choice(candidates), created_by=context.card.card_id)
@@ -9745,7 +9765,7 @@ class KronaBattlecry:
 @dataclass(frozen=True)
 class AlternateReality:
     def execute(self, game: Any, context: RuleContext) -> None:
-        pool = _past_ids(game, mechanic="CHOOSE_ONE")
+        pool = _past_ids(game, mechanic="CHOOSE_ONE", collectible_only=True)
         if not pool:
             return
         for zone_name in ("hand", "deck"):
@@ -9776,7 +9796,9 @@ class TroubledDoubleCombo:
 @dataclass(frozen=True)
 class Flashback:
     def execute(self, game: Any, context: RuleContext) -> None:
-        candidates = _past_ids(game, card_type="MINION", cost=1)
+        candidates = _past_ids(
+            game, card_type="MINION", cost=1, collectible_only=True,
+        )
         for _ in range(2):
             if not candidates or len(context.player.board) + len(context.player.locations) >= 7:
                 break
@@ -9813,7 +9835,9 @@ class SlowMotion:
 class Anomalize:
     def execute(self, game: Any, context: RuleContext) -> None:
         for cost in (10, 1):
-            candidates = _past_ids(game, card_type="MINION", cost=cost)
+            candidates = _past_ids(
+                game, card_type="MINION", cost=cost, collectible_only=True,
+            )
             if not candidates or len(context.player.board) + len(context.player.locations) >= 7:
                 continue
             minion = game._entity(game.rng.choice(candidates), created_by=context.card.card_id)
@@ -9827,7 +9851,9 @@ class Anomalize:
 class FacelessEnigmaBattlecry:
     def execute(self, game: Any, context: RuleContext) -> None:
         candidates = [
-            card_id for card_id in _past_ids(game, card_type="SPELL")
+            card_id for card_id in _past_ids(
+                game, card_type="SPELL", collectible_only=True,
+            )
             if "SECRET" in game.card_defs[card_id].mechanics
         ]
         game.rng.shuffle(candidates)
@@ -9847,7 +9873,9 @@ class FacelessEnigmaBattlecry:
 @dataclass(frozen=True)
 class TimelooperTokiBattlecry:
     def execute(self, game: Any, context: RuleContext) -> None:
-        candidates = _past_ids(game, card_type="SPELL")
+        candidates = _past_ids(
+            game, card_type="SPELL", collectible_only=True,
+        )
         if not candidates:
             return
         generated_count = 0

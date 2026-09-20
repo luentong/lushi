@@ -3583,6 +3583,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             option.definition.card_type == "SPELL"
             and option.definition.spell_school == "NATURE"
             and option.definition.card_set != "TIME_TRAVEL"
+            and option.definition.collectible
             for option in game.pending_choice["options"]
         ))
 
@@ -3595,6 +3596,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             option.definition.card_type == "MINION"
             and "DRAGON" in option.definition.races
             and option.definition.card_set != "TIME_TRAVEL"
+            and option.definition.collectible
             and option.gifts
             for option in game.pending_choice["options"]
         ))
@@ -5246,6 +5248,7 @@ class FifthStandardCardBatchTests(unittest.TestCase):
         self.assertGreaterEqual(len(game.pending_choice["pool"]), 5)
         self.assertTrue(all(
             game.card_defs[card_id].card_set != "TIME_TRAVEL"
+            and game.card_defs[card_id].collectible
             for card_id in game.pending_choice["pool"]
         ))
         game.step(Action("DISCOVER_PICK", option.entity_id))
@@ -5260,6 +5263,7 @@ class FifthStandardCardBatchTests(unittest.TestCase):
         self.assertGreaterEqual(len(game.pending_choice["pool"]), 5)
         self.assertTrue(all(
             game.card_defs[card_id].card_set != "TIME_TRAVEL"
+            and game.card_defs[card_id].collectible
             for card_id in game.pending_choice["pool"]
         ))
         game.step(Action("DISCOVER_PICK", option.entity_id))
@@ -5290,6 +5294,7 @@ class FifthStandardCardBatchTests(unittest.TestCase):
                 self.assertGreaterEqual(len(pool), 5)
                 self.assertTrue(all(
                     game.card_defs[card_id].card_set != "TIME_TRAVEL"
+                    and game.card_defs[card_id].collectible
                     for card_id in pool
                 ))
 
