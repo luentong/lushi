@@ -10362,8 +10362,15 @@ class SetHandMinionDeathrattle:
 class ShadowedInformantBattlecry:
     def execute(self, game: Any, context: RuleContext) -> None:
         card_class = context.card.shadowed_class or context.player.card_class
-        candidates = _filtered_executable_ids(game, card_type="SPELL", card_class=card_class)
-        game._offer_discover(context.player, candidates, False, source_card_id=context.card.card_id)
+        # This is a class-spell Discover, not an arbitrary executable spell
+        # filter.  Delegate to the engine's collectible Standard pool so
+        # generated tokens and historical auxiliary entities cannot leak into
+        # the offer; dual-class spells remain eligible through CardDef.classes.
+        game._offer_class_discover(
+            context.player, card_class=card_class,
+            source_card_id=context.card.card_id,
+            card_type="SPELL",
+        )
 
 
 @dataclass(frozen=True)

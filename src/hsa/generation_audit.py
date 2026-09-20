@@ -15,6 +15,7 @@ from .dragon_mirror import (
     ADDITIONAL_PLAYABLE_MINION_IDS,
     DISCOVER_BANNED_IDS,
     DIRECT_IDS,
+    EXECUTABLE_CARD_IDS,
     GENERATED_MINION_IDS,
     SUPPORTED_ONE_COST_SUMMON_IDS,
     SUPPORTED_DEMON_PLAY_IDS,
@@ -27,50 +28,27 @@ from .rules import STANDARD_DECLARATIVE_IDS
 
 # Standard on the supplied 2026-09-08 CN snapshot: Core plus the 2025 and
 # released 2026 sets. Keeping this explicit makes rotation assumptions auditable.
-# These are deliberately not counted as supported weapons.  Each outer weapon
-# is easy to equip, but its rule opens another card pool that must also be
-# implemented before Stadium Announcer can sample it without silently treating
-# generated cards as vanilla bodies.
-NESTED_POOL_BACKLOG = {
+# The nested pools opened by generated weapons and class Discover effects are
+# audited separately from the flat generation rows below.  This prevents a
+# card from appearing closed merely because its outer rule exists.
+# The three previously tracked nested generators are now closed by explicit
+# runtime pool filters.  Keep their candidate definitions here as an audit
+# contract so a future catalogue refresh cannot silently reopen them.
+NESTED_POOL_CLOSURE = {
     "JAIL_458": {
         "name": "Tiny Pal",
-        "mechanic": "Choose elemental ammunition after each hero attack",
-        "transitive_dependencies": [
-            "Frost and Fire ammunition are implemented",
-            "random collectible 3-Cost minion pool",
-            "random collectible Battlecry-minion pool",
-        ],
+        "pools": ("three_cost_minion", "battlecry_minion"),
     },
     "JAIL_875": {
         "name": "Staff of Trickery",
-        "mechanic": "Discover a Druid card and reduce its Cost by hero Attack",
-        "transitive_dependencies": [
-            "full collectible Standard Druid Discover pool",
-            "persistent generated-card Cost modifier",
-        ],
+        "pools": ("druid_collectible",),
+    },
+    "CATA_614": {
+        "name": "Shadowed Informant",
+        "pools": ("class_spell_collectible",),
     },
 }
-
-# The outer dragon/warrior/weapon pools are now executable.  Their nested
-# generators are retained here as an explicit, separate backlog: a pool row
-# must not be marked ``needs_rule`` merely because a card it can create opens
-# another (larger) pool.
-NESTED_POOL_BACKLOG.update({
-    "CATA_614": {
-        "pool": "dragon",
-        "name": "Shadowed Informant",
-        "mechanic": "Discover a spell from the current class; class swaps each turn",
-        "transitive_dependencies": [
-            "turn-indexed class identity",
-            "complete eligible Standard class-spell Discover pools",
-            "playable rules for every offered spell",
-        ],
-    },
-    **{
-        card_id: {"pool": "weapon", **entry}
-        for card_id, entry in NESTED_POOL_BACKLOG.items()
-    },
-})
+NESTED_POOL_BACKLOG: dict[str, dict[str, object]] = {}
 
 # Kept as a compatibility export for consumers that report direct closure
 # blockers.  It is intentionally empty now that the first tranche is closed.
@@ -92,6 +70,48 @@ def _races(card: dict[str, Any]) -> set[str]:
 
 def _eligible_for_warrior(card: dict[str, Any]) -> bool:
     return bool(_classes(card) & {"WARRIOR", "NEUTRAL"})
+
+
+def nested_pool_candidates(cards: list[dict[str, Any]], pool_name: str) -> set[str]:
+    """Return the complete collectible Standard candidate set for a nested pool."""
+    def standard_collectible(card: dict[str, Any]) -> bool:
+        return bool(
+            card.get("collectible")
+            and card.get("set") in STANDARD_SETS_BUILD_251332
+        )
+
+    if pool_name == "three_cost_minion":
+        return {
+            card["id"] for card in cards
+            if standard_collectible(card)
+            and card.get("type") == "MINION" and card.get("cost") == 3
+        }
+    if pool_name == "battlecry_minion":
+        return {
+            card["id"] for card in cards
+            if standard_collectible(card)
+            and card.get("type") == "MINION"
+            and "BATTLECRY" in (card.get("mechanics") or ())
+        }
+    if pool_name == "druid_collectible":
+        return {
+            card["id"] for card in cards
+            if standard_collectible(card)
+            and (
+                "DRUID" in _classes(card)
+                and card.get("type") in {"MINION", "SPELL", "WEAPON"}
+            )
+        }
+    if pool_name == "class_spell_collectible":
+        # Shadowed Informant rotates through every class.  The candidate
+        # universe is all collectible class spells, not only Druid spells.
+        return {
+            card["id"] for card in cards
+            if standard_collectible(card)
+            and card.get("type") == "SPELL"
+            and _classes(card) - {"NEUTRAL"}
+        }
+    raise ValueError(f"unknown nested pool: {pool_name}")
 
 
 def generation_pool(card: dict[str, Any], pool_name: str) -> bool:
@@ -199,6 +219,28 @@ def support_status(card: dict[str, Any], pool_name: str) -> str:
 
 def build_audit(cards_path: Path) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     cards = json.loads(cards_path.read_text(encoding="utf-8"))
+    nested_closure = {
+        card_id: {
+            "name": entry["name"],
+            "pools": {
+                pool_name: {
+                    "candidate_count": len(candidates := nested_pool_candidates(cards, pool_name)),
+                    "missing_executable": sorted(candidates - EXECUTABLE_CARD_IDS),
+                }
+                for pool_name in entry["pools"]
+            },
+        }
+        for card_id, entry in NESTED_POOL_CLOSURE.items()
+    }
+    nested_missing = [
+        (card_id, pool_name, missing)
+        for card_id, entry in nested_closure.items()
+        for pool_name, pool in entry["pools"].items()
+        for missing in [pool["missing_executable"]]
+        if missing
+    ]
+    if nested_missing:
+        raise ValueError(f"nested generation pool is not executable: {nested_missing}")
     details: list[dict[str, Any]] = []
     summaries = {}
     for pool_name in (
@@ -259,14 +301,16 @@ def build_audit(cards_path: Path) -> tuple[dict[str, Any], list[dict[str, Any]]]
             "and Void Soul pools are evaluated in summon context where "
             "Battlecries do not execute; Void Soul tiers 1-10 are closed; "
             "Demon, Mech, 5-Cost, 2-Cost, and 4-Cost play-from-hand pools "
-            "plus Warrior/Neutral Legendary minions track the remaining "
-            "transitive generators"
+            "plus Warrior/Neutral Legendary minions are closed; nested Tiny "
+            "Pal, Staff of Trickery, and Shadowed Informant pools are checked "
+            "against the executable Standard catalogue"
         ),
         "summary": summaries,
         "nested_pool_backlog": [
             {"card_id": card_id, **entry}
             for card_id, entry in NESTED_POOL_BACKLOG.items()
         ],
+        "nested_pool_closure": nested_closure,
         # Compatibility field for older report readers; direct outer-weapon
         # blockers are closed, so this list is intentionally empty.
         "weapon_closure_backlog": [],

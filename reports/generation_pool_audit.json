@@ -212,40 +212,40 @@
       "unimplemented": 0
     }
   },
-  "nested_pool_backlog": [
-    {
-      "card_id": "JAIL_458",
-      "pool": "weapon",
+  "nested_pool_backlog": [],
+  "nested_pool_closure": {
+    "JAIL_458": {
       "name": "Tiny Pal",
-      "mechanic": "Choose elemental ammunition after each hero attack",
-      "transitive_dependencies": [
-        "Frost and Fire ammunition are implemented",
-        "random collectible 3-Cost minion pool",
-        "random collectible Battlecry-minion pool"
-      ]
+      "pools": {
+        "three_cost_minion": {
+          "candidate_count": 136,
+          "missing_executable": []
+        },
+        "battlecry_minion": {
+          "candidate_count": 355,
+          "missing_executable": []
+        }
+      }
     },
-    {
-      "card_id": "JAIL_875",
-      "pool": "weapon",
+    "JAIL_875": {
       "name": "Staff of Trickery",
-      "mechanic": "Discover a Druid card and reduce its Cost by hero Attack",
-      "transitive_dependencies": [
-        "full collectible Standard Druid Discover pool",
-        "persistent generated-card Cost modifier"
-      ]
+      "pools": {
+        "druid_collectible": {
+          "candidate_count": 83,
+          "missing_executable": []
+        }
+      }
     },
-    {
-      "card_id": "CATA_614",
-      "pool": "dragon",
+    "CATA_614": {
       "name": "Shadowed Informant",
-      "mechanic": "Discover a spell from the current class; class swaps each turn",
-      "transitive_dependencies": [
-        "turn-indexed class identity",
-        "complete eligible Standard class-spell Discover pools",
-        "playable rules for every offered spell"
-      ]
+      "pools": {
+        "class_spell_collectible": {
+          "candidate_count": 390,
+          "missing_executable": []
+        }
+      }
     }
-  ],
+  },
   "weapon_closure_backlog": [],
   "priority_closure_backlog": []
 }

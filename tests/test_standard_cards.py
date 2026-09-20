@@ -3467,9 +3467,43 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertIsNone(game.players[0].weapon)
         self.assertEqual("DISCOVER", game.pending_choice["kind"])
         options = game.pending_choice["options"]
-        self.assertTrue(all(card.definition.card_class == "DRUID" for card in options))
+        self.assertTrue(all(
+            card.definition.card_class == "DRUID"
+            or "DRUID" in card.definition.classes
+            for card in options
+        ))
+        self.assertTrue(all(
+            game._is_standard_collectible(card.definition) for card in options
+        ))
         self.assertTrue(all(
             card.cost == max(0, card.definition.cost - 4) for card in options
+        ))
+
+    def test_tiny_pal_random_ammunition_uses_collectible_standard_pools(self):
+        game = self.game()
+        weapon = Weapon("JAIL_458", "Tiny Pal", 2, 3, ammunition=3)
+        game.players[0].weapon = weapon
+        game._fire_tiny_pal_ammunition(game.players[0], weapon, (1, None))
+        summoned = game.players[0].board[-1]
+        self.assertEqual(3, summoned.definition.cost)
+        self.assertTrue(game._is_standard_collectible(summoned.definition))
+        self.assertEqual("AMMUNITION", game.pending_choice["kind"])
+
+    def test_shadowed_informant_class_discover_uses_rotating_standard_spell_pool(self):
+        game = self.game(player_classes=("MAGE", "WARRIOR"))
+        informant = self.add_hand(game, "CATA_614")
+        game.step(Action("PLAY", informant.entity_id))
+        self.assertEqual("DISCOVER", game.pending_choice["kind"])
+        options = game.pending_choice["options"]
+        self.assertTrue(options)
+        self.assertTrue(all(
+            card.definition.card_type == "SPELL"
+            and (
+                card.definition.card_class == "MAGE"
+                or "MAGE" in card.definition.classes
+            )
+            and game._is_standard_collectible(card.definition)
+            for card in options
         ))
 
     def test_horn_of_plenty_discovers_discounted_nature_spell(self):

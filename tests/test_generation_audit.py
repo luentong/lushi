@@ -22,6 +22,7 @@ from hsa.dragon_mirror import (
     WARRIOR_MINION_IDS,
 )
 from hsa.generation_audit import (
+    NESTED_POOL_CLOSURE,
     PRIORITY_CLOSURE_BACKLOG,
     WEAPON_CLOSURE_BACKLOG,
     build_audit,
@@ -259,15 +260,20 @@ class GenerationAuditTests(unittest.TestCase):
         }
         self.assertEqual(set(), set(exported))
 
-    def test_nested_generator_backlog_is_reported_separately(self):
-        backlog = self.summary["nested_pool_backlog"]
-        self.assertEqual(3, len(backlog))
-        self.assertTrue({"JAIL_458", "JAIL_875", "CATA_614"} == {
-            row["card_id"] for row in backlog
-        })
-        for row in backlog:
-            self.assertTrue(row["mechanic"])
-            self.assertTrue(row["transitive_dependencies"])
+    def test_nested_generator_pools_are_closed_and_audited(self):
+        self.assertEqual([], self.summary["nested_pool_backlog"])
+        closure = self.summary["nested_pool_closure"]
+        self.assertEqual(set(NESTED_POOL_CLOSURE), set(closure))
+        self.assertEqual(
+            {"JAIL_458": {"three_cost_minion", "battlecry_minion"},
+             "JAIL_875": {"druid_collectible"},
+             "CATA_614": {"class_spell_collectible"}},
+            {card_id: set(entry["pools"]) for card_id, entry in closure.items()},
+        )
+        for entry in closure.values():
+            for pool in entry["pools"].values():
+                self.assertGreater(pool["candidate_count"], 0)
+                self.assertEqual([], pool["missing_executable"])
 
 
 if __name__ == "__main__":

@@ -28,6 +28,7 @@ from .rules import (
     imbue_hero_power_id,
     build_rule_registry,
 )
+from .standard_catalog import STANDARD_SETS_BUILD_251332
 
 
 DIRECT_IDS = {
@@ -965,6 +966,10 @@ class CardDef:
     rarity: str = ""
     collectible: bool = False
     armor: int = 0
+    # Dual-class cards retain their secondary classes from HearthstoneJSON.
+    # Keeping this on the immutable definition lets class Discover pools use
+    # the same eligibility rule as deck construction without hard-coded IDs.
+    classes: tuple[str, ...] = ()
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "CardDef":
         # Definitions are immutable and shared by every search branch.
@@ -1638,6 +1643,7 @@ class DragonMirrorGame:
                     rarity=card.get("rarity", "") or "",
                     collectible=bool(card.get("collectible", False)),
                     armor=int(card.get("armor", 0)),
+                    classes=tuple(card.get("classes", ()) or ()),
                 )
         return result
 
@@ -8542,12 +8548,16 @@ class DragonMirrorGame:
 
     def _offer_class_discover(
         self, player: Player, *, card_class: str, source_card_id: str,
-        cost_delta: int = 0,
+        cost_delta: int = 0, card_type: str | None = None,
     ) -> None:
         candidates = sorted(
             card_id for card_id, definition in self.card_defs.items()
-            if card_id in EXECUTABLE_CARD_IDS
-            and definition.card_class == card_class
+            if self._is_standard_collectible(definition)
+            and (card_type is None or definition.card_type == card_type)
+            and (
+                definition.card_class == card_class
+                or card_class in definition.classes
+            )
         )
         self.rng.shuffle(candidates)
         options = [
@@ -8568,6 +8578,33 @@ class DragonMirrorGame:
             profile="executable_standard_pool_v1",
             options=[{"entity": card.entity_id, "card": card.card_id}
                      for card in options],
+        )
+
+    @staticmethod
+    def _is_standard_collectible(definition: CardDef) -> bool:
+        """Whether a definition belongs to the pinned collectible Standard pool.
+
+        Discover and random-collectible effects must not offer generated
+        tokens, historical cards, or auxiliary engine entities merely because
+        those entities happen to have executable rules.  The raw metadata is
+        carried on ``CardDef`` so this check remains data-driven.
+        """
+        return bool(
+            definition.collectible
+            and definition.card_set in STANDARD_SETS_BUILD_251332
+        )
+
+    def _standard_collectible_minion_ids(
+        self, *, cost: int | None = None,
+        require_battlecry: bool = False,
+    ) -> list[str]:
+        return sorted(
+            card_id for card_id, definition in self.card_defs.items()
+            if card_id in self.executable_card_ids
+            and self._is_standard_collectible(definition)
+            and definition.card_type == "MINION"
+            and (cost is None or definition.cost == cost)
+            and (not require_battlecry or "BATTLECRY" in definition.mechanics)
         )
 
     def _refresh_skeleton_key(self) -> None:
@@ -8764,6 +8801,7 @@ class DragonMirrorGame:
         self, player: Player, *, source_card_id: str,
         cost: int | None = None, min_cost: int | None = None,
         require_taunt: bool = False,
+        collectible_standard: bool = False,
     ) -> None:
         """Summon from the verified runtime pool without inventing a stub card."""
         if len(player.board) + len(player.locations) >= 7:
@@ -8772,6 +8810,7 @@ class DragonMirrorGame:
             card_id for card_id, definition in self.card_defs.items()
             if card_id in EXECUTABLE_CARD_IDS
             and definition.card_type == "MINION"
+            and (not collectible_standard or self._is_standard_collectible(definition))
             and (cost is None or definition.cost == cost)
             and (min_cost is None or definition.cost >= min_cost)
             and (not require_taunt or "TAUNT" in definition.mechanics)
@@ -8781,6 +8820,7 @@ class DragonMirrorGame:
                 "random_summon_unavailable", player=player.index,
                 source=source_card_id, cost=cost, min_cost=min_cost,
                 require_taunt=require_taunt,
+                collectible_standard=collectible_standard,
             )
             return
         minion = self._entity(
@@ -9754,6 +9794,7 @@ class DragonMirrorGame:
             before = {minion.entity_id for minion in player.board}
             self._summon_random_executable_minion(
                 player, source_card_id=weapon.card_id, cost=3,
+                collectible_standard=True,
             )
             summoned = next(
                 (minion for minion in reversed(player.board)
@@ -9766,12 +9807,9 @@ class DragonMirrorGame:
                     entity=summoned.entity_id,
                 )
         elif mode == 4:
-            candidates = [
-                card_id for card_id, definition in self.card_defs.items()
-                if card_id in EXECUTABLE_CARD_IDS
-                and definition.card_type == "MINION"
-                and "BATTLECRY" in definition.mechanics
-            ]
+            candidates = self._standard_collectible_minion_ids(
+                require_battlecry=True,
+            )
             if candidates:
                 generated = self._entity(
                     self.rng.choice(sorted(candidates)), created_by=weapon.card_id,
