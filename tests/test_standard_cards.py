@@ -3525,6 +3525,54 @@ class FirstStandardCardBatchTests(unittest.TestCase):
             },
         )
 
+    def test_past_pool_promotes_gvg_keyword_and_vanilla_bodies(self):
+        game = self.game()
+        promoted = {
+            "GVG_037", "GVG_044", "GVG_058", "GVG_064", "GVG_070",
+            "GVG_071", "GVG_079", "GVG_081", "GVG_084", "GVG_085",
+        }
+        self.assertTrue(promoted <= game.executable_card_ids)
+        past_minions = set(_past_ids(game, card_type="MINION"))
+        self.assertTrue(promoted <= past_minions)
+        self.assertEqual(
+            {2, 3, 4, 5, 8},
+            {game.card_defs[card_id].cost for card_id in promoted},
+        )
+        self.assertTrue(all(
+            not any(keyword in game.card_defs[card_id].text.lower()
+                    for keyword in ("battlecry", "deathrattle", "inspire", "random"))
+            for card_id in promoted
+        ))
+        self.assertTrue(game.card_defs["GVG_037"].mechanics == ("WINDFURY",))
+        self.assertTrue(game.card_defs["GVG_058"].mechanics == ("DIVINE_SHIELD",))
+        self.assertTrue(game.card_defs["GVG_081"].mechanics == ("STEALTH",))
+
+    def test_gvg_historical_keyword_bodies_play_with_generic_lifecycle(self):
+        game = self.game()
+        for card_id in (
+            "GVG_037", "GVG_044", "GVG_058", "GVG_064", "GVG_070",
+            "GVG_071", "GVG_079", "GVG_081", "GVG_084", "GVG_085",
+        ):
+            game.players[0].mana = 20
+            game.players[0].board.clear()
+            game.players[0].hand.clear()
+            card = self.add_hand(game, card_id)
+            game.step(Action("PLAY", card.entity_id))
+            played = game.players[0].board[-1]
+            self.assertEqual(card_id, played.card_id)
+            self.assertEqual(
+                "WINDFURY" in game.card_defs[card_id].mechanics,
+                played.windfury,
+            )
+            self.assertEqual(
+                "DIVINE_SHIELD" in game.card_defs[card_id].mechanics,
+                played.divine_shield,
+            )
+            self.assertEqual(
+                "STEALTH" in game.card_defs[card_id].mechanics,
+                played.stealth,
+            )
+
     def test_farseer_wo_excludes_current_time_travel_nature_spells(self):
         game = self.game()
         self.add_board(game, "TIME_013")

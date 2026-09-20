@@ -283,6 +283,20 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "AT_101",  # Pit Fighter (5-Cost)
     "AT_102",  # Captured Jormungar (7-Cost Beast)
     "AT_114",  # Evil Heckler (4-Cost Taunt)
+    # Historical GvG tranche: keyword-only or vanilla bodies.  These are
+    # deliberately limited to cards whose behavior is fully represented by
+    # the ordinary summon/attack/damage lifecycle; no Battlecry, Deathrattle,
+    # Inspire, or random-generation semantics are implied by this manifest.
+    "GVG_037",  # Whirling Zap-o-matic (2-Cost Windfury Mech)
+    "GVG_044",  # Spider Tank (3-Cost Mech)
+    "GVG_058",  # Shielded Minibot (2-Cost Divine Shield Mech)
+    "GVG_064",  # Puddlestomper (2-Cost Murloc)
+    "GVG_070",  # Salty Dog (5-Cost Pirate)
+    "GVG_071",  # Lost Tallstrider (4-Cost Beast)
+    "GVG_079",  # Force-Tank MAX (8-Cost Divine Shield Mech)
+    "GVG_081",  # Gilblin Stalker (2-Cost Stealth)
+    "GVG_084",  # Flying Machine (3-Cost Windfury Mech)
+    "GVG_085",  # Annoy-o-Tron (2-Cost Taunt/Divine Shield Mech)
     # Legendary-pool tranche: the remaining registered legendary outcomes.
     # Pack/Discover and historical-death sub-pools stay explicitly audited.
     "CATA_213", "CORE_CFM_670", "CORE_ULD_178", "CORE_WON_145",
