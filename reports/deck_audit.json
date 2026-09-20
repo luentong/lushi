@@ -37,10 +37,10 @@
     "unique_entities": 71,
     "rosetta_implemented_unique": 4,
     "rosetta_coverage_unique_pct": 5.63,
-    "project_runtime_supported_unique": 60,
-    "project_runtime_coverage_unique_pct": 84.51,
-    "project_deck_validated_unique": 60,
-    "project_deck_validated_unique_pct": 84.51
+    "project_runtime_supported_unique": 71,
+    "project_runtime_coverage_unique_pct": 100.0,
+    "project_deck_validated_unique": 71,
+    "project_deck_validated_unique_pct": 100.0
   },
   "summaries": [
     {
@@ -78,14 +78,14 @@
       "rosetta_implemented_unique": 1,
       "rosetta_implemented_copies": 2,
       "rosetta_coverage_unique_pct": 4.76,
-      "project_runtime_supported_unique": 19,
-      "project_runtime_supported_copies": 28,
-      "project_runtime_coverage_unique_pct": 90.48,
-      "project_deck_validated_unique": 19,
-      "project_deck_validated_copies": 28,
-      "project_deck_validated_unique_pct": 90.48,
-      "project_deck_validated_copies_pct": 93.33,
-      "deck_ready": false
+      "project_runtime_supported_unique": 21,
+      "project_runtime_supported_copies": 30,
+      "project_runtime_coverage_unique_pct": 100.0,
+      "project_deck_validated_unique": 21,
+      "project_deck_validated_copies": 30,
+      "project_deck_validated_unique_pct": 100.0,
+      "project_deck_validated_copies_pct": 100.0,
+      "deck_ready": true
     },
     {
       "deck_id": "stealth_rogue",
@@ -100,14 +100,14 @@
       "rosetta_implemented_unique": 2,
       "rosetta_implemented_copies": 4,
       "rosetta_coverage_unique_pct": 9.52,
-      "project_runtime_supported_unique": 12,
-      "project_runtime_supported_copies": 18,
-      "project_runtime_coverage_unique_pct": 57.14,
-      "project_deck_validated_unique": 12,
-      "project_deck_validated_copies": 18,
-      "project_deck_validated_unique_pct": 57.14,
-      "project_deck_validated_copies_pct": 60.0,
-      "deck_ready": false
+      "project_runtime_supported_unique": 21,
+      "project_runtime_supported_copies": 30,
+      "project_runtime_coverage_unique_pct": 100.0,
+      "project_deck_validated_unique": 21,
+      "project_deck_validated_copies": 30,
+      "project_deck_validated_unique_pct": 100.0,
+      "project_deck_validated_copies_pct": 100.0,
+      "deck_ready": true
     },
     {
       "deck_id": "dirty_priest",
@@ -480,8 +480,8 @@
       "set": "THE_LOST_CITY",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "aggro_druid",
@@ -592,8 +592,8 @@
       "set": "CATACLYSM",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "aggro_druid",
@@ -746,8 +746,8 @@
       "set": "TIME_TRAVEL",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
@@ -760,8 +760,8 @@
       "set": "TIME_TRAVEL",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
@@ -774,8 +774,8 @@
       "set": "TIME_TRAVEL",
       "type": "WEAPON",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
@@ -844,8 +844,8 @@
       "set": "CATACLYSM",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
@@ -886,8 +886,8 @@
       "set": "ESCAPEFROM_VIOLET_HOLD",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
@@ -900,8 +900,8 @@
       "set": "ESCAPEFROM_VIOLET_HOLD",
       "type": "SPELL",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
@@ -914,8 +914,8 @@
       "set": "ESCAPEFROM_VIOLET_HOLD",
       "type": "SPELL",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
@@ -928,8 +928,8 @@
       "set": "ESCAPEFROM_VIOLET_HOLD",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
@@ -942,8 +942,8 @@
       "set": "ESCAPEFROM_VIOLET_HOLD",
       "type": "MINION",
       "rosetta_implemented": false,
-      "project_runtime_supported": false,
-      "project_deck_validated": false
+      "project_runtime_supported": true,
+      "project_deck_validated": true
     },
     {
       "deck_id": "stealth_rogue",
