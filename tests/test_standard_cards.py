@@ -5243,6 +5243,11 @@ class FifthStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", neon.entity_id))
         self.assertEqual("DISCOVER", game.pending_choice["kind"])
         option = game.pending_choice["options"][0]
+        self.assertGreaterEqual(len(game.pending_choice["pool"]), 5)
+        self.assertTrue(all(
+            game.card_defs[card_id].card_set != "TIME_TRAVEL"
+            for card_id in game.pending_choice["pool"]
+        ))
         game.step(Action("DISCOVER_PICK", option.entity_id))
         selected = next(card for card in game.players[0].hand if card.entity_id == option.entity_id)
         self.assertEqual(option.definition.attack + 5, selected.attack)
@@ -5252,10 +5257,41 @@ class FifthStandardCardBatchTests(unittest.TestCase):
         alter = self.add_hand(game, "TIME_857")
         game.step(Action("PLAY", alter.entity_id))
         option = game.pending_choice["options"][0]
+        self.assertGreaterEqual(len(game.pending_choice["pool"]), 5)
+        self.assertTrue(all(
+            game.card_defs[card_id].card_set != "TIME_TRAVEL"
+            for card_id in game.pending_choice["pool"]
+        ))
         game.step(Action("DISCOVER_PICK", option.entity_id))
         selected = next(card for card in game.players[0].hand if card.entity_id == option.entity_id)
         self.assertEqual(max(0, option.definition.cost - 2), selected.cost)
         self.assertEqual("DISCOVER", game.pending_choice["kind"])
+
+    def test_all_past_effect_pools_have_closed_non_time_candidates(self):
+        game = self.game()
+        pool_specs = {
+            "neon_innovation": {"card_type": "MINION", "race": "MECHANICAL"},
+            "solitude": {"card_type": "MINION"},
+            "highborne_mentor": {"card_type": "SPELL", "min_cost": 7},
+            "kaldorei_cultivator": {"card_type": "MINION", "race": "BEAST"},
+            "alter_time": {"card_type": "SPELL", "spell_school": "ARCANE"},
+            "fading_memory": {"card_type": "MINION", "cost": 5},
+            "circadiamancer": {"card_type": "MINION", "cost": 8},
+            "time_lost_glaive": {"card_type": "MINION", "race": "DEMON"},
+            "flashback": {"card_type": "MINION", "cost": 1},
+            "dethrone": {"card_type": "MINION", "cost": 8},
+            "anomalize_10": {"card_type": "MINION", "cost": 10},
+            "alternate_reality": {"mechanic": "CHOOSE_ONE"},
+            "faceless_enigma": {"card_type": "SPELL", "mechanic": "SECRET"},
+        }
+        for name, filters in pool_specs.items():
+            with self.subTest(pool=name):
+                pool = _past_ids(game, **filters)
+                self.assertGreaterEqual(len(pool), 5)
+                self.assertTrue(all(
+                    game.card_defs[card_id].card_set != "TIME_TRAVEL"
+                    for card_id in pool
+                ))
 
         game = self.game()
         aura = self.add_hand(game, "TIME_700")
