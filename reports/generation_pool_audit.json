@@ -94,10 +94,10 @@
     "two_cost_minion_play": {
       "candidate_count": 121,
       "direct_supported": 3,
-      "generated_supported": 69,
+      "generated_supported": 89,
       "metadata_only": 0,
-      "needs_rule": 49,
-      "unimplemented": 49
+      "needs_rule": 29,
+      "unimplemented": 29
     },
     "four_cost_minion_play": {
       "candidate_count": 127,

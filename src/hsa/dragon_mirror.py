@@ -240,6 +240,13 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "CORE_KAR_057", "CORE_ULD_280", "EDR_256", "EDR_481", "EDR_654",
     "EDR_800", "EDR_856", "EDR_860", "EDR_873", "EDR_940", "EDR_942",
     "END_032", "FIR_913", "FIR_952", "JAIL_205",
+    # Seventh tranche: 2-Cost minions whose battlecry/deathrattle/aura
+    # behavior is already represented in the rule registry and regression
+    # fixtures.
+    "DINO_411", "EDR_105", "EDR_226", "EDR_449", "EDR_470",
+    "EDR_491", "EDR_495", "EDR_530", "EDR_540", "EDR_852",
+    "EDR_861", "EDR_871", "END_029", "FIR_777", "FIR_904",
+    "FIR_929", "FIR_961", "JAIL_030", "JAIL_432", "JAIL_434",
     # Dragon-pool generators whose outer rules are now executable.  Their
     # nested pools remain audited independently (not silently treated as
     # vanilla cards).

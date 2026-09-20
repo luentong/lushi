@@ -492,29 +492,29 @@ two_cost_minion_play,CS3_022,Fogsail Freebooter,NEUTRAL,CORE,MINION,2,2,2,PIRATE
 two_cost_minion_play,CS3_038,Redgill Razorjaw,NEUTRAL,CORE,MINION,2,3,1,MURLOC,RUSH,<b>Rush</b>,generated_supported
 two_cost_minion_play,DINO_130,Longneck Egg,DRUID,THE_LOST_CITY,MINION,2,0,2,,DEATHRATTLE,<b>Deathrattle:</b> Summon a 3/3 Beast. Give your minions +1/+1.,generated_supported
 two_cost_minion_play,DINO_404,Firegill,PALADIN,THE_LOST_CITY,MINION,2,3,2,"ELEMENTAL,MURLOC",,<b>Kindred:</b> Give your other minions <b>Rush</b>.,generated_supported
-two_cost_minion_play,DINO_411,Holy Eggbearer,NEUTRAL,THE_LOST_CITY,MINION,2,1,2,,BATTLECRY,<b>Battlecry:</b> Draw a 0-Attack minion.,needs_rule
-two_cost_minion_play,EDR_105,Creature of Madness,NEUTRAL,EMERALD_DREAM,MINION,2,1,1,,"BATTLECRY,DISCOVER",<b>Battlecry:</b> <b>Discover</b> a 3-Cost minion with a <b>Dark Gift.</b>,needs_rule
-two_cost_minion_play,EDR_226,Exotic Houndmaster,HUNTER,EMERALD_DREAM,MINION,2,2,2,,BATTLECRY,<b>Battlecry:</b> Draw a Beast. <b>Imbue</b> your Hero Power.,needs_rule
-two_cost_minion_play,EDR_449,Lunarwing Messenger,PRIEST,EMERALD_DREAM,MINION,2,3,2,BEAST,"BATTLECRY,LIFESTEAL",<b>Lifesteal</b> <b>Battlecry:</b> <b>Imbue</b> your Hero Power.,needs_rule
+two_cost_minion_play,DINO_411,Holy Eggbearer,NEUTRAL,THE_LOST_CITY,MINION,2,1,2,,BATTLECRY,<b>Battlecry:</b> Draw a 0-Attack minion.,generated_supported
+two_cost_minion_play,EDR_105,Creature of Madness,NEUTRAL,EMERALD_DREAM,MINION,2,1,1,,"BATTLECRY,DISCOVER",<b>Battlecry:</b> <b>Discover</b> a 3-Cost minion with a <b>Dark Gift.</b>,generated_supported
+two_cost_minion_play,EDR_226,Exotic Houndmaster,HUNTER,EMERALD_DREAM,MINION,2,2,2,,BATTLECRY,<b>Battlecry:</b> Draw a Beast. <b>Imbue</b> your Hero Power.,generated_supported
+two_cost_minion_play,EDR_449,Lunarwing Messenger,PRIEST,EMERALD_DREAM,MINION,2,3,2,BEAST,"BATTLECRY,LIFESTEAL",<b>Lifesteal</b> <b>Battlecry:</b> <b>Imbue</b> your Hero Power.,generated_supported
 two_cost_minion_play,EDR_457,Brood Keeper,WARRIOR,EMERALD_DREAM,MINION,2,2,3,,BATTLECRY,"<b>Battlecry:</b> If you're holding a Dragon, equip a 2/2 Sword.",direct_supported
-two_cost_minion_play,EDR_470,Barkshield Sentinel,NEUTRAL,EMERALD_DREAM,MINION,2,2,2,,"TAUNT,TRIGGER_VISUAL","[x]<b>Taunt</b> After you use your Hero Power, gain +2 Health.",needs_rule
-two_cost_minion_play,EDR_491,Archdruid of Thorns,WARLOCK,EMERALD_DREAM,MINION,2,3,2,,BATTLECRY,<b>Battlecry:</b> Gain the <b>Deathrattles</b> of your minions that died this turn.,needs_rule
-two_cost_minion_play,EDR_495,Twisted Treant,NEUTRAL,EMERALD_DREAM,MINION,2,2,2,,DEATHRATTLE,<b>Deathrattle:</b> Give a random minion in each player's hand -2 Attack.,needs_rule
-two_cost_minion_play,EDR_530,Daydreaming Pixie,NEUTRAL,EMERALD_DREAM,MINION,2,0,4,,TRIGGER_VISUAL,"At the end of your turn, get a random Nature spell.",needs_rule
-two_cost_minion_play,EDR_540,Twisted Webweaver,ROGUE,EMERALD_DREAM,MINION,2,2,3,BEAST,TRIGGER_VISUAL,"[x]Whenever you play another minion you've already played, draw a card.",needs_rule
-two_cost_minion_play,EDR_852,Bitterbloom Knight,NEUTRAL,EMERALD_DREAM,MINION,2,2,3,,BATTLECRY,<b>Battlecry:</b> <b>Imbue</b> your Hero Power.,needs_rule
-two_cost_minion_play,EDR_861,Tranquil Treant,NEUTRAL,EMERALD_DREAM,MINION,2,2,2,,DEATHRATTLE,<b>Deathrattle:</b> Both players gain an empty Mana Crystal.,needs_rule
-two_cost_minion_play,EDR_871,Spirit Gatherer,MAGE,EMERALD_DREAM,MINION,2,2,1,,BATTLECRY,<b>Battlecry:</b> Get a Wisp. <b>Imbue</b> your Hero Power.,needs_rule
+two_cost_minion_play,EDR_470,Barkshield Sentinel,NEUTRAL,EMERALD_DREAM,MINION,2,2,2,,"TAUNT,TRIGGER_VISUAL","[x]<b>Taunt</b> After you use your Hero Power, gain +2 Health.",generated_supported
+two_cost_minion_play,EDR_491,Archdruid of Thorns,WARLOCK,EMERALD_DREAM,MINION,2,3,2,,BATTLECRY,<b>Battlecry:</b> Gain the <b>Deathrattles</b> of your minions that died this turn.,generated_supported
+two_cost_minion_play,EDR_495,Twisted Treant,NEUTRAL,EMERALD_DREAM,MINION,2,2,2,,DEATHRATTLE,<b>Deathrattle:</b> Give a random minion in each player's hand -2 Attack.,generated_supported
+two_cost_minion_play,EDR_530,Daydreaming Pixie,NEUTRAL,EMERALD_DREAM,MINION,2,0,4,,TRIGGER_VISUAL,"At the end of your turn, get a random Nature spell.",generated_supported
+two_cost_minion_play,EDR_540,Twisted Webweaver,ROGUE,EMERALD_DREAM,MINION,2,2,3,BEAST,TRIGGER_VISUAL,"[x]Whenever you play another minion you've already played, draw a card.",generated_supported
+two_cost_minion_play,EDR_852,Bitterbloom Knight,NEUTRAL,EMERALD_DREAM,MINION,2,2,3,,BATTLECRY,<b>Battlecry:</b> <b>Imbue</b> your Hero Power.,generated_supported
+two_cost_minion_play,EDR_861,Tranquil Treant,NEUTRAL,EMERALD_DREAM,MINION,2,2,2,,DEATHRATTLE,<b>Deathrattle:</b> Both players gain an empty Mana Crystal.,generated_supported
+two_cost_minion_play,EDR_871,Spirit Gatherer,MAGE,EMERALD_DREAM,MINION,2,2,1,,BATTLECRY,<b>Battlecry:</b> Get a Wisp. <b>Imbue</b> your Hero Power.,generated_supported
 two_cost_minion_play,EDR_889,Petal Peddler,NEUTRAL,EMERALD_DREAM,MINION,2,1,4,DRAGON,TRIGGER_VISUAL,"[x]At the end of your turn, give another random  friendly Dragon +1/+1.",generated_supported
-two_cost_minion_play,END_029,Voodoo Totem,"PRIEST,SHAMAN",TIME_TRAVEL,MINION,2,0,4,TOTEM,TRIGGER_VISUAL,"At the end of your turn, get a random Shadow spell.",needs_rule
-two_cost_minion_play,FIR_777,Spirit of the Kaldorei,PRIEST,EMERALD_DREAM,MINION,2,1,3,UNDEAD,"BATTLECRY,LIFESTEAL,TAUNT","<b>Taunt</b>, <b>Lifesteal</b> <b>Battlecry:</b> If you used your Hero Power this turn, gain +3/+3.",needs_rule
-two_cost_minion_play,FIR_904,Felfire Blaze,DEMONHUNTER,EMERALD_DREAM,MINION,2,2,3,ELEMENTAL,TRIGGER_VISUAL,"[x]After you cast a Fel spell, destroy this and deal 2 damage to all enemies.",needs_rule
-two_cost_minion_play,FIR_929,Living Flame,NEUTRAL,EMERALD_DREAM,MINION,2,3,2,ELEMENTAL,DEATHRATTLE,<b>Deathrattle:</b> Draw a Fire spell.,needs_rule
-two_cost_minion_play,FIR_961,Ashleaf Pixie,PALADIN,EMERALD_DREAM,MINION,2,3,2,,BATTLECRY,"<b>Battlecry:</b> If you're holding a spell that costs (5) or more, gain <b>Divine Shield</b> and <b>Lifesteal</b>.",needs_rule
-two_cost_minion_play,JAIL_030,Escape Artist,NEUTRAL,ESCAPEFROM_VIOLET_HOLD,MINION,2,4,4,,TRIGGER_VISUAL,"[x]After this attacks and survives, draw a card and escape the game!",needs_rule
+two_cost_minion_play,END_029,Voodoo Totem,"PRIEST,SHAMAN",TIME_TRAVEL,MINION,2,0,4,TOTEM,TRIGGER_VISUAL,"At the end of your turn, get a random Shadow spell.",generated_supported
+two_cost_minion_play,FIR_777,Spirit of the Kaldorei,PRIEST,EMERALD_DREAM,MINION,2,1,3,UNDEAD,"BATTLECRY,LIFESTEAL,TAUNT","<b>Taunt</b>, <b>Lifesteal</b> <b>Battlecry:</b> If you used your Hero Power this turn, gain +3/+3.",generated_supported
+two_cost_minion_play,FIR_904,Felfire Blaze,DEMONHUNTER,EMERALD_DREAM,MINION,2,2,3,ELEMENTAL,TRIGGER_VISUAL,"[x]After you cast a Fel spell, destroy this and deal 2 damage to all enemies.",generated_supported
+two_cost_minion_play,FIR_929,Living Flame,NEUTRAL,EMERALD_DREAM,MINION,2,3,2,ELEMENTAL,DEATHRATTLE,<b>Deathrattle:</b> Draw a Fire spell.,generated_supported
+two_cost_minion_play,FIR_961,Ashleaf Pixie,PALADIN,EMERALD_DREAM,MINION,2,3,2,,BATTLECRY,"<b>Battlecry:</b> If you're holding a spell that costs (5) or more, gain <b>Divine Shield</b> and <b>Lifesteal</b>.",generated_supported
+two_cost_minion_play,JAIL_030,Escape Artist,NEUTRAL,ESCAPEFROM_VIOLET_HOLD,MINION,2,4,4,,TRIGGER_VISUAL,"[x]After this attacks and survives, draw a card and escape the game!",generated_supported
 two_cost_minion_play,JAIL_328,Scarlet Bruiser,PALADIN,ESCAPEFROM_VIOLET_HOLD,MINION,2,2,2,,DEATHRATTLE,"[x]<b>Deathrattle:</b> If your deck has no Neutral cards, get a random Paladin card. It costs (2) less.",generated_supported
-two_cost_minion_play,JAIL_432,Mind Sweeper,PRIEST,ESCAPEFROM_VIOLET_HOLD,MINION,2,2,3,,BATTLECRY,"[x]<b>Battlecry:</b> If you played a copy of an opponent's card while holding this, deal 2 damage to all enemy minions.",needs_rule
-two_cost_minion_play,JAIL_434,Enthralled Shade,PRIEST,ESCAPEFROM_VIOLET_HOLD,MINION,2,3,2,UNDEAD,DEATHRATTLE,[x]<b><b>Deathrattle:</b> </b>Reduce the Cost of cards in your hand that were copied from your opponent by (1).,needs_rule
+two_cost_minion_play,JAIL_432,Mind Sweeper,PRIEST,ESCAPEFROM_VIOLET_HOLD,MINION,2,2,3,,BATTLECRY,"[x]<b>Battlecry:</b> If you played a copy of an opponent's card while holding this, deal 2 damage to all enemy minions.",generated_supported
+two_cost_minion_play,JAIL_434,Enthralled Shade,PRIEST,ESCAPEFROM_VIOLET_HOLD,MINION,2,3,2,UNDEAD,DEATHRATTLE,[x]<b><b>Deathrattle:</b> </b>Reduce the Cost of cards in your hand that were copied from your opponent by (1).,generated_supported
 two_cost_minion_play,JAIL_455,Disguised Watchman,WARRIOR,ESCAPEFROM_VIOLET_HOLD,MINION,2,2,4,,BATTLECRY,"Can be played on either side. <b>Battlecry:</b> Deal 1 damage to all other friendly minions, twice.",generated_supported
 two_cost_minion_play,JAIL_456,P1CK-P0K3T,NEUTRAL,ESCAPEFROM_VIOLET_HOLD,MINION,2,2,3,MECHANICAL,BATTLECRY,"<b>Battlecry:</b> If your deck has 25 or more cards, draw a card.",generated_supported
 two_cost_minion_play,JAIL_720,Lotus Bookie,ROGUE,ESCAPEFROM_VIOLET_HOLD,MINION,2,2,2,,DEATHRATTLE,<b>Deathrattle:</b> Get a Coin.,needs_rule
