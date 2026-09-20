@@ -233,6 +233,13 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "TIME_047", "TIME_055", "TIME_703", "TLC_107", "TLC_467", "TLC_630",
     "CORE_DAL_575", "CORE_DMF_511", "CORE_ICC_210", "CORE_ICC_407",
     "CORE_TRL_240", "CORE_ULD_133", "CORE_ULD_271", "CORE_WON_096", "DINO_130",
+    # Sixth tranche: registered 4-Cost outcomes.  These are deliberately
+    # limited to cards already exercised by the standard regression suites;
+    # cards whose effects depend on an unresolved nested pool remain excluded.
+    "CAP_401", "CAP_803", "CATA_483", "CATA_493", "CATA_786",
+    "CORE_KAR_057", "CORE_ULD_280", "EDR_256", "EDR_481", "EDR_654",
+    "EDR_800", "EDR_856", "EDR_860", "EDR_873", "EDR_940", "EDR_942",
+    "END_032", "FIR_913", "FIR_952", "JAIL_205",
     # Dragon-pool generators whose outer rules are now executable.  Their
     # nested pools remain audited independently (not silently treated as
     # vanilla cards).

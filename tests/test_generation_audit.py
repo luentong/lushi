@@ -230,7 +230,7 @@ class GenerationAuditTests(unittest.TestCase):
         }
         self.assertTrue(tranche <= ADDITIONAL_PLAYABLE_MINION_IDS)
         self.assertTrue(tranche <= supported)
-        self.assertEqual(45, len(supported))
+        self.assertEqual(46, len(supported))
 
     def test_remaining_weapon_backlog_explains_transitive_closure(self):
         rows = {
