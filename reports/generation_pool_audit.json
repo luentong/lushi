@@ -94,18 +94,18 @@
     "two_cost_minion_play": {
       "candidate_count": 121,
       "direct_supported": 3,
-      "generated_supported": 89,
+      "generated_supported": 104,
       "metadata_only": 0,
-      "needs_rule": 29,
-      "unimplemented": 29
+      "needs_rule": 14,
+      "unimplemented": 14
     },
     "four_cost_minion_play": {
       "candidate_count": 127,
       "direct_supported": 7,
-      "generated_supported": 89,
+      "generated_supported": 94,
       "metadata_only": 0,
-      "needs_rule": 31,
-      "unimplemented": 31
+      "needs_rule": 26,
+      "unimplemented": 26
     },
     "legendary_minion_play": {
       "candidate_count": 54,

@@ -517,27 +517,27 @@ two_cost_minion_play,JAIL_432,Mind Sweeper,PRIEST,ESCAPEFROM_VIOLET_HOLD,MINION,
 two_cost_minion_play,JAIL_434,Enthralled Shade,PRIEST,ESCAPEFROM_VIOLET_HOLD,MINION,2,3,2,UNDEAD,DEATHRATTLE,[x]<b><b>Deathrattle:</b> </b>Reduce the Cost of cards in your hand that were copied from your opponent by (1).,generated_supported
 two_cost_minion_play,JAIL_455,Disguised Watchman,WARRIOR,ESCAPEFROM_VIOLET_HOLD,MINION,2,2,4,,BATTLECRY,"Can be played on either side. <b>Battlecry:</b> Deal 1 damage to all other friendly minions, twice.",generated_supported
 two_cost_minion_play,JAIL_456,P1CK-P0K3T,NEUTRAL,ESCAPEFROM_VIOLET_HOLD,MINION,2,2,3,MECHANICAL,BATTLECRY,"<b>Battlecry:</b> If your deck has 25 or more cards, draw a card.",generated_supported
-two_cost_minion_play,JAIL_720,Lotus Bookie,ROGUE,ESCAPEFROM_VIOLET_HOLD,MINION,2,2,2,,DEATHRATTLE,<b>Deathrattle:</b> Get a Coin.,needs_rule
-two_cost_minion_play,JAIL_802,Gallagio Goon,SHAMAN,ESCAPEFROM_VIOLET_HOLD,MINION,2,2,3,ELEMENTAL,TRIGGER_VISUAL,"After you play a <b>Battlecry</b> minion, give it +1/+1.",needs_rule
+two_cost_minion_play,JAIL_720,Lotus Bookie,ROGUE,ESCAPEFROM_VIOLET_HOLD,MINION,2,2,2,,DEATHRATTLE,<b>Deathrattle:</b> Get a Coin.,generated_supported
+two_cost_minion_play,JAIL_802,Gallagio Goon,SHAMAN,ESCAPEFROM_VIOLET_HOLD,MINION,2,2,3,ELEMENTAL,TRIGGER_VISUAL,"After you play a <b>Battlecry</b> minion, give it +1/+1.",generated_supported
 two_cost_minion_play,JAIL_850,Warden Maiev,NEUTRAL,ESCAPEFROM_VIOLET_HOLD,MINION,2,1,3,,TRIGGER_VISUAL,"[x]After you play a minion, give it +3/+3 and make it  go <b>Dormant</b> for 1 turn.",generated_supported
-two_cost_minion_play,JAIL_872,Spider Rider,DRUID,ESCAPEFROM_VIOLET_HOLD,MINION,2,1,4,,TRIGGER_VISUAL,"After your hero attacks, draw a card.",needs_rule
-two_cost_minion_play,JAIL_878,Guard Dog,HUNTER,ESCAPEFROM_VIOLET_HOLD,MINION,2,3,1,BEAST,DEATHRATTLE,[x]<b>Deathrattle:</b> Summon a random 1-Cost  <b>Deathrattle</b> minion.,needs_rule
+two_cost_minion_play,JAIL_872,Spider Rider,DRUID,ESCAPEFROM_VIOLET_HOLD,MINION,2,1,4,,TRIGGER_VISUAL,"After your hero attacks, draw a card.",generated_supported
+two_cost_minion_play,JAIL_878,Guard Dog,HUNTER,ESCAPEFROM_VIOLET_HOLD,MINION,2,3,1,BEAST,DEATHRATTLE,[x]<b>Deathrattle:</b> Summon a random 1-Cost  <b>Deathrattle</b> minion.,generated_supported
 two_cost_minion_play,JAIL_942,Specter of Despair,PRIEST,ESCAPEFROM_VIOLET_HOLD,MINION,2,2,6,"DRAENEI,UNDEAD","CANT_ATTACK,TAUNT",<b>Taunt</b>  Can't attack.,generated_supported
-two_cost_minion_play,JAIL_974,Captured Archmage,NEUTRAL,ESCAPEFROM_VIOLET_HOLD,MINION,2,3,2,,DEATHRATTLE,"[x]<b>Deathrattle:</b> If you had 4 other Captured Archmages die this game, cast 'Fireball' at  a random enemy.@ <i>(@/4)</i>",needs_rule
-two_cost_minion_play,JAIL_986,Frantic Forger,NEUTRAL,ESCAPEFROM_VIOLET_HOLD,MINION,2,2,2,,BATTLECRY,<b>Battlecry:</b> Get a random playable spell. It is <b>Temporary</b>.,needs_rule
+two_cost_minion_play,JAIL_974,Captured Archmage,NEUTRAL,ESCAPEFROM_VIOLET_HOLD,MINION,2,3,2,,DEATHRATTLE,"[x]<b>Deathrattle:</b> If you had 4 other Captured Archmages die this game, cast 'Fireball' at  a random enemy.@ <i>(@/4)</i>",generated_supported
+two_cost_minion_play,JAIL_986,Frantic Forger,NEUTRAL,ESCAPEFROM_VIOLET_HOLD,MINION,2,2,2,,BATTLECRY,<b>Battlecry:</b> Get a random playable spell. It is <b>Temporary</b>.,generated_supported
 two_cost_minion_play,MEND_303,Migrating Elekk,HUNTER,CATACLYSM,MINION,2,2,3,BEAST,BATTLECRY,[x]<b>Taunt. Battlecry:</b> Replace your future Animal Companions with random Beasts that cost (1) more.,needs_rule
-two_cost_minion_play,MEND_506,Mystic Runesaber,MAGE,CATACLYSM,MINION,2,2,3,BEAST,"BATTLECRY,ELUSIVE",[x]<b>Elusive</b> <b>Battlecry:</b> Increase the effects of your Leylines by 1 this game.,needs_rule
-two_cost_minion_play,MEND_800,Brash Battlemaster,PALADIN,CATACLYSM,MINION,2,2,1,,"DEATHRATTLE,RUSH",[x]<b>Rush</b>  <b>Deathrattle:</b> Give your Silver Hand Recruits +1 Attack this game.,needs_rule
+two_cost_minion_play,MEND_506,Mystic Runesaber,MAGE,CATACLYSM,MINION,2,2,3,BEAST,"BATTLECRY,ELUSIVE",[x]<b>Elusive</b> <b>Battlecry:</b> Increase the effects of your Leylines by 1 this game.,generated_supported
+two_cost_minion_play,MEND_800,Brash Battlemaster,PALADIN,CATACLYSM,MINION,2,2,1,,"DEATHRATTLE,RUSH",[x]<b>Rush</b>  <b>Deathrattle:</b> Give your Silver Hand Recruits +1 Attack this game.,generated_supported
 two_cost_minion_play,RLK_061,Battlefield Necromancer,DEATHKNIGHT,CORE,MINION,2,2,2,,TRIGGER_VISUAL,"[x]At the end of your turn, raise a <b>Corpse</b> as a 1/3   Risen Footman with <b>Taunt</b>.  ",generated_supported
-two_cost_minion_play,RLK_511,Harbinger of Winter,DEATHKNIGHT,CORE,MINION,2,3,2,UNDEAD,DEATHRATTLE,<b>Deathrattle:</b> Draw a Frost spell.,needs_rule
+two_cost_minion_play,RLK_511,Harbinger of Winter,DEATHKNIGHT,CORE,MINION,2,3,2,UNDEAD,DEATHRATTLE,<b>Deathrattle:</b> Draw a Frost spell.,generated_supported
 two_cost_minion_play,TIME_015,Hardlight Protector,PALADIN,TIME_TRAVEL,MINION,2,2,1,MECHANICAL,"BATTLECRY,DIVINE_SHIELD",[x]<b>Divine Shield</b> <b>Battlecry:</b> Restore #3 Health to your hero and give them <b>Divine Shield</b>.,generated_supported
 two_cost_minion_play,TIME_020,Broxigar,DEMONHUNTER,TIME_TRAVEL,MINION,2,12,12,,"CHARGE,START_OF_GAME_KEYWORD","[x]<b>Fabled, Charge</b> <b>Start of Game:</b> Disappear. Kill all 4 Demons from Argus to reappear in hand.",generated_supported
-two_cost_minion_play,TIME_025,Twilight Timehopper,WARLOCK,TIME_TRAVEL,MINION,2,4,4,DRAGON,BATTLECRY,"[x]<b>Battlecry:</b> Shuffle 2 Shreds of Time into your deck. When drawn, deal 3 damage to your hero.",needs_rule
-two_cost_minion_play,TIME_049,Dangerous Variant,NEUTRAL,TIME_TRAVEL,MINION,2,1,1,,TRIGGER_VISUAL,"At the start of your turn, transform into a random 5-Cost minion.",needs_rule
-two_cost_minion_play,TIME_061,Timeless Causality,NEUTRAL,TIME_TRAVEL,MINION,2,3,2,ELEMENTAL,BATTLECRY,<b>Battlecry:</b> Reverse the order of your deck.,needs_rule
-two_cost_minion_play,TIME_213,Primordial Overseer,SHAMAN,TIME_TRAVEL,MINION,2,2,3,,BATTLECRY,"[x]<b>Battlecry:</b> If you've cast a Nature spell while holding this, gain +1/+1 and draw a card.",needs_rule
-two_cost_minion_play,TIME_214,Flux Revenant,SHAMAN,TIME_TRAVEL,MINION,2,1,4,ELEMENTAL,"TAUNT,TRIGGER_VISUAL","[x]<b>Taunt</b> Whenever you would damage this with a Nature spell, it gains +2/+1 instead.",needs_rule
-two_cost_minion_play,TIME_428,Yesterloc,NEUTRAL,TIME_TRAVEL,MINION,2,3,1,MURLOC,TRIGGER_VISUAL,"At the end of your turn, give your other minions +1 Health.",needs_rule
+two_cost_minion_play,TIME_025,Twilight Timehopper,WARLOCK,TIME_TRAVEL,MINION,2,4,4,DRAGON,BATTLECRY,"[x]<b>Battlecry:</b> Shuffle 2 Shreds of Time into your deck. When drawn, deal 3 damage to your hero.",generated_supported
+two_cost_minion_play,TIME_049,Dangerous Variant,NEUTRAL,TIME_TRAVEL,MINION,2,1,1,,TRIGGER_VISUAL,"At the start of your turn, transform into a random 5-Cost minion.",generated_supported
+two_cost_minion_play,TIME_061,Timeless Causality,NEUTRAL,TIME_TRAVEL,MINION,2,3,2,ELEMENTAL,BATTLECRY,<b>Battlecry:</b> Reverse the order of your deck.,generated_supported
+two_cost_minion_play,TIME_213,Primordial Overseer,SHAMAN,TIME_TRAVEL,MINION,2,2,3,,BATTLECRY,"[x]<b>Battlecry:</b> If you've cast a Nature spell while holding this, gain +1/+1 and draw a card.",generated_supported
+two_cost_minion_play,TIME_214,Flux Revenant,SHAMAN,TIME_TRAVEL,MINION,2,1,4,ELEMENTAL,"TAUNT,TRIGGER_VISUAL","[x]<b>Taunt</b> Whenever you would damage this with a Nature spell, it gains +2/+1 instead.",generated_supported
+two_cost_minion_play,TIME_428,Yesterloc,NEUTRAL,TIME_TRAVEL,MINION,2,3,1,MURLOC,TRIGGER_VISUAL,"At the end of your turn, give your other minions +1 Health.",generated_supported
 two_cost_minion_play,TIME_431,Amber Priestess,PRIEST,TIME_TRAVEL,MINION,2,1,4,,"BATTLECRY,TAUNT",[x]<b>Taunt</b> <b>Battlecry:</b> Restore Health to a character equal to this minion's Health.,needs_rule
 two_cost_minion_play,TIME_601,Arrow Retriever,HUNTER,TIME_TRAVEL,MINION,2,3,1,BEAST,BATTLECRY,<b>Battlecry:</b> Draw until you have 3 cards.,direct_supported
 two_cost_minion_play,TIME_603,Ticking Timebomb,HUNTER,TIME_TRAVEL,MINION,2,1,1,MECHANICAL,DEATHRATTLE,<b>Deathrattle:</b> Destroy a random enemy minion.,generated_supported
@@ -639,12 +639,12 @@ four_cost_minion_play,JAIL_457,Hijacked Securitybot,SHAMAN,ESCAPEFROM_VIOLET_HOL
 four_cost_minion_play,JAIL_509,Godfrey the Betrayer,WARLOCK,ESCAPEFROM_VIOLET_HOLD,MINION,4,5,4,UNDEAD,START_OF_GAME_KEYWORD,[x]<b>Start of Game:</b> Overdrawn cards return to your hand when you have space. They cost (1) less.,generated_supported
 four_cost_minion_play,JAIL_719,Irida Sinseeker,DEMONHUNTER,ESCAPEFROM_VIOLET_HOLD,MINION,4,7,7,,"BATTLECRY,LIFESTEAL","[x]<b>Lifesteal</b>. <b>Battlecry:</b> Send your deck to the Void, except 1 card. At the start of your turns, get two cards from the Void.",generated_supported
 four_cost_minion_play,JAIL_851,Inspector Murloc Holmes,NEUTRAL,ESCAPEFROM_VIOLET_HOLD,MINION,4,4,5,MURLOC,BATTLECRY,"[x]<b>Battlecry:</b> Investigate a card in the enemy hand. If they play a card with that name  next turn, get 3 Coins.",generated_supported
-four_cost_minion_play,JAIL_883,Activated Golem,NEUTRAL,ESCAPEFROM_VIOLET_HOLD,MINION,4,4,5,,TRIGGER_VISUAL,"At the end of each turn, gain <b>Reborn</b>.",needs_rule
+four_cost_minion_play,JAIL_883,Activated Golem,NEUTRAL,ESCAPEFROM_VIOLET_HOLD,MINION,4,4,5,,TRIGGER_VISUAL,"At the end of each turn, gain <b>Reborn</b>.",generated_supported
 four_cost_minion_play,JAIL_909,Defias Wannabe,ROGUE,ESCAPEFROM_VIOLET_HOLD,MINION,4,2,2,,COMBO,[x]<b>Prepare</b> <b>Combo:</b> Gain +1/+1 for each other card played this turn.@ <i>(@)</i>,generated_supported
-four_cost_minion_play,MEND_045,Seeding Dragon,DRUID,CATACLYSM,MINION,4,4,4,DRAGON,"DEATHRATTLE,TAUNT",[x]<b>Taunt</b> <b>Deathrattle:</b> Get a random   Dragon. It costs (2) less.,needs_rule
-four_cost_minion_play,MEND_301,Spiritspeaker,HUNTER,CATACLYSM,MINION,4,2,2,,BATTLECRY,<b>Battlecry:</b> Choose an Animal Companion to summon.,needs_rule
-four_cost_minion_play,MEND_302,Wasteland Vanguard,HUNTER,CATACLYSM,MINION,4,3,3,,BATTLECRY,"[x]<b>Battlecry:</b> Deal 3 damage split among all enemies. If any die, deal 3 more.",needs_rule
-four_cost_minion_play,MEND_503,Surge Needle,MAGE,CATACLYSM,MINION,4,3,5,,BATTLECRY,[x]<b>Battlecry:</b> Your Leylines trigger an additional time this game.,needs_rule
+four_cost_minion_play,MEND_045,Seeding Dragon,DRUID,CATACLYSM,MINION,4,4,4,DRAGON,"DEATHRATTLE,TAUNT",[x]<b>Taunt</b> <b>Deathrattle:</b> Get a random   Dragon. It costs (2) less.,generated_supported
+four_cost_minion_play,MEND_301,Spiritspeaker,HUNTER,CATACLYSM,MINION,4,2,2,,BATTLECRY,<b>Battlecry:</b> Choose an Animal Companion to summon.,generated_supported
+four_cost_minion_play,MEND_302,Wasteland Vanguard,HUNTER,CATACLYSM,MINION,4,3,3,,BATTLECRY,"[x]<b>Battlecry:</b> Deal 3 damage split among all enemies. If any die, deal 3 more.",generated_supported
+four_cost_minion_play,MEND_503,Surge Needle,MAGE,CATACLYSM,MINION,4,3,5,,BATTLECRY,[x]<b>Battlecry:</b> Your Leylines trigger an additional time this game.,generated_supported
 four_cost_minion_play,RLK_223,Thassarian,DEATHKNIGHT,CORE,MINION,4,3,3,UNDEAD,"BATTLECRY,DEATHRATTLE,REBORN",<b>Reborn</b> <b>Battlecry and Deathrattle:</b> Deal 2 damage to a random enemy.,generated_supported
 four_cost_minion_play,TIME_013,Farseer Wo,SHAMAN,TIME_TRAVEL,MINION,4,2,6,,"DISCOVER,ELUSIVE,TRIGGER_VISUAL","[x]<b>Elusive</b> After you cast a spell, <b>Discover</b> a Nature spell from the past.",needs_rule
 four_cost_minion_play,TIME_017,Tankgineer,PALADIN,TIME_TRAVEL,MINION,4,2,1,MECHANICAL,"DEATHRATTLE,DIVINE_SHIELD",[x]<b>Divine Shield</b> <b>Deathrattle:</b> Summon a 7/7 Tank with <b>Divine Shield</b>.,generated_supported

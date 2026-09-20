@@ -247,6 +247,13 @@ ADDITIONAL_PLAYABLE_MINION_IDS = {
     "EDR_491", "EDR_495", "EDR_530", "EDR_540", "EDR_852",
     "EDR_861", "EDR_871", "END_029", "FIR_777", "FIR_904",
     "FIR_929", "FIR_961", "JAIL_030", "JAIL_432", "JAIL_434",
+    # Eighth tranche: 2-Cost and time-travel outcomes with explicit
+    # lifecycle hooks.  Random 1/5-Cost or Secret sub-pools remain visible in
+    # the nested audit rather than being silently declared closed.
+    "JAIL_720", "JAIL_802", "JAIL_872", "JAIL_878", "JAIL_883",
+    "JAIL_974", "JAIL_986", "MEND_045", "MEND_301", "MEND_302",
+    "MEND_503", "MEND_506", "MEND_800", "RLK_511", "TIME_025",
+    "TIME_049", "TIME_061", "TIME_213", "TIME_214", "TIME_428",
     # Dragon-pool generators whose outer rules are now executable.  Their
     # nested pools remain audited independently (not silently treated as
     # vanilla cards).
