@@ -4,7 +4,8 @@
 The live companion deliberately consumes stable internal card IDs rather than
 deckstrings.  This tool converts a dated meta manifest once, preserving every
 candidate deck in its original ordering.  The own deck is selected by manifest
-``id``; the other entries become opponent belief hypotheses.
+``id``; every manifest entry (including the same archetype for a possible
+mirror match) becomes an opponent belief hypothesis by default.
 """
 
 from __future__ import annotations
@@ -53,7 +54,9 @@ def main() -> int:
     parser.add_argument("--known-output", type=Path, required=True)
     parser.add_argument("--candidates-output", type=Path, required=True)
     parser.add_argument("--candidate-class", default=None,
-                        help="Optional Hearthstone class filter, e.g. PRIEST. Defaults to all other decks.")
+                        help="Optional Hearthstone class filter, e.g. PRIEST. Defaults to every manifest deck.")
+    parser.add_argument("--exclude-self-from-candidates", action="store_true",
+                        help="Exclude the selected own deck from opponent candidates (normally do not use: mirror matches exist).")
     args = parser.parse_args()
 
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
@@ -72,7 +75,7 @@ def main() -> int:
     candidates: list[dict[str, int]] = []
     candidate_meta: list[dict[str, str]] = []
     for entry in entries:
-        if entry.get("id") == own_entry.get("id"):
+        if args.exclude_self_from_candidates and entry.get("id") == own_entry.get("id"):
             continue
         deck_class = get_deck_class(entry["deckstring"], by_dbf)
         if args.candidate_class and deck_class != args.candidate_class.upper():
