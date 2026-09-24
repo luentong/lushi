@@ -22,7 +22,7 @@ from hsa.live_state import reconstruct_game
 from hsa.live_replay import extract_replay_events
 from hsa.live_replay import build_simulator_action_plan
 from hsa.live_session import check_initial_decks
-from hsa.belief_state import build_beliefs
+from hsa.belief_state import build_beliefs, filter_candidates
 from hsa.recommendation_gate import evaluate_gate
 from hsa.belief_consensus import choose_consensus
 from hsa.live_bridge import build_snapshot_hypothesis
@@ -205,7 +205,17 @@ def main() -> int:
                     if args.mode == "belief":
                         missing = (session_gate or {}).get("missing_slots", {})
                         session_ready = session_ready or (str(args.self_controller) not in missing)
-                    raw_candidates = list(candidates.get(candidate_controller, ()))[:args.max_hypotheses]
+                    # Do not accidentally evaluate an arbitrary prefix of a
+                    # large meta manifest.  First eliminate decks contradicted
+                    # by cards already publicly played, then cap the remaining
+                    # hypotheses for bounded live latency.
+                    opponent_belief = beliefs.get(candidate_controller)
+                    compatible_candidates = (
+                        filter_candidates(opponent_belief)
+                        if opponent_belief is not None else
+                        list(candidates.get(candidate_controller, ()))
+                    )
+                    raw_candidates = compatible_candidates[:args.max_hypotheses]
                     hypothesis_actions = []
                     bridge_attempts = []
                     own = known.get(str(args.self_controller), {}) if args.known_decks else {}
@@ -246,7 +256,9 @@ def main() -> int:
                                     })
                         consensus = choose_consensus(hypothesis_actions,
                                                      min_support=args.belief_min_support)
-                        bridge_summary = {"attempted": len(raw_candidates), "viable": len(hypothesis_actions),
+                        bridge_summary = {"configured_candidates": len(candidates.get(candidate_controller, ())),
+                                          "compatible_candidates": len(compatible_candidates),
+                                          "attempted": len(raw_candidates), "viable": len(hypothesis_actions),
                                           "hypotheses": bridge_attempts,
                                           "consensus_support": consensus.support}
                         # Belief uncertainty is information, not a reason to
