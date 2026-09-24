@@ -205,7 +205,8 @@ identity before using it:
 
 ```powershell
 python scripts\verify_cuda_policy.py `
-  --checkpoint models\policy-value-v5-structured-256.pt --device cuda
+  --checkpoint models\standard91-generalized-columnar-v1.best.pt `
+  --device cuda --allow-legacy-checkpoint
 ```
 
 Start local-only shadow mode against the default client log path:

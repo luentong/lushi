@@ -27,6 +27,8 @@ def main() -> int:
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--cards", type=Path, default=ROOT / "cards.251332.enUS.json")
+    parser.add_argument("--allow-legacy-checkpoint", action="store_true",
+                        help="Allow a checkpoint created before ruleset provenance was recorded; report it as legacy.")
     args = parser.parse_args()
 
     if args.device.startswith("cuda") and not torch.cuda.is_available():
@@ -37,12 +39,20 @@ def main() -> int:
     checkpoint = torch.load(args.checkpoint, map_location="cpu", weights_only=False)
     report = checkpoint.get("report", {})
     manifest = ruleset_manifest(ROOT)
-    if report.get("ruleset") != manifest["ruleset"]:
+    checkpoint_ruleset = report.get("ruleset")
+    checkpoint_fingerprint = report.get("ruleset_fingerprint")
+    legacy = not checkpoint_ruleset or not checkpoint_fingerprint
+    if legacy and not args.allow_legacy_checkpoint:
         raise RuntimeError(
-            f"checkpoint ruleset {report.get('ruleset')!r} does not match "
+            "checkpoint predates ruleset provenance; rerun with "
+            "--allow-legacy-checkpoint only for advisory inference"
+        )
+    if not legacy and checkpoint_ruleset != manifest["ruleset"]:
+        raise RuntimeError(
+            f"checkpoint ruleset {checkpoint_ruleset!r} does not match "
             f"local source {manifest['ruleset']!r}"
         )
-    if report.get("ruleset_fingerprint") != manifest["fingerprint_sha256"]:
+    if not legacy and checkpoint_fingerprint != manifest["fingerprint_sha256"]:
         raise RuntimeError(
             "checkpoint source fingerprint does not match this checkout; "
             "use the matching commit or retrain the checkpoint"
@@ -60,6 +70,7 @@ def main() -> int:
         ),
         "ruleset": manifest["ruleset"],
         "ruleset_fingerprint": manifest["fingerprint_sha256"],
+        "provenance_status": "legacy_allowed" if legacy else "exact_match",
         "checkpoint": str(args.checkpoint),
         "legal_actions": len(game.legal_actions()),
         "prior_count": len(output.priors),
