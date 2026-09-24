@@ -170,10 +170,13 @@ card, trigger source, or observed generated entity cannot be faithfully replayed
 by the current rules; it is automatically written to the JSONL engineering
 backlog with the card ID, printed metadata, first packet, and occurrence count.
 Amber means the revealed effects are covered but arbitrary Standard state replay
-is still not implemented. No action recommendation is emitted until the matchup
-deck and reachable generated-card closure are both complete; this is deliberate
-fail-closed behavior, not a weak recommendation. The current Dragon Warrior
-policy/value model is valid only for its closed mirror simulator.
+is still incomplete. The Windows companion now supports a narrower **belief
+snapshot** path: give it the complete local deck and a small set of opponent
+candidate decks, and it hydrates the current public hand/board/health/mana into
+one simulator hypothesis per candidate. It emits the plurality PUCT action
+with its hypothesis support; this is advisory only and never sends input to the
+game. Locations, secrets, weapons, pending choices, hidden local cards, a
+missing executable rule, or a public-state mismatch still fail closed.
 
 ## Windows local companion (RTX GPU)
 
@@ -218,6 +221,31 @@ and the automatically deduplicated rule backlog to
 mode is coverage/engineering shadow analysis, not real-time move automation;
 the latter remains gated by complete live-state reconstruction and matchup
 coverage.
+
+### Belief snapshot advisory mode
+
+Create a JSON deck-count file for your deck and a JSON list of plausible enemy
+deck-count files. The examples in
+`config/live_known_decks.example.json` and
+`config/live_candidate_decks.example.json` show the exact schema. Controller
+`1` is local by default. Card IDs, rather than names, prevent locale ambiguity.
+For a Warrior versus Priest session, run:
+
+```powershell
+python scripts\live_recommender.py `
+  --checkpoint models\standard91-generalized-columnar-v1.best.pt `
+  --known-decks config\live_known_decks.json `
+  --candidate-decks config\live_candidate_decks.json `
+  --player-classes WARRIOR,PRIEST `
+  --device cuda --search-iterations 8
+```
+
+The newest timestamped `Hearthstone_*\Power.log` below the standard client
+directory is selected automatically. A `recommendation` record contains the
+simulator action, candidate-hypothesis support and PUCT search metadata. It
+does not imply that opponent hidden cards are known. The default support floor
+is `0`, so disagreement is reported as uncertainty rather than suppressing the
+plurality suggestion.
 
 Dataset generation streams each completed game into a compressed temporary
 spool and keeps at most `2 * workers` parallel game results in memory. The final

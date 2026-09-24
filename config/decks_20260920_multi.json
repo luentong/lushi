@@ -1,0 +1,38 @@
+{
+  "snapshot_date": "2026-09-20",
+  "region": "CN",
+  "format": "STANDARD",
+  "client_version": "current-user-supplied-deckstrings",
+  "card_data": {
+    "provider": "HearthstoneJSON",
+    "build": 251332,
+    "locale": "zhCN"
+  },
+  "frequency_prior": {
+    "method": "heuristic_relative_prior",
+    "source_note": "Initial prior for balanced training/evaluation only; replace with observed Power.log frequencies when available.",
+    "source_urls": [
+      "https://www.hstopdecks.com/meta",
+      "https://iyingdi.com/tz/post/5714740"
+    ],
+    "weights_sum": 114
+  },
+  "decks": [
+    {"id": "dragon_pirate_warrior", "name_zh": "龙海盗战", "frequency_weight": 8, "deckstring": "AAECAQcEzp4G69YHstgHq+AHDePmBqr8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5zCB6ngB/vgBwAA"},
+    {"id": "mogasa_shaman", "name_zh": "穆格萨", "frequency_weight": 4, "deckstring": "AAECAaoIAtDbB9/lBw6vnwTRmwfQnQfwqgf8rQe8sQfLtgfDwAfTwAfH2wfK2wfN2wfa3wfg9gcAAA=="},
+    {"id": "dragon_warrior", "name_zh": "龙战", "frequency_weight": 12, "deckstring": "AAECAQcC69YHstgHDuPmBqr8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5vCB5zCB6ngB/vgBwAA"},
+    {"id": "aggro_druid", "name_zh": "快攻德", "frequency_weight": 16, "deckstring": "AAECAZICCqn1BqGBB5KDB6+HB6yIB4KYB+DAB+LAB+XEB6PaBwqunwSqrwesrwfosQe+sgfXwAeR2gfH5ge85wfK5wcAAA=="},
+    {"id": "dirty_priest", "name_zh": "脏牧", "frequency_weight": 10, "deckstring": "AAECAa0GBPypB4CqB4SqB+fYBwjwnwSg+wbD/waFhgedrQevyQeq2Qes2QcAAA=="},
+    {"id": "celestial_demon_hunter", "name_zh": "虚灵瞎", "frequency_weight": 5, "deckstring": "AAECAea5AwaongbNngbOmweD2gfH3Qen9wcM4fgF0J4G054G3v8GtpcH550HobEHlb8HxN0Hxt0HteEHt+EHAAA="},
+    {"id": "quest_priest", "name_zh": "任务牧", "frequency_weight": 14, "deckstring": "AAECAa0GBMODB4WGB6iWB9zgBw2G/QbFlAfkngfSrwebvweyxQevyQeT3wew3wfV4AfZ4Af04AeW/AcAAA=="},
+    {"id": "egg_death_knight", "name_zh": "蛋DK", "frequency_weight": 8, "deckstring": "AAECAfHhBAyh1ATDgwe8lAf1mAfsmwfXnQfgnQftnwfSrgfa1wed2we/3wcJgf0Gl4IHupUHn54HkqQH4rEHrtoHtNoHptwHAAA="},
+    {"id": "drake_warlock", "name_zh": "Drake Warlock", "frequency_weight": 4, "deckstring": "AAECAf0GCI+fBIadB5mxB63ZB7HZB9vgB7roB4TpBwuxnwTnoATTngaEmQeqrQfQsgeTvgfgvge32QeN3AeO3AcAAA=="},
+    {"id": "rafaam_warlock", "name_zh": "拉法姆术", "frequency_weight": 4, "deckstring": "AAECAf0GEM2eBoilB4mlB4qlB5GlB5OlB5SlB5WlB5alB5elB5qlB9C/B5vUB63ZB47cB9vgBwyPnwTnoATTngaEmQeTvgfYvgfgvgfd1wew2Qex2Qe32QeN3AcAAA=="},
+    {"id": "raza_demon_hunter", "name_zh": "Raza DH", "frequency_weight": 3, "deckstring": "AAECAea5AwjUnwTe/waDige1lweKqgeSqgeTqgfisQcL4fgFzZ4Gzp4G054GtpcH6LEHkrIHkr8H5eQHk+gHpvgHAAA="},
+    {"id": "herald_warlock", "name_zh": "先驱术", "frequency_weight": 4, "deckstring": "AAECAf0GBpegBNC/B5vUB63ZB47cB9vgBwyPnwSxnwTnoASEmQelrQeTvgfYvgfgvgfa1wex2Qe32QeN3AcAAA=="},
+    {"id": "stealth_rogue", "name_zh": "潜行贼", "frequency_weight": 7, "deckstring": "AAECAaIHDKGBB5CDB5KDB8GXB4KYB9GdB+ylB9C/B4rUB5vUB4jZB9DgBwn3nwTHrge0wQfAwQedxQfVxQej4AfO4AfD8gcAAA=="},
+    {"id": "control_priest", "name_zh": "控制牧", "frequency_weight": 5, "deckstring": "AAECAa0GBqiWB/ypB4CqB4SqB+SyB4O/BwzwnwSg+wbD/waFhgedrQeFvwebvweixAeyxQevyQew3weW/AcAAA=="},
+    {"id": "omen_rogue", "name_zh": "兆示贼", "frequency_weight": 4, "deckstring": "AAECAaIHDKGBB5KDB8GXB4KYB+ylB4aoB4eoB4ioB9C/B4rUB5vUB4jZBwn3nwTZogaQgwfHrge0wQfAwQedxQfVxQeN2gcAAA=="},
+    {"id": "aya_rogue", "name_zh": "艾雅贼", "frequency_weight": 6, "deckstring": "AAECAaIHCs7+Bt/+BpKkB4aoB4eoB4ioB+WvB7PDB6XYB4jZBwqRnwT3nwTZogbBlwe0wQfFwQfVxQek2AeR2QeN2gcAAA=="}
+  ]
+}

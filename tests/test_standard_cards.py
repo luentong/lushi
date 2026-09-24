@@ -617,6 +617,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(2, target.attack_delta)
         self.assertEqual(2, target.health_delta)
 
+    def test_ominous_nightmares_hides_damaged_branch_without_target(self):
+        game = self.game()
+        spell = self.add_hand(game, "EDR_570")
+        game.step(Action("PLAY", spell.entity_id))
+        actions = game.legal_actions()
+        self.assertIn(Action("RULE_CHOICE_PICK", 0), actions)
+        self.assertNotIn(Action("RULE_CHOICE_PICK", 1), actions)
+
     def test_chef_nethrek_is_executable(self):
         game = self.game()
         self.assertIn("JAIL_860", game.executable_card_ids)
@@ -1336,14 +1344,60 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", coin.entity_id))
         self.assertEqual(1, game.players[0].mana)
 
+    def test_medivhs_triumph_costs_one_for_any_controlled_legendary(self):
+        game = self.game()
+        triumph = self.add_hand(game, "CATA_308")
+        self.assertEqual(5, game._effective_cost(game.players[0], triumph))
+
+        # Ulfar is a Legendary minion.  The conditional is live: when Ulfar
+        # is controlled, the spell must be playable with exactly one mana.
+        self.add_board(game, "CORE_CATA_006", 0)
+        self.assertEqual(1, game._effective_cost(game.players[0], triumph))
+        game.players[0].mana = 1
+        self.assertIn(Action("PLAY", triumph.entity_id), game.legal_actions())
+
+        # A Legendary weapon and an active Legendary Quest use the same
+        # controlled-zone predicate, rather than a minion-only ID allowlist.
+        game.players[0].board.clear()
+        game._equip_weapon(game.players[0], Weapon("CORE_CATA_006", "Test", 1, 1))
+        self.assertEqual(1, game._effective_cost(game.players[0], triumph))
+        game.players[0].weapon = None
+        game.players[0].active_quests["CORE_CATA_006"] = {"progress": 0}
+        self.assertEqual(1, game._effective_cost(game.players[0], triumph))
+
     def test_latest_powerlog_choice_rules(self):
         game = self.game()
         enemy = self.add_board(game, "CAP_107t", 1)
         spell = self.add_hand(game, "EDR_463")
-        game.step(Action("PLAY", spell.entity_id, 1, enemy.entity_id))
+        # The initial cast is target-free; only the destroy mode is targeted.
+        game.step(Action("PLAY", spell.entity_id))
         self.assertIsNotNone(game.pending_choice)
-        game.step(Action("RULE_CHOICE_PICK", 0))
+        legal = game.legal_actions()
+        self.assertIn(Action("RULE_CHOICE_PICK", 0, 1, enemy.entity_id), legal)
+        self.assertIn(Action("RULE_CHOICE_PICK", 1), legal)
+        self.assertNotIn(Action("RULE_CHOICE_PICK", 0), legal)
+        self.assertNotIn(Action("RULE_CHOICE_PICK", 1, 1, enemy.entity_id), legal)
+        game.step(Action("RULE_CHOICE_PICK", 0, 1, enemy.entity_id))
         self.assertNotIn(enemy, game.players[1].board)
+
+    def test_twilight_influence_summon_choice_cannot_destroy_preselected_target(self):
+        game = self.game()
+        enemy = self.add_board(game, "CORE_EX1_012", 1)
+        spell = self.add_hand(game, "EDR_463")
+        game.step(Action("PLAY", spell.entity_id))
+        game.step(Action("RULE_CHOICE_PICK", 1))
+        self.assertIn(enemy, game.players[1].board)
+
+    def test_prepare_requires_remaining_mana_and_trace_includes_entity(self):
+        game = self.game()
+        first = self.add_hand(game, "JAIL_998")
+        second = self.add_hand(game, "JAIL_998")
+        game.players[0].mana = 1
+        self.assertIn(Action("PREPARE", first.entity_id), game.legal_actions())
+        self.assertIn(f"#{first.entity_id}", game.describe_action(Action("PREPARE", first.entity_id)))
+        game.step(Action("PREPARE", first.entity_id))
+        self.assertEqual(0, game.players[0].mana)
+        self.assertNotIn(Action("PREPARE", second.entity_id), game.legal_actions())
 
     def test_first_flame_generates_second_flame(self):
         game = self.game()
@@ -1576,6 +1630,14 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual("CORE_AT_055", shadow.card_id)
         self.assertEqual(1, shadow.cost)
 
+    def test_spell_damage_bonus_without_shadow_of_demise_is_safe(self):
+        """A one-shot spell bonus must not require a Shadow in hand."""
+        game = self.game()
+        game.players[0].next_spell_damage_bonus = 1
+        spell = self.add_hand(game, "CORE_AT_055")
+        game.step(Action("PLAY", spell.entity_id, 0, None))
+        self.assertEqual(0, game.players[0].next_spell_damage_bonus)
+
     def test_deja_vu_discover_opponent_hand(self):
         game = self.game()
         spell = self.add_hand(game, "TIME_039")
@@ -1701,6 +1763,20 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         before = enemy.health
         game.step(Action("PLAY", rite.entity_id, 1, enemy.entity_id))
         self.assertEqual(before - 3, enemy.health)
+
+    def test_rite_of_twilight_combo_legal_actions_require_enemy_target(self):
+        game = self.game()
+        coin = self.add_hand(game, "JAIL_COIN1")
+        rite = self.add_hand(game, "CATA_785")
+        enemy = self.add_board(game, "TLC_248", 1)
+        game.step(Action("PLAY", coin.entity_id))
+        actions = {
+            action.key()
+            for action in game.legal_actions()
+            if action.kind == "PLAY" and action.source == rite.entity_id
+        }
+        self.assertIn(Action("PLAY", rite.entity_id, 1, enemy.entity_id).key(), actions)
+        self.assertNotIn(Action("PLAY", rite.entity_id).key(), actions)
 
     def test_herald_source_cards_and_ritual_tokens(self):
         for card_id in ("CATA_525", "CATA_565", "CATA_580", "CATA_780"):
@@ -1953,6 +2029,20 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PREPARE", swimmer.entity_id))
         game.step(Action("PLAY", swimmer.entity_id, 0, target.entity_id))
         self.assertEqual(26, game.players[0].health)
+
+    def test_sewer_swimmer_does_not_offer_vanilla_targets(self):
+        game = self.game()
+        vanilla = self.add_board(game, "CATA_565", 0)
+        deathrattle = self.add_board(game, "JAIL_912", 0)
+        swimmer = self.add_hand(game, "JAIL_395")
+        game.step(Action("PREPARE", swimmer.entity_id))
+        targets = {
+            action.target_entity
+            for action in game.legal_actions()
+            if action.kind == "PLAY" and action.source == swimmer.entity_id
+        }
+        self.assertIn(deathrattle.entity_id, targets)
+        self.assertNotIn(vanilla.entity_id, targets)
 
     def test_tras_tath_gains_summoned_demon_stats(self):
         game = self.game()
@@ -2701,6 +2791,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertNotIn(target, game.players[1].board)
         self.assertTrue(any(card.card_id == "CATA_585" for card in game.players[0].hand))
 
+    def test_torch_cannot_target_fire_spell_immune_fyrakk(self):
+        game = self.game()
+        fyrakk = self.add_board(game, "FIR_959", 1)
+        fyrakk.damage = 1
+        torch = self.add_hand(game, "CATA_585")
+        targets = {
+            action.target_entity
+            for action in game.legal_actions()
+            if action.kind == "PLAY" and action.source == torch.entity_id
+        }
+        self.assertNotIn(fyrakk.entity_id, targets)
+
     def test_standard_garona_last_stand(self):
         game = self.game()
         target = self.add_board(game, "CORE_EX1_110", 1)
@@ -2708,6 +2810,75 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         spell = self.add_hand(game, "CATA_203")
         game.step(Action("PLAY", spell.entity_id, 1, target.entity_id))
         self.assertNotIn(target, game.players[1].board)
+
+    def test_standard_garona_last_stand_only_offers_legendary_targets(self):
+        game = self.game()
+        legendary = self.add_board(game, "CORE_EX1_110", 1)
+        ordinary = self.add_board(game, "TLC_248", 1)
+        spell = self.add_hand(game, "CATA_203")
+        targets = {
+            (action.target_player, action.target_entity)
+            for action in game.legal_actions()
+            if action.kind == "PLAY" and action.source == spell.entity_id
+        }
+        self.assertIn((1, legendary.entity_id), targets)
+        self.assertNotIn((1, ordinary.entity_id), targets)
+
+    def test_morbid_swarm_targeted_choose_one_branch_requires_target(self):
+        game = self.game(player_classes=("DEATHKNIGHT", "ROGUE"))
+        game.players[0].corpses = 2
+        target = self.add_board(game, "TLC_248", 1, attack=4)
+        spell = self.add_hand(game, "EDR_813")
+        game.step(Action("PLAY", spell.entity_id))
+        actions = {
+            action.key()
+            for action in game.legal_actions()
+            if action.kind == "RULE_CHOICE_PICK"
+        }
+        self.assertIn(Action("RULE_CHOICE_PICK", 0).key(), actions)
+        self.assertNotIn(Action("RULE_CHOICE_PICK", 1).key(), actions)
+        self.assertIn(
+            Action("RULE_CHOICE_PICK", 1, 1, target.entity_id).key(), actions
+        )
+
+    def test_vampyrs_kiss_runtime_hero_power_metadata(self):
+        game = self.game(player_classes=("DEATHKNIGHT", "WARRIOR"))
+        replacement = self.add_hand(game, "JAIL_446")
+        game.step(Action("PLAY", replacement.entity_id))
+        self.assertEqual("JAIL_446hp", game.players[0].hero_power_id)
+        self.assertIn("JAIL_446hp", game.card_defs)
+        target = self.add_board(game, "TLC_248", 1)
+        before_attack = target.attack
+        game.players[0].corpses = 3
+        game.players[0].hero_power_used = False
+        game.step(Action("HERO_POWER", target_player=1, target_entity=target.entity_id))
+        self.assertEqual(before_attack + 3, target.attack)
+
+    def test_mother_left_right_hand_discount(self):
+        game = self.game(player_classes=("WARLOCK", "WARRIOR"))
+        left_far = self.add_hand(game, "TLC_248")
+        left_near = self.add_hand(game, "CORE_EX1_110")
+        mother = self.add_hand(game, "BE_036")
+        right_near = self.add_hand(game, "TLC_239")
+        right_far = self.add_hand(game, "JAIL_860")
+        actions = {
+            action.key()
+            for action in game.legal_actions()
+            if action.kind == "PLAY" and action.source == mother.entity_id
+        }
+        self.assertIn(
+            Action("PLAY", mother.entity_id, 0, left_far.entity_id).key(),
+            actions,
+        )
+        self.assertNotIn(
+            Action("PLAY", mother.entity_id, 0, mother.entity_id).key(),
+            actions,
+        )
+        game.step(Action("PLAY", mother.entity_id, 0, left_far.entity_id))
+        self.assertEqual(-5, left_far.cost_delta)
+        self.assertEqual(-4, left_near.cost_delta)
+        self.assertEqual(-3, right_near.cost_delta)
+        self.assertEqual(-2, right_far.cost_delta)
 
     def test_standard_earthen_roar(self):
         game = self.game()
@@ -3872,6 +4043,20 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         summon_game.step(Action("RULE_CHOICE_PICK", 1))
         self.assertEqual(2, len(summon_game.players[0].board))
 
+    def test_living_roots_choice_requires_target_only_for_damage_branch(self):
+        game = self.game()
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        roots = self.add_hand(game, "CORE_AT_037")
+        # Choosing a branch can happen after PLAY (as it does for search and
+        # replay clients), so the target must be enumerated on choice action.
+        game.step(Action("PLAY", roots.entity_id))
+        actions = game.legal_actions()
+        self.assertNotIn(Action("RULE_CHOICE_PICK", 0), actions)
+        self.assertIn(Action("RULE_CHOICE_PICK", 0, 1, target.entity_id), actions)
+        self.assertIn(Action("RULE_CHOICE_PICK", 1), actions)
+        game.step(Action("RULE_CHOICE_PICK", 0, 1, target.entity_id))
+        self.assertEqual(2, target.damage)
+
     def test_frostbolt_and_blizzard_freeze_targets(self):
         game = self.game()
         target = self.add_board(game, "CORE_LOOT_137", 1)
@@ -4869,6 +5054,31 @@ class SecondStandardCardBatchTests(unittest.TestCase):
         self.assertTrue(self.BATCH <= game.executable_card_ids)
         self.assertTrue(self.BATCH <= {rule.card_id for rule in game.rule_registry.all_rules()})
 
+    def test_bugsquasher_filters_typeless_targets_and_double_battlecry_fizzles(self):
+        game = self.game()
+        typeless = self.add_board(game, "CORE_EX1_005", 1)
+        typed = self.add_board(game, "CORE_EX1_162", 1)
+        bugsquasher = self.add_hand(game, "TLC_633")
+        legal_targets = {
+            action.target_entity
+            for action in game.legal_actions()
+            if action.kind == "PLAY" and action.source == bugsquasher.entity_id
+        }
+        self.assertIn(typed.entity_id, legal_targets)
+        self.assertNotIn(typeless.entity_id, legal_targets)
+
+        # Rude Awakening can duplicate a Battlecry.  The first six damage
+        # kills this 2-Health Beast; the second invocation must fizzle cleanly
+        # rather than looking up the stale target entity.
+        bugsquasher.battlecry_twice = True
+        game.step(Action("PLAY", bugsquasher.entity_id, 1, typed.entity_id))
+        self.assertNotIn(typed, game.players[1].board)
+        self.assertTrue(any(
+            event["kind"] == "battlecry_target_absent"
+            and event["source"] == "TLC_633"
+            for event in game.events
+        ))
+
     def test_after_spell_and_after_attack_windows(self):
         game = self.game()
         self.add_board(game, "CORE_NEW1_020")
@@ -5374,6 +5584,10 @@ class SixthStandardCardBatchTests(unittest.TestCase):
         self.add_hand(game, "CORE_CS2_029")
         self.assertEqual(left.cost + 1, game._effective_cost(game.players[0], left))
         self.assertEqual(sabotage.cost, game._effective_cost(game.players[0], sabotage))
+        # Discover/generated options have no position in hand; a nearby
+        # Sabotage must not make cost inspection crash or surcharge them.
+        generated = game._entity("EDR_526", created_by="test")
+        self.assertEqual(generated.cost, game._effective_cost(game.players[0], generated))
 
         game = self.game()
         spell = self.add_hand(game, "CORE_CS2_029")
@@ -5437,6 +5651,73 @@ class SixthStandardCardBatchTests(unittest.TestCase):
         self.assertEqual("CORE_EX1_005", copied.card_id)
         self.assertEqual(7, copied.attack)
         self.assertEqual(5, copied.max_health)
+
+    def test_call_of_the_wild_uses_upgraded_animal_companions(self):
+        """Call of the Wild resolves three companion events, not fixed tokens.
+
+        Once an Animal Companion upgrade is active, every event is replaced by
+        an eligible Beast at the increased cost.  Talya's extra-companion
+        modifier applies to each of the three events as well.
+        """
+        game = self.game()
+        player = game.players[0]
+        player.animal_companion_cost_increase = 1
+        player.animal_companion_extra_count = 1
+        call = self.add_hand(game, "CORE_OG_211")
+
+        game.step(Action("PLAY", call.entity_id))
+
+        self.assertEqual(6, len(player.board))
+        legacy_companions = {"NEW1_032", "NEW1_033", "NEW1_034"}
+        self.assertTrue(all(card.card_id not in legacy_companions for card in player.board))
+        self.assertTrue(all(
+            card.definition.cost == 4
+            and (card.definition.race == "BEAST" or "BEAST" in card.definition.races)
+            for card in player.board
+        ))
+
+    def test_every_animal_companion_summoner_observes_replacement(self):
+        """No card is allowed to bypass the shared companion replacement."""
+        legacy_companions = {"NEW1_032", "NEW1_033", "NEW1_034"}
+
+        def assert_upgraded_beast(card, cost):
+            self.assertNotIn(card.card_id, legacy_companions)
+            self.assertEqual(cost, card.definition.cost)
+            self.assertTrue(
+                card.definition.race == "BEAST" or "BEAST" in card.definition.races
+            )
+
+        # Animal Companion itself.
+        game = self.game()
+        game.players[0].animal_companion_cost_increase = 1
+        spell = self.add_hand(game, "CORE_NEW1_031")
+        game.step(Action("PLAY", spell.entity_id))
+        assert_upgraded_beast(game.players[0].board[-1], 4)
+
+        # Spiritspeaker's three displayed choices are still companion events,
+        # hence the selected legacy label cannot bypass the replacement.
+        game = self.game()
+        game.players[0].animal_companion_cost_increase = 1
+        speaker = self.add_hand(game, "MEND_301")
+        game.step(Action("PLAY", speaker.entity_id))
+        game.step(Action("RULE_CHOICE_PICK", 0))
+        assert_upgraded_beast(game.players[0].board[-1], 4)
+
+        # Broll resolves the same event after any spell is cast.
+        game = self.game()
+        game.players[0].animal_companion_cost_increase = 1
+        broll = self.add_hand(game, "EDR_853")
+        game.step(Action("PLAY", broll.entity_id))
+        fireball = self.add_hand(game, "CORE_CS2_029")
+        game.step(Action("PLAY", fireball.entity_id, 1, None))
+        assert_upgraded_beast(game.players[0].board[-1], 4)
+
+        # Roam Free upgrades first, then its own chosen companion resolves at
+        # the new +2 cost.
+        game = self.game()
+        roam_free = self.add_hand(game, "MEND_307")
+        game.step(Action("PLAY", roam_free.entity_id))
+        assert_upgraded_beast(game.players[0].board[-1], 5)
 
 
 class SeventhStandardCardBatchTests(unittest.TestCase):
@@ -5561,6 +5842,28 @@ class SeventhStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", knight.entity_id))
         self.assertEqual(17, game.players[0].health)
         self.assertEqual(0, game.players[0].mana)
+
+    def test_slime_em_snapshot_is_visible_and_restores_only_saved_minions(self):
+        game = self.game()
+        p1 = self.add_board(game, "CORE_EX1_005", player=0)
+        p2_a = self.add_board(game, "CATA_497", player=1)
+        p2_b = self.add_board(game, "CATA_580t", player=1)
+        spell = self.add_hand(game, "CAP_805", player=0)
+        game.step(Action("PLAY", spell.entity_id))
+
+        snapshot = game.snapshot()
+        self.assertEqual([p1.card_id], [card["id"] for card in snapshot["players"][0]["pending_slime_resummon"]])
+        self.assertEqual(
+            [p2_a.card_id, p2_b.card_id],
+            [card["id"] for card in snapshot["players"][1]["pending_slime_resummon"]],
+        )
+        resummon = next(card for card in game.players[1].hand if card.card_id == "CAP_805t")
+        game.current = 1
+        game.step(Action("PLAY", resummon.entity_id))
+        self.assertEqual(
+            [p2_a.card_id, p2_b.card_id],
+            [card.card_id for card in game.players[1].board],
+        )
 
     def test_deathrattle_and_copy_rules(self):
         game = self.game()
@@ -5892,7 +6195,7 @@ class AuxiliaryEntityCoverageTests(unittest.TestCase):
         "CATA_COIN1", "CATA_COIN2", "CATA_COIN3", "CATA_COIN4", "CATA_COIN5", "CATA_COIN6",
         "DINO_COIN1", "DINO_COIN2", "EDR_COIN1", "EDR_COIN2", "TLC_COIN2",
         "TIME_COIN1", "TIME_COIN2", "TIME_COIN3", "TIME_COIN4", "TIME_EVENT_COIN",
-        "JAIL_COIN2", "JAIL_COIN3", "JAIL_EVENT_COIN",
+        "JAIL_COIN2", "JAIL_COIN3", "JAIL_EVENT_COIN", "MUDAN_COIN1", "GDB_COIN2",
     }
     EMERALD_OPTIONS = {
         "EDR_209a", "EDR_209b", "EDR_233a", "EDR_233b", "EDR_257a", "EDR_257b",
@@ -5915,8 +6218,8 @@ class AuxiliaryEntityCoverageTests(unittest.TestCase):
         return game
 
     def test_every_coin_variant_grants_temporary_mana(self):
-        self.assertEqual(19, len(self.COINS))
-        for card_id in self.COINS:
+        self.assertEqual(21, len(self.COINS))
+        for card_id in (*self.COINS, "ETC_COIN2"):
             with self.subTest(card_id=card_id):
                 game = self.game()
                 coin = game._entity(card_id)
@@ -5928,6 +6231,10 @@ class AuxiliaryEntityCoverageTests(unittest.TestCase):
         game = self.game()
         self.assertTrue(ENGINE_OWNED_AUXILIARY_IDS <= game.executable_card_ids)
         self.assertTrue(ENGINE_OWNED_AUXILIARY_IDS <= set(game.card_defs))
+        self.assertIn("TTN_843t1", game.executable_card_ids)
+        self.assertIn("TTN_843t1", {rule.card_id for rule in game.rule_registry.all_rules()})
+        self.assertIn("HERO_11bpt", game.executable_card_ids)
+        self.assertIn("HERO_11bpt", {rule.card_id for rule in game.rule_registry.all_rules()})
 
     def test_time_auxiliary_entities_use_parent_effects(self):
         game = self.game()
@@ -5949,6 +6256,21 @@ class AuxiliaryEntityCoverageTests(unittest.TestCase):
         game.players[0].hand.append(rebirth)
         game.step(Action("PLAY", rebirth.entity_id))
         self.assertTrue(game.players[0].corpse_rebirth_pending)
+
+    def test_royal_informant_stale_hand_target_resolves_safely(self):
+        """A cloned search branch may invalidate the originally offered card."""
+        game = self.game()
+        game.players[0].mana = 20
+        informant = game._entity("TIME_036")
+        target = game._entity("GAME_005")
+        game.players[0].hand.append(informant)
+        game.players[1].hand.append(target)
+        game.step(Action("PLAY", informant.entity_id))
+        self.assertEqual("ROYAL_INFORMANT", game.pending_choice["stage"])
+        game.players[1].hand.remove(target)
+        game.step(game.legal_actions()[0])
+        self.assertIsNone(game.pending_choice)
+        self.assertEqual("royal_informant_choice_stale_target", game.events[-1]["kind"])
 
     def test_cap405_auxiliary_entities_and_effects(self):
         cap_ids = {
@@ -6035,6 +6357,47 @@ class AuxiliaryEntityCoverageTests(unittest.TestCase):
         game.step(Action("PLAY", option.entity_id))
         self.assertEqual(0, len(game.players[1].hand))
         self.assertEqual(2, len(game.players[0].hand))
+
+    def test_godfather_kazakus_creates_two_effect_trial_and_delays_it(self):
+        game = self.game()
+        player = game.players[0]
+        player.mana = 20
+        player.deck = [game._entity("GAME_005") for _ in range(4)]
+        player.health = 10
+        kazakus = game._entity("CAP_405")
+        player.hand.append(kazakus)
+
+        game.step(Action("PLAY", kazakus.entity_id))
+        self.assertEqual("SHAM_TRIAL_LENGTH", game.pending_choice["stage"])
+        # Grueling Trial: it should resolve only at the next start of P1's
+        # turn, after two independent effect selections.
+        game.step(Action("RULE_CHOICE_PICK", 1))
+        self.assertEqual("SHAM_TRIAL_EFFECTS", game.pending_choice["stage"])
+        draw_index = next(
+            index for index, effect_id in enumerate(game.pending_choice["effect_option_ids"])
+            if effect_id == "CAP_405t4"
+        )
+        game.step(Action("RULE_CHOICE_PICK", draw_index))
+        self.assertEqual(1, len(game.pending_choice["selected_effect_ids"]))
+        heal_index = next(
+            index for index, effect_id in enumerate(game.pending_choice["effect_option_ids"])
+            if effect_id == "CAP_405t8"
+        )
+        game.step(Action("RULE_CHOICE_PICK", heal_index))
+
+        trial = next(card for card in player.hand if card.card_id == "CAP_405tb2")
+        self.assertEqual(("CAP_405t4", "CAP_405t8"), trial.sham_trial_effect_ids)
+        hand_before = len(player.hand)
+        game.step(Action("PLAY", trial.entity_id))
+        self.assertEqual(hand_before - 1, len(player.hand))
+        self.assertEqual(1, len(player.pending_sham_trials))
+        self.assertEqual(10, player.health)
+
+        game.step(Action("END_TURN"))
+        game.step(Action("END_TURN"))
+        self.assertEqual([], player.pending_sham_trials)
+        self.assertEqual(22, player.health)
+        self.assertTrue(any(event["kind"] == "sham_trial_resolved" for event in game.events))
 
     def test_rime_elemental_token_deathrattle_damages_random_enemy(self):
         game = self.game()
@@ -6218,6 +6581,31 @@ class EventCardRegressionTests(unittest.TestCase):
         game.step(Action("PLAY", coin.entity_id))
         game.step(Action("PLAY", bribe.entity_id, 1, target.entity_id))
         self.assertEqual(1, sum(card.card_id == "GAME_005" for card in game.players[0].hand))
+
+    def test_mystic_misdirection_clears_pre_transform_deathrattle_payloads(self):
+        game = self.game()
+        attacker = self.add_board(game, "CORE_CS2_231", 0)
+        # Simulate an independently granted Deathrattle on the original
+        # minion.  A transform must discard it, including the payload id.
+        attacker.deathrattle_summon_card_id = "JAIL_315t"
+        secret = game._entity("JAIL_315")
+        game.players[1].secrets.append(secret)
+        game.step(Action("ATTACK", attacker.entity_id, 1, None))
+        self.assertEqual("JAIL_315t", attacker.card_id)
+        self.assertIsNone(attacker.deathrattle_summon_card_id)
+        self.assertEqual("Sheep", game._entity("JAIL_315t").definition.name)
+        attacker.damage = attacker.max_health
+        game._resolve_deaths()
+        self.assertNotIn(attacker, game.players[0].board)
+
+    def test_mother_fizzles_when_effect_play_has_no_hand_minion_target(self):
+        game = self.game()
+        mother = self.add_board(game, "BE_036")
+        # Effects that replay a minion from the deck cannot provide an
+        # interactive hand target.  With no eligible minion, the Battlecry
+        # should fizzle rather than aborting the whole simulation.
+        game._battlecry(game.players[0], mother, Action("PLAY", mother.entity_id))
+        self.assertEqual("BE_036", mother.card_id)
 
 
 if __name__ == "__main__":

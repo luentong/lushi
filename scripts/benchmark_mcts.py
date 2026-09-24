@@ -23,6 +23,7 @@ from hsa import (
     MCTSPolicy,
     RULESET,
 )
+from hsa.deck_metadata import apply_deck_metadata_overrides
 
 
 def matchup_deck_counts(config_path: Path, deck_a: str, deck_b: str):
@@ -35,6 +36,7 @@ def matchup_deck_counts(config_path: Path, deck_a: str, deck_b: str):
     by_id = {item["id"]: item for item in config["decks"]}
     cards = json.loads((ROOT / "cards.zhCN.json").read_text(encoding="utf-8"))
     by_dbf = {int(card["dbfId"]): card for card in cards if "dbfId" in card}
+    apply_deck_metadata_overrides(by_dbf)
     def decode(name):
         deck = Deck.from_deckstring(by_id[name]["deckstring"])
         if len(deck.heroes) != 1:
@@ -302,12 +304,22 @@ def _new_live_match(
 
 def _live_match_result(match: dict) -> dict:
     game = match["game"]
+    effect_resolution_capped = any(
+        event.get("kind") == "effect_resolution_capped"
+        for event in game.events
+    )
     return {
         "seed": match["seed"],
         "mcts_seat": match["mcts_seat"],
         "winner": game.winner,
         "mcts_win": game.winner == match["mcts_seat"],
         "finished": game.finished,
+        "timed_out": bool(match.get("timed_out", False)),
+        "action_limit_reached": bool(match.get("action_limit_reached", False)),
+        # A capped rule-resolution chain is useful for debugging but is not a
+        # faithful game outcome.  Surface it so downstream summaries can
+        # exclude it instead of quietly scoring an approximation as a loss.
+        "effect_resolution_capped": effect_resolution_capped,
         "invalid_actions": game.invalid_actions,
         "turns": game.turn,
         "actions": match["actions"],
@@ -335,6 +347,19 @@ def play_batched_root_priors(
     completed: list[dict] = []
     batch_calls = batch_requests = max_batch_size = 0
     while matches:
+        # A pathological rule interaction must not prevent all other batched
+        # games from finishing.  Keep the incomplete state for diagnosis, but
+        # report it explicitly rather than pretending it was a loss/draw.
+        active_matches: list[dict] = []
+        for match in matches:
+            if time.perf_counter() - match["started"] > args.max_game_seconds:
+                match["timed_out"] = True
+                completed.append(_live_match_result(match))
+            else:
+                active_matches.append(match)
+        matches = active_matches
+        if not matches:
+            break
         requests_by_model: dict[
             int, tuple[object, list[tuple[dict, object, tuple]]]
         ] = {}
@@ -349,7 +374,18 @@ def play_batched_root_priors(
                 and policy.neural_prior_depth == 1
                 and not policy.use_model_value
             ):
-                legal_actions = tuple(game.legal_actions())
+                # Match InformationSetMCTSPolicy.choose exactly: network
+                # priors must be computed after information-set-equivalent
+                # concrete actions are collapsed.  Encoding the raw list here
+                # made the injected prior length differ from the root map,
+                # silently falling back to uniform expansion in batched runs.
+                # Besides changing strength, that could send a seeded replay
+                # down a wholly different and much slower game branch.
+                legal_actions = tuple(
+                    policy._legal_map_from_actions(
+                        game, game.legal_actions()
+                    ).values()
+                )
                 if len(legal_actions) <= 1:
                     continue
                 key = id(policy.policy_value_model)
@@ -394,6 +430,8 @@ def play_batched_root_priors(
                     )
                 match["actions"] += 1
             if game.finished or match["actions"] >= args.max_actions:
+                if not game.finished and match["actions"] >= args.max_actions:
+                    match["action_limit_reached"] = True
                 completed.append(_live_match_result(match))
             else:
                 next_matches.append(match)
@@ -475,6 +513,10 @@ def main() -> int:
     )
     parser.add_argument("--search-seed", type=int, default=20260909)
     parser.add_argument("--max-actions", type=int, default=1000)
+    parser.add_argument(
+        "--max-game-seconds", type=int, default=180,
+        help="per-game wall-clock budget for batched root-prior evaluation",
+    )
     parser.add_argument(
         "--mcts-seats",
         default="0,1",
@@ -575,7 +617,17 @@ def main() -> int:
             games.append(play(*job))
             print(f"progress {len(games)}/{len(jobs)} games", flush=True)
     games.sort(key=lambda row: (row["seed"], row["mcts_seat"]))
-    wins = sum(row["mcts_win"] for row in games)
+    valid_games = [
+        row for row in games
+        # Normal completed games do not need to materialize failure-only
+        # fields such as ``timed_out``.  Timeout/error wrappers do add them,
+        # so read all optional diagnostics defensively in the shared summary.
+        if row.get("finished", False)
+        and not row.get("timed_out", False)
+        and not row.get("invalid_actions", 0)
+        and not row.get("effect_resolution_capped", False)
+    ]
+    wins = sum(row["mcts_win"] for row in valid_games)
     summary = {
         "schema_version": 1,
         "ruleset": RULESET,
@@ -677,17 +729,28 @@ def main() -> int:
         "pairs": args.pairs,
         "mcts_seats": list(candidate_seats),
         "games": len(games),
-        "finished": sum(row["finished"] for row in games),
-        "invalid_actions": sum(row["invalid_actions"] for row in games),
+        "finished": sum(row.get("finished", False) for row in games),
+        "valid_games": len(valid_games),
+        "excluded_games": len(games) - len(valid_games),
+        "timed_out_games": sum(row.get("timed_out", False) for row in games),
+        "action_limit_games": sum(
+            row.get("action_limit_reached", False) for row in games
+        ),
+        "effect_resolution_capped_games": sum(
+            row.get("effect_resolution_capped", False) for row in games
+        ),
+        "invalid_actions": sum(row.get("invalid_actions", 0) for row in games),
         "mcts_wins": wins,
-        "mcts_win_rate": wins / len(games),
-        "mcts_win_rate_wilson95": wilson_interval(wins, len(games)),
-        "elapsed_seconds": sum(row["elapsed_seconds"] for row in games),
+        "mcts_win_rate": wins / len(valid_games) if valid_games else None,
+        "mcts_win_rate_wilson95": (
+            wilson_interval(wins, len(valid_games)) if valid_games else None
+        ),
+        "elapsed_seconds": sum(row.get("elapsed_seconds", 0.0) for row in games),
         "wall_clock_seconds": time.perf_counter() - benchmark_started,
-        "searches": sum(row["searches"] for row in games),
-        "nodes": sum(row["nodes"] for row in games),
-        "simulations": sum(row["simulations"] for row in games),
-        "adaptive_searches": sum(row["adaptive_searches"] for row in games),
+        "searches": sum(row.get("searches", 0) for row in games),
+        "nodes": sum(row.get("nodes", 0) for row in games),
+        "simulations": sum(row.get("simulations", 0) for row in games),
+        "adaptive_searches": sum(row.get("adaptive_searches", 0) for row in games),
     }
     summary["mean_simulations_per_search"] = (
         summary["simulations"] / summary["searches"]

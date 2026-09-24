@@ -39,15 +39,20 @@ class TargetKind(StrEnum):
     ANY_MINION = "any_minion"
     DAMAGED_MINION = "damaged_minion"
     FRIENDLY_MINION = "friendly_minion"
+    FRIENDLY_WISP = "friendly_wisp"
     ENEMY_MINION = "enemy_minion"
+    ENEMY_TYPED_MINION = "enemy_typed_minion"
     ANY_CHARACTER = "any_character"
     FRIENDLY_CHARACTER = "friendly_character"
     FRIENDLY_UNDEAD = "friendly_undead"
     ENEMY_CHARACTER = "enemy_character"
     FRIENDLY_HAND_MINION = "friendly_hand_minion"
+    FRIENDLY_HAND_CARD = "friendly_hand_card"
     FRIENDLY_DRAGON = "friendly_dragon"
     FRIENDLY_BEAST = "friendly_beast"
     FRIENDLY_MINION_OR_HAND = "friendly_minion_or_hand"
+    FRIENDLY_LOCATION = "friendly_location"
+    ENEMY_LOCATION = "enemy_location"
 
 
 @dataclass(frozen=True)
@@ -118,11 +123,13 @@ DECLARATIVE_METADATA_ALIASES = {
     "CORE_EX1_277": "EX1_277",  # Arcane Missiles
     "CORE_CS2_172": "CS2_172",  # Bloodfen Raptor legacy fixture
     "CORE_CFM_606t": "CFM_606t",  # Mana Geode Overheal token
+    "CORE_SW_439t": "SW_439t",  # Acorn token used by Core Vibrant Squirrel
 }
 
 # New full-Standard rules are kept separate from the historical Dragon slice
 # so adding cards does not mutate the vocabulary of existing neural models.
 STANDARD_DECLARATIVE_IDS = {
+    "BE_036",  # M.O.T.H.E.R.
     "CORE_BAR_812",  # Oasis Ally
     "CAP_407",  # Wanted Poster
     "JAIL_735",  # Code Violet
@@ -298,7 +305,7 @@ STANDARD_DECLARATIVE_IDS = {
     "EDR_454t",
     "UNG_028t", "UNG_067t1", "UNG_116t", "UNG_829t1", "UNG_920t1",
     "UNG_934t1", "UNG_940t8", "UNG_942t", "UNG_954t1",
-    "UNG_999t2t1",
+    "UNG_999t2t1", "HERO_11bpt", "UNG_999t2", "UNG_999t3", "UNG_999t8",
     "TIME_005t1", "TIME_005t2", "TIME_005t4", "TIME_005t5", "TIME_005t6",
     "TIME_005t3", "TIME_005t7", "TIME_005t8",
     "CS2_tk1",
@@ -375,7 +382,7 @@ STANDARD_DECLARATIVE_IDS = {
     "EDR_416t",  # Sleepy Sheep token
     "CATA_302",  # Mend
     "CATA_308",  # Medivh's Triumph
-    "JAIL_COIN1",  # The Coin
+    "JAIL_COIN1", "ETC_COIN2", "MUDAN_COIN1", "GDB_COIN2",  # The Coin printings
     "EDR_463",  # Twilight Influence
     "EDR_463a",  # Constricting Thorns choice
     "EDR_463b",  # Controlling Vines choice
@@ -602,10 +609,10 @@ STANDARD_DECLARATIVE_IDS = {
     "CATA_COIN1", "CATA_COIN2", "CATA_COIN3", "CATA_COIN4", "CATA_COIN5", "CATA_COIN6",
     "DINO_COIN1", "DINO_COIN2", "EDR_COIN1", "EDR_COIN2", "TLC_COIN2",
     "TIME_COIN1", "TIME_COIN2", "TIME_COIN3", "TIME_COIN4", "TIME_EVENT_COIN",
-    "JAIL_COIN2", "JAIL_COIN3", "JAIL_EVENT_COIN",
+    "JAIL_COIN2", "JAIL_COIN3", "JAIL_EVENT_COIN", "GDB_COIN2",
     # Current-standard generated cards that resolve through the same normal
     # spell/minion dispatcher as deck cards.
-    "CATA_158t", "CATA_552t", "CATA_553t", "MEND_100t",
+    "CATA_158t", "CATA_552t", "CATA_553t", "MEND_100t", "TTN_843t1",
     "MEND_505t", "MEND_505t2", "MEND_505t3",
     # Emerald Dream option cards.  The parent Choose One card creates these
     # exact entities in client traces, so each is independently executable.
@@ -622,6 +629,7 @@ STANDARD_DECLARATIVE_IDS = {
 # they cannot be mistaken for an unimplemented generated card merely because
 # their behavior does not live in ``build_rule_registry``.
 ENGINE_OWNED_AUXILIARY_IDS = frozenset({
+    "JAIL_446hp",                # Vampyr's Kiss hero power replacement
     "CATA_158t",                 # Soldier of Sinestra on-summon trigger
     "CATA_150t", "CATA_150t1",  # Hand of Ragnaros Herald forms
     "CATA_151t1",                # Azshara's upgraded Tentacle
@@ -893,6 +901,7 @@ class CosmicManifestationsOutcast:
             if card_id in game.card_defs
             and game.card_defs[card_id].card_type == "SPELL"
             and game.card_defs[card_id].card_class == "DEMONHUNTER"
+            and card_id != "JAIL_732"
             and not card_id.endswith("t")
         )
         enemy = game.players[1 - context.player.index]
@@ -1571,6 +1580,31 @@ class DestroyEnemyLocation:
 
 
 @dataclass(frozen=True)
+class ReopenLocationWithRandomMinionDeathrattle:
+    """Welcome Home!: reopen a friendly location and grant its Deathrattle."""
+
+    cost: int = 3
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.action is None or context.action.target_entity is None:
+            raise ValueError("friendly location target is required")
+        location = next(
+            (item for item in context.player.locations
+             if item.entity_id == context.action.target_entity),
+            None,
+        )
+        if location is None:
+            raise ValueError("location target is no longer present")
+        location.cooldown = 0
+        location.random_minion_deathrattle_cost = self.cost
+        game._event(
+            "welcome_home_reopen", player=context.player.index,
+            source=context.card.card_id, target=location.entity_id,
+            summon_cost=self.cost,
+        )
+
+
+@dataclass(frozen=True)
 class BestInShell:
     def execute(self, game: Any, context: RuleContext) -> None:
         SummonWithTaunt("SW_429t", count=2).execute(game, context)
@@ -1632,10 +1666,23 @@ class DrawAndDiscountDrawn:
 class DestroyFriendlyWispDraw:
     def execute(self, game: Any, context: RuleContext) -> None:
         if context.action is None or context.action.target_player != context.player.index:
-            raise ValueError("friendly Wisp target is required")
-        target = game._find_minion(context.player.index, context.action.target_entity)
+            # Legal-action generation only exposes friendly Wisps.  A stale
+            # information-set branch can still retain a previous entity id;
+            # it must fizzle rather than abort the entire simulation.
+            game._event("divination_stale_target", player=context.player.index,
+                        source=context.card.entity_id, target=None)
+            return
+        try:
+            target = game._find_minion(context.player.index, context.action.target_entity)
+        except ValueError:
+            game._event("divination_stale_target", player=context.player.index,
+                        source=context.card.entity_id,
+                        target=context.action.target_entity)
+            return
         if target.definition.name.casefold() != "wisp":
-            raise ValueError("Divination requires a friendly Wisp")
+            game._event("divination_invalid_non_wisp_target", player=context.player.index,
+                        source=context.card.entity_id, target=target.entity_id)
+            return
         target.damage = target.max_health
         game._resolve_deaths()
         for _ in range(3):
@@ -2843,15 +2890,20 @@ class DamageAllEnemyCharacters:
             context.player.played_card_counts.get(card_id, 0)
             for card_id in self.repeat_for_cards
         )
-        targets = game._random_enemy_characters(context.player.index)
+        resolved_targets = []
         for _ in range(repeats):
+            # Each volley is a distinct damage resolution.  A minion killed
+            # by an earlier volley has left the board and is not a legal
+            # target for the following one.
+            targets = game._random_enemy_characters(context.player.index)
             for target in targets:
                 game._deal_to_target(context.player.index, target, amount, context.card)
+                resolved_targets.append(target)
             game._resolve_deaths()
         game._event(
             "all_enemy_damage", player=context.player.index,
             source=context.card.card_id, amount=amount, repeats=repeats,
-            targets=targets,
+            targets=resolved_targets,
         )
 
 
@@ -6440,6 +6492,11 @@ class AddToHand:
         player = _recipient(game, context, self.side)
         for _ in range(self.count):
             card = game._entity(self.card_id, created_by=context.card.card_id)
+            if card.card_id == "JAIL_732":
+                # Void Blast can add the generated Void Soul directly to hand;
+                # preserve the controller's current tier just like the
+                # Stardust Scythe generation path does.
+                card.void_soul_cost = max(1, player.void_soul_level)
             if len(player.hand) < 10:
                 player.hand.append(card)
                 game._event(
@@ -7166,17 +7223,29 @@ class DamageRandomOtherCharacters:
     amount: int
 
     def execute(self, game: Any, context: RuleContext) -> None:
-        targets: list[tuple[int, int | None]] = []
-        for player in game.players:
-            targets.append((player.index, None))
-            targets.extend((player.index, minion.entity_id) for minion in player.board
-                           if minion.dormant_turns == 0 and minion.health > 0)
-        targets = [target for target in targets if not (
-            target[0] == context.player.index
-            and target[1] == context.card.entity_id
-        )]
-        hits = game.rng.choices(targets, k=min(self.amount, len(targets))) if targets else []
-        for target in hits:
+        # Select and resolve one hit at a time.  Sampling the whole list with
+        # replacement and resolving deaths between hits can leave a dead
+        # minion entity in the remaining sample, which makes replay fail with
+        # ``minion not found``.  The live game re-evaluates random characters
+        # after each damage event, so this also matches the intended semantics.
+        hits: list[tuple[int, int | None]] = []
+        for _ in range(max(0, self.amount)):
+            targets: list[tuple[int, int | None]] = []
+            for player in game.players:
+                targets.append((player.index, None))
+                targets.extend(
+                    (player.index, minion.entity_id)
+                    for minion in player.board
+                    if minion.dormant_turns == 0 and minion.health > 0
+                )
+            targets = [target for target in targets if not (
+                target[0] == context.player.index
+                and target[1] == context.card.entity_id
+            )]
+            if not targets:
+                break
+            target = game.rng.choice(targets)
+            hits.append(target)
             game._deal_to_target(context.player.index, target, 1, context.card)
             game._resolve_deaths()
         game._event("random_other_character_damage", player=context.player.index,
@@ -7471,6 +7540,31 @@ class SummonAnimalCompanion:
 
 
 @dataclass(frozen=True)
+class SummonSelectedAnimalCompanion:
+    """Resolve a specifically selected companion through global replacement.
+
+    Spiritspeaker retains the meaningful Huffer/Leokk/Misha selection before
+    an upgrade.  Once a replacement effect is active, that selected companion
+    is replaced by the same random-Beast companion event as every other
+    source.
+    """
+
+    companion_id: str
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        if context.player.animal_companion_cost_increase:
+            SummonAnimalCompanion().execute(game, context)
+            return
+        if len(context.player.board) + len(context.player.locations) >= 7:
+            return
+        if self.companion_id not in game.card_defs:
+            return
+        minion = game._entity(self.companion_id, created_by=context.card.card_id)
+        minion.summoned_turn = game.turn
+        game._summon(context.player, minion)
+
+
+@dataclass(frozen=True)
 class SummonAllAnimalCompanions:
     def execute(self, game: Any, context: RuleContext) -> None:
         if context.player.animal_companion_cost_increase:
@@ -7749,7 +7843,15 @@ class DestroyFriendlyMakeBones:
     def execute(self, game: Any, context: RuleContext) -> None:
         if context.action is None or context.action.target_player != context.player.index:
             raise ValueError("friendly minion target is required")
-        target = game._find_minion(context.player.index, context.action.target_entity)
+        # A repeated Battlecry can reuse the original target action. If the
+        # first copy already destroyed that minion, the second copy fizzles.
+        target = next(
+            (minion for minion in context.player.board
+             if minion.entity_id == context.action.target_entity),
+            None,
+        )
+        if target is None:
+            return
         attack, health = target.attack, target.max_health
         target.damage = target.max_health
         game._resolve_deaths()
@@ -8366,13 +8468,24 @@ class JarHandMinions:
 @dataclass(frozen=True)
 class ArmShamTrial:
     def execute(self, game: Any, context: RuleContext) -> None:
-        options = tuple((f"Trial lasts {turns} turns", (SetSourceAttributes((("sham_trial_turns", turns),)),))
-                        for turns in (1, 2, 3))
-        game.pending_choice = {"kind": "RULE_CHOICE", "player": context.player.index,
-                               "card": context.card, "action": context.action,
-                               "options": options}
+        # The client flow is not a single duration flag: pick a Trial form,
+        # pick two distinct verdict effects, then put the resulting spell in
+        # hand. The engine owns the later owner-turn countdown.
+        variants = (
+            ("CAP_405tb1", 0),  # Rushed: resolves immediately when played.
+            ("CAP_405tb2", 1),  # Grueling: start of next own turn.
+            ("CAP_405tb3", 4),  # Unending: start of fourth own turn later.
+        )
+        game.pending_choice = {
+            "kind": "RULE_CHOICE", "stage": "SHAM_TRIAL_LENGTH",
+            "player": context.player.index, "card": context.card,
+            "action": context.action, "trial_variants": variants,
+            "options": tuple((game.card_defs[trial_id].name, ())
+                             for trial_id, _delay in variants),
+        }
         game._event("sham_trial_offer", player=context.player.index,
-                    source=context.card.card_id, lengths=[1, 2, 3])
+                    source=context.card.card_id,
+                    trials=[trial_id for trial_id, _delay in variants])
 
 
 @dataclass(frozen=True)
@@ -8456,7 +8569,29 @@ class PlayTopDeckCards:
                     break
                 card.summoned_turn = game.turn
                 game._summon(context.player, card)
-                game._battlecry(context.player, card, Action("PLAY", card.entity_id))
+                # A top-decked minion is *played* without a UI target picker.
+                # When its battlecry is targeted, select only from the rule's
+                # legal target pool; with no legal target the battlecry simply
+                # fizzles.  Passing `None` through to a targeted implementation
+                # used to crash long self-play games on e.g. EDR_031.
+                targeting = game.rule_registry.targeting(card.card_id)
+                if targeting is None:
+                    game._battlecry(context.player, card, Action("PLAY", card.entity_id))
+                else:
+                    candidates = game._rule_targets(
+                        context.player, card, targeting.kind,
+                    )
+                    if candidates:
+                        target_player, target_entity = game.rng.choice(candidates)
+                        game._battlecry(
+                            context.player, card,
+                            Action("PLAY", card.entity_id, target_player, target_entity),
+                        )
+                    else:
+                        game._event(
+                            "topdeck_battlecry_no_legal_target",
+                            player=context.player.index, card=card.card_id,
+                        )
             elif card.definition.card_type == "SPELL":
                 candidates = game._random_spell_target_candidates(context.player.index, card)
                 action = Action("PLAY", card.entity_id, *candidates[0][:2]) if candidates else Action("PLAY", card.entity_id)
@@ -8723,6 +8858,16 @@ class ApplyDarkGiftToActionTarget:
         if context.action is None or context.action.target_player != context.player.index:
             raise ValueError("friendly minion target is required for a Dark Gift")
         target = game._find_minion(context.player.index, context.action.target_entity)
+        if self.gift not in game._eligible_dark_gifts(target):
+            # A copied spell resolves its second cast against the *current*
+            # board.  If its original target just received an exclusive
+            # keyword Gift, that target is no longer legal and this cast
+            # fizzles rather than throwing or double-granting the Gift.
+            game._event(
+                "dark_gift_no_longer_eligible", player=context.player.index,
+                source=context.card.card_id, target=target.entity_id, gift=self.gift,
+            )
+            return
         game._apply_dark_gift(target, self.gift, owner=context.player)
         game._event(
             "dark_gift_option", player=context.player.index,
@@ -8964,9 +9109,22 @@ class OpenStandardPackAndPlay:
             if card.definition.card_type == "MINION":
                 if len(context.player.board) + len(context.player.locations) >= 7:
                     break
+                target_spec = game.rule_registry.targeting(card.card_id)
+                targets = (
+                    game._rule_targets(context.player, card, target_spec.kind)
+                    if target_spec is not None else []
+                )
+                if target_spec is not None and not targets and not target_spec.optional:
+                    # A generated battlecry that needs a target cannot be
+                    # played when the random pack did not also provide one.
+                    continue
+                target = targets[0] if targets else (None, None)
                 card.summoned_turn = game.turn
                 game._summon(context.player, card)
-                game._battlecry(context.player, card, Action("PLAY", card.entity_id))
+                game._battlecry(
+                    context.player, card,
+                    Action("PLAY", card.entity_id, target[0], target[1]),
+                )
             elif card.definition.card_type == "SPELL":
                 candidates = game._random_spell_target_candidates(context.player.index, card)
                 action = Action("PLAY", card.entity_id, *candidates[0][:2]) if candidates else Action("PLAY", card.entity_id)
@@ -9359,9 +9517,31 @@ class CastRandomExecutableSpells:
             spell = game._entity(
                 game.rng.choice(pool), created_by=context.card.card_id,
             )
-            # Try target-free casting first.  For targeted spells, choose only
-            # from the engine's legal target candidates, never fabricate a
-            # target merely to satisfy the generated effect.
+            # A generated spell must obey the same target contract as a card
+            # played from hand.  Do not attempt a target-free resolution for
+            # a required-target spell: some legacy fallback resolvers index
+            # the target immediately, and that used to turn a valid random
+            # cast (for example Torch) into a TypeError.
+            target_spec = game.rule_registry.targeting(spell.card_id)
+            if target_spec is not None and not target_spec.optional:
+                candidates = game._random_spell_target_candidates(
+                    context.player.index, spell
+                )
+                if not candidates:
+                    continue
+                target_player, target_entity, _ = candidates[0]
+                try:
+                    game._cast_spell(
+                        context.player, spell,
+                        Action("PLAY", spell.entity_id, target_player, target_entity),
+                    )
+                except ValueError:
+                    continue
+                cast.append(spell.card_id)
+                continue
+            # For target-free and optional-target spells, retain a no-target
+            # attempt first.  If it is illegal, choose from current legal
+            # candidates rather than fabricating an entity.
             try:
                 game._cast_spell(context.player, spell, Action("PLAY", spell.entity_id))
             except ValueError:
@@ -11381,15 +11561,37 @@ class ShadowRounds:
         game._damage_minion(context.action.target_player, target, 2, context.card)
         killed = target.health <= 0
         game._resolve_deaths()
-        while killed:
+        # "Cast this on another random enemy minion" can enter a self-feeding
+        # deathrattle/summon chain in a simulator (for example when every
+        # victim immediately produces another killable body).  The live game
+        # has effect-resolution safeguards; impose an explicit branch-local
+        # budget here so a single rollout cannot run forever.  Thirty-two is
+        # far above an ordinary seven-slot board clear and the cap is emitted
+        # for audit rather than silently treated as a natural termination.
+        chained_casts = 0
+        max_chained_casts = 32
+        while killed and chained_casts < max_chained_casts:
             enemy = game.players[1 - context.player.index]
-            candidates = [minion for minion in enemy.board if minion.dormant_turns == 0]
+            candidates = [
+                minion for minion in enemy.board
+                if minion.dormant_turns == 0 and minion.health > 0
+            ]
             if not candidates:
                 return
             target = game.rng.choice(candidates)
             game._damage_minion(enemy.index, target, 2, context.card)
             killed = target.health <= 0
             game._resolve_deaths()
+            chained_casts += 1
+        if killed:
+            game._event(
+                "effect_resolution_capped",
+                source=context.card.card_id,
+                player=context.player.index,
+                effect="shadow_rounds",
+                chained_casts=chained_casts,
+                limit=max_chained_casts,
+            )
 
 
 @dataclass(frozen=True)
@@ -12561,10 +12763,22 @@ class SavageStrikerBattlecry:
     def execute(self, game: Any, context: RuleContext) -> None:
         if context.action is None or context.action.target_entity is None:
             raise ValueError("enemy minion target is required")
-        amount = max(0, context.player.attack)
-        target = game._find_minion(
-            context.action.target_player, context.action.target_entity
+        target = next(
+            (
+                minion for minion in game.players[context.action.target_player].board
+                if minion.entity_id == context.action.target_entity
+            ),
+            None,
         )
+        # A copied/doubled Battlecry keeps the original target.  If its first
+        # resolution killed that minion, subsequent resolutions fizzle rather
+        # than dereferencing an entity that has left the board.
+        if target is None:
+            game._event("battlecry_target_absent", player=context.player.index,
+                        source=context.card.card_id,
+                        target=context.action.target_entity)
+            return
+        amount = max(0, context.player.attack)
         game._damage_minion(
             context.action.target_player, target, amount, context.card
         )
@@ -12576,9 +12790,18 @@ class BugsquasherBattlecry:
     def execute(self, game: Any, context: RuleContext) -> None:
         if context.action is None or context.action.target_entity is None:
             raise ValueError("enemy minion target is required")
-        target = game._find_minion(
-            context.action.target_player, context.action.target_entity
+        target = next(
+            (
+                minion for minion in game.players[context.action.target_player].board
+                if minion.entity_id == context.action.target_entity
+            ),
+            None,
         )
+        if target is None:
+            game._event("battlecry_target_absent", player=context.player.index,
+                        source=context.card.card_id,
+                        target=context.action.target_entity)
+            return
         if not target.definition.races and not target.definition.race:
             raise ValueError("Bugsquasher requires a minion with a type")
         game._damage_minion(
@@ -12963,6 +13186,67 @@ class InjuredAttendantBattlecry:
 
 
 @dataclass(frozen=True)
+class MotherHandDiscount:
+    """Discount a selected hand card and its neighbors.
+
+    M.O.T.H.E.R. applies 5 points to the selected card, then 4/3/2/1 to
+    cards at increasing distance on both sides in the current hand order.
+    The played M.O.T.H.E.R. is already on the board when this hook runs, so
+    the entity IDs in the action refer only to the remaining hand.
+    """
+
+    center_discount: int = 5
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        action = context.action
+        hand = context.player.hand
+        if action is None or action.target_entity is None:
+            # M.O.T.H.E.R. can also be played by an effect such as a
+            # top-deck replay.  Those effects cannot open an interactive
+            # target choice; resolve the Battlecry against a random eligible
+            # minion, and correctly fizzle when the hand has none.  The
+            # ordinary PLAY path still supplies an explicit target through
+            # legal_actions.
+            candidates = [card for card in hand
+                          if card.definition.card_type == "MINION"]
+            if not candidates:
+                game._event("mother_no_hand_minion", player=context.player.index,
+                            source=context.card.card_id)
+                return
+            target_entity = game.rng.choice(candidates).entity_id
+        else:
+            target_entity = action.target_entity
+        try:
+            center = next(
+                index for index, card in enumerate(hand)
+                if card.entity_id == target_entity
+            )
+        except StopIteration as exc:
+            raise ValueError("M.O.T.H.E.R. target is not in hand") from exc
+
+        affected: list[dict[str, int]] = []
+        for distance in range(self.center_discount):
+            discount = self.center_discount - distance
+            for index in (center - distance if distance else center,
+                          center + distance if distance else None):
+                if index is None or not 0 <= index < len(hand):
+                    continue
+                target = hand[index]
+                target.cost_delta -= discount
+                affected.append({
+                    "entity": target.entity_id,
+                    "card": target.card_id,
+                    "discount": discount,
+                    "distance": distance,
+                })
+        game._event(
+            "mother_hand_discount", player=context.player.index,
+            source=context.card.entity_id, target=action.target_entity,
+            affected=affected,
+        )
+
+
+@dataclass(frozen=True)
 class CardRule:
     card_id: str
     hooks: dict[Hook, tuple[Effect, ...]]
@@ -13055,6 +13339,31 @@ def build_rule_registry() -> RuleRegistry:
     rosetta = "vendor/RosettaStone@e10749b5f0c08d3a6135bce317cb11d1738846ad"
     local = "HearthstoneJSON build 251332 + local rule tests"
     return RuleRegistry((
+        # Blackwing Experiment's generated Dragon Breath is a targeted spell.
+        # Registering its target contract is required when a spell-copy effect
+        # repeats it; otherwise the repeat-retarget helper would manufacture a
+        # no-target PLAY action and resolution would receive player=None.
+        CardRule(
+            "CATA_464t", {},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+            TargetSpec(TargetKind.ANY_CHARACTER),
+        ),
+        CardRule(
+            "TLC_813", {},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
+            TargetSpec(TargetKind.ANY_MINION),
+        ),
+        CardRule(
+            "TIME_EVENT_997", {Hook.SPELL: (ReopenLocationWithRandomMinionDeathrattle(),)},
+            RuleSource("official_text", "HearthstoneJSON 251332"),
+            TargetSpec(TargetKind.FRIENDLY_LOCATION),
+        ),
+        CardRule(
+            "BE_036", {Hook.BATTLECRY: (MotherHandDiscount(),)},
+            RuleSource("official_text_and_engine_pattern", "HearthstoneJSON latest",
+                       verification=("test_mother_left_right_hand_discount",)),
+            TargetSpec(TargetKind.FRIENDLY_HAND_CARD),
+        ),
         CardRule(
             "CATA_133", {Hook.END_TURN: (FlitterwingEndTurn(),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332",
@@ -13402,7 +13711,7 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "MEND_044", {Hook.LOCATION: (BuffLocationTargetAndSleep(2, 2),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332", ()),
-            TargetSpec(TargetKind.FRIENDLY_MINION),
+            TargetSpec(TargetKind.FRIENDLY_WISP),
         ),
         CardRule(
             "TIME_044", {Hook.LOCATION: (BuffLocationTargetAndAdvance(2, 1, "TIME_044t1"),)},
@@ -13863,7 +14172,7 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "DINO_419", {Hook.BATTLECRY: (BuffFriendlyBeastWithRush(),)},
             RuleSource("official_text_and_engine_pattern", "HearthstoneJSON 251332"),
-            targeting=TargetSpec(TargetKind.FRIENDLY_MINION),
+            targeting=TargetSpec(TargetKind.FRIENDLY_BEAST),
         ),
         CardRule(
             "DINO_421", {Hook.DEATHRATTLE: (
@@ -15356,7 +15665,11 @@ def build_rule_registry() -> RuleRegistry:
         CardRule(
             "CATA_585", {Hook.SPELL: (DamageDamagedTargetWithExcessReturn(8),)},
             RuleSource("upstream_adapted", rosetta, "CATA_585", "AGPL-3.0", ("test_standard_torch_excess_return",)),
-            TargetSpec(TargetKind.ENEMY_MINION),
+            # The spell text requires a minion that is already damaged.  Keep
+            # the legality predicate aligned with the effect implementation;
+            # otherwise ISMCTS can select an undamaged target and fail during
+            # action replay.
+            TargetSpec(TargetKind.DAMAGED_MINION),
         ),
         CardRule(
             "CATA_203", {Hook.SPELL: (DestroyLegendaryTarget(),)},
@@ -15373,6 +15686,7 @@ def build_rule_registry() -> RuleRegistry:
             "CORE_REV_023", {Hook.BATTLECRY: (DestroyEnemyLocation(),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332",
                        verification=("test_demolition_renovator_tradeable_battlecry",)),
+            TargetSpec(TargetKind.ENEMY_LOCATION),
         ),
         CardRule(
             "CORE_SW_429", {Hook.SPELL: (BestInShell(),)},
@@ -16409,6 +16723,14 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule(
+            "ETC_COIN2", {Hook.SPELL: (GainMana(1),)},
+            RuleSource(
+                "official_text_and_powerlog_verified", "HearthstoneJSON 251332 + real Power.log",
+                "ETC_COIN2", "internal",
+                ("test_every_coin_variant_grants_temporary_mana",),
+            ),
+        ),
+        CardRule(
             "CATA_153", {Hook.BATTLECRY: (AddMinionsMatchingSourceAttack(),)},
             RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332; Colossal appendage model", ("test_alakir_colossal_and_cost_matching_minions",)),
         ),
@@ -16573,10 +16895,9 @@ def build_rule_registry() -> RuleRegistry:
                 "powerlog_verified", local, "EDR_463", "internal",
                 ("test_latest_powerlog_choice_rules",),
             ),
-            # The current action encoding has one target slot for the whole
-            # Choose One card.  Requiring a minion target keeps the destroy
-            # branch legal; the summon branch simply ignores that target.
-            TargetSpec(TargetKind.ANY_MINION),
+            # The target belongs to the destroy choice only. The engine
+            # exposes it after the player has selected that branch.
+            TargetSpec(TargetKind.ANY_MINION, optional=True),
         ),
         CardRule(
             "EDR_860",
@@ -16761,6 +17082,11 @@ def build_rule_registry() -> RuleRegistry:
                  _BATCH_50_SOURCE),
         CardRule("CORE_SW_088", {Hook.SPELL: (DamageEnemyHero(3), SummonWithTaunt("CORE_CS2_065", 2))},
                  _BATCH_50_SOURCE),
+        # The legacy engine owns the silence effect, while the rule registry
+        # owns target metadata so generated play effects can construct a
+        # legal action for Ironbeak Owl.
+        CardRule("CORE_SW_066", {}, _BATCH_50_SOURCE,
+                 TargetSpec(TargetKind.ANY_MINION)),
         CardRule("CORE_CS2_042", {Hook.BATTLECRY: (DamageActionTarget(4),)},
                  _BATCH_50_SOURCE, TargetSpec(TargetKind.ENEMY_CHARACTER)),
         CardRule("CORE_EX1_134", {Hook.BATTLECRY: (IfSourceAttribute("combo_active", (DamageActionTarget(3),)),)},
@@ -16822,7 +17148,7 @@ def build_rule_registry() -> RuleRegistry:
         CardRule("CORE_NEW1_021", {Hook.START_TURN: (DamageAllMinions(99),)}, _BATCH_50B_SOURCE),
         CardRule("EDR_110", {Hook.DEATHRATTLE: (DamageRandomEnemyMinion(1),)}, _BATCH_50B_SOURCE),
         CardRule("TLC_633", {Hook.BATTLECRY: (BugsquasherBattlecry(),)},
-                 _BATCH_50B_SOURCE, TargetSpec(TargetKind.ENEMY_MINION)),
+                 _BATCH_50B_SOURCE, TargetSpec(TargetKind.ENEMY_TYPED_MINION)),
         CardRule("CORE_KAR_057", {Hook.BATTLECRY: (OfferIvoryKnightDiscover(),)}, _BATCH_50B_SOURCE),
         CardRule("EDR_255", {Hook.SPELL: (DamageLowestHealthEnemyRepeated(5, 2),)}, _BATCH_50B_SOURCE),
         CardRule("FIR_961", {Hook.BATTLECRY: (AshleafPixieBattlecry(),)}, _BATCH_50B_SOURCE),
@@ -17242,9 +17568,14 @@ def build_rule_registry() -> RuleRegistry:
         )}, _BATCH_50F_SOURCE),
         CardRule("MEND_301", {Hook.BATTLECRY: (
             OfferEffectChoice((
-                ("Huffer", (Summon("NEW1_032"),)),
-                ("Leokk", (Summon("NEW1_033"),)),
-                ("Misha", (Summon("NEW1_034"),)),
+                # These labels are the three pre-replacement companions.
+                # The result must nevertheless go through the canonical
+                # companion event: Tame Pet / Migrating Elekk / Roam Free
+                # replace *future Animal Companions* globally, including a
+                # companion selected through Spiritspeaker.
+                ("Huffer", (SummonSelectedAnimalCompanion("NEW1_032"),)),
+                ("Leokk", (SummonSelectedAnimalCompanion("NEW1_033"),)),
+                ("Misha", (SummonSelectedAnimalCompanion("NEW1_034"),)),
             )),
         )}, _BATCH_50F_SOURCE),
         CardRule("MEND_303", {Hook.BATTLECRY: (SetAnimalCompanionUpgrade(cost_increase=1),)}, _BATCH_50F_SOURCE),
@@ -17614,7 +17945,7 @@ def build_rule_registry() -> RuleRegistry:
                 "CATA_COIN1", "CATA_COIN2", "CATA_COIN3", "CATA_COIN4", "CATA_COIN5", "CATA_COIN6",
                 "DINO_COIN1", "DINO_COIN2", "EDR_COIN1", "EDR_COIN2", "TLC_COIN2",
                 "TIME_COIN1", "TIME_COIN2", "TIME_COIN3", "TIME_COIN4", "TIME_EVENT_COIN",
-                "JAIL_COIN2", "JAIL_COIN3", "JAIL_EVENT_COIN",
+                "JAIL_COIN2", "JAIL_COIN3", "JAIL_EVENT_COIN", "MUDAN_COIN1", "GDB_COIN2",
             )
         ),
         # Cataclysm and Mending generated forms.  These are real hand/board
@@ -17631,6 +17962,14 @@ def build_rule_registry() -> RuleRegistry:
                  _AUXILIARY_TOKEN_SOURCE),
         CardRule("MEND_505t3", {Hook.SPELL: (IncreaseLeylinePower(2),)},
                  _AUXILIARY_TOKEN_SOURCE),
+        # Eredar Deceptor emits this exact 1/1 Rush token in current logs;
+        # its attack behavior is carried by the entity metadata.
+        CardRule("TTN_843t1", {}, _AUXILIARY_TOKEN_SOURCE),
+        CardRule("HERO_11bpt", {}, _AUXILIARY_TOKEN_SOURCE),
+        CardRule("UNG_999t2t1", {}, _AUXILIARY_TOKEN_SOURCE),
+        *tuple(CardRule(card_id, {}, _AUXILIARY_TOKEN_SOURCE) for card_id in (
+            "UNG_999t2", "UNG_999t3", "UNG_999t8",
+        )),
         # Emerald Dream's Choose One options are emitted as concrete spell
         # entities in Power.log.  Declare the option surface explicitly so a
         # replay can resolve either the parent card or the selected entity.

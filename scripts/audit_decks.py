@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from hsa.dragon_mirror import EXECUTABLE_CARD_IDS
+from hsa.deck_metadata import apply_deck_metadata_overrides
 
 
 def parse_args() -> argparse.Namespace:
@@ -55,12 +56,24 @@ def main() -> int:
     config = json.loads(args.config.read_text(encoding="utf-8"))
     cards = json.loads(args.cards.read_text(encoding="utf-8"))
     cards_by_dbf = {card["dbfId"]: card for card in cards if "dbfId" in card}
+    apply_deck_metadata_overrides(cards_by_dbf)
     rosetta_ids = implemented_card_ids(args.rosetta)
     rows: list[dict] = []
     summaries: list[dict] = []
 
     for deck_cfg in config["decks"]:
-        deck = Deck.from_deckstring(deck_cfg["deckstring"])
+        try:
+            deck = Deck.from_deckstring(deck_cfg["deckstring"])
+        except Exception as exc:  # report every bad user-supplied code
+            summaries.append(
+                {
+                    "deck_id": deck_cfg["id"],
+                    "deck_name_zh": deck_cfg["name_zh"],
+                    "deck_ready": False,
+                    "decode_error": f"{type(exc).__name__}: {exc}",
+                }
+            )
+            continue
         rosetta_unique = rosetta_copies = 0
         runtime_unique = runtime_copies = 0
         validated_unique = validated_copies = 0
@@ -174,7 +187,10 @@ def main() -> int:
     )
     for filename, data in (("deck_summary.csv", summaries), ("card_coverage.csv", rows)):
         with (args.output / filename).open("w", encoding="utf-8-sig", newline="") as handle:
-            writer = csv.DictWriter(handle, fieldnames=list(data[0]))
+            fieldnames = list(dict.fromkeys(
+                key for item in data for key in item
+            ))
+            writer = csv.DictWriter(handle, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(data)
     print(json.dumps({"overall": overall, "decks": summaries}, ensure_ascii=False, indent=2))

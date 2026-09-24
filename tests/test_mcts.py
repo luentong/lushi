@@ -116,6 +116,18 @@ class MCTSPolicyTests(unittest.TestCase):
             next(item["mean_value"] for item in root_stats if item["selected"]),
         )
 
+    def test_information_action_duplicates_are_collapsed_without_abort(self):
+        game = DragonMirrorGame(CARDS, 128)
+        legal = game.legal_actions()
+        self.assertGreater(len(legal), 1)
+        policy = InformationSetMCTSPolicy(
+            samples=1, iterations_per_sample=2, tree_depth=2, rollout_depth=1,
+        )
+        mapped = policy._legal_map_from_actions(game, legal + [legal[0]])
+        self.assertEqual(len(legal), len(mapped))
+        action = policy.choose(game, root_actions=tuple(legal + [legal[0]]))
+        self.assertIn(action.key(), {item.key() for item in legal})
+
     def test_shared_tree_does_not_read_true_opponent_hidden_identity(self):
         first = DragonMirrorGame(CARDS, 131)
         second = first.clone(include_history=True)

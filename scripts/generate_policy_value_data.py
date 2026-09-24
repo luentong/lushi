@@ -20,7 +20,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from hsa import DragonMirrorGame, HeuristicPolicy, InformationSetMCTSPolicy, RULESET
-from hsa.encoding import encode_decision, feature_schema
+from hsa.deck_metadata import apply_deck_metadata_overrides
+from hsa.encoding import configure_card_vocab, encode_decision, feature_schema
 from hsa.lineage import ruleset_manifest
 
 
@@ -34,11 +35,21 @@ def matchup_deck_counts(config_path: Path, deck_a: str, deck_b: str):
     config = json.loads(config_path.read_text(encoding="utf-8"))
     by_id = {item["id"]: item for item in config["decks"]}
     cards = json.loads((ROOT / "cards.zhCN.json").read_text(encoding="utf-8"))
-    by_dbf = {int(card["dbfId"]): card["id"] for card in cards if "dbfId" in card}
+    by_dbf = {int(card["dbfId"]): card for card in cards if "dbfId" in card}
+    apply_deck_metadata_overrides(by_dbf)
 
     def decode(name: str):
         deck = Deck.from_deckstring(by_id[name]["deckstring"])
-        return {by_dbf[dbf_id]: count for dbf_id, count in deck.cards}
+        if len(deck.heroes) != 1:
+            raise ValueError(f"deck {name} must have exactly one hero")
+        hero = by_dbf[deck.heroes[0]]
+        card_class = str(hero.get("cardClass", ""))
+        if not card_class:
+            raise ValueError(f"deck {name} hero lacks cardClass")
+        return (
+            {by_dbf[dbf_id]["id"]: count for dbf_id, count in deck.cards},
+            card_class,
+        )
 
     return decode(deck_a), decode(deck_b)
 
@@ -172,9 +183,15 @@ def generated_games(args, game_seeds: list[int]):
 
 def play_game(cards: Path, seed: int, teacher: str, args) -> list[dict]:
     deck_counts = None
+    player_classes = ("WARRIOR", "WARRIOR")
     if args.deck_a and args.deck_b:
-        deck_counts = matchup_deck_counts(args.deck_config, args.deck_a, args.deck_b)
-    game = DragonMirrorGame(cards, seed, deck_counts=deck_counts)
+        decoded = matchup_deck_counts(args.deck_config, args.deck_a, args.deck_b)
+        (counts_a, class_a), (counts_b, class_b) = decoded
+        deck_counts = (counts_a, counts_b)
+        player_classes = (class_a, class_b)
+    game = DragonMirrorGame(
+        cards, seed, deck_counts=deck_counts, player_classes=player_classes
+    )
     if teacher == "heuristic":
         policies = [HeuristicPolicy(), HeuristicPolicy()]
     else:
@@ -300,7 +317,20 @@ def main() -> None:
     parser.add_argument("--behavior-max-total-iterations", type=int)
     parser.add_argument("--behavior-search-seed", type=int, default=20260911)
     parser.add_argument("--max-actions", type=int, default=1000)
+    parser.add_argument(
+        "--ruleset-label", default=RULESET,
+        help="Lineage label stored in the dataset header; use a new label for pooled multi-deck data.",
+    )
     parser.add_argument("--workers", type=int, default=1)
+    parser.add_argument(
+        "--card-vocab", choices=("legacy", "expanded-executable", "frozen-file"),
+        default="legacy",
+        help="Identity vocabulary; expanded mode is required for multi-deck training.",
+    )
+    parser.add_argument(
+        "--card-vocab-file", type=Path,
+        help="Frozen ordered card-vocabulary manifest for a new model generation.",
+    )
     parser.add_argument("--cards", type=Path, default=ROOT / "cards.251332.enUS.json")
     parser.add_argument("--deck-config", type=Path, default=ROOT / "config" / "decks.json")
     parser.add_argument("--deck-a")
@@ -310,6 +340,9 @@ def main() -> None:
         default=ROOT / "reports" / "policy-value-smoke.jsonl.gz",
     )
     args = parser.parse_args()
+    if args.card_vocab == "frozen-file" and args.card_vocab_file is None:
+        parser.error("--card-vocab frozen-file requires --card-vocab-file")
+    configure_card_vocab(args.card_vocab, vocabulary_file=args.card_vocab_file)
     started = time.perf_counter()
     game_seeds = [args.seed + offset for offset in range(args.games)]
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -330,7 +363,7 @@ def main() -> None:
         header = {
             "record_type": "header",
             "dataset_schema_version": 3,
-            "ruleset": RULESET,
+            "ruleset": args.ruleset_label,
             "ruleset_fingerprint": ruleset_manifest(ROOT)["fingerprint_sha256"],
             "teacher": args.teacher,
             "teacher_budget": (

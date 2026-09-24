@@ -112,7 +112,15 @@ class HeuristicPolicy:
         if action.target_entity is None:
             lethal = attack >= enemy.health + enemy.armor
             return (10000.0 if lethal else 210.0) + 2.0 * attack
-        target = game._find_minion(action.target_player, action.target_entity)
+        # Not every targeted Battlecry points at a board minion.  Some
+        # standard cards target a hand card, weapon, location, or another
+        # generated object.  The rules engine already validates those targets;
+        # the heuristic should remain total and simply assign a neutral score
+        # when it cannot apply minion-specific valuation.
+        try:
+            target = game._find_minion(action.target_player, action.target_entity)
+        except (IndexError, ValueError):
+            return 0.0
         kills_target = attack >= target.health
         loses_source = target.attack >= source_health
         trade = 2.2 * target.attack + 1.4 * target.health
@@ -140,7 +148,14 @@ class HeuristicPolicy:
                 if held.entity_id == action.target_entity
             )
             return 30.0 - _card_value(target)
-        target = game._find_minion(action.target_player, action.target_entity)
+        try:
+            target = game._find_minion(action.target_player, action.target_entity)
+        except (IndexError, ValueError):
+            # A targeted play may point to a hand card, weapon, location, or
+            # generated object rather than a board minion.  The rules engine
+            # has already validated the action; use a neutral heuristic score
+            # when no minion-specific valuation applies.
+            return 0.0
         if card.card_id == "CORE_SW_066":
             bonuses = abs(target.attack_delta) + abs(target.health_delta)
             keywords = sum((target.taunt, target.divine_shield, target.windfury,
@@ -156,7 +171,14 @@ class HeuristicPolicy:
     def _location_score(self, game: DragonMirrorGame, action: Action) -> float:
         if action.target_player is None:
             return 90.0
-        target = game._find_minion(action.target_player, action.target_entity)
+        # A location action can be scored after another branch has resolved
+        # deaths or a trigger.  Treat a stale target as neutral rather than
+        # aborting the entire self-play worker; the legality check on the
+        # current state remains authoritative when the action is applied.
+        try:
+            target = game._find_minion(action.target_player, action.target_entity)
+        except (IndexError, ValueError):
+            return 0.0
         if action.target_player == game.current:
             # Sanguine Depths is best used on a friendly minion that survives.
             return 125.0 + (25.0 if target.health > 1 else -80.0) + target.attack

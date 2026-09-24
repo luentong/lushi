@@ -14,9 +14,40 @@ from dataclasses import dataclass
 from typing import Any, Iterable
 
 from .lineage import ruleset_manifest
+from .rules import build_rule_registry
 
 
 DIRECT_BLOCKS = frozenset({"PLAY", "POWER", "TRIGGER", "ATTACK"})
+# These entities are client presentation or engine-state records rather than
+# independent decisions.  Hero skins use the same underlying class/hero power
+# as their base hero; enchantments are represented by the owning entity's
+# attack, health, cost, or temporary-effect fields in the simulator.
+COSMETIC_HERO_IDS = frozenset({
+    "HERO_06e", "HERO_06ebp", "HERO_07d", "HERO_07dbp",
+    "HERO_09aj_EliseStarseeker", "HERO_09ajhp", "HERO_09bl", "HERO_09blhp",
+    "HERO_10a", "HERO_10cbp", "HERO_11l", "HERO_11lbp",
+    # Hero/card skins observed in sanitized live logs.  These IDs do not
+    # change the underlying hero power or simulator rules.
+    "HERO_10bc", "HERO_10bchp", "HERO_01w", "HERO_01wbp",
+    "HERO_01n", "HERO_01dbp", "HERO_03dbp", "HERO_03cd",
+})
+KNOWN_AUXILIARY_READY = frozenset({
+    "ETC_COIN2", "AV_COIN1", "DFT_ALEX_COIN1", "CS2_082",
+})
+KNOWN_ENGINE_STATE_IDS = frozenset({
+    "GBL_002e", "GBL_003e", "GBL_999e", "CS2_017o", "RLK_707e2", "UNG_999t2e",
+    "TSC_650a", "TSC_650d", "VAN_CS2_222o",
+    "GBL_001e", "BT_035e", "NEW_1308e", "YOP_001e", "ICC_314t1e",
+    "SCH_158e2", "EX1_145o", "REV_990e",
+    "EX1_145e",
+})
+# The coverage export intentionally contains pinned-Standard metadata only,
+# while a real Power.log can also expose an EVENT printing or a generated
+# token.  A rule already present in the executable registry is still ready
+# even when that non-collectible entity is absent from the catalog export.
+RULE_READY_IDS = frozenset(
+    row["card_id"] for row in build_rule_registry().manifest()
+)
 SEVERITY = {
     "played_card_missing_rule": "red",
     "trigger_source_missing_rule": "red",
@@ -77,9 +108,23 @@ def _record(
     )
 
 
-def _unready_reason(card: dict[str, Any] | None, direct_kind: str | None) -> str | None:
+def _unready_reason(
+    card: dict[str, Any] | None, direct_kind: str | None,
+    *, card_id: str | None = None,
+) -> str | None:
+    card_id = card_id or (card.get("card_id") if card else None)
+    if card_id in COSMETIC_HERO_IDS or (card and card.get("set") == "HERO_SKINS"):
+        return None
+    if card_id in KNOWN_AUXILIARY_READY:
+        return None
+    if card_id in KNOWN_ENGINE_STATE_IDS:
+        return None
+    if card_id in RULE_READY_IDS:
+        return None
     if card is None:
         return "unknown_card_id"
+    if card.get("type") == "ENCHANTMENT":
+        return None
     if card.get("playable_ready"):
         return None
     if direct_kind == "PLAY":
@@ -106,7 +151,7 @@ def analyze_game(game: dict[str, Any], coverage: dict[str, Any]) -> dict[str, An
         card_id = str(card_id)
         direct[card_id] += 1
         card = cards.get(card_id)
-        reason = _unready_reason(card, kind)
+        reason = _unready_reason(card, kind, card_id=card_id)
         if reason:
             _record(
                 pending, card_id=card_id, reason=reason, card=card,
@@ -118,7 +163,7 @@ def analyze_game(game: dict[str, Any], coverage: dict[str, Any]) -> dict[str, An
     # which closure branch blocks faithful replay.
     for card_id, count in observed.items():
         card = cards.get(card_id)
-        reason = _unready_reason(card, None)
+        reason = _unready_reason(card, None, card_id=card_id)
         if reason:
             _record(
                 pending, card_id=card_id, reason=reason, card=card,

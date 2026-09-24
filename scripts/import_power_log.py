@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -16,6 +17,15 @@ sys.path.insert(0, str(ROOT / "vendor" / "python-hearthstone"))
 sys.path.insert(0, str(ROOT / "vendor" / "python-hslog"))
 
 from hslog import LogParser
+from hslog import tokens as hslog_tokens
+
+# Hearthstone's newer visual sub-spells may contain spaces in
+# ``SpellPrefabGUID`` (for example ``TIMEFX_ TachyonBarrage``).  Keep this
+# compatibility shim in the tracked importer so a fresh checkout does not
+# depend on an uncommitted vendor edit.
+hslog_tokens.SUB_SPELL_START_RE = re.compile(
+    r"SUB_SPELL_START(?: -)? SpellPrefabGUID=(.*?) Source=(\d+) TargetCount=(\d+)$"
+)
 
 from hsa.powerlog_import import normalize_packet_tree
 
@@ -59,4 +69,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

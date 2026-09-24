@@ -43,6 +43,17 @@ class ShadowAdvisorTests(unittest.TestCase):
         self.assertEqual(2, report["backlog"][0]["occurrences"])
         self.assertTrue(jsonl_backlog(report["backlog"]).endswith("\n"))
 
+    def test_engine_state_and_hero_skin_entities_do_not_block(self):
+        report = analyze_payload({"games": [{
+            "game_index": 0,
+            "revealed_cards": ["HERO_06e", "GBL_002e"],
+            "blocks": [
+                {"packet_id": 1, "block_type": "ATTACK", "source_card": "HERO_06e"},
+                {"packet_id": 2, "block_type": "TRIGGER", "source_card": "GBL_002e"},
+            ],
+        }]}, self.coverage)
+        self.assertEqual([], report["backlog"])
+
 
 if __name__ == "__main__":
     unittest.main()

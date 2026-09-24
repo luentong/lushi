@@ -7,7 +7,10 @@ import math
 import torch
 from torch import Tensor, nn
 
-from .encoding import encode_action, encode_state
+from .encoding import (
+    compatible_feature_schema, configure_card_vocab, encode_action,
+    encode_state, feature_schema,
+)
 from .policy_value import PolicyValueOutput
 
 
@@ -484,6 +487,14 @@ class TorchPolicyValueModel:
         device = torch.device(device)
         checkpoint = torch.load(path, map_location="cpu", weights_only=False)
         metadata = checkpoint["report"]["model"]
+        feature = checkpoint["report"].get("feature_schema", {})
+        configure_card_vocab(
+            feature.get("card_vocab_mode", "legacy"),
+            vocabulary=feature.get("card_vocab_ids"),
+        )
+        current_schema = feature_schema(int(feature.get("schema_version", 1)))
+        if feature and not compatible_feature_schema(feature, current_schema):
+            raise ValueError("checkpoint feature schema differs from its restored vocabulary")
         architecture = metadata.get("architecture", "policy-value-mlp-v1")
         model_class = {
             "policy-value-mlp-v1": PolicyValueNet,
@@ -512,9 +523,7 @@ class TorchPolicyValueModel:
             model, device,
             value_trained=bool(checkpoint["report"].get("value_trained", True)),
             state_schema_version=int(
-                checkpoint["report"].get("feature_schema", {}).get(
-                    "schema_version", 1
-                )
+                feature.get("schema_version", 1)
             ),
         )
 

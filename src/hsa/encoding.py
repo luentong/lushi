@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass
+from pathlib import Path
 
 from .dragon_mirror import Action, DragonMirrorGame
 from .legacy_vocab import LEGACY_CARD_VOCAB
@@ -20,8 +21,59 @@ ACTION_KINDS = (
     "DISCOVER_PICK", "REWIND_KEEP", "REWIND_RETRY", "AMMUNITION_PICK",
     "CORPSE_SPEND",
 )
+CARD_VOCAB_MODE = "legacy"
 CARD_VOCAB = LEGACY_CARD_VOCAB
 CARD_INDEX = {card_id: index for index, card_id in enumerate(CARD_VOCAB)}
+
+
+def _load_frozen_vocabulary(path: Path) -> tuple[str, ...]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    card_ids = tuple(payload["card_ids"])
+    if len(card_ids) != len(set(card_ids)) or tuple(sorted(card_ids)) != card_ids:
+        raise ValueError(f"{path}: card vocabulary must be sorted and unique")
+    digest = hashlib.sha256(
+        json.dumps(card_ids, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    if payload.get("card_vocab_sha256") not in (None, digest):
+        raise ValueError(f"{path}: card vocabulary digest does not match contents")
+    return card_ids
+
+
+def configure_card_vocab(
+    mode: str, *, vocabulary_file: Path | None = None,
+    vocabulary: tuple[str, ...] | list[str] | None = None,
+) -> None:
+    """Select the frozen identity vocabulary used by a dataset/checkpoint.
+
+    An expanded vocabulary must be frozen at data-generation time. Deriving it
+    from the mutable runtime executable set would silently resize later model
+    inputs after a new generated token is implemented.
+    """
+    global CARD_VOCAB_MODE, CARD_VOCAB, CARD_INDEX
+    if vocabulary is not None and vocabulary_file is not None:
+        raise ValueError("supply either vocabulary or vocabulary_file, not both")
+    if vocabulary is not None:
+        vocabulary = tuple(vocabulary)
+        if tuple(sorted(vocabulary)) != vocabulary or len(set(vocabulary)) != len(vocabulary):
+            raise ValueError("explicit card vocabulary must be sorted and unique")
+    elif vocabulary_file is not None:
+        vocabulary = _load_frozen_vocabulary(vocabulary_file)
+    elif mode == "legacy":
+        vocabulary = tuple(LEGACY_CARD_VOCAB)
+    elif mode == "expanded-executable":
+        # Backward-compatible v4 name. Its historical list is immutable, so
+        # new runtime-only entities remain unknown to old checkpoints.
+        vocabulary = _load_frozen_vocabulary(
+            Path(__file__).resolve().parents[2]
+            / "config" / "card_vocabs" / "expanded-executable-v1.json"
+        )
+    else:
+        raise ValueError(
+            "card vocabulary must be 'legacy', 'expanded-executable', or frozen"
+        )
+    CARD_VOCAB_MODE = mode
+    CARD_VOCAB = vocabulary
+    CARD_INDEX = {card_id: index for index, card_id in enumerate(CARD_VOCAB)}
 ZONE_NAMES = ("none", "hand", "board", "location", "choice", "literal")
 TARGET_KINDS = ("none", "hero", "card", "literal")
 MAX_HAND_SLOTS = 10
@@ -190,10 +242,16 @@ def encode_action(
     # Keep the fixed action schema backward-compatible when newer rule
     # modules introduce a choice action.  Choice picks have the same
     # source/target semantics as discover picks, so encode them through the
-    # existing slot rather than changing model input dimensions.
+    # existing slot rather than changing model input dimensions.  HAND_PICK
+    # and DISCARD_PICK are hand-selection choices, while the other aliases
+    # are board/deck choice prompts; their source entity/position remains
+    # available through the normal locator fields.
     encoded_kind = action.kind
     if encoded_kind not in ACTION_KINDS:
-        if encoded_kind in {"RULE_CHOICE_PICK", "CATACLYSM_PICK"}:
+        if encoded_kind in {
+            "RULE_CHOICE_PICK", "CATACLYSM_PICK", "EARTHEN_ROAR_PICK",
+            "DISCARD_PICK", "HAND_PICK",
+        }:
             encoded_kind = "DISCOVER_PICK"
         else:
             raise ValueError(f"unsupported action kind: {action.kind}")
@@ -283,7 +341,9 @@ def feature_schema(
     return {
         "schema_version": schema_version,
         "card_vocab_size": len(CARD_VOCAB),
+        "card_vocab_mode": CARD_VOCAB_MODE,
         "card_vocab_sha256": hashlib.sha256(vocab_json.encode()).hexdigest(),
+        "card_vocab_ids": list(CARD_VOCAB),
         "state_size": (
             legacy_state_size
             if schema_version == LEGACY_STATE_SCHEMA_VERSION
@@ -304,3 +364,19 @@ def feature_schema(
         ),
         "action_target_zone": schema_version >= STATE_SCHEMA_VERSION,
     }
+
+
+def compatible_feature_schema(left: dict[str, object], right: dict[str, object]) -> bool:
+    """Compare model-shaping schema fields across old and new artifacts.
+
+    Pre-manifest v4 checkpoints did not embed ``card_vocab_ids``.  They remain
+    compatible with a later artifact only when every tensor-shaping field and
+    the vocabulary digest agree; the missing diagnostic list is not itself a
+    schema migration.
+    """
+    fields = (
+        "schema_version", "card_vocab_size", "card_vocab_mode",
+        "card_vocab_sha256", "state_size", "action_size", "action_kinds",
+        "action_player_encoding", "action_target_zone",
+    )
+    return all(left.get(field) == right.get(field) for field in fields)

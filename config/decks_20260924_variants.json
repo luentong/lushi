@@ -1,0 +1,212 @@
+{
+  "snapshot_date": "2026-09-24",
+  "format": "STANDARD",
+  "source": "/tmp/decks-variants.txt",
+  "archetypes": [
+    {
+      "name": "龙战",
+      "variants": [
+        "AAECAQcE4+YG94MH69YHstgHDar8Bqv8BqWFB+iHB9KXB7etB+yyB4S9B7XAB5XCB5zCB6ngB/vgBwAA",
+        "AAECAQcEzp4Gm8IH69YHstgHDePmBqr8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5zCB6ngB/vgBwAA",
+        "AAECAQcEzp4G4+YG69YHstgHDar8Bqv8BqWFB+iHB9KXB7etB+yyB4S9B7XAB5XCB5zCB6ngB/vgBwAA",
+        "AAECAQcEzp4GhL0H69YHstgHDePmBqr8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5zCB6ngB/vgBwAA",
+        "AAECAQcEzp4G94MH69YHstgHDar8Bqv8BqWFB+iHB9KXB7etB+yyB4S9B7XAB5XCB5zCB6ngB/vgBwAA",
+        "AAECAQcEzp4G4+YG69YHstgHDar8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5vCB5zCB6ngB/vgBwAA",
+        "AAECAQcC69YHstgHDuPmBqr8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5vCB5zCB6ngB/vgBwAA",
+        "AAECAQcC69YHstgHDqr8Bqv8BveDB6WFB+iHB9KXB7etB+yyB4S9B7XAB5XCB5zCB6ngB/vgBwAA"
+      ]
+    },
+    {
+      "name": "龙海盗战",
+      "variants": [
+        "AAECAQcEzp4G69YHstgHq+AHDePmBqr8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5zCB6ngB/vgBwAA",
+        "AAECAQcEt60H69YHstgHq+AHDePmBqr8Bqv8BqWFB+iHB9KXB+yyB7XAB5XCB5zCB6bgB6ngB/vgBwAA",
+        "AAECAQcE69YHstgHp+AHq+AHDePmBqr8Bqv8BqWFB+iHB9KXB+yyB7XAB5XCB5zCB6bgB6ngB/vgBwAA",
+        "AAECAQcEm8IH69YHstgHq+AHDePmBqr8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5zCB6ngB/vgBwAA"
+      ]
+    },
+    {
+      "name": "穆格萨",
+      "variants": [
+        "AAECAaoIBK+fBPmfBNDbB9/lBw3RmwfQnQfwqgf8rQe8sQfLtgfDwAfTwAfH2wfK2wfN2wfa3wfg9gcAAA==",
+        "AAECAaoIAtDbB9/lBw6vnwT5nwTRmwfQnQfwqgf8rQe8sQfLtgfDwAfTwAfH2wfK2wfN2wfg9gcAAA==",
+        "AAECAaoIAtDbB9/lBw6vnwTRmwfQnQfwqgf8rQe8sQfLtgfDwAfTwAfH2wfK2wfN2wfa3wfg9gcAAA=="
+      ]
+    },
+    {
+      "name": "海盗战",
+      "variants": [
+        "AAECAQcGm6UHnaUHnqUH69YHstgHq+AHDOPmBqWFB+iHB4+xB5vCB5zCB6bgB6fgB6jgB6ngB/DgB/vgBwAA",
+        "AAECAQcEt60H69YHstgHq+AHDePmBqWFB8eHB+iHB9CyB5XCB5vCB5zCB6bgB6fgB6jgB6ngB/vgBwAA",
+        "AAECAQcE69YHstgHpeAHq+AHDePmBqWFB+iHB9CyB5XCB5vCB5zCB6bgB6fgB6jgB6ngB/DgB/vgBwAA"
+      ]
+    },
+    {
+      "name": "快攻德",
+      "variants": [
+        "AAECAZICBs2eBpKDB6+HB+DAB+XEB6PaBwyunwSIgweqrwesrwfosQe+sgfXwAfk2QeR2gfH5ge85wfK5wcAAA==",
+        "AAECAZICCs2eBoiDB5KDB6+HB4KYB+DAB+LAB93EB+XEB6PaBwqunwSqrwesrwfosQe+sgfXwAfk2QfH5ge85wfK5wcAAA==",
+        "AAECAZICCs2eBoiDB5KDB6+HB4KYB+DAB+LAB93EB+XEB6PaBwqunwSqrwesrwfosQe+sgfXwAeR2gfH5ge85wfK5wcAAA==",
+        "AAECAZICDM6eBqn1BqGBB5KDB6+HB6yIB4KYB+ixB+DAB+LAB+XEB6PaBwmunwSqrwesrwe+sgfXwAeR2gfH5ge85wfK5wcAAA==",
+        "AAECAZICDM2eBqn1BqGBB5KDB6+HB6yIB4KYB+ixB+DAB+LAB+XEB6PaBwmunwSqrwesrwe+sgfXwAeR2gfH5ge85wfK5wcAAA==",
+        "AAECAZICCqn1BqGBB5KDB6+HB6yIB4KYB+DAB+LAB+XEB6PaBwqunwSqrwesrwfosQe+sgfXwAeR2gfH5ge85wfK5wcAAA==",
+        "AAECAZICCM2eBpKDB6+HB4KYB+DAB93EB+XEB6PaBwuunwSIgweqrwesrwfosQe+sgfXwAeR2gfH5ge85wfK5wcAAA=="
+      ]
+    },
+    {
+      "name": "邪DK",
+      "variants": [
+        "AAECAfHhBALtnweI3QcOkeQEhfYEsvcE1J4G1uUGupUHopcH0q0H4rEH/78H9sEHrNoHtNoHptwHAAA=",
+        "AAECAfHhBASfngftnwfSrgfa1wcNhfYEh/YE1J4GupUHopcH0JsH0q0H4rEH/78H9sEHrNoHtNoHptwHAAA=",
+        "AAECAfHhBATTngbtnwfSrQfSrgcNhfYEh/YE1J4GupUHopcH0JsHn54H4rEH/78H9sEHrNoHtNoHptwHAAA="
+      ]
+    },
+    {
+      "name": "蛋DK",
+      "variants": [
+        "AAECAfHhBArDgwf1mAfsmwfXnQftnweSpAfSrgfa1wed2we/3wcKodQEl4IHvJQHupUH4J0Hn54H4rEHrtoHtNoHptwHAAA=",
+        "AAECAfHhBAqB/QbDgwf1mAfsmwfXnQftnwfSrgfa1wed2we/3wcK054Gl4IHupUH4J0Hn54HkqQH4rEHrtoHtNoHptwHAAA=",
+        "AAECAfHhBAzNngbDgwf1mAfsmwfXnQfgnQftnweSpAfSrgfa1wed2we/3wcJ054Ggf0Gl4IHupUHn54H4rEHrtoHtNoHptwHAAA=",
+        "AAECAfHhBArDgwf1mAfsmwfXnQfgnQftnwfSrgfa1wed2we/3wcK054Ggf0Gl4IHupUHn54HkqQH4rEHrtoHtNoHptwHAAA=",
+        "AAECAfHhBAj1mAfsmwfXnQfgnQftnwfSrged2we/3wcLgf0Gl4IHupUHn54HkqQH4rEH2tcHrNoHrtoHtNoHptwHAAA="
+      ]
+    },
+    {
+      "name": "虚灵瞎",
+      "variants": [
+        "AAECAea5AwaongbNngbOmweD2gfH3Qen9wcM4fgF0J4G054G3v8GtpcH550HobEHlb8HxN0Hxt0HteEHt+EHAAA=",
+        "AAECAea5AwaongbNngahsQeD2ge34Qen9wcM4fgF0J4G054G3v8GtpcH550Hy7YHlb8HxN0Hxt0Hx90HteEHAAA=",
+        "AAECAea5Awaonga0lwe1lweKqgeSqgeTqgcM7KAE4fgF3v8GtpcH550H6LEHkr8Hlb8HxN0Hxt0Hx90HteEHAAA=",
+        "AAECAea5Awaongbe/wb+gwehsQfosQeD2gcM4fgF0J4G054GtpcHzpsH550Hlb8HxN0Hxt0Hx90HteEHt+EHAAA=",
+        "AAECAea5AwSongbNngaD2gen9wcN4fgF0J4G054G3v8GtpcH550HobEHlb8HxN0Hxt0Hx90HteEHt+EHAAA="
+      ]
+    },
+    {
+      "name": "兹伊萨",
+      "variants": [
+        "AAECAaoICNOeBsODB9C/B4LUB5vUB9DbB4jdB9/lBwue1ATt5gbgnQeYrAexsAePvge1wAfJwAfJ2wfI5Qfm/QcAAA==",
+        "AAECAaoICMODB4++B9C/B4LUB5vUB9DbB4jdB9/lBwvTngbt5gbIhwfXlwfOmwfgnQeYrAexsAfJwAfI5Qfm/QcAAA=="
+      ]
+    },
+    {
+      "name": "脏牧",
+      "variants": [
+        "AAECAa0GBPypB4CqB4SqB+fYBwjwnwSg+wbD/wb3gQeFhgevyQeq2Qes2QcAAA==",
+        "AAECAa0GBtGeBvypB4CqB4SqB+fYB6rZBwfwnwSg+wbD/waFhgedrQevyQes2QcAAA==",
+        "AAECAa0GBvypB4CqB4SqB+SyB+fYB6rZBwfwnwSg+wbD/waFhgedrQevyQes2QcAAA==",
+        "AAECAa0GBPypB4CqB4SqB+fYBwjwnwTRngbD/waFhgedrQevyQeq2Qes2QcAAA=="
+      ]
+    },
+    {
+      "name": "任务牧",
+      "variants": [
+        "AAECAa0GBPCfBMODB6iWB9zgBw2G/QbFlAfkngfSrwebvweyxQevyQeT3wew3wfV4AfZ4Af04AeW/AcAAA==",
+        "AAECAa0GBvCfBMODB4WGB6iWB9XgB9zgBwyG/QbFlAfkngfSrwebvweyxQevyQeT3wew3wfZ4Af04AeW/AcAAA==",
+        "AAECAa0GBMODB4WGB6iWB9zgBw2G/QbFlAfkngfSrwebvweyxQevyQeT3wew3wfV4AfZ4Af04AeW/AcAAA==",
+        "AAECAa0GBISfBMODB6iWB9zgBw2G/QbFlAfkngfSrwebvweyxQevyQeT3wew3wfV4AfZ4Af04AeW/AcAAA==",
+        "AAECAa0GBoSfBMODB4WGB6iWB9XgB9zgBwyG/QbFlAfkngfSrwebvweyxQevyQeT3wew3wfW4AfZ4Af04AcAAA=="
+      ]
+    },
+    {
+      "name": "Drake Warlock",
+      "variants": [
+        "AAECAf0GCNGCB4adB5mxB63ZB47cB9vgB7roB4TpBwuPnwTnoATTngaqrQeTvgfgvgfd1wew2Qex2Qe32QeN3AcAAA==",
+        "AAECAf0GCLGfBIadB5mxB63ZB47cB9vgB7roB4TpBwuPnwTnoATTngaqrQeTvgfgvgfd1wew2Qex2Qe32QeN3AcAAA==",
+        "AAECAf0GCIadB5mxB9CyB63ZB7HZB9vgB7roB4TpBwuPnwSxnwTnoATTngaEmQeqrQeTvgfgvge32QeN3AeO3AcAAA==",
+        "AAECAf0GCI+fBIadB5mxB63ZB7HZB9vgB7roB4TpBwuxnwTnoATTngaEmQeqrQfQsgeTvgfgvge32QeN3AeO3AcAAA==",
+        "AAECAf0GCo+fBIadB5mxB93XB63ZB7DZB7HZB9vgB7roB4TpBwqxnwTnoATTngaqrQfQsgeTvgfgvge32QeN3AeO3AcAAA=="
+      ]
+    },
+    {
+      "name": "先驱术",
+      "variants": [
+        "AAECAf0GBs2eBtC/B5vUB63ZB47cB9vgBwyPnwTnoATTngaEmQeTvgfYvgfgvgfd1wew2Qex2Qe32QeN3AcAAA==",
+        "AAECAf0GBpegBNC/B5vUB63ZB47cB9vgBwyPnwSxnwTnoASEmQelrQeTvgfYvgfgvgfa1wex2Qe32QeN3AcAAA==",
+        "AAECAf0GBtC/B5vUB63ZB9LgB9vgB4TpBwyPnwTnoATTngaEmQeTvgfYvgfgvgfd1wew2Qex2Qe32QeN3AcAAA==",
+        "AAECAf0GBNC/B5vUB63ZB9vgBw2PnwTnoATTngaEmQeTvgfYvgfgvgfd1wew2Qex2Qe32QeN3AeO3AcAAA=="
+      ]
+    },
+    {
+      "name": "兆示贼",
+      "variants": [
+        "AAECAaIHDs2eBqGBB5KDB4KYB9GdB+ylB4aoB4eoB4ioB9C/B4rUB5vUB4jZB43aBwj3nwSQgwfBlwfHrge0wQfAwQedxQfVxQcAAA==",
+        "AAECAaIHDKGBB5KDB8GXB4KYB+ylB4aoB4eoB4ioB9C/B4rUB5vUB4jZBwn3nwTZogaQgwfHrge0wQfAwQedxQfVxQeN2gcAAA==",
+        "AAECAaIHDtOeBqGBB5KDB4KYB+ylB4aoB4eoB4ioB9C/B7PDB4rUB5vUB4jZB9DgBwj3nwTBlwe0wQfAwQedxQfVxQeN2gfO4AcAAA==",
+        "AAECAaIHEs2eBtOeBtmiBqGBB5KDB+ylB4aoB4eoB4ioB9C/B7TBB7PDB4rUB5vUB4jZB5HZB43aB9DgBwb3nwTBlwfAwQedxQfVxQfO4AcAAA==",
+        "AAECAaIHDs2eBtmiBqGBB5KDB4KYB9GdB+ylB4aoB4eoB4ioB9C/B4rUB5vUB4jZBwj3nwSQgwfBlwfHrge0wQfAwQedxQfVxQcAAA=="
+      ]
+    },
+    {
+      "name": "Raza DH",
+      "variants": [
+        "AAECAea5AwjUnwTe/waDige1lweKqgeSqgeTqgfisQcL4fgFzZ4Gzp4G054GtpcH6LEHkrIHkr8H5eQHk+gHpvgHAAA=",
+        "AAECAea5AwjUnwSDige1lweKqgeSqgeTqgfisQfI3QcL4fgFzZ4Gzp4G054GtpcH6LEHkrIHkr8H5eQHk+gHpvgHAAA=",
+        "AAECAea5AwS1lweKqgeSqgeTqgcN4fgFzZ4Gzp4G054G3v8GtpcH4rEHkrIHkr8Hlb8H5eQHk+gHpvgHAAA=",
+        "AAECAea5AwTUnwSKqgeSqgeTqgcN4fgFzZ4Gzp4G054G3v8GtpcH4rEHkrIHkr8Hlb8H5eQHk+gHpvgHAAA="
+      ]
+    },
+    {
+      "name": "艾雅贼",
+      "variants": [
+        "AAECAaIHCN/+BoaoB4eoB4ioB+WvB7PDB6XYB4jZBwuRnwT3nwTTngbBlwe0wQfFwQfVxQeryQek2AeR2QeN2gcAAA==",
+        "AAECAaIHCs7+Bt/+BpKkB4aoB4eoB4ioB+WvB7PDB6XYB4jZBwqRnwT3nwTZogbBlwe0wQfFwQfVxQek2AeR2QeN2gcAAA==",
+        "AAECAaIHCJGfBN/+BoaoB4eoB4ioB+WvB6XYB4jZBwv3nwTZogaQgwfBlwfHrge0wQfFwQfVxQek2AeR2QeN2gcAAA==",
+        "AAECAaIHBoaoB4eoB4ioB+WvB6XYB4jZBwz3nwTTngbZogbBlwfLtge0wQfFwQfVxQek2AeR2QeN2gfO4AcAAA=="
+      ]
+    },
+    {
+      "name": "潜行贼",
+      "variants": [
+        "AAECAaIHDJKDB4aoB4eoB4ioB9C/B7TBB7PDB53FB4rUB5vUB4jZB9DgBwmRnwT3nwTBlwfVxQej4Ae04AfB4AfO4AfD8gcAAA==",
+        "AAECAaIHCpKDB+ylB4aoB4eoB4ioB9C/B4rUB5vUB4jZB9DgBwr3nwTBlwezwwedxQfVxQej4Ae04AfB4AfO4AfD8gcAAA==",
+        "AAECAaIHDKGBB5CDB5KDB8GXB4KYB9GdB+ylB9C/B4rUB5vUB4jZB9DgBwn3nwTHrge0wQfAwQedxQfVxQej4AfO4AfD8gcAAA==",
+        "AAECAaIHDtmiBqGBB5KDB4KYB9GdB4aoB4eoB4ioB9C/B7TBB4rUB5vUB4jZB9DgBwj3nwTBlwfAwQedxQfVxQej4AfO4AfD8gcAAA==",
+        "AAECAaIHDKGBB5KDB4KYB+ylB4aoB4eoB4ioB9C/B4rUB5vUB4jZB9DgBwn3nwTBlwe0wQfAwQedxQfVxQej4AfO4AfD8gcAAA=="
+      ]
+    },
+    {
+      "name": "打脸法",
+      "variants": [
+        "AAECAf0EBJegBLOHB4i+B5HGBw35mwfopQfRpgeLsQfWsgfWvAeGxAeSxAesxged2QeT2get2gf53gcAAA==",
+        "AAECAf0EBsODB/WlB4i+B5HGB6rJB6TZBwyzhwf5mwfopQeLsQfWsgeGxAeSxAesxged2QeT2get2gf53gcAAA==",
+        "AAECAf0EBsODB7OHB4i+B5HGB6rJB6TZBwz5mwfopQf1pQeLsQfWsgeGxAeSxAesxged2QeT2get2gf53gcAAA==",
+        "AAECAf0EBpegBLOHB4i+B9fDB5HGB5PaBwz9ngSF5gbHhweflgfopQeLsQfWsgfWvAeGxAeSxAebxAesxgcAAA=="
+      ]
+    },
+    {
+      "name": "拉法姆术",
+      "variants": [
+        "AAECAf0GEuegBJ3UBM2eBoilB4mlB4qlB5GlB5OlB5SlB5WlB5alB5elB5qlB9C/B5vUB63ZB47cB9vgBwuPnwTTngaEmQeTvgfYvgfgvgfd1wew2Qex2Qe32QeN3AcAAA==",
+        "AAECAf0GEM2eBoilB4mlB4qlB5GlB5OlB5SlB5WlB5alB5elB5qlB9C/B5vUB63ZB47cB9vgBwyPnwTnoATTngaEmQeTvgfYvgfgvgfd1wew2Qex2Qe32QeN3AcAAA==",
+        "AAECAf0GEIOgBIKYB4ilB4mlB4qlB5GlB5OlB5SlB5WlB5alB5elB5qlB6qtB5vUB63ZB9vgBwyPnwTnoATTngaEmQeTvgfYvgfgvgfd1wew2Qex2Qe32QeN3AcAAA=="
+      ]
+    },
+    {
+      "name": "控制牧",
+      "variants": [
+        "AAECAa0GBqiWB/ypB4CqB4SqB+SyB4O/BwzwnwSg+wbD/waFhgedrQeFvwebvweixAeyxQevyQew3weW/AcAAA==",
+        "AAECAa0GDM2eBqn1BvKDB6iWB4KYB/ypB4CqB4SqB6ytB5GuB+SyB4u+BwnwnwTRngag+wbD/waFhgedrQeixAeyxQeW/AcAAA=="
+      ]
+    },
+    {
+      "name": "魔网法",
+      "variants": [
+        "AAECAf0EBpegBMODB7OHB/rEB6TZB//fBwzopQeGxAeSxAfnxAfoxAfwxAfzxAf0xAf7xAeqyQeT2geG4AcAAA==",
+        "AAECAf0EBpegBMODB4i+B5LEB/rEB//fBwzTngaGxAfnxAfoxAfwxAfzxAf0xAf7xAesxgeT2get2geG4AcAAA==",
+        "AAECAf0EBPmbB/rEB53ZB6TZBw3xkQfWsgfLtgeSxAfnxAfoxAfwxAfzxAf0xAf7xAesxgeT2get2gcAAA==",
+        "AAECAf0EBJegBMODB/rEB6rJBw2zhwf1pQfWsgeGxAeSxAfnxAfoxAfwxAfzxAf0xAf7xAesxgeT2gcAAA=="
+      ]
+    },
+    {
+      "name": "先驱DK",
+      "variants": [
+        "AAECAfHhBAiCmAeosQfisQePvgfQvwfqyQeb1AeM3QcLodQEh/YE054G2OUGvJQHupUHn54HkasHmsUH0MUHtNoHAAA=",
+        "AAECAfHhBAiV5ASXggfDgwf0qgfSrgfQvwfqyQeb1AcLh/YEgf0GupUHn54HkasH4rEHj74HmsUH0MUH2tcHv98HAAA="
+      ]
+    }
+  ],
+  "summary": {
+    "archetypes": 22,
+    "variants": 91
+  }
+}

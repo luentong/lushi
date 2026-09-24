@@ -56,6 +56,7 @@ DIRECT_IDS = {
     "CATA_612",  # Frostbitten Imp: Battlecry freezes itself
     "EDR_524",   # Shadowcloaked Assailant: shuffle a shared opponent card
     "EDR_891",   # Ravenous Felhunter: resurrect/copy a low-cost Deathrattle
+    "CATA_EVENT_401",  # Tunneling Geomancer: Prepare, Spell Damage +1
 }
 
 GENERATED_DRAGON_IDS = {
@@ -478,6 +479,7 @@ ADDITIONAL_PLAYABLE_CARD_IDS = {
     "END_036",  # Morchie
     "TOT_332",  # Murozond
     "TIME_EVENT_999",  # Sands of Time
+    "TIME_EVENT_997",  # Welcome Home!
     "TIME_433",  # Cease to Exist
     "TIME_441",  # Aeon Rend
     "TIME_610",  # Shadows of Yesterday
@@ -620,6 +622,10 @@ SPECIAL_TOKEN_IDS = {
     # than collectible deck entries, but they must be available to effects
     # that create a token or shuffle it into a deck.
     "TIME_025t",  # Shred of Time
+    # Tankgineer's deathrattle token.  It can subsequently be copied,
+    # transformed, or shuffled into a deck, so it must be constructible by
+    # _entity(), not only as a temporary CardDef in the deathrattle branch.
+    "TIME_017t",  # Tank
     "TIME_434t",  # Temporal Shadow
     "TIME_700t",  # Chronological Drake
     "TIME_704t",  # Highborne Pupil
@@ -641,7 +647,9 @@ BASIC_AUXILIARY_IDS = {
     # Historical/Core fixtures still referenced by regression replays.  These
     # are metadata dependencies, not additions to the Standard deck pool.
     "CORE_CS2_172", "AT_001", "AT_037", "CORE_EX1_008", "EX1_tk33",
-    "RLK_118t3", "TSC_650t4", "CORE_CFM_606t", "EX1_tk34",
+    "RLK_118t3", "RLK_506t", "TSC_650t", "TSC_650t4", "CORE_CFM_606t", "EX1_tk34",
+    "SW_429t",
+    "CAP_805t",
 }
 
 # Metadata-only Standard cards with no printed text or hidden triggers. They
@@ -1030,6 +1038,7 @@ class CardInstance:
     living_nightmare: bool = False
     summoned_turn: int = -1
     played_turn: int = -1
+    died_turn: int = -1
     attacks_this_turn: int = 0
     damage: int = 0
     silenced: bool = False
@@ -1066,6 +1075,11 @@ class CardInstance:
     # Prepare is a one-time state on the card, not a per-turn activation.
     prepared: bool = False
     prepare_granted: bool = False
+    # Godfather Kazakus creates an instance-specific Trial: the two selected
+    # effect cards and its owner-turn deadline must survive copies/search
+    # branches instead of being inferred from the base Trial card id.
+    sham_trial_effect_ids: tuple[str, ...] = ()
+    sham_trial_due_owner_turn: int = -1
     shatter_origin: str | None = None
     shatter_half: str | None = None
     shatter_combined: bool = False
@@ -1273,6 +1287,9 @@ class Location:
     # these fields empty, so their existing behavior is unchanged.
     custom_effects: tuple[str, ...] = ()
     custom_tier: int = 0
+    # Effects such as Welcome Home! can attach a card-specific deathrattle to
+    # an ordinary location. ``None`` means no such attached effect.
+    random_minion_deathrattle_cost: int | None = None
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "Location":
         result = copy.copy(self)
@@ -1492,6 +1509,9 @@ class Player:
     last_played_card_id: str | None = None
     previous_played_card_id: str | None = None
     fins_restore_hand: list[CardInstance] = field(default_factory=list)
+    # Armed Kazakus Trials have left the hand but remain owned by this player
+    # until their owner-turn countdown completes.
+    pending_sham_trials: list[CardInstance] = field(default_factory=list)
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "Player":
         """Fast branch copy for the mutable player state used by MCTS."""
@@ -1502,6 +1522,7 @@ class Player:
             "overdrawn_cards", "pending_end_turn_returns", "minions_died_this_turn_cards",
             "spells_this_turn_for_replay", "spells_last_turn_for_replay",
             "delayed_token_summons", "starting_hand_snapshot", "fins_restore_hand",
+            "pending_sham_trials",
         ):
             zone = getattr(self, name)
             # ``clone(skip_hidden_zones_of=...)`` supplies branch-local empty
@@ -1682,6 +1703,72 @@ class DragonMirrorGame:
                     armor=int(card.get("armor", 0)),
                     classes=tuple(card.get("classes", ()) or ()),
                 )
+        # Vampyr's Kiss is an engine-created Hero Power replacement.  The
+        # pinned collectible metadata does not carry this runtime-only entity,
+        # but the rule registry and hero-power dispatcher need a real CardDef
+        # rather than a missing-key failure in cross-class games.
+        if "JAIL_446hp" in EXECUTABLE_CARD_IDS and "JAIL_446hp" not in result:
+            result["JAIL_446hp"] = CardDef(
+                "JAIL_446hp", "Vampyr's Kiss", "HERO_POWER", 0,
+                card_class="DEATHKNIGHT",
+            )
+        # M.O.T.H.E.R. is present in the current deckstrings but is newer
+        # than the pinned local HearthstoneJSON snapshot.  Keep its metadata
+        # explicit here; the actual left/right hand discount is a composable
+        # Battlecry rule below.
+        if "BE_036" in EXECUTABLE_CARD_IDS and "BE_036" not in result:
+            result["BE_036"] = CardDef(
+                "BE_036", "M.O.T.H.E.R.", "MINION", 9,
+                attack=9, health=7, card_class="NEUTRAL",
+                mechanics=("BATTLECRY",), rarity="LEGENDARY",
+                collectible=True, card_set="BE",
+            )
+        # Grub is referenced by current Time Travel deathrattles but is not
+        # emitted as a standalone entity in the pinned card snapshot.  It is
+        # nevertheless a real runtime token and must be constructible when
+        # its parent dies, including in a search clone.
+        if "TLC_833t" not in result:
+            result["TLC_833t"] = CardDef(
+                "TLC_833t", "Grub", "MINION", 1,
+                attack=2, health=1, race="BEAST", races=("BEAST",),
+                mechanics=("RUSH",), card_class="NEUTRAL",
+                card_set="THE_LOST_CITY",
+            )
+        # Tank is the non-collectible 7/7 generated by Tankgineer.  The
+        # pinned HearthstoneJSON build omits this runtime token, but it may
+        # later leave the board through shuffle/copy/transform effects.  A
+        # persistent definition is therefore required for that later state
+        # transition to be legal as well as for the original deathrattle.
+        if "TIME_017t" not in result:
+            result["TIME_017t"] = CardDef(
+                "TIME_017t", "Tank", "MINION", 7,
+                attack=7, health=7, race="MECHANICAL",
+                mechanics=("DIVINE_SHIELD",), card_class="NEUTRAL",
+                races=("MECHANICAL",), card_set="TIME_TRAVEL",
+            )
+        # Mystic Misdirection's Sheep is described by the secret effect and
+        # is not emitted as a standalone card in the pinned JSON catalogue.
+        # It can nevertheless become an ordinary card reference afterwards
+        # (for example Ascendance grants the transformed minion a Deathrattle
+        # that resummons its current form), so it needs durable metadata.
+        if "JAIL_315t" not in result:
+            result["JAIL_315t"] = CardDef(
+                "JAIL_315t", "Sheep", "MINION", 1,
+                attack=1, health=1, race="BEAST", races=("BEAST",),
+                card_class="NEUTRAL", card_set="ESCAPEFROM_VIOLET_HOLD",
+            )
+        # Frail Ghoul is Tower of Ghouls' generated token.  It is absent from
+        # the pinned card catalogue, but may later appear in a copied hand or
+        # Discover pool; define it once so these legitimate later references
+        # retain its end-of-turn self-destruction behavior rather than failing
+        # construction during a search rollout.
+        if "JAIL_450t" not in result:
+            result["JAIL_450t"] = CardDef(
+                "JAIL_450t", "Frail Ghoul", "MINION", 1,
+                attack=1, health=1, race="UNDEAD", races=("UNDEAD",),
+                mechanics=("CHARGE",), card_class="DEATHKNIGHT",
+                card_set="ESCAPE_FROM_VIOLET_HOLD",
+            )
         return result
 
     def _resolve_rune_configs(
@@ -1785,6 +1872,11 @@ class DragonMirrorGame:
         result.poisonous = "POISONOUS" in result.definition.mechanics
         result.spell_damage_bonus = result.definition.spell_damage
         result.mirrex_tracker = result.card_id == "DINO_407"
+        if result.card_id == "JAIL_732":
+            # Void Soul is a generated spell.  Any creation path (including
+            # random Demon Hunter spell pools) must start at the current
+            # level-one summon tier rather than the dataclass default zero.
+            result.void_soul_cost = 1
         if result.card_id == "TIME_025t":
             # Shred of Time is a Casts When Drawn spell.  It never enters the
             # hand: resolving the cast immediately replaces it with a draw.
@@ -1838,11 +1930,20 @@ class DragonMirrorGame:
             )
 
     def _new_deck(self, player_index: int = 0) -> list[CardInstance]:
-        return [
-            self._entity(card_id, started_in_deck=True)
-            for card_id, count in self.deck_counts[player_index].items()
-            for _ in range(count)
-        ]
+        deck: list[CardInstance] = []
+        for card_id, count in self.deck_counts[player_index].items():
+            for _ in range(count):
+                card = self._entity(card_id, started_in_deck=True)
+                # Void Soul is normally generated by JAIL_730, but current
+                # deckstrings can contain the collectible printing directly.
+                # Give a deck copy the level-1 summon tier instead of leaving
+                # the runtime-only tier at zero and failing on play.
+                if card.card_id == "JAIL_732":
+                    card.void_soul_cost = max(
+                        1, self.players[player_index].void_soul_level
+                    )
+                deck.append(card)
+        return deck
 
     def _apply_pre_game_deck_rules(self) -> None:
         """Apply Start of Game rules before opening hands are dealt.
@@ -1898,6 +1999,10 @@ class DragonMirrorGame:
             ]
             for copied in copies:
                 copied.copied_from_opponent = True
+                if copied.card_id == "JAIL_732":
+                    copied.void_soul_cost = max(
+                        1, player.void_soul_level
+                    )
             # The normal game shuffle below mixes retained and copied cards.
             player.deck = own + copies
             player.max_health = 40
@@ -2307,7 +2412,9 @@ class DragonMirrorGame:
         result.deck_counts = self.deck_counts
         result.rune_configs = self.rune_configs
         result.beatrix_choices = self.beatrix_choices
+        result._catalog_set_counts = self._catalog_set_counts
         result.card_defs = self.card_defs
+        result.executable_card_ids = self.executable_card_ids
         result.rule_registry = self.rule_registry
         result.players = copy.deepcopy(self.players, memo)
         # Copy after player zones so pending-choice options that reference a
@@ -2405,6 +2512,10 @@ class DragonMirrorGame:
     def _summon(
         self, player: Player, minion: CardInstance, *, position: int | None = None
     ) -> None:
+        # Preserve ownership on the instance for effects that continue after
+        # the source leaves its ordinary zone.  This is especially important
+        # for chained spell damage, whose source spell is no longer in hand.
+        minion.controller_index = player.index
         if minion.divine_shield and minion.divine_shield_hits <= 0:
             minion.divine_shield_hits = 1
         if minion.has_race("DRAGON") and player.dragons_have_rush:
@@ -2861,18 +2972,13 @@ class DragonMirrorGame:
                 continue
             if len(player.board) + len(player.locations) >= 7:
                 break
-            demon = CardInstance(
-                self.next_entity_id,
-                CardDef(
-                    "CORE_TTN_843t", "Fel Interloper", "MINION", 1,
-                    1, 1, "DEMON", ("RUSH",), "DEMONHUNTER",
-                    ("DEMON",), "CORE",
-                ),
-                rush=True,
-                summoned_turn=self.turn,
-                created_by=deceptor.card_id,
-            )
-            self.next_entity_id += 1
+            # Use the canonical token ID from HearthstoneJSON rather than an
+            # ad-hoc CORE-prefixed CardDef.  The token can subsequently be
+            # copied, transformed or shuffled into a deck, so it must be
+            # reconstructible by _entity() just like every other generated
+            # card.
+            demon = self._entity("TTN_843t1", created_by=deceptor.card_id)
+            demon.summoned_turn = self.turn
             self._summon(player, demon)
             self._event(
                 "eredar_deceptor_trigger", player=player.index,
@@ -3023,15 +3129,25 @@ class DragonMirrorGame:
             if secret.card_id != "JAIL_315":
                 continue
             self._consume_secret(defender, secret)
-            attacker.definition = CardDef(
+            # A transform replaces the *entire* minion, rather than merely
+            # overwriting printed stats.  In particular it must discard
+            # instance payloads such as granted Deathrattles; keeping those
+            # payloads used to make a transformed attacker try to summon a
+            # token from its pre-transform card when it later died.
+            entity_id = attacker.entity_id
+            summoned_turn = attacker.summoned_turn
+            played_turn = attacker.played_turn
+            attacks_this_turn = attacker.attacks_this_turn
+            transformed = self._instance_from_definition(CardDef(
                 "JAIL_315t", "Sheep", "MINION", 1, 1, 1, "BEAST", (),
                 "NEUTRAL", ("BEAST",), "ESCAPEFROM_VIOLET_HOLD",
-            )
-            attacker.attack_delta = attacker.health_delta = attacker.damage = 0
-            attacker.taunt = attacker.rush = attacker.charge = False
-            attacker.lifesteal = attacker.elusive = attacker.divine_shield = False
-            attacker.windfury = attacker.reborn = attacker.stealth = False
-            attacker.poisonous = attacker.immune = False
+            ), created_by=secret.card_id)
+            transformed.entity_id = entity_id
+            transformed.summoned_turn = summoned_turn
+            transformed.played_turn = played_turn
+            transformed.attacks_this_turn = attacks_this_turn
+            attacker.__dict__.clear()
+            attacker.__dict__.update(transformed.__dict__)
             self._event(
                 "mystic_misdirection", player=defender.index,
                 source=secret.entity_id, attacker=attacker.entity_id,
@@ -3424,6 +3540,19 @@ class DragonMirrorGame:
         self._resolve_deaths()
 
         player.turns_taken += 1
+        # A Kazakus Trial resolves at the start of the controller's due turn.
+        # Its payload remains an instance-owned list of selected effect cards,
+        # so two Trials of the same printed type cannot overwrite one another.
+        due_trials = [
+            trial for trial in player.pending_sham_trials
+            if trial.sham_trial_due_owner_turn <= player.turns_taken
+        ]
+        player.pending_sham_trials = [
+            trial for trial in player.pending_sham_trials
+            if trial.sham_trial_due_owner_turn > player.turns_taken
+        ]
+        for trial in due_trials:
+            self._resolve_sham_trial(player, trial)
         # Tar Creeper/Tar Tyrant have conditional attack while their controller
         # waits through the opponent's turn. Toggle a flag at the turn boundary
         # instead of permanently changing attack_delta; this is deterministic
@@ -4091,6 +4220,25 @@ class DragonMirrorGame:
             self._deal_to_target(player.index, target, 1, source=minion)
             self._resolve_deaths()
 
+    def _controls_legendary_card(self, player: Player) -> bool:
+        """Return whether a player currently controls a Legendary card.
+
+        This deliberately follows game zones rather than a hand-built list of
+        Legendary minion IDs.  In particular, ``Medivh's Triumph`` also sees
+        a Legendary weapon, Location, or an active Legendary Quest/Questline.
+        Cards in hand/deck do not count as controlled.
+        """
+        def is_legendary(card_id: str) -> bool:
+            definition = self.card_defs.get(card_id)
+            return definition is not None and definition.rarity == "LEGENDARY"
+
+        return (
+            any(is_legendary(minion.card_id) for minion in player.board)
+            or any(is_legendary(location.card_id) for location in player.locations)
+            or (player.weapon is not None and is_legendary(player.weapon.card_id))
+            or any(is_legendary(quest_id) for quest_id in player.active_quests)
+        )
+
     def _effective_cost(self, player: Player, card: CardInstance) -> int:
         cost = card.cost
         if card.card_id in {"MEND_500", "MEND_502", "MEND_504"}:
@@ -4099,11 +4247,18 @@ class DragonMirrorGame:
             cost = player.minion_cost_fixed
         # Sabotage is a hand-position enchantment: both immediate neighbours
         # cost one more while the sabotage card remains in that hand.
-        for index, held in enumerate(player.hand):
-            if held.card_id != "CATA_186t":
-                continue
-            if card is not held and abs(player.hand.index(card) - index) == 1:
-                cost += 1
+        # Generated Discover/choice options are not hand cards.  Their
+        # displayed cost must remain queryable while a Sabotage enchantment
+        # is in hand, but they have no hand position and therefore cannot be
+        # adjacent to it.
+        hand_index = next(
+            (index for index, held in enumerate(player.hand) if held is card),
+            None,
+        )
+        if hand_index is not None:
+            for index, held in enumerate(player.hand):
+                if held.card_id == "CATA_186t" and abs(hand_index - index) == 1:
+                    cost += 1
         if getattr(player, "all_card_cost_surcharge_turn", -1) == self.turn:
             cost += max(0, int(getattr(player, "all_card_cost_surcharge", 0)))
         if card.definition.card_type == "SPELL":
@@ -4209,6 +4364,12 @@ class DragonMirrorGame:
             and player.next_minion_cost_reduction == 99
         ):
             cost = 1
+        # Medivh's Triumph says "Costs (1) if you control a Legendary card".
+        # This is a live condition, so its price must be recomputed when a
+        # Legendary permanent or active Quest enters/leaves the controlled
+        # zones; it must never be baked into the instance when it is drawn.
+        if card.card_id == "CATA_308" and self._controls_legendary_card(player):
+            cost = min(cost, 1)
         return max(0, cost)
 
     @staticmethod
@@ -4571,6 +4732,21 @@ class DragonMirrorGame:
         helper only applies the broad faction constraint from card text and
         randomizes candidates uniformly before that check.
         """
+        # Declarative rules are authoritative where available.  Text parsing
+        # is a compatibility fallback for generated legacy cards.  In
+        # particular, a generic “a damaged minion” target must not be
+        # mistaken for an any-character target simply because neither
+        # "friendly" nor "enemy" is printed.
+        target_spec = self.rule_registry.targeting(spell.card_id)
+        if target_spec is not None:
+            player = self.players[player_index]
+            candidates = self._rule_targets(player, spell, target_spec.kind)
+            self.rng.shuffle(candidates)
+            return [
+                (target_player, target_entity,
+                 "hero" if target_entity is None else "minion")
+                for target_player, target_entity in candidates
+            ]
         text = spell.definition.text.casefold()
         enemy_only = "enemy" in text and "friendly" not in text
         friendly_only = "friendly" in text and "enemy" not in text
@@ -4936,6 +5112,22 @@ class DragonMirrorGame:
             for minion in self.players[player_index].board
         )
 
+    @staticmethod
+    def _spell_cannot_target_minion(card: CardInstance, minion: CardInstance) -> bool:
+        """Whether a spell is intrinsically unable to affect a minion.
+
+        Fyrakk is immune to Fire *spells*.  This must be checked while
+        generating targets as well as when resolving damage; otherwise Torch
+        can repeatedly select Fyrakk, fail to make progress, return to hand,
+        and create an infinite teacher-game loop.
+        """
+        return (
+            card.definition.card_type == "SPELL"
+            and card.definition.spell_school == "FIRE"
+            and minion.card_id == "FIR_959"
+            and not minion.silenced
+        )
+
     def _rule_targets(
         self, player: Player, card: CardInstance, target_kind: TargetKind
     ) -> list[tuple[int, int | None]]:
@@ -4958,6 +5150,15 @@ class DragonMirrorGame:
         ) else [(enemy.index, None)]
         if target_kind == TargetKind.FRIENDLY_MINION:
             return friendly_minions
+        if target_kind == TargetKind.FRIENDLY_LOCATION:
+            return [(player.index, location.entity_id) for location in player.locations]
+        if target_kind == TargetKind.FRIENDLY_WISP:
+            return [
+                (player.index, minion.entity_id)
+                for minion in player.board
+                if minion.dormant_turns == 0
+                and minion.definition.name.casefold() == "wisp"
+            ]
         if target_kind == TargetKind.FRIENDLY_BEAST:
             return [
                 (player.index, minion.entity_id)
@@ -4969,6 +5170,12 @@ class DragonMirrorGame:
                 (player.index, card.entity_id)
                 for card in player.hand
                 if card.definition.card_type == "MINION"
+            ]
+        if target_kind == TargetKind.FRIENDLY_HAND_CARD:
+            return [
+                (player.index, held.entity_id)
+                for held in player.hand
+                if held.entity_id != card.entity_id
             ]
         if target_kind == TargetKind.FRIENDLY_DRAGON:
             return [
@@ -4994,6 +5201,22 @@ class DragonMirrorGame:
             ]
         if target_kind == TargetKind.ENEMY_MINION:
             return enemy_minions
+        if target_kind == TargetKind.ENEMY_TYPED_MINION:
+            return [
+                (owner.index, minion.entity_id)
+                for owner in self.players
+                if owner.index != player.index
+                for minion in owner.board
+                if minion.dormant_turns == 0
+                and not minion.stealth
+                and (minion.definition.race or minion.definition.races)
+            ]
+        if target_kind == TargetKind.ENEMY_LOCATION:
+            return [
+                (enemy.index, location.entity_id)
+                for location in enemy.locations
+                if location.durability > 0
+            ]
         if target_kind == TargetKind.DAMAGED_MINION:
             return [
                 (owner.index, minion.entity_id)
@@ -5002,6 +5225,7 @@ class DragonMirrorGame:
                 if minion.dormant_turns == 0
                 and minion.damage > 0
                 and not minion.stealth
+                and not self._spell_cannot_target_minion(card, minion)
                 and not (
                     card.definition.card_type == "SPELL" and minion.elusive
                 )
@@ -5063,7 +5287,11 @@ class DragonMirrorGame:
                 return [
                     *(Action("DISCOVER_PICK", option.entity_id)
                       for option in self.pending_choice["options"]),
-                    Action("REWIND_RETRY"),
+                    # The first, all-spell Discover may be retried.  The
+                    # class-only Discover produced by that retry is the
+                    # final outcome and must not expose another retry; doing
+                    # so leaves the policy in an infinite REWIND_RETRY loop.
+                    *([Action("REWIND_RETRY")] if not self.pending_choice.get("class_only") else []),
                 ]
             if self.pending_choice["kind"] == "AMMUNITION":
                 return [
@@ -5095,6 +5323,41 @@ class DragonMirrorGame:
                             for index in range(len(self.pending_choice["options"]))
                             for target_player, target_entity in targets
                         )
+                        # These Choose One cards have a target-free first
+                        # branch and a target-required second branch.  Do not
+                        # expose an un-targeted action for the second branch
+                        # when the target pool is empty; otherwise MCTS can
+                        # select it and the effect layer correctly rejects it.
+                        targeted_options = {
+                            # Living Roots: the first branch damages a
+                            # character; the Saplings branch has no target.
+                            "CORE_AT_037": {0},
+                            "EDR_490": {1},   # destroy an enemy minion
+                            "EDR_570": {1},   # buff a damaged minion
+                            "EDR_813": {1},   # spend Corpses on a minion
+                            # Twilight Influence: only the destroy branch
+                            # requires a target.  The random-summon branch
+                            # must never inherit or display one.
+                            "EDR_463": {0},
+                        }.get(choice_card.card_id, set())
+                        if targeted_options:
+                            actions = [
+                                action for action in actions
+                                if (
+                                    # A targeted branch needs an actual
+                                    # target; a target-free branch must not
+                                    # accept one. This keeps "choose first,
+                                    # then target if necessary" explicit.
+                                    (
+                                        action.source in targeted_options
+                                        and action.target_player is not None
+                                    )
+                                    or (
+                                        action.source not in targeted_options
+                                        and action.target_player is None
+                                    )
+                                )
+                            ]
                 return actions
             if self.pending_choice["kind"] == "DEATHWING_CATACLYSM":
                 return [
@@ -5108,8 +5371,17 @@ class DragonMirrorGame:
         actions = [Action("END_TURN")]
         for card in player.hand:
             if ("Prepare" in card.definition.text or card.prepare_granted) and not card.prepared:
-                actions.append(Action("PREPARE", card.entity_id))
+                # Prepare spends all remaining Mana. It cannot be activated
+                # with zero Mana; that would manufacture a one-Mana discount
+                # after all Mana has already been spent.
+                if player.mana > 0:
+                    actions.append(Action("PREPARE", card.entity_id))
             if self.turn <= card.playable_after_turn:
+                continue
+            # Prepare consumes the rest of this turn to discount the card.
+            # The card is deliberately unavailable until its controller's
+            # next turn, even when the resulting displayed cost is zero.
+            if card.prepared and card.prepared_turn == self.turn:
                 continue
             if card.locked_until_card_played:
                 continue
@@ -5145,6 +5417,10 @@ class DragonMirrorGame:
             target_spec = self.rule_registry.targeting(card.card_id)
             if target_spec is not None:
                 targets = self._rule_targets(player, card, target_spec.kind)
+                if card.card_id == "EDR_463":
+                    # Twilight Influence selects its mode after the spell is
+                    # played. Its target belongs only to the targeted choice.
+                    targets = [(None, None)]
                 if card.card_id == "CATA_585":
                     # Torch can only target an already damaged enemy minion;
                     # the generic TargetSpec supplies the faction/stealth
@@ -5159,13 +5435,81 @@ class DragonMirrorGame:
                         target for target in targets
                         if self._find_minion(*target).attack >= 7
                     ]
+                if card.card_id == "TLC_633":
+                    # Bugsquasher specifically requires an enemy minion with
+                    # a minion type.  Keep typeless minions out of the legal
+                    # action list instead of relying on the Battlecry layer
+                    # to reject a policy-selected action.
+                    targets = [
+                        target for target in targets
+                        if (
+                            self._find_minion(*target).definition.race
+                            or self._find_minion(*target).definition.races
+                        )
+                    ]
                 if card.card_id == "TIME_435":
                     targets = [
                         target for target in targets
                         if self._find_minion(*target).health <= card.max_health
                     ]
+                if card.card_id == "CATA_203":
+                    # Garona's Last Stand can only target an enemy Legendary;
+                    # keeping ordinary minions in the action list causes
+                    # random/search policies to select an action that the
+                    # effect layer must reject.
+                    targets = [
+                        target for target in targets
+                        if self._find_minion(*target).definition.rarity == "LEGENDARY"
+                    ]
+                if card.card_id == "JAIL_395":
+                    # Sewer Swimmer can only trigger a friendly minion's
+                    # Deathrattle.  A generic FRIENDLY_MINION TargetSpec is
+                    # intentionally narrowed here so random/search policies
+                    # never select a vanilla minion and fail during Battlecry.
+                    targets = [
+                        target for target in targets
+                        if (
+                            not self._find_minion(*target).silenced
+                            and "DEATHRATTLE" in self._find_minion(*target).definition.mechanics
+                        )
+                    ]
+                dark_gift_options = {
+                    "EDR_100t": "waking_terror",
+                    "EDR_100t1": "well_rested",
+                    "EDR_100t2": "short_claws",
+                    "EDR_100t3": "bundled_up",
+                    "EDR_100t4": "inner_demons",
+                    "EDR_100t5": "living_nightmare",
+                    "EDR_100t6": "sleepwalker",
+                    "EDR_100t7": "rude_awakening",
+                    "EDR_100t8": "sweet_dreams",
+                    "EDR_100t9": "persisting_horror",
+                    "EDR_100t10": "nightmare_scales",
+                    "EDR_100t13": "harpys_talons",
+                }
+                if card.card_id in dark_gift_options:
+                    gift = dark_gift_options[card.card_id]
+                    targets = [
+                        target for target in targets
+                        if gift in self._eligible_dark_gifts(
+                            self._find_minion(*target)
+                        )
+                    ]
                 if target_spec.optional:
                     targets = [(None, None), *targets]
+                # EDR_860 only deals its bonus damage after the controller has
+                # reached two Imbues.  Before that threshold it is genuinely
+                # optional; afterwards the no-target action must disappear so
+                # the conditional DamageActionTarget cannot reject it.
+                if card.card_id == "EDR_860" and player.hero_power_imbues >= 2:
+                    targets = [target for target in targets if target != (None, None)]
+                # Rite of Twilight is optionally targeted only when played
+                # without Combo.  Once Combo is active its Herald follow-up
+                # must receive an enemy character target; exposing the
+                # no-target form here makes otherwise legal random/search
+                # policies select an action that the rule effect must reject.
+                if card.card_id == "CATA_785" and player.cards_played_this_turn > 0:
+                    targets = [target for target in targets if target != (None, None)]
             elif card.card_id == "CORE_REV_023":
                 targets = [
                     (1 - self.current, location.entity_id)
@@ -5598,10 +5942,24 @@ class DragonMirrorGame:
         player = self.players[pending["player"]]
         if pending.get("stage") == "ROYAL_INFORMANT":
             target = next(
-                held for held in self.players[1 - player.index].hand
-                if held.entity_id == pending["target_entity"]
+                (
+                    held for held in self.players[1 - player.index].hand
+                    if held.entity_id == pending["target_entity"]
+                ),
+                None,
             )
             self.pending_choice = None
+            # A search branch may reach this resolver after the offered hand
+            # entity has left the zone.  Do not turn an invalid/stale choice
+            # into an engine exception (or accidentally retarget another
+            # card); the offer simply resolves with no effect.
+            if target is None:
+                self._event(
+                    "royal_informant_choice_stale_target",
+                    player=player.index, source=pending["card"].entity_id,
+                    target=pending["target_entity"],
+                )
+                return
             if option_index == 0:
                 copy_card = target.clone(self.next_entity_id)
                 self.next_entity_id += 1
@@ -5677,6 +6035,57 @@ class DragonMirrorGame:
                 "elise_location_created", player=player.index,
                 source=pending["card"].card_id, location=location_id,
                 cost=pending["cost"], effects=selected,
+            )
+            return
+        if pending.get("stage") == "SHAM_TRIAL_LENGTH":
+            trial_id, owner_turn_delay = pending["trial_variants"][option_index]
+            effect_ids = (
+                "CAP_405t1", "CAP_405t2", "CAP_405t3", "CAP_405t4",
+                "CAP_405t5", "CAP_405t6", "CAP_405t7", "CAP_405t8",
+                "CAP_405t9",
+            )
+            self.pending_choice = {
+                "kind": "RULE_CHOICE", "stage": "SHAM_TRIAL_EFFECTS",
+                "player": player.index, "card": pending["card"],
+                "action": pending.get("action"), "trial_id": trial_id,
+                "owner_turn_delay": owner_turn_delay, "selected_effect_ids": [],
+                "effect_option_ids": effect_ids,
+                "options": tuple((self.card_defs[effect_id].name, ()) for effect_id in effect_ids),
+            }
+            self._event(
+                "sham_trial_length_pick", player=player.index,
+                source=pending["card"].entity_id, trial=trial_id,
+                owner_turn_delay=owner_turn_delay,
+            )
+            return
+        if pending.get("stage") == "SHAM_TRIAL_EFFECTS":
+            effect_id = pending["effect_option_ids"][option_index]
+            selected = [*pending["selected_effect_ids"], effect_id]
+            remaining_ids = tuple(
+                candidate for candidate in pending["effect_option_ids"]
+                if candidate != effect_id
+            )
+            if len(selected) < 2:
+                self.pending_choice = {
+                    **pending, "selected_effect_ids": selected,
+                    "effect_option_ids": remaining_ids,
+                    "options": tuple((self.card_defs[candidate].name, ())
+                                     for candidate in remaining_ids),
+                }
+                self._event(
+                    "sham_trial_effect_pick", player=player.index,
+                    source=pending["card"].entity_id, effect=effect_id,
+                    remaining=1,
+                )
+                return
+            trial = self._entity(pending["trial_id"], created_by=pending["card"].card_id)
+            trial.sham_trial_effect_ids = tuple(selected)
+            destination = self._add_generated(player, trial)
+            self.pending_choice = None
+            self._event(
+                "sham_trial_created", player=player.index,
+                source=pending["card"].entity_id, trial=trial.card_id,
+                effects=list(selected), destination=destination,
             )
             return
         self.pending_choice = None
@@ -5850,6 +6259,8 @@ class DragonMirrorGame:
         card = next(card for card in player.hand if card.entity_id == entity_id)
         if card.prepared:
             raise ValueError("card can only be prepared once")
+        if player.mana <= 0:
+            raise ValueError("Prepare requires at least one remaining Mana")
         spent = player.mana
         player.mana = 0
         card.cost_delta -= spent + 1
@@ -5899,6 +6310,8 @@ class DragonMirrorGame:
             if card.entity_id == action.source
         )
         held = player.hand[held_index]
+        if held.prepared and held.prepared_turn == self.turn:
+            raise ValueError("prepared card cannot be played until a later turn")
         held.played_hand_index = held_index
         held.outcast_active = held_index in {0, len(player.hand) - 1}
         effective_cost = self._effective_cost(player, held)
@@ -5922,6 +6335,10 @@ class DragonMirrorGame:
             player.zee_might_minions_played += 1
             held.battlecry_twice = player.zee_might_minions_played % 5 == 0
         card = self._pop_hand(player, action.source)
+        # A spell may deal damage repeatedly after it has left the hand.  Keep
+        # its controller on the branch-local instance rather than later
+        # searching every historical corpse to infer it.
+        card.controller_index = player.index
         for held_card in player.hand:
             if held_card.locked_until_card_played:
                 held_card.locked_until_card_played = False
@@ -6115,6 +6532,8 @@ class DragonMirrorGame:
         if getattr(player, "rafaam_next_discount", False) and "rafaam" in card.definition.name.casefold():
             player.rafaam_next_discount = False
             self._event("rafaam_discount_consumed", player=player.index, card=card.card_id)
+        # The play counter is incremented immediately before this assignment,
+        # so a value greater than one means another card preceded this card.
         card.combo_active = player.cards_played_this_turn > 1
         if card.card_id == "JAIL_909" and card.combo_active:
             amount = player.cards_played_this_turn - 1
@@ -6317,7 +6736,13 @@ class DragonMirrorGame:
                 for m in player.board
             )
             if (card.spell_casts_twice or malygos_active or sinestra_active) and self.pending_choice is None:
-                self._cast_spell(player, card, action)
+                # A repeated targeted spell is a fresh cast.  Its original
+                # target may have died during the first cast (for example a
+                # lethal Sindragosa's Triumph), so rebuild the target from the
+                # current legal target set instead of reusing a stale entity.
+                repeat_action = self._retarget_repeated_spell(player, card, action)
+                if repeat_action is not None:
+                    self._cast_spell(player, card, repeat_action)
             if player.hamuul_active:
                 player.hamuul_spells_cast += 1
                 if player.hamuul_spells_cast % 3 == 0:
@@ -7534,6 +7959,73 @@ class DragonMirrorGame:
                 adaptations=list(player.ashalon_adaptations),
             )
 
+    def _retarget_repeated_spell(
+        self, player: Player, card: CardInstance, action: Action
+    ) -> Action | None:
+        """Build the action for a repeated spell cast.
+
+        Spell-copy effects cast the same card a second time, but Hearthstone
+        asks for a new target on each cast.  Reusing the first action is unsafe
+        when that target was killed or otherwise became illegal during the
+        first resolution.  Keep an optional no-target cast intact; for a
+        required target choose a current legal target deterministically from
+        the seeded RNG.  Returning ``None`` means the repeat fizzles because
+        no legal target remains.
+        """
+        target_spec = self.rule_registry.targeting(card.card_id)
+        if target_spec is None:
+            return Action("PLAY", card.entity_id)
+        targets = self._rule_targets(player, card, target_spec.kind)
+        # Dark Gift option spells are targeted spells, but their legal pool is
+        # narrower than their friendly-minion target declaration: a keyword
+        # Gift cannot be granted twice once the first resolution has already
+        # supplied that keyword.  A duplicated spell therefore needs to
+        # retarget to another eligible minion or fizzle, never reapply a stale
+        # target and crash the resolver.
+        dark_gift_by_option = {
+            "EDR_100t": "waking_terror", "EDR_100t1": "well_rested",
+            "EDR_100t2": "short_claws", "EDR_100t3": "bundled_up",
+            "EDR_100t4": "inner_demons", "EDR_100t5": "living_nightmare",
+            "EDR_100t6": "sleepwalker", "EDR_100t7": "rude_awakening",
+            "EDR_100t8": "sweet_dreams", "EDR_100t9": "persisting_horror",
+            "EDR_100t10": "nightmare_scales", "EDR_100t13": "harpys_talons",
+        }
+        gift = dark_gift_by_option.get(card.card_id)
+        if gift is not None:
+            targets = [
+                (target_player, target_entity)
+                for target_player, target_entity in targets
+                if target_entity is not None
+                and (minion := self._find_minion(target_player, target_entity)) is not None
+                and gift in self._eligible_dark_gifts(minion)
+            ]
+        if target_spec.optional:
+            targets = [(None, None), *targets]
+        if not targets:
+            return None
+        original = (action.target_player, action.target_entity)
+        if original in targets:
+            target_player, target_entity = original
+        else:
+            target_player, target_entity = self.rng.choice(targets)
+        return Action("PLAY", card.entity_id, target_player, target_entity)
+
+    def _resolve_sham_trial(self, player: Player, trial: CardInstance) -> None:
+        """Resolve the two effects baked into one Godfather Kazakus Trial."""
+        resolved: list[str] = []
+        for effect_id in trial.sham_trial_effect_ids:
+            self.rule_registry.dispatch(
+                Hook.SPELL, effect_id, self,
+                RuleContext(player=player, card=trial,
+                            action=Action("PLAY", trial.entity_id)),
+            )
+            resolved.append(effect_id)
+        self._resolve_deaths()
+        self._event(
+            "sham_trial_resolved", player=player.index,
+            trial=trial.card_id, entity=trial.entity_id, effects=resolved,
+        )
+
     def _cast_spell(self, player: Player, card: CardInstance, action: Action) -> None:
         # Secrets are played spells that enter the secret zone instead of
         # resolving their ordinary spell text at play time.
@@ -7552,6 +8044,22 @@ class DragonMirrorGame:
                 "counterspell", player=opponent.index,
                 source=counterspell.entity_id, canceled=card.card_id,
             )
+            return
+        if card.card_id in {"CAP_405tb1", "CAP_405tb2", "CAP_405tb3"} and card.sham_trial_effect_ids:
+            # Rushed Trial is immediate. Grueling/Unending Trials leave the
+            # hand now and resolve only at the matching future owner turn.
+            delay = {"CAP_405tb1": 0, "CAP_405tb2": 1, "CAP_405tb3": 4}[card.card_id]
+            if delay == 0:
+                self._resolve_sham_trial(player, card)
+            else:
+                card.sham_trial_due_owner_turn = player.turns_taken + delay
+                player.pending_sham_trials.append(card)
+                self._event(
+                    "sham_trial_armed", player=player.index,
+                    trial=card.card_id, entity=card.entity_id,
+                    due_owner_turn=card.sham_trial_due_owner_turn,
+                    effects=list(card.sham_trial_effect_ids),
+                )
             return
         if card.card_id == "TIME_039":
             opponent = self.players[1 - player.index]
@@ -7646,6 +8154,8 @@ class DragonMirrorGame:
         elif card.card_id == "TIME_EVENT_999":
             self._offer_rewind_discover(player)
         elif card.card_id == "FIR_939":
+            if action.target_player is None:
+                raise ValueError("FIR_939 requires a character target")
             self._deal_to_target(
                 player.index, (action.target_player, action.target_entity),
                 2 + spell_damage,
@@ -7804,17 +8314,21 @@ class DragonMirrorGame:
                 continue
             held.definition = spell.definition
             held.cost_delta = 0
+            # Shadow of Demise becomes the spell just cast, regardless of
+            # unrelated one-shot spell-damage effects below.  Keeping these
+            # writes in the loop also avoids referring to a stale/unbound
+            # ``held`` when the player has no Shadow of Demise in hand.
+            held.created_by = "CORE_RLK_567"
+            self._event(
+                "shadow_of_demise_transform", player=player.index,
+                entity=held.entity_id, copied=spell.card_id,
+            )
         if player.next_spell_damage_bonus:
             self._event(
                 "elise_shining_moonlight_consume", player=player.index,
                 amount=player.next_spell_damage_bonus, spell=spell.card_id,
             )
             player.next_spell_damage_bonus = 0
-            held.created_by = "CORE_RLK_567"
-            self._event(
-                "shadow_of_demise_transform", player=player.index,
-                entity=held.entity_id, copied=spell.card_id,
-            )
         for held in list(player.hand):
             if held.card_id not in {"JAIL_801", "FIR_918", "JAIL_805"}:
                 continue
@@ -9379,8 +9893,11 @@ class DragonMirrorGame:
             gifts.add("rude_awakening")
         return gifts
 
-    def _apply_dark_gift(self, card: CardInstance, gift: str, *, propagate: bool = True, owner: Player | None = None) -> None:
-        if gift not in self._eligible_dark_gifts(card):
+    def _apply_dark_gift(
+        self, card: CardInstance, gift: str, *, propagate: bool = True,
+        owner: Player | None = None, allow_ineligible: bool = False,
+    ) -> None:
+        if not allow_ineligible and gift not in self._eligible_dark_gifts(card):
             raise ValueError(f"ineligible Dark Gift {gift} for {card.card_id}")
         # A Dark Gift is an enchantment event, not a set membership flag.
         # Keyword gifts become ineligible after the first application because
@@ -9416,7 +9933,12 @@ class DragonMirrorGame:
             if owner is not None:
                 for hidden in owner.hand + owner.deck:
                     if hidden.card_id == "EDR_487":
-                        self._apply_dark_gift(hidden, gift, propagate=False)
+                        # Wallow copies the enchantment event. Its copied gifts
+                        # are allowed to stack even when the normal keyword
+                        # eligibility gate is already closed on Wallow.
+                        self._apply_dark_gift(
+                            hidden, gift, propagate=False, allow_ineligible=True,
+                        )
 
     def _add_generated(self, player: Player, card: CardInstance) -> str:
         if (card.card_id in {"CATA_134", "CATA_306", "CATA_479", "CATA_489", "CATA_820"}
@@ -9556,16 +10078,6 @@ class DragonMirrorGame:
             player.board.remove(minion)
             minion.cost_delta -= 2
             minion.damage = 0
-        elif weapon.card_id == "TIME_209t":
-            # High King's Hammer's deathrattle shuffles itself back with
-            # permanently increased attack.  The equipped instance is not
-            # reused; create a fresh deck entity carrying the attack gain.
-            hammer = self._entity("TIME_209t", started_in_deck=True)
-            hammer.attack_delta = weapon.attack - hammer.definition.attack + 2
-            player.deck.insert(self.rng.randrange(len(player.deck) + 1), hammer)
-            self._event("high_kings_hammer_reshuffled", player=player.index,
-                        attack=hammer.attack, card=hammer.card_id)
-            player.hand.append(minion)
         elif weapon.card_id == "CORE_OG_031" and len(player.board) + len(player.locations) < 7:
             token = CardInstance(
                 self.next_entity_id,
@@ -10398,6 +10910,16 @@ class DragonMirrorGame:
 
     def _location_deathrattle(self, player: Player, location: Location) -> None:
         """Resolve location deathrattles when durability or an effect destroys it."""
+        if location.random_minion_deathrattle_cost is not None:
+            self._summon_random_executable_minion(
+                player, source_card_id=location.card_id,
+                cost=location.random_minion_deathrattle_cost,
+            )
+            self._event(
+                "location_random_minion_deathrattle", player=player.index,
+                source=location.entity_id,
+                cost=location.random_minion_deathrattle_cost,
+            )
         if "bursting_geyser" in location.custom_effects:
             damage = {1: 1, 5: 3, 10: 5}[location.custom_tier]
             source = CardInstance(location.entity_id, self.card_defs[location.card_id])
@@ -10519,7 +11041,26 @@ class DragonMirrorGame:
                 self.players[action.target_player]
             )
         else:
-            defender = self._find_minion(action.target_player, target_entity)
+            # A pre-combat attack trigger can remove the declared target
+            # before the ordinary combat damage step (for example a
+            # Stormbrewer-style attack that deals damage first).  The client
+            # then resolves the attack without a second combat target rather
+            # than treating the stale entity id as an engine error.  Search
+            # branches can encounter this legitimately, so make the target
+            # lookup tolerant and finish the attack lifecycle once.
+            try:
+                defender = self._find_minion(action.target_player, target_entity)
+            except ValueError:
+                self._event(
+                    "attack_target_gone", player=self.current,
+                    attacker=attacker.entity_id, target_player=action.target_player,
+                    target_entity=target_entity,
+                )
+                self._after_minion_attack(
+                    self.current, attacker,
+                    attacked_minion=False, was_stealthed=was_stealthed,
+                )
+                return
             self._trigger_secrets_after_friendly_minion_attacked(
                 self.players[action.target_player], defender
             )
@@ -10705,6 +11246,16 @@ class DragonMirrorGame:
         )
 
     def _source_controller(self, source: CardInstance) -> Player:
+        # Played spells are deliberately absent from board/dead-minion zones,
+        # so falling through to the historical scan below made every chained
+        # spell-damage tick linear in the whole death history.  The play path
+        # records the controller before dispatching the effect.
+        cached = getattr(source, "controller_index", None)
+        if (
+            source.definition.card_type == "SPELL"
+            and cached in (0, 1)
+        ):
+            return self.players[cached]
         for player in self.players:
             if any(
                 minion.entity_id == source.entity_id
@@ -11126,6 +11677,7 @@ class DragonMirrorGame:
             # already taken lethal damage in the same event.
             for player, minion in dead:
                 player.board.remove(minion)
+                minion.died_turn = self.turn
                 player.dead_minions.append(copy.deepcopy(minion))
                 if player.index == self.current:
                     player.minions_died_this_turn_cards.append(copy.deepcopy(minion))
@@ -12095,7 +12647,10 @@ class DragonMirrorGame:
             return f"P{self.current + 1} REWIND_RETRY"
         if action.kind == "PREPARE":
             card = next(c for c in player.hand if c.entity_id == action.source)
-            return f"P{self.current + 1} PREPARE {card.definition.name}[{card.card_id}]"
+            return (
+                f"P{self.current + 1} PREPARE "
+                f"{card.definition.name}[{card.card_id}]#{card.entity_id}"
+            )
         if action.kind == "AMMUNITION_PICK":
             return f"P{self.current + 1} AMMUNITION_PICK mode={action.source}"
         if action.kind == "CORPSE_SPEND":
@@ -12145,6 +12700,8 @@ class DragonMirrorGame:
                 "health": card.health,
                 "max_health": card.max_health,
                 "damage": card.damage,
+                "attack_delta": card.attack_delta,
+                "health_delta": card.health_delta,
                 "gifts": list(card.gifts),
                 "started_in_deck": card.started_in_deck,
                 "created_by": card.created_by,
@@ -12167,6 +12724,8 @@ class DragonMirrorGame:
                 "prepared_turn": card.prepared_turn,
                 "prepared": card.prepared,
                 "prepare_granted": card.prepare_granted,
+                "sham_trial_effect_ids": list(card.sham_trial_effect_ids),
+                "sham_trial_due_owner_turn": card.sham_trial_due_owner_turn,
                 "dynamic_spell_damage": card.dynamic_spell_damage,
                 "spells_cast_while_held": card.spells_cast_while_held,
                 "illusion_fake": card.illusion_fake,
@@ -12210,6 +12769,22 @@ class DragonMirrorGame:
                 "secrets": [card.card_id for card in player.secrets],
                 "pending_end_turn_returns": [
                     card.card_id for card in player.pending_end_turn_returns
+                ],
+                # Slime 'em! destroys minions now but records their exact
+                # state for a later generated spell. This is hidden from the
+                # board, but it is decision-relevant and must be visible in
+                # an auditable training/compact trace.
+                "pending_slime_resummon": [
+                    card_state(card, player) for card in player.slime_resummon
+                ],
+                "pending_sham_trials": [
+                    {
+                        "id": card.card_id,
+                        "entity": card.entity_id,
+                        "effects": list(card.sham_trial_effect_ids),
+                        "due_owner_turn": card.sham_trial_due_owner_turn,
+                    }
+                    for card in player.pending_sham_trials
                 ],
                 "spell_damage": self._spell_damage(player),
                 "herald_count": player.herald_count,

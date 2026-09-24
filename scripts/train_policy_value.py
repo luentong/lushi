@@ -7,11 +7,20 @@ import argparse
 import gzip
 import json
 import random
+import re
 import sys
 import time
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 from functools import partial
 from pathlib import Path
+
+try:
+    import orjson as _fast_json
+except ImportError:
+    _fast_json = None
+
+def _loads(line):
+    return _fast_json.loads(line) if _fast_json is not None else json.loads(line)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,6 +30,7 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset, Subset
 
+from hsa.encoding import compatible_feature_schema
 from hsa.torch_model import (
     BilinearPolicyValueNet,
     InteractionPolicyValueNet,
@@ -34,16 +44,58 @@ from hsa.training import (
 )
 
 
+class _LazyRecordView:
+    def __init__(self, dataset: "DecisionDataset"):
+        self.dataset = dataset
+
+    def __len__(self):
+        return len(self.dataset._index)
+
+    def __getitem__(self, index):
+        return self.dataset[index]
+
+    def __iter__(self):
+        for index in range(len(self)):
+            yield self[index]
+
+
 class DecisionDataset(Dataset):
     def __init__(self, paths: list[Path], max_records: int | None = None):
-        self.records = []
+        # Keep only lightweight locations/labels in memory.  The old loader
+        # retained every decoded JSON dict, which expanded a 70 MB dataset to
+        # well over 100 GB.  Records are decoded a file at a time on demand.
+        self._index = []
+        self._file_cache = OrderedDict()
+        # A single matchup file can contain many thousands of decisions and
+        # decoding several files at once defeats the purpose of the lazy
+        # loader.  Keep one decoded file resident; the training iterator still
+        # makes progress while peak RSS stays bounded by the largest shard.
+        self._max_cached_files = 1
         self.headers = []
         for path in paths:
-            with gzip.open(path, "rt", encoding="utf-8") as handle:
-                header = json.loads(next(handle))
+            if path.suffix == ".pt":
+                payload = torch.load(path, map_location="cpu", weights_only=False)
+                header = payload.get("header", self.headers[0] if self.headers else {})
                 self.headers.append(header)
-                if len(self.headers) > 1 and (
-                    header["feature_schema"] != self.headers[0]["feature_schema"]
+                if "records" in payload:
+                    records = payload["records"]
+                else:
+                    n = int(payload["count"])
+                    records = [None] * n
+                for row, record in enumerate(records):
+                    if max_records is not None and len(self._index) >= max_records:
+                        break
+                    seed = int(record.get("game_seed", 0)) if record is not None else 0
+                    self._index.append((path, row, seed))
+                del payload
+                if max_records is not None and len(self._index) >= max_records:
+                    break
+                continue
+            with gzip.open(path, "rt", encoding="utf-8") as handle:
+                header = _loads(next(handle))
+                self.headers.append(header)
+                if len(self.headers) > 1 and not compatible_feature_schema(
+                    header["feature_schema"], self.headers[0]["feature_schema"]
                 ):
                     raise ValueError("all datasets must use the same feature schema")
                 if len(self.headers) > 1 and (
@@ -55,23 +107,72 @@ class DecisionDataset(Dataset):
                     != self.headers[0].get("ruleset_fingerprint")
                 ):
                     raise ValueError("all datasets must use the same ruleset fingerprint")
-                for line in handle:
-                    if max_records is not None and len(self.records) >= max_records:
+                for line_no, line in enumerate(handle, start=2):
+                    if max_records is not None and len(self._index) >= max_records:
                         break
-                    record = json.loads(line)
-                    if record.get("record_type") == "decision":
-                        self.records.append(record)
-            if max_records is not None and len(self.records) >= max_records:
+                    # Avoid decoding the very large state/action arrays while
+                    # building the index.  Full JSON decoding is deferred to
+                    # _load_file/__getitem__.
+                    if '"record_type":"decision"' not in line and '"record_type": "decision"' not in line:
+                        continue
+                    match = re.search(r'"game_seed"\s*:\s*(-?\d+)', line)
+                    if match is not None:
+                        self._index.append((path, line_no, int(match.group(1))) )
+            if max_records is not None and len(self._index) >= max_records:
                 break
         self.header = self.headers[0]
-        if not self.records:
+        self.records = _LazyRecordView(self)
+        if not self._index:
             raise ValueError("dataset contains no decision records")
 
     def __len__(self) -> int:
-        return len(self.records)
+        return len(self._index)
 
     def __getitem__(self, index: int):
-        return self.records[index]
+        path, line_no, _seed = self._index[index]
+        records = self._load_file(path)
+        return records[line_no]
+
+    def _load_file(self, path: Path):
+        cached = self._file_cache.get(path)
+        if cached is not None:
+            self._file_cache.move_to_end(path)
+            return cached
+        if path.suffix == ".pt":
+            payload = torch.load(path, map_location="cpu", weights_only=False)
+            if "records" in payload:
+                records = payload["records"]
+            else:
+                records = []
+                for i in range(int(payload["count"])):
+                    count = int(payload["mask"][i].sum().item())
+                    records.append({
+                        "state": payload["states"][i].tolist(),
+                        "actions": payload["actions"][i, :count].tolist(),
+                        "chosen_action": int(payload["chosen"][i]),
+                        "value_target": float(payload["values"][i]),
+                        "policy_target": payload["policy_targets"][i, :count].tolist(),
+                        "game_seed": int(payload.get("game_seed", torch.zeros(1, dtype=torch.int64))[i]),
+                        "winner": (None if int(payload.get("winner", torch.full((1,), -1, dtype=torch.int8))[i]) < 0 else int(payload["winner"][i])),
+                        "actor": int(payload.get("actor", torch.zeros(1, dtype=torch.int8))[i]),
+                    })
+            self._file_cache[path] = records
+            self._file_cache.move_to_end(path)
+            while len(self._file_cache) > self._max_cached_files:
+                self._file_cache.popitem(last=False)
+            return records
+        records = {}
+        with gzip.open(path, "rt", encoding="utf-8") as handle:
+            next(handle, None)
+            for line_no, line in enumerate(handle, start=2):
+                record = _loads(line)
+                if record.get("record_type") == "decision":
+                    records[line_no] = record
+        self._file_cache[path] = records
+        self._file_cache.move_to_end(path)
+        while len(self._file_cache) > self._max_cached_files:
+            self._file_cache.popitem(last=False)
+        return records
 
 
 def collate_decisions(
@@ -119,7 +220,18 @@ def collate_decisions(
                 ),
                 dtype=torch.float32,
             )
-            policy_targets[row, :count] = probabilities
+            # Older/shortened records can contain a policy target whose
+            # length does not match the current action list (for example
+            # after legal-action canonicalisation).  Keep the aligned
+            # prefix and renormalise it instead of failing the whole batch.
+            aligned = torch.zeros(count, dtype=torch.float32)
+            limit = min(count, int(probabilities.numel()))
+            if limit:
+                aligned[:limit] = probabilities[:limit]
+                total = float(aligned.sum())
+                if total > 0:
+                    aligned /= total
+            policy_targets[row, :count] = aligned
     return states, actions, mask, chosen, values, policy_targets
 
 
@@ -253,6 +365,13 @@ def main() -> None:
         default=[ROOT / "reports" / "policy-value-smoke.jsonl.gz"],
     )
     parser.add_argument(
+        "--validation-data", type=Path, nargs="+",
+        help=(
+            "Independent held-out data. When supplied it replaces the internal "
+            "random game split for checkpoint selection and reported validation."
+        ),
+    )
+    parser.add_argument(
         "--output", type=Path,
         default=ROOT / "reports" / "policy-value-smoke.pt",
     )
@@ -321,6 +440,18 @@ def main() -> None:
     device = choose_device(args.device)
     dataset = DecisionDataset(args.data, args.max_records)
     schema = dataset.header["feature_schema"]
+    external_validation_dataset = (
+        DecisionDataset(args.validation_data, args.max_records)
+        if args.validation_data else None
+    )
+    if external_validation_dataset is not None:
+        external_header = external_validation_dataset.header
+        if not compatible_feature_schema(external_header["feature_schema"], schema):
+            raise ValueError("external validation data feature schema does not match training data")
+        if external_header.get("ruleset") != dataset.header.get("ruleset"):
+            raise ValueError("external validation data ruleset does not match training data")
+        if external_header.get("ruleset_fingerprint") != dataset.header.get("ruleset_fingerprint"):
+            raise ValueError("external validation data ruleset fingerprint does not match training data")
     model_class = {
         "additive-v1": PolicyValueNet,
         "interaction-v2": InteractionPolicyValueNet,
@@ -348,22 +479,27 @@ def main() -> None:
         if initial_model != model.metadata():
             raise ValueError("initial checkpoint model architecture does not match")
         initial_schema = initial["report"].get("feature_schema")
-        if initial_schema != schema:
+        if initial_schema is not None and not compatible_feature_schema(initial_schema, schema):
             raise ValueError("initial checkpoint feature schema does not match")
         model.load_state_dict(initial["model_state_dict"])
     seeds = sorted({record["game_seed"] for record in dataset.records})
-    validation_seeds = stratified_validation_seeds(
-        dataset.records, args.validation_ratio, args.seed
+    validation_seeds = (
+        set() if external_validation_dataset is not None
+        else stratified_validation_seeds(dataset.records, args.validation_ratio, args.seed)
     )
     validation_games = len(validation_seeds)
     train_indices = [
         index for index, record in enumerate(dataset.records)
         if record["game_seed"] not in validation_seeds
     ]
-    validation_indices = [
-        index for index, record in enumerate(dataset.records)
-        if record["game_seed"] in validation_seeds
-    ]
+    validation_dataset = external_validation_dataset or dataset
+    validation_indices = (
+        list(range(len(validation_dataset)))
+        if external_validation_dataset is not None else [
+            index for index, record in enumerate(dataset.records)
+            if record["game_seed"] in validation_seeds
+        ]
+    )
     generator = torch.Generator().manual_seed(args.seed)
     collate = partial(
         collate_decisions,
@@ -382,7 +518,7 @@ def main() -> None:
     )
     validation_loader = (
         DataLoader(
-            Subset(dataset, validation_indices), batch_size=args.batch_size,
+            Subset(validation_dataset, validation_indices), batch_size=args.batch_size,
             shuffle=False, collate_fn=collate, num_workers=0,
         )
         if validation_indices else None
@@ -468,19 +604,30 @@ def main() -> None:
         model, dataset, train_indices, collate, args.batch_size, device
     )
     validation_actor_metrics = actor_metrics(
-        model, dataset, validation_indices, collate, args.batch_size, device
+        model, validation_dataset, validation_indices, collate, args.batch_size, device
     )
     report = {
         "schema_version": 1,
         "ruleset": dataset.header.get("ruleset"),
         "ruleset_fingerprint": dataset.header.get("ruleset_fingerprint"),
         "data_sources": [path.as_posix() for path in args.data],
+        "external_validation_sources": (
+            [path.as_posix() for path in args.validation_data]
+            if args.validation_data else None
+        ),
+        "validation_mode": (
+            "external_held_out" if external_validation_dataset is not None
+            else "internal_stratified"
+        ),
         "device": str(device),
         "records": len(dataset),
         "train_records": len(train_indices),
         "validation_records": len(validation_indices),
         "train_games": len(seeds) - validation_games,
-        "validation_games": validation_games,
+        "validation_games": (
+            len({record["game_seed"] for record in validation_dataset.records})
+            if external_validation_dataset is not None else validation_games
+        ),
         "split_seed": args.seed,
         "validation_game_seeds": sorted(validation_seeds),
         "epochs": len(losses),
@@ -512,7 +659,7 @@ def main() -> None:
             losses[best_epoch - 1] if best_epoch is not None else losses[-1]
         ),
         "train_winners": winner_counts(dataset, train_indices),
-        "validation_winners": winner_counts(dataset, validation_indices),
+        "validation_winners": winner_counts(validation_dataset, validation_indices),
         "train_metrics": train_metrics,
         "validation_metrics": validation_metrics,
         "train_actor_metrics": train_actor_metrics,

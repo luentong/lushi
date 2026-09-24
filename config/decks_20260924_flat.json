@@ -1,0 +1,739 @@
+{
+  "snapshot_date": "2026-09-24",
+  "region": "CN",
+  "format": "STANDARD",
+  "client_version": "2026-09-24",
+  "frequency_prior": {
+    "method": "archetype_balanced"
+  },
+  "decks": [
+    {
+      "id": "龙战_01",
+      "name_zh": "龙战",
+      "archetype": "龙战",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAQcE4+YG94MH69YHstgHDar8Bqv8BqWFB+iHB9KXB7etB+yyB4S9B7XAB5XCB5zCB6ngB/vgBwAA"
+    },
+    {
+      "id": "龙战_02",
+      "name_zh": "龙战",
+      "archetype": "龙战",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAQcEzp4Gm8IH69YHstgHDePmBqr8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5zCB6ngB/vgBwAA"
+    },
+    {
+      "id": "龙战_03",
+      "name_zh": "龙战",
+      "archetype": "龙战",
+      "variant_index": 3,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAQcEzp4G4+YG69YHstgHDar8Bqv8BqWFB+iHB9KXB7etB+yyB4S9B7XAB5XCB5zCB6ngB/vgBwAA"
+    },
+    {
+      "id": "龙战_04",
+      "name_zh": "龙战",
+      "archetype": "龙战",
+      "variant_index": 4,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAQcEzp4GhL0H69YHstgHDePmBqr8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5zCB6ngB/vgBwAA"
+    },
+    {
+      "id": "龙战_05",
+      "name_zh": "龙战",
+      "archetype": "龙战",
+      "variant_index": 5,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAQcEzp4G94MH69YHstgHDar8Bqv8BqWFB+iHB9KXB7etB+yyB4S9B7XAB5XCB5zCB6ngB/vgBwAA"
+    },
+    {
+      "id": "龙战_06",
+      "name_zh": "龙战",
+      "archetype": "龙战",
+      "variant_index": 6,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAQcEzp4G4+YG69YHstgHDar8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5vCB5zCB6ngB/vgBwAA"
+    },
+    {
+      "id": "龙战_07",
+      "name_zh": "龙战",
+      "archetype": "龙战",
+      "variant_index": 7,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAQcC69YHstgHDuPmBqr8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5vCB5zCB6ngB/vgBwAA"
+    },
+    {
+      "id": "龙战_08",
+      "name_zh": "龙战",
+      "archetype": "龙战",
+      "variant_index": 8,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAQcC69YHstgHDqr8Bqv8BveDB6WFB+iHB9KXB7etB+yyB4S9B7XAB5XCB5zCB6ngB/vgBwAA"
+    },
+    {
+      "id": "龙海盗战_01",
+      "name_zh": "龙海盗战",
+      "archetype": "龙海盗战",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAQcEzp4G69YHstgHq+AHDePmBqr8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5zCB6ngB/vgBwAA"
+    },
+    {
+      "id": "龙海盗战_02",
+      "name_zh": "龙海盗战",
+      "archetype": "龙海盗战",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAQcEt60H69YHstgHq+AHDePmBqr8Bqv8BqWFB+iHB9KXB+yyB7XAB5XCB5zCB6bgB6ngB/vgBwAA"
+    },
+    {
+      "id": "龙海盗战_03",
+      "name_zh": "龙海盗战",
+      "archetype": "龙海盗战",
+      "variant_index": 3,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAQcE69YHstgHp+AHq+AHDePmBqr8Bqv8BqWFB+iHB9KXB+yyB7XAB5XCB5zCB6bgB6ngB/vgBwAA"
+    },
+    {
+      "id": "龙海盗战_04",
+      "name_zh": "龙海盗战",
+      "archetype": "龙海盗战",
+      "variant_index": 4,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAQcEm8IH69YHstgHq+AHDePmBqr8Bqv8BqWFB+iHB9KXB7etB+yyB7XAB5XCB5zCB6ngB/vgBwAA"
+    },
+    {
+      "id": "穆格萨_01",
+      "name_zh": "穆格萨",
+      "archetype": "穆格萨",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaoIBK+fBPmfBNDbB9/lBw3RmwfQnQfwqgf8rQe8sQfLtgfDwAfTwAfH2wfK2wfN2wfa3wfg9gcAAA=="
+    },
+    {
+      "id": "穆格萨_02",
+      "name_zh": "穆格萨",
+      "archetype": "穆格萨",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaoIAtDbB9/lBw6vnwT5nwTRmwfQnQfwqgf8rQe8sQfLtgfDwAfTwAfH2wfK2wfN2wfg9gcAAA=="
+    },
+    {
+      "id": "穆格萨_03",
+      "name_zh": "穆格萨",
+      "archetype": "穆格萨",
+      "variant_index": 3,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaoIAtDbB9/lBw6vnwTRmwfQnQfwqgf8rQe8sQfLtgfDwAfTwAfH2wfK2wfN2wfa3wfg9gcAAA=="
+    },
+    {
+      "id": "海盗战_01",
+      "name_zh": "海盗战",
+      "archetype": "海盗战",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAQcGm6UHnaUHnqUH69YHstgHq+AHDOPmBqWFB+iHB4+xB5vCB5zCB6bgB6fgB6jgB6ngB/DgB/vgBwAA"
+    },
+    {
+      "id": "海盗战_02",
+      "name_zh": "海盗战",
+      "archetype": "海盗战",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAQcEt60H69YHstgHq+AHDePmBqWFB8eHB+iHB9CyB5XCB5vCB5zCB6bgB6fgB6jgB6ngB/vgBwAA"
+    },
+    {
+      "id": "海盗战_03",
+      "name_zh": "海盗战",
+      "archetype": "海盗战",
+      "variant_index": 3,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAQcE69YHstgHpeAHq+AHDePmBqWFB+iHB9CyB5XCB5vCB5zCB6bgB6fgB6jgB6ngB/DgB/vgBwAA"
+    },
+    {
+      "id": "快攻德_01",
+      "name_zh": "快攻德",
+      "archetype": "快攻德",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAZICBs2eBpKDB6+HB+DAB+XEB6PaBwyunwSIgweqrwesrwfosQe+sgfXwAfk2QeR2gfH5ge85wfK5wcAAA=="
+    },
+    {
+      "id": "快攻德_02",
+      "name_zh": "快攻德",
+      "archetype": "快攻德",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAZICCs2eBoiDB5KDB6+HB4KYB+DAB+LAB93EB+XEB6PaBwqunwSqrwesrwfosQe+sgfXwAfk2QfH5ge85wfK5wcAAA=="
+    },
+    {
+      "id": "快攻德_03",
+      "name_zh": "快攻德",
+      "archetype": "快攻德",
+      "variant_index": 3,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAZICCs2eBoiDB5KDB6+HB4KYB+DAB+LAB93EB+XEB6PaBwqunwSqrwesrwfosQe+sgfXwAeR2gfH5ge85wfK5wcAAA=="
+    },
+    {
+      "id": "快攻德_04",
+      "name_zh": "快攻德",
+      "archetype": "快攻德",
+      "variant_index": 4,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAZICDM6eBqn1BqGBB5KDB6+HB6yIB4KYB+ixB+DAB+LAB+XEB6PaBwmunwSqrwesrwe+sgfXwAeR2gfH5ge85wfK5wcAAA=="
+    },
+    {
+      "id": "快攻德_05",
+      "name_zh": "快攻德",
+      "archetype": "快攻德",
+      "variant_index": 5,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAZICDM2eBqn1BqGBB5KDB6+HB6yIB4KYB+ixB+DAB+LAB+XEB6PaBwmunwSqrwesrwe+sgfXwAeR2gfH5ge85wfK5wcAAA=="
+    },
+    {
+      "id": "快攻德_06",
+      "name_zh": "快攻德",
+      "archetype": "快攻德",
+      "variant_index": 6,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAZICCqn1BqGBB5KDB6+HB6yIB4KYB+DAB+LAB+XEB6PaBwqunwSqrwesrwfosQe+sgfXwAeR2gfH5ge85wfK5wcAAA=="
+    },
+    {
+      "id": "快攻德_07",
+      "name_zh": "快攻德",
+      "archetype": "快攻德",
+      "variant_index": 7,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAZICCM2eBpKDB6+HB4KYB+DAB93EB+XEB6PaBwuunwSIgweqrwesrwfosQe+sgfXwAeR2gfH5ge85wfK5wcAAA=="
+    },
+    {
+      "id": "邪dk_01",
+      "name_zh": "邪DK",
+      "archetype": "邪DK",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAfHhBALtnweI3QcOkeQEhfYEsvcE1J4G1uUGupUHopcH0q0H4rEH/78H9sEHrNoHtNoHptwHAAA="
+    },
+    {
+      "id": "邪dk_02",
+      "name_zh": "邪DK",
+      "archetype": "邪DK",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAfHhBASfngftnwfSrgfa1wcNhfYEh/YE1J4GupUHopcH0JsH0q0H4rEH/78H9sEHrNoHtNoHptwHAAA="
+    },
+    {
+      "id": "邪dk_03",
+      "name_zh": "邪DK",
+      "archetype": "邪DK",
+      "variant_index": 3,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAfHhBATTngbtnwfSrQfSrgcNhfYEh/YE1J4GupUHopcH0JsHn54H4rEH/78H9sEHrNoHtNoHptwHAAA="
+    },
+    {
+      "id": "蛋dk_01",
+      "name_zh": "蛋DK",
+      "archetype": "蛋DK",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAfHhBArDgwf1mAfsmwfXnQftnweSpAfSrgfa1wed2we/3wcKodQEl4IHvJQHupUH4J0Hn54H4rEHrtoHtNoHptwHAAA="
+    },
+    {
+      "id": "蛋dk_02",
+      "name_zh": "蛋DK",
+      "archetype": "蛋DK",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAfHhBAqB/QbDgwf1mAfsmwfXnQftnwfSrgfa1wed2we/3wcK054Gl4IHupUH4J0Hn54HkqQH4rEHrtoHtNoHptwHAAA="
+    },
+    {
+      "id": "蛋dk_03",
+      "name_zh": "蛋DK",
+      "archetype": "蛋DK",
+      "variant_index": 3,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAfHhBAzNngbDgwf1mAfsmwfXnQfgnQftnweSpAfSrgfa1wed2we/3wcJ054Ggf0Gl4IHupUHn54H4rEHrtoHtNoHptwHAAA="
+    },
+    {
+      "id": "蛋dk_04",
+      "name_zh": "蛋DK",
+      "archetype": "蛋DK",
+      "variant_index": 4,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAfHhBArDgwf1mAfsmwfXnQfgnQftnwfSrgfa1wed2we/3wcK054Ggf0Gl4IHupUHn54HkqQH4rEHrtoHtNoHptwHAAA="
+    },
+    {
+      "id": "蛋dk_05",
+      "name_zh": "蛋DK",
+      "archetype": "蛋DK",
+      "variant_index": 5,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAfHhBAj1mAfsmwfXnQfgnQftnwfSrged2we/3wcLgf0Gl4IHupUHn54HkqQH4rEH2tcHrNoHrtoHtNoHptwHAAA="
+    },
+    {
+      "id": "虚灵瞎_01",
+      "name_zh": "虚灵瞎",
+      "archetype": "虚灵瞎",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAea5AwaongbNngbOmweD2gfH3Qen9wcM4fgF0J4G054G3v8GtpcH550HobEHlb8HxN0Hxt0HteEHt+EHAAA="
+    },
+    {
+      "id": "虚灵瞎_02",
+      "name_zh": "虚灵瞎",
+      "archetype": "虚灵瞎",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAea5AwaongbNngahsQeD2ge34Qen9wcM4fgF0J4G054G3v8GtpcH550Hy7YHlb8HxN0Hxt0Hx90HteEHAAA="
+    },
+    {
+      "id": "虚灵瞎_03",
+      "name_zh": "虚灵瞎",
+      "archetype": "虚灵瞎",
+      "variant_index": 3,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAea5Awaonga0lwe1lweKqgeSqgeTqgcM7KAE4fgF3v8GtpcH550H6LEHkr8Hlb8HxN0Hxt0Hx90HteEHAAA="
+    },
+    {
+      "id": "虚灵瞎_04",
+      "name_zh": "虚灵瞎",
+      "archetype": "虚灵瞎",
+      "variant_index": 4,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAea5Awaongbe/wb+gwehsQfosQeD2gcM4fgF0J4G054GtpcHzpsH550Hlb8HxN0Hxt0Hx90HteEHt+EHAAA="
+    },
+    {
+      "id": "虚灵瞎_05",
+      "name_zh": "虚灵瞎",
+      "archetype": "虚灵瞎",
+      "variant_index": 5,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAea5AwSongbNngaD2gen9wcN4fgF0J4G054G3v8GtpcH550HobEHlb8HxN0Hxt0Hx90HteEHt+EHAAA="
+    },
+    {
+      "id": "兹伊萨_01",
+      "name_zh": "兹伊萨",
+      "archetype": "兹伊萨",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaoICNOeBsODB9C/B4LUB5vUB9DbB4jdB9/lBwue1ATt5gbgnQeYrAexsAePvge1wAfJwAfJ2wfI5Qfm/QcAAA=="
+    },
+    {
+      "id": "兹伊萨_02",
+      "name_zh": "兹伊萨",
+      "archetype": "兹伊萨",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaoICMODB4++B9C/B4LUB5vUB9DbB4jdB9/lBwvTngbt5gbIhwfXlwfOmwfgnQeYrAexsAfJwAfI5Qfm/QcAAA=="
+    },
+    {
+      "id": "脏牧_01",
+      "name_zh": "脏牧",
+      "archetype": "脏牧",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAa0GBPypB4CqB4SqB+fYBwjwnwSg+wbD/wb3gQeFhgevyQeq2Qes2QcAAA=="
+    },
+    {
+      "id": "脏牧_02",
+      "name_zh": "脏牧",
+      "archetype": "脏牧",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAa0GBtGeBvypB4CqB4SqB+fYB6rZBwfwnwSg+wbD/waFhgedrQevyQes2QcAAA=="
+    },
+    {
+      "id": "脏牧_03",
+      "name_zh": "脏牧",
+      "archetype": "脏牧",
+      "variant_index": 3,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAa0GBvypB4CqB4SqB+SyB+fYB6rZBwfwnwSg+wbD/waFhgedrQevyQes2QcAAA=="
+    },
+    {
+      "id": "脏牧_04",
+      "name_zh": "脏牧",
+      "archetype": "脏牧",
+      "variant_index": 4,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAa0GBPypB4CqB4SqB+fYBwjwnwTRngbD/waFhgedrQevyQeq2Qes2QcAAA=="
+    },
+    {
+      "id": "任务牧_01",
+      "name_zh": "任务牧",
+      "archetype": "任务牧",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAa0GBPCfBMODB6iWB9zgBw2G/QbFlAfkngfSrwebvweyxQevyQeT3wew3wfV4AfZ4Af04AeW/AcAAA=="
+    },
+    {
+      "id": "任务牧_02",
+      "name_zh": "任务牧",
+      "archetype": "任务牧",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAa0GBvCfBMODB4WGB6iWB9XgB9zgBwyG/QbFlAfkngfSrwebvweyxQevyQeT3wew3wfZ4Af04AeW/AcAAA=="
+    },
+    {
+      "id": "任务牧_03",
+      "name_zh": "任务牧",
+      "archetype": "任务牧",
+      "variant_index": 3,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAa0GBMODB4WGB6iWB9zgBw2G/QbFlAfkngfSrwebvweyxQevyQeT3wew3wfV4AfZ4Af04AeW/AcAAA=="
+    },
+    {
+      "id": "任务牧_04",
+      "name_zh": "任务牧",
+      "archetype": "任务牧",
+      "variant_index": 4,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAa0GBISfBMODB6iWB9zgBw2G/QbFlAfkngfSrwebvweyxQevyQeT3wew3wfV4AfZ4Af04AeW/AcAAA=="
+    },
+    {
+      "id": "任务牧_05",
+      "name_zh": "任务牧",
+      "archetype": "任务牧",
+      "variant_index": 5,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAa0GBoSfBMODB4WGB6iWB9XgB9zgBwyG/QbFlAfkngfSrwebvweyxQevyQeT3wew3wfW4AfZ4Af04AcAAA=="
+    },
+    {
+      "id": "drake_warlock_01",
+      "name_zh": "Drake Warlock",
+      "archetype": "Drake Warlock",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0GCNGCB4adB5mxB63ZB47cB9vgB7roB4TpBwuPnwTnoATTngaqrQeTvgfgvgfd1wew2Qex2Qe32QeN3AcAAA=="
+    },
+    {
+      "id": "drake_warlock_02",
+      "name_zh": "Drake Warlock",
+      "archetype": "Drake Warlock",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0GCLGfBIadB5mxB63ZB47cB9vgB7roB4TpBwuPnwTnoATTngaqrQeTvgfgvgfd1wew2Qex2Qe32QeN3AcAAA=="
+    },
+    {
+      "id": "drake_warlock_03",
+      "name_zh": "Drake Warlock",
+      "archetype": "Drake Warlock",
+      "variant_index": 3,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0GCIadB5mxB9CyB63ZB7HZB9vgB7roB4TpBwuPnwSxnwTnoATTngaEmQeqrQeTvgfgvge32QeN3AeO3AcAAA=="
+    },
+    {
+      "id": "drake_warlock_04",
+      "name_zh": "Drake Warlock",
+      "archetype": "Drake Warlock",
+      "variant_index": 4,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0GCI+fBIadB5mxB63ZB7HZB9vgB7roB4TpBwuxnwTnoATTngaEmQeqrQfQsgeTvgfgvge32QeN3AeO3AcAAA=="
+    },
+    {
+      "id": "drake_warlock_05",
+      "name_zh": "Drake Warlock",
+      "archetype": "Drake Warlock",
+      "variant_index": 5,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0GCo+fBIadB5mxB93XB63ZB7DZB7HZB9vgB7roB4TpBwqxnwTnoATTngaqrQfQsgeTvgfgvge32QeN3AeO3AcAAA=="
+    },
+    {
+      "id": "先驱术_01",
+      "name_zh": "先驱术",
+      "archetype": "先驱术",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0GBs2eBtC/B5vUB63ZB47cB9vgBwyPnwTnoATTngaEmQeTvgfYvgfgvgfd1wew2Qex2Qe32QeN3AcAAA=="
+    },
+    {
+      "id": "先驱术_02",
+      "name_zh": "先驱术",
+      "archetype": "先驱术",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0GBpegBNC/B5vUB63ZB47cB9vgBwyPnwSxnwTnoASEmQelrQeTvgfYvgfgvgfa1wex2Qe32QeN3AcAAA=="
+    },
+    {
+      "id": "先驱术_03",
+      "name_zh": "先驱术",
+      "archetype": "先驱术",
+      "variant_index": 3,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0GBtC/B5vUB63ZB9LgB9vgB4TpBwyPnwTnoATTngaEmQeTvgfYvgfgvgfd1wew2Qex2Qe32QeN3AcAAA=="
+    },
+    {
+      "id": "先驱术_04",
+      "name_zh": "先驱术",
+      "archetype": "先驱术",
+      "variant_index": 4,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0GBNC/B5vUB63ZB9vgBw2PnwTnoATTngaEmQeTvgfYvgfgvgfd1wew2Qex2Qe32QeN3AeO3AcAAA=="
+    },
+    {
+      "id": "兆示贼_01",
+      "name_zh": "兆示贼",
+      "archetype": "兆示贼",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaIHDs2eBqGBB5KDB4KYB9GdB+ylB4aoB4eoB4ioB9C/B4rUB5vUB4jZB43aBwj3nwSQgwfBlwfHrge0wQfAwQedxQfVxQcAAA=="
+    },
+    {
+      "id": "兆示贼_02",
+      "name_zh": "兆示贼",
+      "archetype": "兆示贼",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaIHDKGBB5KDB8GXB4KYB+ylB4aoB4eoB4ioB9C/B4rUB5vUB4jZBwn3nwTZogaQgwfHrge0wQfAwQedxQfVxQeN2gcAAA=="
+    },
+    {
+      "id": "兆示贼_03",
+      "name_zh": "兆示贼",
+      "archetype": "兆示贼",
+      "variant_index": 3,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaIHDtOeBqGBB5KDB4KYB+ylB4aoB4eoB4ioB9C/B7PDB4rUB5vUB4jZB9DgBwj3nwTBlwe0wQfAwQedxQfVxQeN2gfO4AcAAA=="
+    },
+    {
+      "id": "兆示贼_04",
+      "name_zh": "兆示贼",
+      "archetype": "兆示贼",
+      "variant_index": 4,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaIHEs2eBtOeBtmiBqGBB5KDB+ylB4aoB4eoB4ioB9C/B7TBB7PDB4rUB5vUB4jZB5HZB43aB9DgBwb3nwTBlwfAwQedxQfVxQfO4AcAAA=="
+    },
+    {
+      "id": "兆示贼_05",
+      "name_zh": "兆示贼",
+      "archetype": "兆示贼",
+      "variant_index": 5,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaIHDs2eBtmiBqGBB5KDB4KYB9GdB+ylB4aoB4eoB4ioB9C/B4rUB5vUB4jZBwj3nwSQgwfBlwfHrge0wQfAwQedxQfVxQcAAA=="
+    },
+    {
+      "id": "raza_dh_01",
+      "name_zh": "Raza DH",
+      "archetype": "Raza DH",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAea5AwjUnwTe/waDige1lweKqgeSqgeTqgfisQcL4fgFzZ4Gzp4G054GtpcH6LEHkrIHkr8H5eQHk+gHpvgHAAA="
+    },
+    {
+      "id": "raza_dh_02",
+      "name_zh": "Raza DH",
+      "archetype": "Raza DH",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAea5AwjUnwSDige1lweKqgeSqgeTqgfisQfI3QcL4fgFzZ4Gzp4G054GtpcH6LEHkrIHkr8H5eQHk+gHpvgHAAA="
+    },
+    {
+      "id": "raza_dh_03",
+      "name_zh": "Raza DH",
+      "archetype": "Raza DH",
+      "variant_index": 3,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAea5AwS1lweKqgeSqgeTqgcN4fgFzZ4Gzp4G054G3v8GtpcH4rEHkrIHkr8Hlb8H5eQHk+gHpvgHAAA="
+    },
+    {
+      "id": "raza_dh_04",
+      "name_zh": "Raza DH",
+      "archetype": "Raza DH",
+      "variant_index": 4,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAea5AwTUnwSKqgeSqgeTqgcN4fgFzZ4Gzp4G054G3v8GtpcH4rEHkrIHkr8Hlb8H5eQHk+gHpvgHAAA="
+    },
+    {
+      "id": "艾雅贼_01",
+      "name_zh": "艾雅贼",
+      "archetype": "艾雅贼",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaIHCN/+BoaoB4eoB4ioB+WvB7PDB6XYB4jZBwuRnwT3nwTTngbBlwe0wQfFwQfVxQeryQek2AeR2QeN2gcAAA=="
+    },
+    {
+      "id": "艾雅贼_02",
+      "name_zh": "艾雅贼",
+      "archetype": "艾雅贼",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaIHCs7+Bt/+BpKkB4aoB4eoB4ioB+WvB7PDB6XYB4jZBwqRnwT3nwTZogbBlwe0wQfFwQfVxQek2AeR2QeN2gcAAA=="
+    },
+    {
+      "id": "艾雅贼_03",
+      "name_zh": "艾雅贼",
+      "archetype": "艾雅贼",
+      "variant_index": 3,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaIHCJGfBN/+BoaoB4eoB4ioB+WvB6XYB4jZBwv3nwTZogaQgwfBlwfHrge0wQfFwQfVxQek2AeR2QeN2gcAAA=="
+    },
+    {
+      "id": "艾雅贼_04",
+      "name_zh": "艾雅贼",
+      "archetype": "艾雅贼",
+      "variant_index": 4,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaIHBoaoB4eoB4ioB+WvB6XYB4jZBwz3nwTTngbZogbBlwfLtge0wQfFwQfVxQek2AeR2QeN2gfO4AcAAA=="
+    },
+    {
+      "id": "潜行贼_01",
+      "name_zh": "潜行贼",
+      "archetype": "潜行贼",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaIHDJKDB4aoB4eoB4ioB9C/B7TBB7PDB53FB4rUB5vUB4jZB9DgBwmRnwT3nwTBlwfVxQej4Ae04AfB4AfO4AfD8gcAAA=="
+    },
+    {
+      "id": "潜行贼_02",
+      "name_zh": "潜行贼",
+      "archetype": "潜行贼",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaIHCpKDB+ylB4aoB4eoB4ioB9C/B4rUB5vUB4jZB9DgBwr3nwTBlwezwwedxQfVxQej4Ae04AfB4AfO4AfD8gcAAA=="
+    },
+    {
+      "id": "潜行贼_03",
+      "name_zh": "潜行贼",
+      "archetype": "潜行贼",
+      "variant_index": 3,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaIHDKGBB5CDB5KDB8GXB4KYB9GdB+ylB9C/B4rUB5vUB4jZB9DgBwn3nwTHrge0wQfAwQedxQfVxQej4AfO4AfD8gcAAA=="
+    },
+    {
+      "id": "潜行贼_04",
+      "name_zh": "潜行贼",
+      "archetype": "潜行贼",
+      "variant_index": 4,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaIHDtmiBqGBB5KDB4KYB9GdB4aoB4eoB4ioB9C/B7TBB4rUB5vUB4jZB9DgBwj3nwTBlwfAwQedxQfVxQej4AfO4AfD8gcAAA=="
+    },
+    {
+      "id": "潜行贼_05",
+      "name_zh": "潜行贼",
+      "archetype": "潜行贼",
+      "variant_index": 5,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaIHDKGBB5KDB4KYB+ylB4aoB4eoB4ioB9C/B4rUB5vUB4jZB9DgBwn3nwTBlwe0wQfAwQedxQfVxQej4AfO4AfD8gcAAA=="
+    },
+    {
+      "id": "打脸法_01",
+      "name_zh": "打脸法",
+      "archetype": "打脸法",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0EBJegBLOHB4i+B5HGBw35mwfopQfRpgeLsQfWsgfWvAeGxAeSxAesxged2QeT2get2gf53gcAAA=="
+    },
+    {
+      "id": "打脸法_02",
+      "name_zh": "打脸法",
+      "archetype": "打脸法",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0EBsODB/WlB4i+B5HGB6rJB6TZBwyzhwf5mwfopQeLsQfWsgeGxAeSxAesxged2QeT2get2gf53gcAAA=="
+    },
+    {
+      "id": "打脸法_03",
+      "name_zh": "打脸法",
+      "archetype": "打脸法",
+      "variant_index": 3,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0EBsODB7OHB4i+B5HGB6rJB6TZBwz5mwfopQf1pQeLsQfWsgeGxAeSxAesxged2QeT2get2gf53gcAAA=="
+    },
+    {
+      "id": "打脸法_04",
+      "name_zh": "打脸法",
+      "archetype": "打脸法",
+      "variant_index": 4,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0EBpegBLOHB4i+B9fDB5HGB5PaBwz9ngSF5gbHhweflgfopQeLsQfWsgfWvAeGxAeSxAebxAesxgcAAA=="
+    },
+    {
+      "id": "拉法姆术_01",
+      "name_zh": "拉法姆术",
+      "archetype": "拉法姆术",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0GEuegBJ3UBM2eBoilB4mlB4qlB5GlB5OlB5SlB5WlB5alB5elB5qlB9C/B5vUB63ZB47cB9vgBwuPnwTTngaEmQeTvgfYvgfgvgfd1wew2Qex2Qe32QeN3AcAAA=="
+    },
+    {
+      "id": "拉法姆术_02",
+      "name_zh": "拉法姆术",
+      "archetype": "拉法姆术",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0GEM2eBoilB4mlB4qlB5GlB5OlB5SlB5WlB5alB5elB5qlB9C/B5vUB63ZB47cB9vgBwyPnwTnoATTngaEmQeTvgfYvgfgvgfd1wew2Qex2Qe32QeN3AcAAA=="
+    },
+    {
+      "id": "拉法姆术_03",
+      "name_zh": "拉法姆术",
+      "archetype": "拉法姆术",
+      "variant_index": 3,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0GEIOgBIKYB4ilB4mlB4qlB5GlB5OlB5SlB5WlB5alB5elB5qlB6qtB5vUB63ZB9vgBwyPnwTnoATTngaEmQeTvgfYvgfgvgfd1wew2Qex2Qe32QeN3AcAAA=="
+    },
+    {
+      "id": "控制牧_01",
+      "name_zh": "控制牧",
+      "archetype": "控制牧",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAa0GBqiWB/ypB4CqB4SqB+SyB4O/BwzwnwSg+wbD/waFhgedrQeFvwebvweixAeyxQevyQew3weW/AcAAA=="
+    },
+    {
+      "id": "控制牧_02",
+      "name_zh": "控制牧",
+      "archetype": "控制牧",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAa0GDM2eBqn1BvKDB6iWB4KYB/ypB4CqB4SqB6ytB5GuB+SyB4u+BwnwnwTRngag+wbD/waFhgedrQeixAeyxQeW/AcAAA=="
+    },
+    {
+      "id": "魔网法_01",
+      "name_zh": "魔网法",
+      "archetype": "魔网法",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0EBpegBMODB7OHB/rEB6TZB//fBwzopQeGxAeSxAfnxAfoxAfwxAfzxAf0xAf7xAeqyQeT2geG4AcAAA=="
+    },
+    {
+      "id": "魔网法_02",
+      "name_zh": "魔网法",
+      "archetype": "魔网法",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0EBpegBMODB4i+B5LEB/rEB//fBwzTngaGxAfnxAfoxAfwxAfzxAf0xAf7xAesxgeT2get2geG4AcAAA=="
+    },
+    {
+      "id": "魔网法_03",
+      "name_zh": "魔网法",
+      "archetype": "魔网法",
+      "variant_index": 3,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0EBPmbB/rEB53ZB6TZBw3xkQfWsgfLtgeSxAfnxAfoxAfwxAfzxAf0xAf7xAesxgeT2get2gcAAA=="
+    },
+    {
+      "id": "魔网法_04",
+      "name_zh": "魔网法",
+      "archetype": "魔网法",
+      "variant_index": 4,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0EBJegBMODB/rEB6rJBw2zhwf1pQfWsgeGxAeSxAfnxAfoxAfwxAfzxAf0xAf7xAesxgeT2gcAAA=="
+    },
+    {
+      "id": "先驱dk_01",
+      "name_zh": "先驱DK",
+      "archetype": "先驱DK",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAfHhBAiCmAeosQfisQePvgfQvwfqyQeb1AeM3QcLodQEh/YE054G2OUGvJQHupUHn54HkasHmsUH0MUHtNoHAAA="
+    },
+    {
+      "id": "先驱dk_02",
+      "name_zh": "先驱DK",
+      "archetype": "先驱DK",
+      "variant_index": 2,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAfHhBAiV5ASXggfDgwf0qgfSrgfQvwfqyQeb1AcLh/YEgf0GupUHn54HkasH4rEHj74HmsUH0MUH2tcHv98HAAA="
+    }
+  ]
+}

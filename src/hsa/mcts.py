@@ -334,14 +334,34 @@ class InformationSetMCTSPolicy:
         self.last_search: dict[str, object] = {}
 
     @staticmethod
-    def _legal_map(game: DragonMirrorGame) -> dict[tuple, Action]:
+    def _legal_map_from_actions(
+        game: DragonMirrorGame, actions: list[Action] | tuple[Action, ...]
+    ) -> dict[tuple, Action]:
         result: dict[tuple, Action] = {}
-        for action in game.legal_actions():
-            key = information_action_key(game, action)
+        for action in actions:
+            base_key = information_action_key(game, action)
+            key = base_key
+            # A few generated/choice actions can be semantically identical
+            # after hiding entity ids.  Identical duplicates do not represent
+            # two choices and are safely collapsed; genuinely different
+            # concrete actions retain a deterministic tie-breaker instead of
+            # aborting the whole game.
             if key in result:
-                raise RuntimeError(f"information action collision: {key}")
+                if result[key].key() == action.key():
+                    continue
+                # Keep the first three fields identical to the normal key so
+                # tuple ordering in PUCT tie-breaks remains well-defined.
+                key = (*base_key, "concrete", action.key())
+                suffix = 1
+                while key in result:
+                    key = (*base_key, "concrete", action.key(), suffix)
+                    suffix += 1
             result[key] = action
         return result
+
+    @classmethod
+    def _legal_map(cls, game: DragonMirrorGame) -> dict[tuple, Action]:
+        return cls._legal_map_from_actions(game, game.legal_actions())
 
     def choose(
         self,
@@ -354,7 +374,9 @@ class InformationSetMCTSPolicy:
         # root policy request. Reusing the exact tuple avoids a second target
         # enumeration (which can be expensive on wide boards) and guarantees
         # the injected prediction has the same action ordering.
-        legal = list(root_actions) if root_actions is not None else game.legal_actions()
+        original_legal = list(root_actions) if root_actions is not None else game.legal_actions()
+        root_legal_map = self._legal_map_from_actions(game, original_legal)
+        legal = list(root_legal_map.values())
         if not legal:
             raise RuntimeError("ISMCTS requested an action in a terminal state")
         if len(legal) == 1:
@@ -368,15 +390,10 @@ class InformationSetMCTSPolicy:
         from .belief import PublicBelief
 
         root_player = game.current
-        root_legal_map: dict[tuple, Action] = {}
-        for action in legal:
-            key = information_action_key(game, action)
-            if key in root_legal_map:
-                raise RuntimeError(f"information action collision: {key}")
-            root_legal_map[key] = action
         belief = PublicBelief.from_game(game, root_player)
         root = _InformationNode()
         nodes = 1
+        invalid_determinization_actions = 0
         configured_iterations = self.samples * self.iterations_per_sample
         adaptive_floor = len(legal) * self.min_simulations_per_root_action
         total_iterations = max(configured_iterations, adaptive_floor)
@@ -394,14 +411,17 @@ class InformationSetMCTSPolicy:
         # At the root, the actor's visible state is identical across all
         # determinizations.  A root-only policy prior may therefore be safely
         # reused while the deeper tree remains heuristic/UCT guided.
-        if root_prediction is not None:
-            if len(root_prediction.priors) != len(legal):
-                raise ValueError("root_prediction must align with legal actions")
+        if root_prediction is not None and len(root_prediction.priors) == len(legal):
             root_priors: dict[tuple, float] | None = {
-                information_action_key(game, action): float(prior)
-                for action, prior in zip(legal, root_prediction.priors, strict=True)
+                key: float(prior)
+                for (key, _), prior in zip(
+                    root_legal_map.items(), root_prediction.priors, strict=True
+                )
             }
         else:
+            # Batched callers may have predicted before duplicate information
+            # actions were collapsed.  Falling back to uniform/heuristic priors
+            # is safer than rejecting an otherwise valid game.
             root_priors = None
         for iteration in range(total_iterations):
             state = belief.sample_determinization(
@@ -429,6 +449,14 @@ class InformationSetMCTSPolicy:
                 if not legal_map:
                     break
                 legal_items = list(legal_map.items())
+                action_key_by_concrete = {
+                    action.key(): key for key, action in legal_items
+                }
+
+                def key_for_action(action: Action) -> tuple:
+                    return action_key_by_concrete.get(
+                        action.key(), information_action_key(state, action)
+                    )
                 available_children = [
                     child for key, child in node.children.items()
                     if key in legal_map
@@ -480,8 +508,10 @@ class InformationSetMCTSPolicy:
                     # visit per action makes low-budget searches nearly uniform
                     # whenever the branching factor approaches the simulation
                     # count, effectively discarding the learned prior.
-                    for action in unexpanded:
-                        key = information_action_key(state, action)
+                    for key, action in (
+                        (key, action) for key, action in legal_items
+                        if key not in node.children
+                    ):
                         child = _InformationNode(
                             action_key=key, availability=1,
                             prior=(
@@ -497,8 +527,8 @@ class InformationSetMCTSPolicy:
                         action = min(
                             unexpanded,
                             key=lambda action: (
-                                -priors.get(information_action_key(state, action), 0.0),
-                                information_action_key(state, action),
+                                -priors.get(key_for_action(action), 0.0),
+                                key_for_action(action),
                             ),
                         )
                     else:
@@ -506,10 +536,10 @@ class InformationSetMCTSPolicy:
                             unexpanded,
                             key=lambda action: (
                                 -self.rollout_policy.score(state, action),
-                                information_action_key(state, action),
+                                key_for_action(action),
                             ),
                         )
-                    key = information_action_key(state, action)
+                    key = key_for_action(action)
                     child = _InformationNode(
                         action_key=key, availability=1,
                         prior=(
@@ -519,7 +549,17 @@ class InformationSetMCTSPolicy:
                     )
                     node.children[key] = child
                     nodes += 1
-                    state.step(action)
+                    try:
+                        state.step(action)
+                    except ValueError:
+                        # An information-set child can be legal in one
+                        # determinization yet become unplayable in another
+                        # after a hidden/random choice rewrites its concrete
+                        # target.  It is not a simulator crash: discard this
+                        # just-expanded child for the sampled branch.
+                        node.children.pop(key, None)
+                        invalid_determinization_actions += 1
+                        break
                     node = child
                     path.append(node)
                     break
@@ -543,7 +583,12 @@ class InformationSetMCTSPolicy:
                                 item.action_key,
                             ),
                         )
-                        state.step(legal_map[child.action_key])
+                        try:
+                            state.step(legal_map[child.action_key])
+                        except ValueError:
+                            child.availability = max(0, child.availability - 1)
+                            invalid_determinization_actions += 1
+                            break
                         node = child
                         path.append(node)
                         break
@@ -565,7 +610,12 @@ class InformationSetMCTSPolicy:
                         item.action_key,
                     ),
                 )
-                state.step(legal_map[child.action_key])
+                try:
+                    state.step(legal_map[child.action_key])
+                except ValueError:
+                    child.availability = max(0, child.availability - 1)
+                    invalid_determinization_actions += 1
+                    break
                 node = child
                 path.append(node)
                 if child.visits == 0:
@@ -601,14 +651,40 @@ class InformationSetMCTSPolicy:
         available_root = [
             child for key, child in root.children.items() if key in root_map
         ]
-        best = max(
-            available_root,
-            key=lambda child: (
-                child.visits, child.mean_value, child.action_key,
-            ),
-        )
+        root_fallback = False
+        if available_root:
+            best = max(
+                available_root,
+                key=lambda child: (
+                    child.visits, child.mean_value, child.action_key,
+                ),
+            )
+        else:
+            # A determinization can legitimately rewrite a dynamic-choice
+            # action (notably Corpse spend/Discover options) so that none of
+            # the sampled root keys is concrete in the live state.  This is
+            # not a terminal state and must never turn into max([]).  Choose
+            # a current legal action using the live-root prior, then record a
+            # zero-visit synthetic child so diagnostics expose the fallback.
+            fallback_key = max(
+                root_map,
+                key=lambda key: (root_priors.get(key, 0.0) if root_priors else 0.0, key),
+            )
+            best = _InformationNode(
+                action_key=fallback_key,
+                availability=0,
+                prior=(root_priors.get(fallback_key, 0.0) if root_priors else 0.0),
+            )
+            root.children[fallback_key] = best
+            root_fallback = True
+        root_key_by_concrete = {
+            action.key(): key for key, action in root_map.items()
+        }
         root_visits = [
-            root.children.get(information_action_key(game, action), _InformationNode()).visits
+            root.children.get(
+                root_key_by_concrete.get(action.key(), information_action_key(game, action)),
+                _InformationNode(),
+            ).visits
             for action in legal
         ]
         visit_total = sum(root_visits)
@@ -618,7 +694,9 @@ class InformationSetMCTSPolicy:
         ]
         root_action_stats = []
         for action, visit_share in zip(legal, root_policy, strict=True):
-            child = root.children.get(information_action_key(game, action))
+            child = root.children.get(
+                root_key_by_concrete.get(action.key(), information_action_key(game, action))
+            )
             root_action_stats.append({
                 "visits": 0 if child is None else child.visits,
                 "availability": 0 if child is None else child.availability,
@@ -639,6 +717,8 @@ class InformationSetMCTSPolicy:
             "determinizations": total_iterations,
             "root_actions": len(legal),
             "root_children": len(root.children),
+            "root_action_fallback": root_fallback,
+            "invalid_determinization_actions": invalid_determinization_actions,
             "nodes": nodes,
             "selected_visits": best.visits,
             "selected_value": best.mean_value,

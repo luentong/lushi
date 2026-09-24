@@ -241,6 +241,13 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertFalse(target.taunt)
         self.assertTrue(target.silenced)
 
+    def test_librarian_registry_exposes_mandatory_minion_target(self):
+        game = self.game()
+        target = game.rule_registry.targeting("CORE_SW_066")
+        self.assertIsNotNone(target)
+        self.assertEqual("any_minion", target.kind.value)
+        self.assertFalse(target.optional)
+
     def test_kindred_and_holding_dragon_cost_reductions(self):
         game = self.game()
         player = game.players[0]
@@ -518,6 +525,20 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertEqual(24, game.players[1].health)
         event = next(e for e in game.events if e["kind"] == "all_enemy_damage")
         self.assertEqual(3, event["repeats"])
+
+    def test_ranger_general_sylvanas_does_not_retarget_dead_minion_on_repeat(self):
+        game = self.game(2881)
+        game.players[0].played_card_counts["TIME_609t1"] = 1
+        victim = self.add_board(game, "CORE_NEW1_023", 1)  # 2 Health
+        card = self.add_hand(game, "TIME_609")
+
+        self.play(game, card)
+
+        self.assertNotIn(victim, game.players[1].board)
+        # The hero receives both volleys; the dead minion is hit only once.
+        self.assertEqual(26, game.players[1].health)
+        event = next(e for e in game.events if e["kind"] == "all_enemy_damage")
+        self.assertEqual(1, sum(target[1] == victim.entity_id for target in event["targets"]))
 
     def test_logosh_summons_blood_fighter_and_attacks(self):
         game = self.game(289)
@@ -2462,6 +2483,7 @@ class DragonMirrorRulesTests(unittest.TestCase):
     def test_squirrel_and_blight_cast_when_drawn(self):
         game = self.game(383)
         player = game.players[0]
+        self.assertEqual("Acorn", game._entity("CORE_SW_439t").definition.name)
         squirrel = self.add_board(game, "CORE_SW_439")
         squirrel.damage = squirrel.max_health
         game._resolve_deaths()
@@ -2609,8 +2631,12 @@ class DragonMirrorRulesTests(unittest.TestCase):
         player.deck = [drawn]
         game._draw(player)
         token = next(m for m in player.board if m.created_by == deceptor.card_id)
+        self.assertEqual("TTN_843t1", token.card_id)
         self.assertEqual((1, 1), (token.attack, token.max_health))
         self.assertTrue(token.rush)
+        # It may later be copied or shuffled into a deck; that must not turn
+        # a generated token into an unsupported runtime-only entity.
+        self.assertEqual("TTN_843t1", game._entity(token.card_id).card_id)
 
     def test_wrathspike_brute_retaliates_only_if_it_survives_attack(self):
         game = self.game(431)
@@ -3208,10 +3234,12 @@ class DragonMirrorRulesTests(unittest.TestCase):
         game.step(Action("PREPARE", securitybot.entity_id))
         self.assertEqual(0, player.mana)
         self.assertEqual(0, game._effective_cost(player, securitybot))
-        self.assertTrue(any(
+        self.assertFalse(any(
             action.kind == "PLAY" and action.source == securitybot.entity_id
             for action in game.legal_actions()
         ))
+        with self.assertRaisesRegex(ValueError, "illegal action"):
+            game.step(Action("PLAY", securitybot.entity_id))
         game.step(Action("END_TURN"))
         game.step(Action("END_TURN"))
         self.assertFalse(any(
@@ -3685,6 +3713,11 @@ class DragonMirrorRulesTests(unittest.TestCase):
         tank = next(m for m in player.board if m.card_id == "TIME_017t")
         self.assertEqual((7, 7), (tank.attack, tank.max_health))
         self.assertTrue(tank.divine_shield)
+        # The token can later be shuffled/copy-created, so its definition
+        # must remain available outside Tankgineer's deathrattle branch.
+        reconstructed = game._entity("TIME_017t")
+        self.assertEqual((7, 7), (reconstructed.attack, reconstructed.max_health))
+        self.assertTrue(reconstructed.divine_shield)
         self.assertNotIn(victim, enemy.board)
 
     def test_finja_summons_two_murlocs_after_attack_kill(self):
