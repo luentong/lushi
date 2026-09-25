@@ -119,12 +119,15 @@ into a new dated `/workspace/hearthstone-agent-live-advisory-*` directory, and
 record the commit SHA beside the run outputs.  Keep the notebook deployment
 separate from any existing colleague checkout.
 
-The current dated manifest contains 91 deck variants.  A 20,000-game first
-corpus can cover every ordered pair at least twice (91 x 91 x 2 = 16,562)
-and leave the remaining games for frequency weighting.  Do **not** claim a
-minimum of eight games per pair at this scale: that would require at least
-66,248 games before weighted sampling.  Use the same manifest for the live
-candidate library and for training.
+`config/decks_20260925_standard127.json` combines the reviewed 91-variant
+library with 30 non-duplicate variants from the prior 40-deck survey,
+then six new user-supplied current-ladder variants, including the previously
+missing Hunter and Paladin coverage.  A 33,000-game
+first corpus can cover every ordered pair at least twice
+(127 x 127 x 2 = 32,258) and leave the remaining games for frequency
+weighting.  Do **not** claim a minimum of eight games per pair at this scale:
+that would require at least 129,032 games before weighted sampling.  Use the
+same manifest for the live candidate library and for training.
 
 ```bash
 cd /workspace/hearthstone-agent
@@ -134,7 +137,7 @@ PY=/usr/local/python3.11.14/bin/python3
 
 RUN_TAG=20260925_r1
 RUN_DIR="reports/standard_live_${RUN_TAG}"
-DECK_CONFIG=config/decks_20260924_flat.json
+DECK_CONFIG=config/decks_20260925_standard127.json
 mkdir -p "$RUN_DIR"
 
 $PY scripts/preflight_multideck.py \
@@ -149,7 +152,7 @@ $PY scripts/generate_multideck_policy_value_data.py \
   --cards cards.251332.enUS.json \
   --output-dir "$RUN_DIR/data" \
   --manifest "$RUN_DIR/manifest.json" \
-  --total-games 20000 \
+  --total-games 33000 \
   --min-games-per-pair 2 \
   --seed 202609250000 \
   --teacher-samples 4 \

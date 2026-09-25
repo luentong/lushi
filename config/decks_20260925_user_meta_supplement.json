@@ -1,0 +1,18 @@
+{
+  "snapshot_date": "2026-09-25",
+  "region": "CN",
+  "format": "STANDARD",
+  "source": "user-supplied current-ladder variants",
+  "decks": [
+    {"id": "lightforged_paladin_user_01", "name_zh": "光铸骑", "archetype": "光铸骑", "variant_index": 101, "frequency_weight": 1.0, "deckstring": "AAECAZ8FCPD+Bu6oB++oB/CoB+XBB+rBB5bUB53dBwvJoAS6lgfLqQfErgf1rwe+sgeDwgfc1QeZ3Qeb3QfX4gcAAQGa3Qed3QcAAA=="},
+    {"id": "lightforged_paladin_user_02", "name_zh": "光铸骑", "archetype": "光铸骑", "variant_index": 102, "frequency_weight": 1.0, "deckstring": "AAECAZ8FBvD+BsavB+XBB+rBB5jdB53dBwycnwTJoATCjwe6lgfLqQf1rwe+sgeDwgfmxQfc1QeZ3QfX4gcAAQGa3Qed3QcAAA=="},
+    {"id": "lightforged_paladin_user_03", "name_zh": "光铸骑", "archetype": "光铸骑", "variant_index": 103, "frequency_weight": 1.0, "deckstring": "AAECAZ8FBvD+Bu6oB++oB/CoB+XBB53dBwzJoAS6lgfLqQfErge+sgfiwQfowQfqwQeDwgfc1QeZ3QfX4gcAAQGa3Qed3QcAAA=="},
+    {"id": "lightforged_paladin_user_04", "name_zh": "光铸骑", "archetype": "光铸骑", "variant_index": 104, "frequency_weight": 1.0, "deckstring": "AAECAZ8FCPD+Bu6oB++oB/CoB+XBB+jBB6vGB53dBwvJoAS6lgfLqQfErge+sgfiwQfqwQeDwgfc1QeZ3QfX4gcAAQGa3Qed3QcAAA=="},
+    {"id": "dragon_hunter_user_01", "name_zh": "龙猎", "archetype": "龙猎", "variant_index": 101, "frequency_weight": 1.0, "deckstring": "AAECAR8GpfwGmacHmqcHm6cHrtgH2dsHDKmfBLGHB6+SB/O/B/W/B4PAB7XAB/nDB6zYB9faB9PbB9fbBwABA7SBB67YB4OEB67YB7qVB67YBwAA"},
+    {"id": "dragon_hunter_user_02", "name_zh": "龙猎", "archetype": "龙猎", "variant_index": 102, "frequency_weight": 1.0, "deckstring": "AAECAR8Kzp4GpfwG94MHmacHmqcHm6cH9KoH7awHhL0HrtgHCqmfBLGHB6+SB/O/B/W/B4PAB7XAB6zYB9faB9PbBwABA4OEB67YB9meB67YB5HxB67YBwAA"},
+    {"id": "ziyisa_shaman_user_01", "name_zh": "兹伊萨", "archetype": "兹伊萨", "variant_index": 101, "frequency_weight": 1.0, "deckstring": "AAECAaoICMODB4++B9C/B4LUB5vUB9DbB4jdB9/lBwvTngbt5gbIhwfXlwfOmwfgnQeYrAexsAfJwAfI5Qfm/QcAAA=="},
+    {"id": "ziyisa_shaman_user_02", "name_zh": "兹伊萨", "archetype": "兹伊萨", "variant_index": 102, "frequency_weight": 1.0, "deckstring": "AAECAaoIDJ7UBM2eBteXB5KkB/SqB9C/B7XAB4LUB5vUB9DbB4jdB9/lBwnt5gb1gQfgnQftrAexsAePvgfJwAfI5Qfm/QcAAA=="},
+    {"id": "mogasa_shaman_user_01", "name_zh": "穆格萨", "archetype": "穆格萨", "variant_index": 101, "frequency_weight": 1.0, "deckstring": "AAECAaoIBNGbB9DbB9/lB6f4Bw2vnwTQnQfwqgf8rQe8sQfLtgfDwAfTwAfH2wfK2wfN2wfa3wfg9gcAAA=="},
+    {"id": "mogasa_shaman_user_02", "name_zh": "穆格萨", "archetype": "穆格萨", "variant_index": 102, "frequency_weight": 1.0, "deckstring": "AAECAaoIAtDbB9/lBw6vnwTRmwfQnQfwqgf8rQe8sQfLtgfDwAfTwAfH2wfK2wfN2wfa3wfg9gcAAA=="}
+  ]
+}
