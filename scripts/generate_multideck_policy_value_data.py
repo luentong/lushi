@@ -147,10 +147,15 @@ def main() -> int:
         ]
         if args.card_vocab_file is not None:
             command.extend(("--card-vocab-file", str(args.card_vocab_file)))
+        # A frequency-weighted corpus may deliberately sample only a subset
+        # of the full ordered-pair matrix.  Keep unsampled pairs in the
+        # manifest for auditability, but do not spawn a child process merely
+        # to ask the game generator for zero games.
+        status = "planned" if games else "not_sampled"
         records.append({
             "deck_a": deck_a, "deck_b": deck_b, "games": games,
             "frequency_weight": weight, "output": str(output),
-            "command": command, "status": "planned",
+            "command": command if games else None, "status": status,
         })
     if args.resume:
         for job in records:
@@ -233,7 +238,7 @@ def main() -> int:
 
     parallel_jobs = max(1, min(args.parallel_jobs, len(records)))
     pending_indices = [
-        index for index, job in enumerate(records) if job["status"] != "complete"
+        index for index, job in enumerate(records) if job["status"] == "planned"
     ]
     if parallel_jobs == 1:
         for index in pending_indices:
