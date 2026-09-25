@@ -23,7 +23,7 @@ from hsa.live_state import EntityView, LiveStateCursor
 from hsa.live_replay import extract_replay_events
 from hsa.live_replay import build_simulator_action_plan
 from hsa.live_session import check_initial_decks
-from hsa.belief_state import build_beliefs
+from hsa.belief_state import build_beliefs, filter_candidates
 from hsa.recommendation_gate import evaluate_gate
 from hsa.belief_consensus import choose_consensus
 from hsa.live_bridge import build_snapshot_hypothesis
@@ -586,7 +586,20 @@ def main() -> int:
                     class_candidates, class_coverage = class_matched_candidates(
                         all_candidates, card_classes, opponent_class)
                     complete_candidates = filter_complete_candidates(class_candidates)
-                    raw_candidates = (complete_candidates[:args.max_hypotheses]
+                    # First constrain by the public opponent class, then by
+                    # cards the opponent has actually played.  Only after
+                    # both filters do we cap the number of hypotheses; an
+                    # arbitrary prefix of a 91-deck manifest is not a belief.
+                    opponent_belief = beliefs.get(candidate_controller)
+                    observed_compatible = (
+                        filter_candidates(opponent_belief)
+                        if opponent_belief is not None else
+                        complete_candidates
+                    )
+                    compatible_candidates = [
+                        deck for deck in complete_candidates if deck in observed_compatible
+                    ]
+                    raw_candidates = (compatible_candidates[:args.max_hypotheses]
                                       if class_coverage else [])
                     hypothesis_actions = []
                     bridge_attempts = []
@@ -663,9 +676,10 @@ def main() -> int:
                                                      min_support=args.belief_min_support)
                         bridge_summary = {"attempted": len(raw_candidates), "viable": len(hypothesis_actions),
                                           "candidate_class": opponent_class,
-                                          "candidate_pool_size": len(all_candidates),
+                                          "configured_candidates": len(all_candidates),
                                           "class_filtered_pool_size": len(class_candidates),
                                           "complete_pool_size": len(complete_candidates),
+                                          "observed_compatible_pool_size": len(compatible_candidates),
                                           "hypotheses": bridge_attempts,
                                           "first_viable_legal_actions": first_viable_legal_actions,
                                           "consensus_support": consensus.support}

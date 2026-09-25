@@ -111,29 +111,38 @@ The existing NPU-oriented runner is
 `scripts/run_standard_multideck_training_910b.sh`. It is an integration
 baseline, not the final data scale.
 
+The current dated manifest contains 91 deck variants.  A 20,000-game first
+corpus can cover every ordered pair at least twice (91 x 91 x 2 = 16,562)
+and leave the remaining games for frequency weighting.  Do **not** claim a
+minimum of eight games per pair at this scale: that would require at least
+66,248 games before weighted sampling.  Use the same manifest for the live
+candidate library and for training.
+
 ```bash
 cd /workspace/hearthstone-agent
 source /usr/local/Ascend/cann-9.0.0/set_env.sh
 export PYTHONPATH="$PWD/src:${PYTHONPATH:-}"
+PY=/usr/local/python3.11.14/bin/python3
 
 RUN_TAG=20260925_r1
 RUN_DIR="reports/standard_live_${RUN_TAG}"
+DECK_CONFIG=config/decks_20260924_flat.json
 mkdir -p "$RUN_DIR"
 
-python scripts/preflight_multideck.py \
+$PY scripts/preflight_multideck.py \
   --cards cards.251332.enUS.json \
-  --deck-config config/decks_20260920_multi.json \
+  --deck-config "$DECK_CONFIG" \
   --iterations 8 \
   --output "$RUN_DIR/preflight.json" \
   > "$RUN_DIR/preflight.log" 2>&1
 
-python scripts/generate_multideck_policy_value_data.py \
-  --config config/decks_20260920_multi.json \
+$PY scripts/generate_multideck_policy_value_data.py \
+  --config "$DECK_CONFIG" \
   --cards cards.251332.enUS.json \
   --output-dir "$RUN_DIR/data" \
   --manifest "$RUN_DIR/manifest.json" \
   --total-games 20000 \
-  --min-games-per-pair 8 \
+  --min-games-per-pair 2 \
   --seed 202609250000 \
   --teacher-samples 4 \
   --teacher-iterations 96 \
@@ -155,7 +164,7 @@ failures.
 Train the generated JSONL corpus with the existing structured-v5 trainer:
 
 ```bash
-python scripts/train_policy_value.py \
+$PY scripts/train_policy_value.py \
   --device npu \
   --data "$RUN_DIR"/data/*.jsonl.gz \
   --output "$RUN_DIR/policy-value-standard-live-r1.pt" \
