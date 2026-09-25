@@ -13,16 +13,24 @@ import json
 import re
 from typing import Any, Iterable
 
-from hslog import LogParser
-from hslog import parser as hslog_parser
-from hslog.exceptions import NoSuchEnum
-from hslog import tokens as hslog_tokens
+try:  # Windows live companion dependency; NPU training does not need it.
+    from hslog import LogParser
+    from hslog import parser as hslog_parser
+    from hslog.exceptions import NoSuchEnum
+    from hslog import tokens as hslog_tokens
+except ModuleNotFoundError:  # pragma: no cover - exercised on minimal NPU images
+    LogParser = None
+    hslog_parser = None
+    hslog_tokens = None
+    NoSuchEnum = ValueError
 
 from .powerlog_import import normalize_packet_tree
 
 
 def _allow_unknown_tags() -> None:
     """Keep a newer noncritical client tag from stopping live observation."""
+    if hslog_parser is None:
+        return
     original = hslog_parser.parse_tag
     if getattr(original, "_lushi_allows_unknown", False):
         return
@@ -38,6 +46,8 @@ def _allow_unknown_tags() -> None:
 
 
 def _enable_current_client_subspell_compatibility() -> None:
+    if hslog_tokens is None:
+        return
     hslog_tokens.SUB_SPELL_START_RE = re.compile(
         r"SUB_SPELL_START(?: -)? SpellPrefabGUID=(.*?) Source=(\d+) TargetCount=(\d+)$"
     )
@@ -47,12 +57,19 @@ class IncrementalPowerLogImporter:
     """Keep parser state for one append-only Power.log file."""
 
     def __init__(self) -> None:
+        if LogParser is None:
+            raise RuntimeError(
+                "Power.log parsing requires hslog. Install requirements-live.txt "
+                "on the Windows advisory machine."
+            )
         _allow_unknown_tags()
         _enable_current_client_subspell_compatibility()
         self._parser = LogParser()
 
     def reset(self) -> None:
         """Discard state when the watcher switches to a new log file."""
+        if LogParser is None:
+            raise RuntimeError("Power.log parsing requires hslog")
         self._parser = LogParser()
 
     def consume(self, lines: Iterable[str]) -> None:
