@@ -6520,7 +6520,7 @@ class EventCardRegressionTests(unittest.TestCase):
     def test_event_blockers(self):
         game = self.game(player_classes=("DEMONHUNTER", "WARRIOR"))
         event_ids = {
-            "JAIL_EVENT_100", "TLC_EVENT_402", "JAIL_EVENT_101",
+            "JAIL_EVENT_100", "TLC_EVENT_402", "JAIL_EVENT_101", "JAIL_EVENT_102",
             "CATA_EVENT_402",
         }
         self.assertTrue(event_ids <= game.executable_card_ids)
@@ -6565,6 +6565,24 @@ class EventCardRegressionTests(unittest.TestCase):
         self.assertEqual(3, game.players[0].collapsing_star_damage)
         demon = self.add_board(game, "CORE_CS2_065")
         self.assertFalse(game.players[0].hero_power_used)
+
+    def test_desperate_bribe_summons_for_both_sides_then_transforms_caster_board(self):
+        game = self.game(player_classes=("SHAMAN", "WARRIOR"))
+        existing = self.add_board(game, "CORE_CS2_231")
+        spell = self.add_hand(game, "JAIL_EVENT_102")
+        game.step(Action("PLAY", spell.entity_id))
+        self.assertEqual(2, len(game.players[1].board))
+        self.assertEqual(3, len(game.players[0].board))
+        # The original 0-cost Wisp is replaced by a 1-cost minion with the
+        # same entity identity; none of the three transformations is a fresh
+        # playable Battlecry summon.
+        transformed_existing = next(card for card in game.players[0].board
+                                    if card.entity_id == existing.entity_id)
+        self.assertEqual(1, transformed_existing.definition.cost)
+        self.assertTrue(all(card.definition.cost == 3 for card in game.players[0].board
+                            if card.entity_id != existing.entity_id))
+        self.assertTrue(all(card.summoned_turn == game.turn for card in game.players[0].board
+                            if card.entity_id != existing.entity_id))
 
     def test_deadly_bribe_gives_coin_to_opponent_and_combo_controller(self):
         game = self.game()

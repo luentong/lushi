@@ -4561,6 +4561,56 @@ class DeadlyBribeSpell:
 
 
 @dataclass(frozen=True)
+class DesperateBribeSpell:
+    """Resolve Desperate Bribe without treating transformations as summons.
+
+    The two summons for each side happen first.  The caster's resulting board
+    (including its newly summoned minions) is then transformed slot by slot
+    into random minions with exactly one higher *printed* cost.  A transform
+    retains entity identity and summoning sickness, but not the old minion's
+    stats, enchantments, Battlecry, or Deathrattle.
+    """
+
+    def execute(self, game: Any, context: RuleContext) -> None:
+        for player in game.players:
+            for _ in range(2):
+                game._summon_random_executable_minion(
+                    player, source_card_id=context.card.card_id, cost=2,
+                    collectible_standard=True,
+                )
+
+        transformed: list[dict[str, Any]] = []
+        for target in list(context.player.board):
+            cost = target.definition.cost + 1
+            candidates = sorted(
+                card_id for card_id, definition in game.card_defs.items()
+                if card_id in game.executable_card_ids
+                and definition.card_type == "MINION"
+                and definition.cost == cost
+                and game._is_standard_collectible(definition)
+            )
+            if not candidates:
+                continue
+            replacement = game._entity(
+                game.rng.choice(candidates), created_by=context.card.card_id
+            )
+            replacement.entity_id = target.entity_id
+            replacement.summoned_turn = target.summoned_turn
+            replacement.attacks_this_turn = target.attacks_this_turn
+            context.player.board[context.player.board.index(target)] = replacement
+            transformed.append({
+                "entity": target.entity_id,
+                "previous": target.card_id,
+                "replacement": replacement.card_id,
+                "cost": cost,
+            })
+        game._event(
+            "desperate_bribe", player=context.player.index,
+            source=context.card.card_id, transformed=transformed,
+        )
+
+
+@dataclass(frozen=True)
 class DestroyActionTargetIfAttackAtMost:
     maximum_attack: int
 
@@ -17843,6 +17893,8 @@ def build_rule_registry() -> RuleRegistry:
         CardRule("TLC_EVENT_402", {Hook.DEATHRATTLE: (DestroyAllMinions(), ResolveDeaths(),)},
                  _EVENT_BLOCKER_SOURCE),
         CardRule("JAIL_EVENT_101", {Hook.SPELL: (SoulImmolationSpell(),)},
+                 _EVENT_BLOCKER_SOURCE),
+        CardRule("JAIL_EVENT_102", {Hook.SPELL: (DesperateBribeSpell(),)},
                  _EVENT_BLOCKER_SOURCE),
         CardRule("CATA_EVENT_402", {Hook.SPELL: (DeadlyBribeSpell(),)},
                  _EVENT_BLOCKER_SOURCE, TargetSpec(TargetKind.ENEMY_MINION)),

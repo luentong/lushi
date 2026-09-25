@@ -507,6 +507,7 @@ PLAYABLE_ON_EITHER_SIDE_IDS = frozenset({
 ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "EDR_820", "JAIL_997",
     "JAIL_EVENT_101",  # Soul Immolation
+    "JAIL_EVENT_102",  # Desperate Bribe
     "CATA_EVENT_402",  # Deadly Bribe
     # Standard Quickdraw spells.
     "RLK_048",  # Anti-Magic Shell
