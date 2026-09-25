@@ -1,0 +1,80 @@
+{
+  "snapshot_date": "2026-09-25",
+  "region": "CN",
+  "format": "STANDARD",
+  "client_version": "2026-09-24",
+  "frequency_prior": {
+    "method": "archetype_balanced"
+  },
+  "sources": [
+    "decks_20260925_standard121.json",
+    "decks_20260925_user_meta_supplement.json"
+  ],
+  "source_manifest": "decks_20260925_standard127.json",
+  "decks": [
+    {
+      "id": "龙战_01",
+      "name_zh": "龙战",
+      "archetype": "龙战",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAQcE4+YG94MH69YHstgHDar8Bqv8BqWFB+iHB9KXB7etB+yyB4S9B7XAB5XCB5zCB6ngB/vgBwAA"
+    },
+    {
+      "id": "lightforged_paladin_user_01",
+      "name_zh": "光铸骑",
+      "archetype": "光铸骑",
+      "variant_index": 101,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAZ8FCPD+Bu6oB++oB/CoB+XBB+rBB5bUB53dBwvJoAS6lgfLqQfErgf1rwe+sgeDwgfc1QeZ3Qeb3QfX4gcAAQGa3Qed3QcAAA=="
+    },
+    {
+      "id": "dragon_hunter_user_02",
+      "name_zh": "龙猎",
+      "archetype": "龙猎",
+      "variant_index": 102,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAR8Kzp4GpfwG94MHmacHmqcHm6cH9KoH7awHhL0HrtgHCqmfBLGHB6+SB/O/B/W/B4PAB7XAB6zYB9faB9PbBwABA4OEB67YB9meB67YB5HxB67YBwAA"
+    },
+    {
+      "id": "mogasa_shaman_user_01",
+      "name_zh": "穆格萨",
+      "archetype": "穆格萨",
+      "variant_index": 101,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaoIBNGbB9DbB9/lB6f4Bw2vnwTQnQfwqgf8rQe8sQfLtgfDwAfTwAfH2wfK2wfN2wfa3wfg9gcAAA=="
+    },
+    {
+      "id": "任务牧_01",
+      "name_zh": "任务牧",
+      "archetype": "任务牧",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAa0GBPCfBMODB6iWB9zgBw2G/QbFlAfkngfSrwebvweyxQevyQeT3wew3wfV4AfZ4Af04AeW/AcAAA=="
+    },
+    {
+      "id": "先驱术_01",
+      "name_zh": "先驱术",
+      "archetype": "先驱术",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAf0GBs2eBtC/B5vUB63ZB47cB9vgBwyPnwTnoATTngaEmQeTvgfYvgfgvgfd1wew2Qex2Qe32QeN3AcAAA=="
+    },
+    {
+      "id": "虚灵瞎_01",
+      "name_zh": "虚灵瞎",
+      "archetype": "虚灵瞎",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAea5AwaongbNngbOmweD2gfH3Qen9wcM4fgF0J4G054G3v8GtpcH550HobEHlb8HxN0Hxt0HteEHt+EHAAA="
+    },
+    {
+      "id": "兆示贼_01",
+      "name_zh": "兆示贼",
+      "archetype": "兆示贼",
+      "variant_index": 1,
+      "frequency_weight": 1.0,
+      "deckstring": "AAECAaIHDs2eBqGBB5KDB4KYB9GdB+ylB4aoB4eoB4ioB9C/B4rUB5vUB4jZB43aBwj3nwSQgwfBlwfHrge0wQfAwQedxQfVxQcAAA=="
+    }
+  ]
+}
