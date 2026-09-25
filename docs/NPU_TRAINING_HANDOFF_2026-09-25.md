@@ -111,6 +111,14 @@ The existing NPU-oriented runner is
 `scripts/run_standard_multideck_training_910b.sh`. It is an integration
 baseline, not the final data scale.
 
+The NPU notebook may not have outbound GitHub access.  If `git clone` stalls,
+do not change model code on the notebook to work around networking.  On an
+approved connected machine, archive the exact reviewed commit with
+`git archive`, transfer that archive through the approved SSH path, extract it
+into a new dated `/workspace/hearthstone-agent-live-advisory-*` directory, and
+record the commit SHA beside the run outputs.  Keep the notebook deployment
+separate from any existing colleague checkout.
+
 The current dated manifest contains 91 deck variants.  A 20,000-game first
 corpus can cover every ordered pair at least twice (91 x 91 x 2 = 16,562)
 and leave the remaining games for frequency weighting.  Do **not** claim a
