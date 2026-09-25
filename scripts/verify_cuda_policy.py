@@ -21,7 +21,7 @@ def main() -> int:
     import torch
 
     from hsa import DragonMirrorGame
-    from hsa.torch_model import TorchPolicyValueModel
+    from hsa.torch_model import TorchPolicyValueModel, load_checkpoint
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", type=Path, required=True)
@@ -36,7 +36,7 @@ def main() -> int:
             "CUDA is unavailable. Install a CUDA-enabled PyTorch wheel and "
             "confirm the NVIDIA driver with nvidia-smi."
         )
-    checkpoint = torch.load(args.checkpoint, map_location="cpu", weights_only=False)
+    checkpoint = load_checkpoint(str(args.checkpoint))
     report = checkpoint.get("report", {})
     manifest = ruleset_manifest(ROOT)
     checkpoint_ruleset = report.get("ruleset")

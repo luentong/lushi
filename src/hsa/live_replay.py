@@ -22,6 +22,9 @@ class ReplayEvent:
     target_entity: int | None = None
     target_card: str | None = None
     controller: int | None = None
+    choice_id: int | None = None
+    choice_type: str | None = None
+    task_list: int | None = None
     choices: tuple[int, ...] = ()
     chosen: tuple[int, ...] = ()
     effects: tuple[dict[str, Any], ...] = ()
@@ -40,6 +43,8 @@ class ReplayDiagnostics:
     hand_entities: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
     generated_entities: list[dict[str, Any]] = field(default_factory=list)
     transition_errors: list[dict[str, Any]] = field(default_factory=list)
+    reset_count: int = 0
+    retained_pre_reset_entities: set[int] = field(default_factory=set)
 
     @property
     def replayable(self) -> bool:
@@ -65,6 +70,8 @@ class ReplayDiagnostics:
             "hand_entities": self.hand_entities,
             "generated_entities": self.generated_entities,
             "transition_errors": self.transition_errors[:50],
+            "reset_count": self.reset_count,
+            "retained_pre_reset_entity_count": len(self.retained_pre_reset_entities),
         }
 
 
@@ -221,14 +228,49 @@ def _effects(block: dict[str, Any]) -> Iterable[dict[str, Any]]:
     return block.get("effects", ()) or ()
 
 
+def _is_game_reset(block: dict[str, Any]) -> bool:
+    if str(block.get("block_type") or block.get("type") or "").upper() == "GAME_RESET":
+        return True
+    return any(str(effect.get("kind") or "").upper() == "RESETGAME"
+               for effect in _effects(block))
+
+
+def _current_reset_segment(
+    game: dict[str, Any],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], int, set[int]]:
+    """Return the authoritative public-state segment after the last reset.
+
+    ``GAME_RESET`` carries a replacement FullEntity snapshot. Earlier actions
+    are historical context only and must not be replayed into the reset state.
+    """
+    blocks = list(game.get("blocks", ()))
+    reset_indices = [index for index, block in enumerate(blocks) if _is_game_reset(block)]
+    if not reset_indices:
+        return list(game.get("preamble", ())), blocks, 0, set()
+    reset_index = reset_indices[-1]
+    reset = blocks[reset_index]
+    snapshot = [effect for effect in _effects(reset)
+                if str(effect.get("kind") or "") in {"FullEntity", "ShowEntity", "TagChange"}]
+    retained: set[int] = set()
+    for block in blocks[:reset_index]:
+        for effect in _effects(block):
+            if str(effect.get("kind") or "") not in {"FullEntity", "ShowEntity"}:
+                continue
+            try:
+                retained.add(int(effect.get("entity")))
+            except (TypeError, ValueError):
+                pass
+    return snapshot, blocks[reset_index + 1:], len(reset_indices), retained
+
+
 def extract_replay_events(game: dict[str, Any]) -> ReplayDiagnostics:
     result = ReplayDiagnostics()
     entity_zone: dict[str, str] = {}
     entity_controller: dict[str, str] = {}
     entity_creator: dict[str, Any] = {}
-    preamble_rows = list(game.get("preamble", ()))
+    preamble_rows, blocks, result.reset_count, result.retained_pre_reset_entities = _current_reset_segment(game)
     rows = list(preamble_rows)
-    for block in game.get("blocks", ()):
+    for block in blocks:
         rows.extend(e for e in _effects(block) if e.get("kind") in {"FullEntity", "ShowEntity", "TagChange"})
     for row in rows:
         entity = row.get("entity")
@@ -272,12 +314,67 @@ def extract_replay_events(game: dict[str, Any]) -> ReplayDiagnostics:
         if entity and entity_zone.get(entity) == "DECK":
             owner = entity_controller.get(entity, "unknown")
             result.unknown_deck_slots[owner] = result.unknown_deck_slots.get(owner, 0) + 1
-    for block in game.get("blocks", ()):
+    # Mulligan choices are special: current Power.log clients mark their
+    # completion through MULLIGAN_STATE=DONE, rather than ChosenEntities.
+    # Collect that public acknowledgement before evaluating the choice blocks.
+    completed_mulligans: set[int] = set()
+    for block in blocks:
+        for effect in _effects(block):
+            if (str(effect.get("kind") or "").upper() == "TAGCHANGE"
+                    and str(effect.get("tag") or "").upper() == "MULLIGAN_STATE"
+                    and str(effect.get("value") or "").upper() == "DONE"
+                    and effect.get("entity") is not None):
+                try:
+                    completed_mulligans.add(int(effect["entity"]))
+                except (TypeError, ValueError):
+                    pass
+
+    # Choices and their confirmations may be emitted in different Power.log
+    # blocks. Resolve them by protocol id before building replay events, as a
+    # zone alone cannot distinguish a live Discover from stale SETASIDE data.
+    choice_records: dict[int, dict[str, Any]] = {}
+    for block in blocks:
+        for effect in _effects(block):
+            kind = str(effect.get("kind") or "").upper()
+            raw_id = effect.get("id")
+            try:
+                choice_id = int(raw_id)
+            except (TypeError, ValueError):
+                choice_id = None
+            if choice_id is None:
+                continue
+            if kind == "CHOICES":
+                record = choice_records.setdefault(choice_id, {
+                    "choices": [], "chosen": [], "type": None, "task_list": None,
+                })
+                record["choices"].extend(
+                    int(value) for value in effect.get("choices", ())
+                    if str(value).lstrip("-").isdigit())
+                record["type"] = str(effect.get("type") or "").upper() or record["type"]
+                try:
+                    record["task_list"] = int(effect.get("tasklist"))
+                except (TypeError, ValueError):
+                    pass
+            elif kind in {"CHOSENENTITIES", "SENDCHOICES"} and choice_id in choice_records:
+                record = choice_records[choice_id]
+                record["chosen"].extend(
+                    int(value) for value in effect.get("choices", ())
+                    if str(value).lstrip("-").isdigit())
+                record["chosen"].extend(
+                    int(value) for value in effect.get("entities", ())
+                    if str(value).lstrip("-").isdigit())
+
+    for block in blocks:
         kind = str(block.get("block_type") or block.get("type") or "").upper()
         choices: list[int] = []
         chosen: list[int] = []
+        unresolved_choice_entities: list[int] = []
+        choice_id: int | None = None
+        choice_type: str | None = None
+        task_list: int | None = None
         effects: list[dict[str, Any]] = []
         observed_entities: list[int] = []
+        inline_chosen: list[int] = []
         for effect in _effects(block):
             if effect.get("entity") is not None:
                 try:
@@ -286,34 +383,81 @@ def extract_replay_events(game: dict[str, Any]) -> ReplayDiagnostics:
                     pass
             ek = str(effect.get("kind") or "").upper()
             if ek == "CHOICES":
-                choices.extend(int(x) for x in effect.get("choices", ()) if str(x).lstrip("-").isdigit())
+                try:
+                    effect_choice_id = int(effect.get("id"))
+                except (TypeError, ValueError):
+                    effect_choice_id = None
+                record = choice_records.get(effect_choice_id, {}) if effect_choice_id is not None else {}
+                choices.extend(record.get("choices", ()) or (
+                    int(x) for x in effect.get("choices", ()) if str(x).lstrip("-").isdigit()))
+                chosen.extend(record.get("chosen", ()))
+                choice_id = effect_choice_id
+                choice_type = record.get("type") or str(effect.get("type") or "").upper() or None
+                task_list = record.get("task_list")
+                if (str(effect.get("type") or "").upper() == "MULLIGAN"
+                        and effect.get("entity") is not None):
+                    try:
+                        unresolved_choice_entities.append(int(effect["entity"]))
+                    except (TypeError, ValueError):
+                        pass
             elif ek in {"CHOSENENTITIES", "SENDCHOICES"}:
-                chosen.extend(int(x) for x in effect.get("choices", ()) if str(x).lstrip("-").isdigit())
-                chosen.extend(int(x) for x in effect.get("entities", ()) if str(x).lstrip("-").isdigit())
+                # Resolved above by choice id. Keep the raw effect for audit,
+                # but do not turn its own block into a second choice event.
+                # Some old/client-specific records omit the protocol id but
+                # put Choices and ChosenEntities in the same block. Preserve
+                # that narrow legacy form without guessing across blocks.
+                inline_chosen.extend(
+                    int(value) for value in effect.get("choices", ())
+                    if str(value).lstrip("-").isdigit())
+                inline_chosen.extend(
+                    int(value) for value in effect.get("entities", ())
+                    if str(value).lstrip("-").isdigit())
             elif ek in {"RANDOM", "RANDOMCHOICE", "RANDOMTARGET"}:
                 result.hidden_randomness += 1
             if ek not in {"TAGCHANGE", "SHOWENTITY", "FULLENTITY", "HIDEENTITY"}:
                 effects.append(effect)
-        if choices and not chosen:
-            result.unresolved_choices += 1
+        mulligan_completed = bool(unresolved_choice_entities) and all(
+            entity in completed_mulligans for entity in unresolved_choice_entities)
         if kind in {"PLAY", "ATTACK", "POWER", "TRADE", "LOCATION", "CHOOSE_ONE", "DISCOVER", "TURN_START", "TURN_END"}:
-            result.events.append(ReplayEvent(
+                result.events.append(ReplayEvent(
                 packet_id=block.get("packet_id"), timestamp=block.get("timestamp"),
                 kind=kind, source_entity=block.get("source_entity"),
                 source_card=block.get("source_card"), target_entity=block.get("target_entity"),
-                target_card=block.get("target_card"), controller=block.get("controller"), choices=tuple(choices),
+                target_card=block.get("target_card"), controller=block.get("controller"),
+                choice_id=choice_id, choice_type=choice_type, task_list=task_list, choices=tuple(choices),
                 chosen=tuple(chosen), effects=tuple(effects),
                 observed_entities=tuple(dict.fromkeys(observed_entities)),
             ))
-        elif kind and kind not in {"TRIGGER", "META", "DEATHS"}:
+        # DECK_ACTION is a client bookkeeping block (draw/shuffle/deck zone
+        # maintenance). Its resulting public entities and zones are already
+        # present in the snapshot. It is not an unresolved player choice and
+        # must not freeze live advice for the rest of a turn.
+        elif kind and kind not in {"TRIGGER", "META", "DEATHS", "DECK_ACTION"}:
             result.unsupported_blocks.append(kind)
+        if choices and not chosen and inline_chosen:
+            # No id means the association is only safe within this block.
+            event = result.events[-1] if result.events else None
+            if event is not None and event.choices == tuple(choices):
+                result.events[-1] = ReplayEvent(
+                    packet_id=event.packet_id, timestamp=event.timestamp,
+                    kind=event.kind, source_entity=event.source_entity,
+                    source_card=event.source_card, target_entity=event.target_entity,
+                    target_card=event.target_card, controller=event.controller,
+                    choice_id=event.choice_id, choice_type=event.choice_type,
+                    task_list=event.task_list, choices=event.choices,
+                    chosen=tuple(inline_chosen), effects=event.effects,
+                    observed_entities=event.observed_entities,
+                )
+                chosen = inline_chosen
+        if choices and not chosen and not mulligan_completed:
+            result.unresolved_choices += 1
     _validate_event_stream(result)
     return result
 
 
 def _validate_event_stream(result: ReplayDiagnostics) -> None:
     """Validate only facts observable in the log; never infer hidden state."""
-    known: set[int] = set()
+    known: set[int] = set(result.retained_pre_reset_entities)
     for event in result.events:
         # Entities exposed by this packet are available before its action is
         # validated (e.g. a generated minion created by a Battlecry).

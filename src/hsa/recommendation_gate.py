@@ -9,7 +9,8 @@ def evaluate_gate(*, event_stream_closed: bool, session_ready: bool,
                   beliefs: dict[str, Any] | None = None,
                   state_matches: bool = False,
                   mode: str = "closed",
-                  belief_action_consensus: bool = False) -> dict[str, Any]:
+                  belief_action_consensus: bool = False,
+                  opponent_controller: str = "2") -> dict[str, Any]:
     reasons: list[str] = []
     if not event_stream_closed:
         reasons.append("event_stream_not_closed")
@@ -26,7 +27,7 @@ def evaluate_gate(*, event_stream_closed: bool, session_ready: bool,
                 candidate_count = 0
             if not compatible:
                 reasons.append(f"belief_conflict:{controller}")
-            if candidate_count == 0 and controller == "2":
+            if candidate_count == 0 and controller == str(opponent_controller):
                 reasons.append(f"opponent_candidates_empty:{controller}")
     if not state_matches and mode != "belief":
         reasons.append("simulator_state_not_verified")

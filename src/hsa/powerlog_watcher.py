@@ -20,13 +20,28 @@ class LogLine:
 class PowerLogTailer:
     """Tail a Power.log safely across append, truncation, and replacement."""
 
-    def __init__(self, path: str | Path, *, from_end: bool = True) -> None:
+    _CREATE_GAME_MARKER = b"GameState.DebugPrintPower() - CREATE_GAME"
+
+    def __init__(
+        self, path: str | Path, *, from_end: bool = True,
+        from_last_create_game: bool = False,
+    ) -> None:
         self.path = Path(path)
         self.offset = 0
         self._carry = b""
         self._identity: tuple[int, int] | None = None
-        if from_end and self.path.exists():
-            self.offset = self.path.stat().st_size
+        self._from_last_create_game = from_last_create_game
+        if self.path.exists():
+            if from_last_create_game:
+                self.offset = self._last_create_game_offset()
+            elif from_end:
+                self.offset = self.path.stat().st_size
+
+    def _last_create_game_offset(self) -> int:
+        """Find the newest game once; later reads stay strictly incremental."""
+        raw = self.path.read_bytes()
+        marker = raw.rfind(self._CREATE_GAME_MARKER)
+        return raw.rfind(b"\n", 0, marker) + 1 if marker >= 0 else 0
 
     def poll(self) -> list[LogLine]:
         if not self.path.exists():
@@ -34,7 +49,8 @@ class PowerLogTailer:
         stat = self.path.stat()
         identity = (stat.st_dev, stat.st_ino)
         if self._identity != identity or stat.st_size < self.offset:
-            self.offset = 0
+            self.offset = (self._last_create_game_offset()
+                           if self._from_last_create_game else 0)
             self._carry = b""
         self._identity = identity
         with self.path.open("rb") as handle:

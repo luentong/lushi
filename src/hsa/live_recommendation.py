@@ -53,8 +53,8 @@ def recommend_replayed_state(
     # callers may retain a checked model for the whole watcher process.
     model = model or TorchPolicyValueModel.from_checkpoint(checkpoint, device=device)
     output = model.predict(game, actions)
-    index = max(range(len(actions)), key=lambda i: output.policy[i])
-    probability = float(output.policy[index])
+    index = max(range(len(actions)), key=lambda i: output.priors[i])
+    probability = float(output.priors[index])
     if probability < min_probability:
         return Recommendation(False, probability=probability,
                               value=float(output.value),
@@ -68,6 +68,54 @@ def recommend_replayed_state(
         probability=probability,
         value=float(output.value),
     )
+
+
+def recommend_replayed_states(
+    games: list[Any],
+    checkpoint: str,
+    *,
+    device: str = "cpu",
+    min_probability: float = 0.0,
+    model: TorchPolicyValueModel | None = None,
+) -> list[Recommendation]:
+    """Score several verified belief hypotheses in one model forward pass."""
+    prepared: list[tuple[int, Any, list[Any]]] = []
+    results = [Recommendation(False, reason="unprocessed hypothesis") for _ in games]
+    for index, game in enumerate(games):
+        if not getattr(game, "_live_replay_verified", False):
+            results[index] = Recommendation(False, reason="live replay is not verified")
+            continue
+        if getattr(game, "finished", False):
+            results[index] = Recommendation(False, reason="game is finished")
+            continue
+        actions = list(game.legal_actions())
+        if not actions:
+            results[index] = Recommendation(False, reason="no legal action")
+            continue
+        prepared.append((index, game, actions))
+    if not prepared:
+        return results
+    model = model or TorchPolicyValueModel.from_checkpoint(checkpoint, device=device)
+    outputs = model.predict_batch((game, actions) for _, game, actions in prepared)
+    for (index, _game, actions), output in zip(prepared, outputs):
+        action_index = max(range(len(actions)), key=lambda i: output.priors[i])
+        probability = float(output.priors[action_index])
+        if probability < min_probability:
+            results[index] = Recommendation(
+                False, probability=probability, value=float(output.value),
+                reason="model confidence below threshold",
+            )
+            continue
+        action = actions[action_index]
+        results[index] = Recommendation(
+            True,
+            action={"kind": action.kind, "source": action.source,
+                    "target_player": action.target_player,
+                    "target_entity": action.target_entity},
+            probability=probability,
+            value=float(output.value),
+        )
+    return results
 
 
 def recommend_puct_state(

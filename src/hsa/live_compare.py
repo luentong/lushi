@@ -3,7 +3,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import re
 from typing import Any
+
+
+_IMPLICIT_HERO_POWER_ID = re.compile(r"^HERO_\d+[a-z]*bp\d*$", re.IGNORECASE)
+_NON_BOARD_ENTITY_TYPES = {
+    "HERO", "PLAYER", "GAME", "WEAPON", "LOCATION", "HERO_POWER",
+    "ENCHANTMENT", "COUNTER",
+}
 
 
 @dataclass
@@ -15,9 +23,16 @@ class StateComparison:
         return {"matches": self.matches, "mismatches": self.mismatches[:100]}
 
 
-def compare_public_state(engine: Any, visible: dict[str, Any], *, player_offset: int = 1) -> StateComparison:
+def compare_public_state(
+    engine: Any,
+    visible: dict[str, Any],
+    *,
+    player_offset: int = 1,
+    ignored_entity_ids: set[str] | None = None,
+) -> StateComparison:
     """Compare stable public fields; hidden deck order is intentionally ignored."""
     mismatches: list[dict[str, Any]] = []
+    ignored_entity_ids = ignored_entity_ids or set()
     if visible.get("turn") is not None and getattr(engine, "turn", None) != visible["turn"]:
         mismatches.append({"field": "turn", "log": visible["turn"],
                            "engine": getattr(engine, "turn", None)})
@@ -40,7 +55,9 @@ def compare_public_state(engine: Any, visible: dict[str, Any], *, player_offset:
         # Power.log represents heroes (and sometimes the PLAYER/GAME entity)
         # in PLAY as well.  The simulator keeps them on Player, not board.
         expected_board = [card for card in log_player.get("PLAY", [])
-                          if card.get("card_type") not in {"HERO", "PLAYER", "GAME", "WEAPON", "LOCATION"}]
+                          if str(card.get("entity", card.get("entity_id"))) not in ignored_entity_ids
+                          if card.get("card_type") not in _NON_BOARD_ENTITY_TYPES
+                          and not _IMPLICIT_HERO_POWER_ID.fullmatch(str(card.get("card_id") or ""))]
         engine_board = getattr(player, "board", [])
         if len(expected_board) != len(engine_board):
             mismatches.append({"player": index, "field": "board_count",

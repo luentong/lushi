@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import math
+import sys
+import types
 
 import torch
 from torch import Tensor, nn
@@ -12,6 +14,58 @@ from .encoding import (
     encode_state, feature_schema,
 )
 from .policy_value import PolicyValueOutput
+
+
+def _install_torch_npu_checkpoint_compat() -> None:
+    """Install a narrow pickle shim for trusted NPU-formatted checkpoints.
+
+    Ascend saves ordinary CPU storages with an NPU format annotation. CUDA
+    hosts do not have ``torch_npu``, so retain the tensor storage while
+    discarding only that device-specific annotation.
+    """
+    torch_npu = types.ModuleType("torch_npu")
+    utils = types.ModuleType("torch_npu.utils")
+    storage = types.ModuleType("torch_npu.utils.storage")
+    npu = types.ModuleType("torch_npu.npu")
+    format_module = types.ModuleType("torch_npu.npu._format")
+
+    class Format:
+        def __init__(self, code: int):
+            self.code = code
+
+    def rebuild_npu_tensor(
+        tensor_storage, storage_offset, size, stride, requires_grad,
+        backward_hooks, _format,
+    ):
+        return torch._utils._rebuild_tensor_v2(
+            tensor_storage, storage_offset, size, stride, requires_grad,
+            backward_hooks,
+        )
+
+    storage._rebuild_npu_tensor = rebuild_npu_tensor
+    format_module.Format = Format
+    torch_npu.utils = utils
+    torch_npu.npu = npu
+    utils.storage = storage
+    npu._format = format_module
+    sys.modules.update({
+        "torch_npu": torch_npu,
+        "torch_npu.utils": utils,
+        "torch_npu.utils.storage": storage,
+        "torch_npu.npu": npu,
+        "torch_npu.npu._format": format_module,
+    })
+
+
+def load_checkpoint(path: str) -> dict:
+    """Load a trusted checkpoint on its native device or a CUDA-only host."""
+    try:
+        return torch.load(path, map_location="cpu", weights_only=False)
+    except ModuleNotFoundError as error:
+        if error.name != "torch_npu":
+            raise
+    _install_torch_npu_checkpoint_compat()
+    return torch.load(path, map_location="cpu", weights_only=False)
 
 
 class PolicyValueNet(nn.Module):
@@ -485,7 +539,7 @@ class TorchPolicyValueModel:
         if str(device).startswith("npu"):
             import torch_npu  # noqa: F401
         device = torch.device(device)
-        checkpoint = torch.load(path, map_location="cpu", weights_only=False)
+        checkpoint = load_checkpoint(path)
         metadata = checkpoint["report"]["model"]
         feature = checkpoint["report"].get("feature_schema", {})
         configure_card_vocab(

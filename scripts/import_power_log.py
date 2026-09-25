@@ -17,6 +17,8 @@ sys.path.insert(0, str(ROOT / "vendor" / "python-hearthstone"))
 sys.path.insert(0, str(ROOT / "vendor" / "python-hslog"))
 
 from hslog import LogParser
+from hslog import parser as hslog_parser
+from hslog.exceptions import NoSuchEnum
 from hslog import tokens as hslog_tokens
 
 # Hearthstone's newer visual sub-spells may contain spaces in
@@ -30,6 +32,19 @@ hslog_tokens.SUB_SPELL_START_RE = re.compile(
 from hsa.powerlog_import import normalize_packet_tree
 
 
+def allow_unknown_tags() -> None:
+    """Keep parsing when a newer client emits an unknown noncritical tag."""
+    original = hslog_parser.parse_tag
+
+    def parse_tag(tag: str, value: str):
+        try:
+            return original(tag, value)
+        except (NoSuchEnum, NotImplementedError):
+            return tag, int(value) if value.isdecimal() else value
+
+    hslog_parser.parse_tag = parse_tag
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("power_log", type=Path)
@@ -37,6 +52,7 @@ def main() -> int:
     args = parser.parse_args()
 
     raw = args.power_log.read_bytes()
+    allow_unknown_tags()
     log_parser = LogParser()
     with args.power_log.open(encoding="utf-8") as handle:
         log_parser.read(handle)

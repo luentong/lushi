@@ -15,12 +15,117 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass, field
+import json
 from pathlib import Path
+import re
 from typing import Any
 
-from .dragon_mirror import DragonMirrorGame, Location, Weapon
+from .dragon_mirror import CardDef, DragonMirrorGame, Location, Weapon
 from .live_compare import compare_public_state
 from .live_replay import EntityIdMapper
+
+
+_IMPLICIT_HERO_POWER_ID = re.compile(r"^HERO_\d+[a-z]*bp\d*$", re.IGNORECASE)
+_EXECUTABLE_CARD_ALIASES = {
+    # All three definitions are 0-cost "Gain 1 Mana Crystal this turn only".
+    # Clients emit different second-player Coin variants by game version;
+    # the engine implements the canonical GAME_005 form.
+    "TTN_COIN2": "GAME_005",
+    "VAC_COIN2": "GAME_005",
+}
+_NON_BOARD_ENTITY_TYPES = {
+    "HERO", "PLAYER", "GAME", "HERO_POWER", "ENCHANTMENT", "COUNTER",
+}
+_STATIC_PUBLIC_MINION_MECHANICS = frozenset({
+    "TAUNT", "RUSH", "CHARGE", "LIFESTEAL", "ELUSIVE", "STEALTH",
+    "DIVINE_SHIELD", "WINDFURY", "REBORN", "POISONOUS", "CANT_ATTACK",
+})
+_STATIC_KEYWORD_TEXT = frozenset({
+    "taunt", "rush", "charge", "lifesteal", "elusive", "stealth",
+    "divine shield", "windfury", "reborn", "poisonous", "can't attack",
+})
+_PUBLIC_STATIC_DEF_CACHE: dict[tuple[str, int, int], dict[str, CardDef]] = {}
+
+
+def _is_hero_power(entity: Any) -> bool:
+    """Recognise client hero-power IDs when the CARDTYPE tag is omitted.
+
+    Some Power.log snapshots put the ordinary class power in PLAY but leave
+    out ``CARDTYPE=HERO_POWER``.  ``HERO_01wbp`` is one such Warrior spelling.
+    Tokens such as ``HERO_11bpt`` do not match and remain ordinary minions.
+    """
+    if entity.card_type == "HERO_POWER":
+        return True
+    return bool(_IMPLICIT_HERO_POWER_ID.fullmatch(str(entity.card_id or "")))
+
+
+def _tag_is_true(entity: Any, tag: str) -> bool:
+    """Read Hearthstone's integer/boolean public tags without guessing."""
+    value = entity.tags.get(tag)
+    try:
+        return bool(int(value))
+    except (TypeError, ValueError):
+        return str(value).upper() in {"TRUE", "YES"}
+
+
+def _executable_card_id(game: DragonMirrorGame, card_id: str | None) -> str | None:
+    """Resolve audited runtime aliases without inventing card behavior."""
+    if not card_id:
+        return None
+    resolved = _EXECUTABLE_CARD_ALIASES.get(card_id, card_id)
+    return resolved if resolved in game.card_defs else None
+
+
+def _has_only_static_keyword_text(text: str) -> bool:
+    """Accept only a blank rules box or a list of engine-supported keywords."""
+    plain = re.sub(r"<[^>]+>", "", (text or "").replace("<br/>", "\n"))
+    plain = plain.replace("\xa0", " ")
+    lines = [line.strip().rstrip(".").lower()
+             for line in plain.replace("<br/>", "\n").splitlines() if line.strip()]
+    return not lines or all(line in _STATIC_KEYWORD_TEXT for line in lines)
+
+
+def _public_static_minion_defs(cards_path: str | Path) -> dict[str, CardDef]:
+    """Load safe public-only minion definitions without expanding play pools.
+
+    The simulator's executable catalog intentionally excludes most Standard
+    cards.  A visible enemy whiteboard minion is still needed to calculate
+    legal targets and combat.  This cache admits only minions whose complete
+    printed behavior is base stats plus keywords that the simulator already
+    implements.  They are *not* added to ``executable_card_ids`` and therefore
+    cannot leak into Discover/random generation/search-created hidden zones.
+    """
+    path = Path(cards_path)
+    stat = path.stat()
+    key = (str(path.resolve()), stat.st_mtime_ns, stat.st_size)
+    cached = _PUBLIC_STATIC_DEF_CACHE.get(key)
+    if cached is not None:
+        return cached
+
+    result: dict[str, CardDef] = {}
+    for card in json.loads(path.read_text(encoding="utf-8")):
+        card_id = str(card.get("id") or "")
+        mechanics = tuple(card.get("mechanics", ()) or ())
+        if (not card_id or card.get("type") != "MINION"
+                or not set(mechanics).issubset(_STATIC_PUBLIC_MINION_MECHANICS)
+                or not _has_only_static_keyword_text(str(card.get("text") or ""))):
+            continue
+        result[card_id] = CardDef(
+            card_id=card_id,
+            name=str(card.get("name") or card_id),
+            card_type="MINION",
+            cost=int(card.get("cost", 0)),
+            attack=int(card.get("attack", 0)),
+            health=int(card.get("health", 0)),
+            race=str(card.get("race") or ""),
+            mechanics=mechanics,
+            card_class=str(card.get("cardClass") or ""),
+            races=tuple(card.get("races", ()) or ()),
+            card_set=str(card.get("set") or ""),
+            text=str(card.get("text") or ""),
+        )
+    _PUBLIC_STATIC_DEF_CACHE[key] = result
+    return result
 
 
 @dataclass
@@ -66,6 +171,76 @@ def _visible_card_counts(state: Any, controller: int) -> Counter[str]:
     return result
 
 
+def _self_controller_looks_reversed(state: Any, self_controller: int) -> bool:
+    """Detect the public-hand pattern that proves a controller swap.
+
+    The local client identifies its own hand, while an opponent hand normally
+    contains anonymous entities.  This is only a diagnostic: deck ownership
+    is user-supplied, so the bridge must not silently swap the two decks.
+    """
+    other = 1 if self_controller == 2 else 2
+    own_hand = _controller_entities(state, self_controller, "HAND")
+    other_hand = _controller_entities(state, other, "HAND")
+    own_unknown = sum(not entity.card_id for entity in own_hand)
+    other_known = sum(bool(entity.card_id) for entity in other_hand)
+    return bool(own_unknown and other_known)
+
+
+def _inert_setaside_entities(
+    state: Any,
+    open_choice_entities: tuple[int, ...],
+    *,
+    policy: str = "strict",
+) -> set[str]:
+    """Identify unlinked SETASIDE entities outside the decision surface.
+
+    Power.log uses SETASIDE for completed-effect debris as well as for live
+    choices.  Advisory mode may omit it only when it is not a choice, has no
+    public reference, and is not an intrinsically active object such as a
+    secret, weapon, or location.  The registry still retains it for audit.
+    """
+    if policy != "advisory":
+        return set()
+    projection = state.public_decision_projection(open_choice_entities)
+    return set(projection["inert_setaside"])
+
+
+def _inert_play_artifacts(state: Any, *, policy: str) -> set[str]:
+    """Return zero-information internal objects temporarily exposed in PLAY.
+
+    Some effects materialize an internal entity by moving it from SETASIDE to
+    PLAY without a card identity, type, stats, cost, or public reference. It
+    cannot be a legal target or a playable card from the information exposed
+    to the client. Advisory mode excludes only this exact shape and records a
+    risk note; any opaque entity with stats, a type, or a reference remains
+    fail-closed.
+    """
+    if policy != "advisory":
+        return set()
+    referenced = {
+        str(reference)
+        for entity in state.entities.values()
+        for reference in getattr(entity, "references", set())
+    }
+    result = set()
+    for entity in state.entities.values():
+        history = [zone for _, zone in getattr(entity, "zone_history", ())]
+        is_setaside_play_artifact = (
+            entity.controller in (1, 2)
+            and entity.zone == "PLAY"
+            and not entity.card_id
+            and not entity.card_type
+            and entity.attack is None
+            and entity.health is None
+            and entity.cost is None
+            and str(entity.entity_id) not in referenced
+            and "SETASIDE" in history
+        )
+        if is_setaside_play_artifact:
+            result.add(str(entity.entity_id))
+    return result
+
+
 def _remaining_deck(deck: dict[str, int], observed: Counter[str]) -> list[str]:
     remaining: list[str] = []
     for card_id, count in deck.items():
@@ -84,6 +259,7 @@ def build_snapshot_hypothesis(
     seed: int = 1,
     open_choice_kind: str | None = None,
     open_choice_entities: tuple[int, ...] = (),
+    setaside_policy: str = "strict",
 ) -> BridgeResult:
     """Build one hidden-state hypothesis from a public Power.log snapshot.
 
@@ -102,12 +278,46 @@ def build_snapshot_hypothesis(
                                 player_classes=classes)
     except Exception as exc:  # unsupported candidate cards must stay closed.
         return BridgeResult(reason=f"cannot initialise candidate: {exc}")
+    # Keep public whiteboard minions available for combat hydration without
+    # making them playable candidates or random-generation outcomes.
+    static_public_defs = _public_static_minion_defs(cards_path)
+    if static_public_defs:
+        game.card_defs = {**game.card_defs, **static_public_defs}
 
-    # These zones carry state that cannot be reconstructed safely yet.
+    # These zones carry state that cannot be reconstructed safely yet. A
+    # GAME_RESET may include inert completed-effect debris in SETASIDE; it is
+    # excluded only by the narrowly defined public checks above.
+    if setaside_policy not in {"strict", "advisory"}:
+        return BridgeResult(reason=f"unknown SETASIDE policy: {setaside_policy}")
+    if _self_controller_looks_reversed(state, self_controller):
+        return BridgeResult(
+            reason="self-controller likely reversed: configured local hand has hidden cards",
+        )
+    inert_setaside = _inert_setaside_entities(
+        state, open_choice_entities, policy=setaside_policy)
+    inert_play_artifacts = _inert_play_artifacts(state, policy=setaside_policy)
+    projection = state.public_decision_projection(open_choice_entities)
+    active_setaside = set(projection["active_setaside"])
+    open_setaside = {str(entity_id) for entity_id in open_choice_entities}
+    blocked_setaside = (active_setaside if setaside_policy == "advisory"
+                        else {entity.entity_id for entity in state.entities.values()
+                              if entity.zone == "SETASIDE"})
+    blocked_setaside -= open_setaside
     for entity in state.entities.values():
         if (entity.controller in (1, 2) and entity.zone == "SETASIDE"
-                and int(entity.entity_id) not in set(open_choice_entities)):
+                and str(entity.entity_id) not in inert_setaside
+                and str(entity.entity_id) in blocked_setaside):
             return BridgeResult(reason=f"unsupported live zone: {entity.zone}")
+
+    visible_before_hydration = state.visible()
+    current_turn = visible_before_hydration.get("turn")
+    played_from_hand_this_turn = {
+        int(action["source_entity"])
+        for action in state.action_history
+        if (action.get("kind") == "PLAY"
+            and action.get("turn") == current_turn
+            and str(action.get("source_entity")).lstrip("-").isdigit())
+    }
 
     # The engine's constructor has already allocated opening-hand/deck entity
     # ids.  Public Power.log ids can be much larger, and a hydrated public id
@@ -120,6 +330,11 @@ def build_snapshot_hypothesis(
 
     mapper = EntityIdMapper()
     notes: list[str] = []
+    if inert_setaside:
+        notes.append(f"advisory: ignored {len(inert_setaside)} inert SETASIDE entities")
+    if inert_play_artifacts:
+        notes.append(
+            f"advisory: ignored {len(inert_play_artifacts)} inert opaque PLAY artifacts")
     for live_controller in (1, 2):
         engine_index = live_controller - 1
         player = game.players[engine_index]
@@ -132,7 +347,10 @@ def build_snapshot_hypothesis(
         public_hand = [x for x in raw_hand if x.card_id]
         hidden_hand = [x for x in raw_hand if not x.card_id]
         public_board = _controller_entities(state, live_controller, "PLAY")
-        public_board = [x for x in public_board if x.card_type not in {"HERO", "PLAYER", "GAME"}]
+        public_board = [x for x in public_board
+                        if x.card_type not in _NON_BOARD_ENTITY_TYPES
+                        and not _is_hero_power(x)
+                        and str(x.entity_id) not in inert_play_artifacts]
         if (live_controller == self_controller and hidden_hand) or any(not x.card_id for x in public_board):
             return BridgeResult(reason=f"controller {live_controller} has hidden public card identity")
         observed = _visible_card_counts(state, live_controller)
@@ -143,9 +361,14 @@ def build_snapshot_hypothesis(
         # below only when the log exposes an actual unknown hand entity.
         for zone, destination, entities in (("HAND", player.hand, public_hand), ("PLAY", player.board, public_board)):
             for live in entities:
-                if live.card_id not in game.card_defs:
+                executable_id = _executable_card_id(game, live.card_id)
+                if executable_id is None:
                     return BridgeResult(reason=f"non-executable visible card: {live.card_id}")
-                card = game._entity(live.card_id)
+                if executable_id != live.card_id:
+                    notes.append(f"normalised runtime alias {live.card_id} -> {executable_id}")
+                elif executable_id in static_public_defs:
+                    notes.append(f"hydrated static public minion {executable_id}")
+                card = game._entity(executable_id)
                 card.entity_id = int(live.entity_id)
                 card.attack_delta = (int(live.attack) - card.definition.attack) if live.attack is not None else 0
                 if live.health is not None:
@@ -153,7 +376,27 @@ def build_snapshot_hypothesis(
                 card.damage = int(live.damage or 0)
                 card.cost_delta = (int(live.cost) - card.definition.cost) if live.cost is not None else 0
                 if zone == "PLAY":
-                    card.summoned_turn = -99  # existing board cards can act if log permits it.
+                    # A direct PLAY block exposes the live entity id. Preserve
+                    # summoning sickness for that entity; otherwise the old
+                    # fallback made every visible board minion look as though
+                    # it had survived a prior turn.
+                    live_entity_id = (
+                        int(live.entity_id)
+                        if str(live.entity_id).lstrip("-").isdigit() else None
+                    )
+                    card.summoned_turn = (
+                        int(current_turn) if current_turn is not None
+                        and live_entity_id in played_from_hand_this_turn
+                        else -99
+                    )
+                    # A public attack/exhaustion tag is more authoritative
+                    # than inferred summon age. Without it, the recommender
+                    # can repeat an attack that the live client has consumed.
+                    attacks = live.tags.get("NUM_ATTACKS_THIS_TURN")
+                    try:
+                        card.attacks_this_turn = max(0, int(attacks))
+                    except (TypeError, ValueError):
+                        card.attacks_this_turn = 1 if _tag_is_true(live, "EXHAUSTED") else 0
                 destination.append(card)
                 mapper.bind(int(live.entity_id), card.entity_id)
         # Remove cards already visible / played, retaining a deterministic
@@ -170,9 +413,10 @@ def build_snapshot_hypothesis(
         if live_controller == self_controller and hidden_secrets:
             return BridgeResult(reason="local secret identity is hidden")
         for live_secret in known_secrets:
-            if live_secret.card_id not in game.card_defs:
+            executable_id = _executable_card_id(game, live_secret.card_id)
+            if executable_id is None:
                 return BridgeResult(reason=f"non-executable visible secret: {live_secret.card_id}")
-            secret = game._entity(live_secret.card_id)
+            secret = game._entity(executable_id)
             secret.entity_id = int(live_secret.entity_id)
             player.secrets.append(secret)
             mapper.bind(int(live_secret.entity_id), secret.entity_id)
@@ -202,7 +446,7 @@ def build_snapshot_hypothesis(
         # Preserve it when the engine has executable metadata; ordinary class
         # powers intentionally retain the simulator's class fallback.
         powers = [x for x in _controller_entities(state, live_controller, "PLAY")
-                  if x.card_type == "HERO_POWER" and x.card_id]
+                  if _is_hero_power(x) and x.card_id]
         if len(powers) > 1:
             return BridgeResult(reason=f"controller {live_controller} has multiple active hero powers")
         if powers and powers[0].card_id in game.card_defs:
@@ -210,6 +454,8 @@ def build_snapshot_hypothesis(
             if game.card_defs[power_id].card_type == "HERO_POWER":
                 player.hero_power_id = power_id
                 mapper.bind(int(powers[0].entity_id), int(powers[0].entity_id))
+        elif powers:
+            notes.append(f"controller {live_controller} ordinary hero power uses class fallback")
         # Weapon stats and durability are public and do not require a hidden
         # determinisation.  They are safe to hydrate when the log exposes both
         # values.  A missing durability stays closed because it changes Hero
@@ -229,6 +475,20 @@ def build_snapshot_hypothesis(
             attack = int(live_weapon.attack) if live_weapon.attack is not None else definition.attack
             player.weapon = Weapon(live_weapon.card_id, definition.name, attack, int(durability))
             mapper.bind(int(live_weapon.entity_id), int(live_weapon.entity_id))
+        if hero is not None:
+            # The Hero's ATK tag is the client-authoritative total, including
+            # generated weapons whose entity was not exposed as CARDTYPE=WEAPON.
+            # Preserve it for legal hero attacks while avoiding double-counting
+            # a separately hydrated weapon.
+            if hero.attack is not None:
+                weapon_attack = player.weapon.attack if player.weapon else 0
+                player.hero_attack_bonus = max(
+                    0, int(hero.attack) - weapon_attack - player.hero_board_attack_bonus)
+            hero_attacks = hero.tags.get("NUM_ATTACKS_THIS_TURN")
+            try:
+                player.hero_attacks_this_turn = max(0, int(hero_attacks))
+            except (TypeError, ValueError):
+                player.hero_attacks_this_turn = 1 if _tag_is_true(hero, "EXHAUSTED") else 0
         locations = [x for x in _controller_entities(state, live_controller, "PLAY")
                      if x.card_type == "LOCATION"]
         for live_location in locations:
@@ -264,15 +524,20 @@ def build_snapshot_hypothesis(
     # an advisory search could recommend a second attack or a second Hero
     # Power merely because the public snapshot itself does not contain those
     # engine counters.
-    current_turn = state.visible().get("turn")
     for action in state.action_history:
         if current_turn is None or action.get("turn") != current_turn:
             continue
+        source = action.get("source_entity")
+        source_entity = state.entities.get(str(source))
+        # Normalized Block packets often omit ``controller``. The public
+        # source entity is authoritative for PLAY/POWER/ATTACK ownership and
+        # is required to restore one-turn action limits.
         controller = action.get("controller")
+        if controller not in (1, 2) and source_entity is not None:
+            controller = source_entity.controller
         if controller not in (1, 2):
             continue
         player = game.players[int(controller) - 1]
-        source = action.get("source_entity")
         source_id = int(source) if str(source).lstrip("-").isdigit() else None
         kind = action.get("kind")
         if kind == "ATTACK":
@@ -283,8 +548,7 @@ def build_snapshot_hypothesis(
                 else:
                     player.hero_attacks_this_turn += 1
         elif kind == "POWER":
-            entity = state.entities.get(str(source))
-            if entity is not None and entity.card_type == "HERO_POWER":
+            if source_entity is not None and _is_hero_power(source_entity):
                 player.hero_power_used = True
         elif kind == "PLAY":
             player.cards_played_this_turn += 1
@@ -295,6 +559,8 @@ def build_snapshot_hypothesis(
 
     game.next_entity_id = max([game.next_entity_id] + list(mapper.sim_to_live)) + 1
     visible = state.visible()
+    if visible.get("game_phase") in {"FINAL_GAMEOVER", "FINAL_WRAPUP"}:
+        return BridgeResult(reason="game has ended", hypothesis_notes=notes)
     if visible.get("active_player") not in (1, 2):
         return BridgeResult(reason="active player is not known")
     game.current = int(visible["active_player"]) - 1
@@ -308,8 +574,9 @@ def build_snapshot_hypothesis(
         options = []
         for entity_id in open_choice_entities:
             live_option = state.entities.get(str(entity_id))
-            card_id = live_option.card_id if live_option is not None else None
-            if not card_id or card_id not in game.card_defs:
+            card_id = _executable_card_id(
+                game, live_option.card_id if live_option is not None else None)
+            if card_id is None:
                 return BridgeResult(reason="open choice contains hidden or non-executable option")
             option = game._entity(card_id)
             option.entity_id = int(entity_id)
@@ -322,7 +589,8 @@ def build_snapshot_hypothesis(
         game.pending_choice = {"kind": "DISCOVER", "player": game.current,
                                "options": options, "live_choice_kind": open_choice_kind}
         notes.append(f"open {open_choice_kind} hydrated with {len(options)} options")
-    comparison = compare_public_state(game, visible)
+    comparison = compare_public_state(
+        game, visible, ignored_entity_ids=inert_play_artifacts)
     if not comparison.matches:
         return BridgeResult(reason="hydrated public state does not match Power.log",
                             public_match=comparison.as_dict(), hypothesis_notes=notes)

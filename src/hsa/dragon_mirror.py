@@ -13,7 +13,7 @@ import json
 import random
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, ClassVar, Iterable
 
 from .config import DRAGON_DECKSTRING, RULESET
 from .rules import (
@@ -1592,6 +1592,14 @@ def _discard_search_event(*_args: Any, **_payload: Any) -> None:
 class DragonMirrorGame:
     """A deterministic, closed-pool simulator for the supplied Dragon deck."""
 
+    # A live recommendation evaluates several opponent-deck hypotheses against
+    # the same immutable card catalogue. Re-parsing the full HearthstoneJSON
+    # file for every hypothesis dominates interactive latency, while CardDef
+    # instances and set counts are read-only after construction.
+    _CATALOG_CACHE: ClassVar[
+        dict[tuple[str, int, int], tuple[dict[str, CardDef], dict[str, int]]]
+    ] = {}
+
     def __init__(
         self,
         cards_path: str | Path,
@@ -1628,14 +1636,7 @@ class DragonMirrorGame:
                 + ", ".join(sorted(unsupported))
             )
         cards_path = Path(cards_path)
-        raw_catalog = json.loads(cards_path.read_text(encoding="utf-8"))
-        self._catalog_set_counts = {}
-        for raw_card in raw_catalog:
-            card_set = raw_card.get("set", "") or ""
-            self._catalog_set_counts[card_set] = (
-                self._catalog_set_counts.get(card_set, 0) + 1
-            )
-        self.card_defs = self._load_defs(cards_path)
+        self.card_defs, self._catalog_set_counts = self._load_catalog(cards_path)
         self.rune_configs = self._resolve_rune_configs(rune_configs, player_classes)
         self.executable_card_ids = EXECUTABLE_CARD_IDS
         self.rule_registry = build_rule_registry()
@@ -1668,8 +1669,28 @@ class DragonMirrorGame:
                 self._resolve_mulligan_for_player(player, selected)
             self._finish_mulligan()
 
-    def _load_defs(self, path: Path) -> dict[str, CardDef]:
+    @classmethod
+    def _load_catalog(
+        cls, path: Path,
+    ) -> tuple[dict[str, CardDef], dict[str, int]]:
+        """Load immutable card metadata once per on-disk catalogue version."""
+        stat = path.stat()
+        key = (str(path.resolve()), stat.st_mtime_ns, stat.st_size)
+        cached = cls._CATALOG_CACHE.get(key)
+        if cached is not None:
+            return cached
+
         cards = json.loads(path.read_text(encoding="utf-8"))
+        set_counts: dict[str, int] = {}
+        for raw_card in cards:
+            card_set = raw_card.get("set", "") or ""
+            set_counts[card_set] = set_counts.get(card_set, 0) + 1
+        result = cls._build_defs(cards)
+        cls._CATALOG_CACHE[key] = (result, set_counts)
+        return result, set_counts
+
+    @classmethod
+    def _build_defs(cls, cards: list[dict[str, Any]]) -> dict[str, CardDef]:
         result = {}
         aliases_by_source: dict[str, list[str]] = {}
         for target_id, source_id in DECLARATIVE_METADATA_ALIASES.items():
