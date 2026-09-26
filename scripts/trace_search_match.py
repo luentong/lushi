@@ -10,10 +10,11 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
+sys.path[:0] = [str(ROOT / "src"), str(ROOT / "scripts")]
 
 from hsa import DragonMirrorGame, InformationSetMCTSPolicy
 from hsa.torch_model import TorchPolicyValueModel
+from benchmark_mcts import matchup_deck_counts
 
 
 def compact_state(snapshot: dict) -> dict:
@@ -74,8 +75,19 @@ def player_line(player: dict) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, required=True)
-    parser.add_argument("--candidate-seat", type=int, choices=(0, 1), required=True)
+    parser.add_argument("--candidate-seat", type=int, choices=(0, 1), default=0)
     parser.add_argument("--checkpoint", type=Path, required=True)
+    parser.add_argument(
+        "--both-model", action="store_true",
+        help="Use the checkpoint-backed PUCT policy for both seats.",
+    )
+    parser.add_argument(
+        "--use-model-value", action="store_true",
+        help="Use the trained value head instead of rollout evaluation.",
+    )
+    parser.add_argument("--deck-config", type=Path)
+    parser.add_argument("--deck-a")
+    parser.add_argument("--deck-b")
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--samples", type=int, default=1)
     parser.add_argument("--iterations", type=int, default=4)
@@ -93,33 +105,52 @@ def main() -> int:
         ROOT / "reports" / f"search-trace-{args.seed}-seat{args.candidate_seat}"
     )
     model = TorchPolicyValueModel.from_checkpoint(str(args.checkpoint), args.device)
-    candidate = InformationSetMCTSPolicy(
-        samples=args.samples,
-        iterations_per_sample=args.iterations,
-        tree_depth=args.tree_depth,
-        rollout_depth=args.rollout_depth,
-        seed=args.search_seed + args.seed * 2 + args.candidate_seat,
-        policy_value_model=model,
-        use_model_value=False,
-        min_simulations_per_root_action=args.min_simulations_per_root_action,
-        max_total_iterations=args.max_total_iterations,
-    )
-    baseline_seat = 1 - args.candidate_seat
-    baseline = InformationSetMCTSPolicy(
-        samples=args.samples,
-        iterations_per_sample=args.iterations,
-        tree_depth=args.tree_depth,
-        rollout_depth=args.rollout_depth,
-        seed=args.search_seed + args.seed * 2 + baseline_seat,
-    )
-    policies = [baseline, baseline]
-    policies[args.candidate_seat] = candidate
+    def model_policy(seat: int) -> InformationSetMCTSPolicy:
+        return InformationSetMCTSPolicy(
+            samples=args.samples,
+            iterations_per_sample=args.iterations,
+            tree_depth=args.tree_depth,
+            rollout_depth=0 if args.use_model_value else args.rollout_depth,
+            seed=args.search_seed + args.seed * 2 + seat,
+            policy_value_model=model,
+            use_model_value=args.use_model_value,
+            min_simulations_per_root_action=args.min_simulations_per_root_action,
+            max_total_iterations=args.max_total_iterations,
+        )
 
-    game = DragonMirrorGame(args.cards, args.seed)
+    policies: list[InformationSetMCTSPolicy] = []
+    for seat in range(2):
+        if args.both_model or seat == args.candidate_seat:
+            policies.append(model_policy(seat))
+        else:
+            policies.append(InformationSetMCTSPolicy(
+                samples=args.samples,
+                iterations_per_sample=args.iterations,
+                tree_depth=args.tree_depth,
+                rollout_depth=args.rollout_depth,
+                seed=args.search_seed + args.seed * 2 + seat,
+            ))
+
+    deck_counts = None
+    player_classes = ("WARRIOR", "WARRIOR")
+    if args.deck_config or args.deck_a or args.deck_b:
+        if not (args.deck_config and args.deck_a and args.deck_b):
+            parser.error("--deck-config, --deck-a and --deck-b must be used together")
+        (deck_a, class_a), (deck_b, class_b) = matchup_deck_counts(
+            args.deck_config, args.deck_a, args.deck_b
+        )
+        deck_counts = (deck_a, deck_b)
+        player_classes = (class_a, class_b)
+    game = DragonMirrorGame(
+        args.cards, args.seed,
+        deck_counts=deck_counts,
+        player_classes=player_classes,
+    )
     initial_state = compact_state(game.snapshot())
     steps = []
     while not game.finished and len(steps) < args.max_actions:
         actor = game.current
+        state_before = compact_state(game.snapshot())
         policy = policies[actor]
         legal = game.legal_actions()
         legal_descriptions = [game.describe_action(action) for action in legal]
@@ -150,13 +181,19 @@ def main() -> int:
         game.step(action)
         steps.append({
             "step": len(steps) + 1,
+            "turn_before": state_before["turn"],
             "actor": actor + 1,
-            "agent": "policy-prior-puct-v1" if actor == args.candidate_seat else "shared-tree-ismcts-v1",
+            "agent": (
+                "checkpoint-puct-v1"
+                if args.both_model or actor == args.candidate_seat
+                else "shared-tree-ismcts-v1"
+            ),
             "description": description,
             "legal_action_count": len(legal),
             "ranked_alternatives": alternatives,
             "search": search,
             "events": game.events[event_offset:],
+            "state_before": state_before,
             "state_after": compact_state(game.snapshot()),
         })
 
@@ -164,6 +201,9 @@ def main() -> int:
         "schema_version": 1,
         "seed": args.seed,
         "candidate_seat": args.candidate_seat,
+        "both_model": args.both_model,
+        "deck_a": args.deck_a,
+        "deck_b": args.deck_b,
         "winner": game.winner,
         "candidate_win": game.winner == args.candidate_seat,
         "invalid_actions": game.invalid_actions,
@@ -179,6 +219,7 @@ def main() -> int:
             "search_seed": args.search_seed,
             "checkpoint": args.checkpoint.as_posix(),
             "device": args.device,
+            "use_model_value": args.use_model_value,
         },
         "initial_state": initial_state,
         "steps": steps,
@@ -191,7 +232,11 @@ def main() -> int:
     )
 
     lines = [
-        "# Policy-prior PUCT vs ISMCTS detailed trace", "",
+        (
+            "# Checkpoint PUCT mirror detailed trace"
+            if args.both_model
+            else "# Policy-prior PUCT vs ISMCTS detailed trace"
+        ), "",
         f"- Seed: `{args.seed}`", f"- Candidate: `P{args.candidate_seat + 1}`",
         f"- Winner: `P{game.winner + 1 if game.winner is not None else 'draw'}`",
         f"- Candidate win: `{game.winner == args.candidate_seat}`",

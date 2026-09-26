@@ -43,6 +43,9 @@ def translate_action(
     result = description.replace(
         "HERO_POWER Armor Up", "使用英雄技能“全副武装！”"
     )
+    result = result.replace(
+        "HERO_POWER WARRIOR", "使用英雄技能“全副武装！”"
+    )
     replacements = sorted(
         (
             (english_name, chinese_names.get(card_id, english_name))
@@ -215,13 +218,24 @@ def main() -> None:
     output = args.output or args.trace.with_name(args.trace.stem + ".zhCN.md")
 
     candidate = document["candidate_seat"] + 1
+    both_model = bool(document.get("both_model", False))
     winner = document["winner"] + 1 if document["winner"] is not None else "平局"
     lines = [
-        "# 神经策略先验 PUCT 对普通 ISMCTS：完整操作轨迹", "",
+        (
+            "# 旧 smoke 模型龙战镜像：完整操作轨迹"
+            if both_model
+            else "# 神经策略先验 PUCT 对普通 ISMCTS：完整操作轨迹"
+        ), "",
         f'- 随机种子：`{document["seed"]}`',
-        f"- 神经策略先验所在座位：`玩家{candidate}`",
+        (
+            "- 双方策略：`同一个 checkpoint + PUCT`"
+            if both_model
+            else f"- 神经策略先验所在座位：`玩家{candidate}`"
+        ),
         f"- 获胜方：`玩家{winner}`" if winner != "平局" else "- 结果：`平局`",
-        f'- 神经策略先验获胜：`{"是" if document["candidate_win"] else "否"}`',
+        *([] if both_model else [
+            f'- 神经策略先验获胜：`{"是" if document["candidate_win"] else "否"}`'
+        ]),
         f'- 总操作数：`{len(document["steps"])}`',
         f'- 非法操作数：`{document["invalid_actions"]}`', "",
         "> 访问比例表示本次低预算搜索在根节点分配给各操作的访问次数占比；",
@@ -231,12 +245,13 @@ def main() -> None:
     previous_turn = None
     for step in document["steps"]:
         state = step["state_after"]
-        if state["turn"] != previous_turn:
-            lines.extend([f'## 第 {state["turn"]} 回合', ""])
-            previous_turn = state["turn"]
+        action_turn = step.get("turn_before", state["turn"])
+        if action_turn != previous_turn:
+            lines.extend([f'## 第 {action_turn} 回合', ""])
+            previous_turn = action_turn
         agent = (
-            "神经策略先验 PUCT"
-            if step["agent"] == "policy-prior-puct-v1"
+            "旧 smoke 模型 PUCT"
+            if step["agent"] in {"policy-prior-puct-v1", "checkpoint-puct-v1"}
             else "普通 ISMCTS"
         )
         action = translate_action(step["description"], english_names, chinese_names)
