@@ -5079,6 +5079,24 @@ class SecondStandardCardBatchTests(unittest.TestCase):
             for event in game.events
         ))
 
+    def test_eternus_fizzles_when_its_selected_target_has_left_board(self):
+        game = self.game()
+        eternus = self.add_board(game, "TIME_435")
+        stale_target = self.add_board(game, "CORE_CS2_231", 1)
+        # Model an earlier trigger in the same resolution chain removing the
+        # selected target before Eternus' Battlecry gets to resolve.
+        game.players[1].board.remove(stale_target)
+        game._battlecry(
+            game.players[0], eternus,
+            Action("PLAY", eternus.entity_id, 1, stale_target.entity_id),
+        )
+        self.assertTrue(any(
+            event["kind"] == "battlecry_target_absent"
+            and event["source"] == "TIME_435"
+            and event["target"] == stale_target.entity_id
+            for event in game.events
+        ))
+
     def test_after_spell_and_after_attack_windows(self):
         game = self.game()
         self.add_board(game, "CORE_NEW1_020")

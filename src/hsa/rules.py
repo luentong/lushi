@@ -10005,7 +10005,26 @@ class EternusBattlecry:
     def execute(self, game: Any, context: RuleContext) -> None:
         if context.action is None or context.action.target_player == context.player.index:
             raise ValueError("enemy minion target is required")
-        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        # A target can leave the board between action selection and this
+        # Battlecry's resolution (for example through an earlier trigger in
+        # the same resolution chain).  Hearthstone then fizzles this part of
+        # the Battlecry; it must not abort the entire simulated game.
+        target = next(
+            (
+                minion
+                for minion in game.players[context.action.target_player].board
+                if minion.entity_id == context.action.target_entity
+            ),
+            None,
+        )
+        if target is None:
+            game._event(
+                "battlecry_target_absent",
+                player=context.player.index,
+                source=context.card.card_id,
+                target=context.action.target_entity,
+            )
+            return
         if target.health > context.card.max_health:
             raise ValueError("target has too much Health for Eternus")
         previous = game.players[context.action.target_player]
