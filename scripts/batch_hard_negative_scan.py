@@ -41,8 +41,25 @@ def _state_mana(row: dict[str, Any]) -> int | None:
     return None
 
 
+def _safe_non_end_options(alternatives: list[dict[str, Any]],
+                          selected_value: float,
+                          tolerance: float) -> list[dict[str, Any]]:
+    """Conservative candidates for a meaningful END_TURN review."""
+    result = []
+    for item in alternatives:
+        if not isinstance(item, dict) or item.get("mean_value") is None:
+            continue
+        action = str(item.get("action", ""))
+        if not action or "END_TURN" in action:
+            continue
+        if float(item["mean_value"]) >= selected_value - tolerance:
+            result.append(item)
+    return result
+
+
 def scan_file(path: Path, *, regret_gap: float, low_visit: float,
-              close_value: float, min_mana: int) -> list[dict[str, Any]]:
+              close_value: float, min_mana: int,
+              end_turn_tolerance: float) -> list[dict[str, Any]]:
     try:
         doc = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
@@ -79,8 +96,13 @@ def scan_file(path: Path, *, regret_gap: float, low_visit: float,
             ranked = sorted((float(item["mean_value"]) for item in valued), reverse=True)
             if ranked[0] - ranked[1] <= close_value:
                 reasons.append("close_candidates")
+        comparable_non_end = []
         if "END_TURN" in description and (mana or 0) >= min_mana and legal_count > 1:
-            reasons.append("end_turn_with_mana")
+            comparable_non_end = _safe_non_end_options(
+                valued, selected_value, end_turn_tolerance
+            )
+            if comparable_non_end:
+                reasons.append("end_turn_with_comparable_action")
         if not reasons:
             continue
         findings.append({
@@ -101,6 +123,7 @@ def scan_file(path: Path, *, regret_gap: float, low_visit: float,
             "best_alternative": best.get("action"),
             "best_mean_value": best_value,
             "regret_gap": gap,
+            "comparable_non_end_actions": [item.get("action") for item in comparable_non_end],
             "alternatives": alternatives,
             "state_before": row.get("state_before"),
         })
@@ -115,6 +138,7 @@ def main() -> int:
     parser.add_argument("--low-visit", type=float, default=0.50)
     parser.add_argument("--close-value", type=float, default=0.15)
     parser.add_argument("--min-mana", type=int, default=1)
+    parser.add_argument("--end-turn-tolerance", type=float, default=0.05)
     args = parser.parse_args()
     files = sorted(args.root.rglob("*.json"))
     findings: list[dict[str, Any]] = []
@@ -127,7 +151,8 @@ def main() -> int:
         rows = scan_file(path, regret_gap=args.regret_gap,
                          low_visit=args.low_visit,
                          close_value=args.close_value,
-                         min_mana=args.min_mana)
+                         min_mana=args.min_mana,
+                         end_turn_tolerance=args.end_turn_tolerance)
         if rows:
             trace_files += 1
             findings.extend(rows)
@@ -143,6 +168,7 @@ def main() -> int:
             "low_visit": args.low_visit,
             "close_value": args.close_value,
             "min_mana": args.min_mana,
+            "end_turn_tolerance": args.end_turn_tolerance,
         },
         "candidates": findings,
     }
