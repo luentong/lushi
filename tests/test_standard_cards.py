@@ -787,6 +787,12 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.players[0].hand.append(card)
         return card
 
+    def next_own_turn(self, game: DragonMirrorGame):
+        """Advance a PREPARE test to the controller's next turn."""
+        game.step(Action("END_TURN"))
+        game.step(Action("END_TURN"))
+        game.players[0].mana = 20
+
     def add_board(
         self, game: DragonMirrorGame, card_id: str, player: int = 0, *, attack=0
     ):
@@ -1992,6 +1998,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         other = self.add_board(game, "CORE_CS2_065", 0)
         spell = self.add_hand(game, "JAIL_326")
         game.step(Action("PREPARE", spell.entity_id))
+        self.next_own_turn(game)
         game.step(Action("PLAY", spell.entity_id, 0, source.entity_id))
         self.assertEqual((source.attack, source.max_health), (other.attack, other.max_health))
 
@@ -2000,6 +2007,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         target = self.add_board(game, "CATA_565", 0)
         spell = self.add_hand(game, "JAIL_913")
         game.step(Action("PREPARE", spell.entity_id))
+        self.next_own_turn(game)
         game.step(Action("PLAY", spell.entity_id, 0, target.entity_id))
         self.assertTrue(target.lifesteal)
         self.assertEqual(5, target.attack_delta)
@@ -2017,6 +2025,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         other = self.add_board(game, "CATA_565", 0)
         sawbones = self.add_hand(game, "JAIL_444")
         game.step(Action("PREPARE", sawbones.entity_id))
+        self.next_own_turn(game)
         game.step(Action("PLAY", sawbones.entity_id))
         self.assertNotIn(other, game.players[0].board)
         self.assertGreaterEqual(game.players[0].mana, 1)
@@ -2027,6 +2036,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         target = self.add_board(game, "JAIL_912", 0)
         swimmer = self.add_hand(game, "JAIL_395")
         game.step(Action("PREPARE", swimmer.entity_id))
+        self.next_own_turn(game)
         game.step(Action("PLAY", swimmer.entity_id, 0, target.entity_id))
         self.assertEqual(26, game.players[0].health)
 
@@ -2036,6 +2046,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         deathrattle = self.add_board(game, "JAIL_912", 0)
         swimmer = self.add_hand(game, "JAIL_395")
         game.step(Action("PREPARE", swimmer.entity_id))
+        self.next_own_turn(game)
         targets = {
             action.target_entity
             for action in game.legal_actions()
@@ -2048,6 +2059,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game = self.game()
         parasite = self.add_hand(game, "JAIL_721")
         game.step(Action("PREPARE", parasite.entity_id))
+        self.next_own_turn(game)
         game.step(Action("PLAY", parasite.entity_id))
         before = (parasite.attack, parasite.max_health)
         demon = game._entity("CORE_CS2_065")
@@ -2062,6 +2074,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game = self.game()
         auctioneer = self.add_hand(game, "JAIL_718")
         game.step(Action("PREPARE", auctioneer.entity_id))
+        self.next_own_turn(game)
         game.step(Action("PLAY", auctioneer.entity_id))
         # Prepare spends the current turn's mana; model the next turn before
         # testing the minion's spell trigger.
@@ -2075,6 +2088,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game = self.game()
         vanessa = self.add_hand(game, "JAIL_407")
         game.step(Action("PREPARE", vanessa.entity_id))
+        self.next_own_turn(game)
         game.step(Action("PLAY", vanessa.entity_id))
         game.players[0].mana = 20
         spell = self.add_hand(game, "CORE_CS2_023")
@@ -2086,19 +2100,21 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_tricksy_improviser_prepared_secrets(self):
         game = self.game()
-        prior_spell = self.add_hand(game, "CORE_EX1_289")
-        game.step(Action("PLAY", prior_spell.entity_id))
         improvisor = self.add_hand(game, "JAIL_321")
         game.step(Action("PREPARE", improvisor.entity_id))
+        self.next_own_turn(game)
+        prior_spell = self.add_hand(game, "CORE_EX1_289")
+        game.step(Action("PLAY", prior_spell.entity_id))
         game.step(Action("PLAY", improvisor.entity_id))
         self.assertGreaterEqual(len(game.players[0].secrets), 2)
 
     def test_defias_wannabe_prepare_combo(self):
         game = self.game()
-        coin = self.add_hand(game, "JAIL_COIN1")
-        game.step(Action("PLAY", coin.entity_id))
         wannabe = self.add_hand(game, "JAIL_909")
         game.step(Action("PREPARE", wannabe.entity_id))
+        self.next_own_turn(game)
+        coin = self.add_hand(game, "JAIL_COIN1")
+        game.step(Action("PLAY", coin.entity_id))
         before = (wannabe.attack, wannabe.max_health)
         game.step(Action("PLAY", wannabe.entity_id))
         self.assertEqual((before[0] + 1, before[1] + 1), (wannabe.attack, wannabe.max_health))
@@ -2106,11 +2122,12 @@ class FirstStandardCardBatchTests(unittest.TestCase):
     def test_code_violet_repeats_after_three_other_spells(self):
         game = self.game()
         game.players[0].max_mana = game.players[0].mana = 10
+        spell = self.add_hand(game, "JAIL_735")
+        game.step(Action("PREPARE", spell.entity_id))
+        self.next_own_turn(game)
         for _ in range(3):
             coin = self.add_hand(game, "JAIL_COIN1")
             game.step(Action("PLAY", coin.entity_id))
-        spell = self.add_hand(game, "JAIL_735")
-        game.step(Action("PREPARE", spell.entity_id))
         game.step(Action("PLAY", spell.entity_id))
         summoned = [m for m in game.players[0].board if m.created_by == "JAIL_735"]
         self.assertEqual(2, len(summoned))
@@ -4034,7 +4051,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         target = self.add_board(damage_game, "CORE_LOOT_137", 1)
         roots = self.add_hand(damage_game, "CORE_AT_037")
         damage_game.step(Action("PLAY", roots.entity_id, 1, target.entity_id))
-        damage_game.step(Action("RULE_CHOICE_PICK", 0))
+        damage_game.step(Action("RULE_CHOICE_PICK", 0, 1, target.entity_id))
         self.assertEqual(2, target.damage)
 
         summon_game = self.game()

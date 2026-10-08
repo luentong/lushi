@@ -13,9 +13,10 @@ import json
 import random
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, ClassVar, Iterable
 
 from .config import DRAGON_DECKSTRING, RULESET
+from .search_deck import SearchDeck
 from .rules import (
     DECLARATIVE_METADATA_ALIASES,
     DECLARATIVE_METADATA_IDS,
@@ -507,6 +508,7 @@ PLAYABLE_ON_EITHER_SIDE_IDS = frozenset({
 ADDITIONAL_PLAYABLE_SPELL_IDS = {
     "EDR_820", "JAIL_997",
     "JAIL_EVENT_101",  # Soul Immolation
+    "JAIL_EVENT_102",  # Desperate Bribe
     "CATA_EVENT_402",  # Deadly Bribe
     # Standard Quickdraw spells.
     "RLK_048",  # Anti-Magic Shell
@@ -1236,14 +1238,27 @@ class CardInstance:
         branch.  Most instance fields are scalars; only these three lists need
         their own containers in a child state.
         """
-        result = copy.copy(self)
+        # CardInstance is a plain dataclass (no slots).  Bypassing the generic
+        # copy protocol avoids repeated reduce/reconstruct dispatch for every
+        # entity in every search branch; CardDef remains shared by identity.
+        result = object.__new__(type(self))
+        result.__dict__ = self.__dict__.copy()
         memo[id(self)] = result
         result.gifts = list(self.gifts)
         result.temporary_attack_modifiers = list(self.temporary_attack_modifiers)
         result.temporary_health_modifiers = list(self.temporary_health_modifiers)
-        result.stored_discarded_card = copy.deepcopy(self.stored_discarded_card, memo)
-        result.stored_spell = copy.deepcopy(self.stored_spell, memo)
-        result.jarred_minion = copy.deepcopy(self.jarred_minion, memo)
+        result.stored_discarded_card = (
+            copy.deepcopy(self.stored_discarded_card, memo)
+            if self.stored_discarded_card is not None else None
+        )
+        result.stored_spell = (
+            copy.deepcopy(self.stored_spell, memo)
+            if self.stored_spell is not None else None
+        )
+        result.jarred_minion = (
+            copy.deepcopy(self.jarred_minion, memo)
+            if self.jarred_minion is not None else None
+        )
         return result
 
     def clone(self, entity_id: int) -> "CardInstance":
@@ -1513,9 +1528,18 @@ class Player:
     # until their owner-turn countdown completes.
     pending_sham_trials: list[CardInstance] = field(default_factory=list)
 
+    def __setattr__(self, name, value):
+        if name == "deck" and not isinstance(value, SearchDeck):
+            value = SearchDeck(value)
+        object.__setattr__(self, name, value)
+
     def __deepcopy__(self, memo: dict[int, Any]) -> "Player":
         """Fast branch copy for the mutable player state used by MCTS."""
-        result = copy.copy(self)
+        # Player is also a plain dataclass.  Copy its attribute dictionary
+        # directly; the mutable zones and counters below are then replaced by
+        # branch-local containers as needed.
+        result = object.__new__(type(self))
+        result.__dict__ = self.__dict__.copy()
         memo[id(self)] = result
         for name in (
             "deck", "hand", "board", "dead_minions", "locations", "secrets",
@@ -1532,7 +1556,11 @@ class Player:
             # will be discarded materially reduces ISMCTS branch cost.
             copied_zone = memo.get(id(zone))
             if copied_zone is None:
-                copied_zone = copy.deepcopy(zone, memo)
+                # Empty zones are ubiquitous in search branches.  They still
+                # need independent containers because later effects may append
+                # to them, but constructing [] avoids recursive deepcopy
+                # dispatch and preserves branch isolation.
+                copied_zone = [] if not zone else copy.deepcopy(zone, memo)
             setattr(result, name, copied_zone)
         result.weapon = copy.deepcopy(self.weapon, memo)
         result.played_races_this_turn = set(self.played_races_this_turn)
@@ -1548,10 +1576,19 @@ class Player:
         result.delayed_self_damage = list(self.delayed_self_damage)
         result.delayed_mana_crystal_gains = list(self.delayed_mana_crystal_gains)
         result.delayed_hero_attack = list(self.delayed_hero_attack)
-        result.slime_resummon = copy.deepcopy(self.slime_resummon, memo)
-        result.active_quests = copy.deepcopy(self.active_quests, memo)
+        result.slime_resummon = (
+            [] if not self.slime_resummon
+            else copy.deepcopy(self.slime_resummon, memo)
+        )
+        result.active_quests = (
+            copy.deepcopy(self.active_quests, memo)
+            if self.active_quests else {}
+        )
         result.completed_quests = set(self.completed_quests)
-        result.zuramat_discarded_card = copy.deepcopy(self.zuramat_discarded_card, memo)
+        result.zuramat_discarded_card = (
+            copy.deepcopy(self.zuramat_discarded_card, memo)
+            if self.zuramat_discarded_card is not None else None
+        )
         return result
 
     @property
@@ -1592,6 +1629,14 @@ def _discard_search_event(*_args: Any, **_payload: Any) -> None:
 class DragonMirrorGame:
     """A deterministic, closed-pool simulator for the supplied Dragon deck."""
 
+    # A live recommendation evaluates several opponent-deck hypotheses against
+    # the same immutable card catalogue. Re-parsing the full HearthstoneJSON
+    # file for every hypothesis dominates interactive latency, while CardDef
+    # instances and set counts are read-only after construction.
+    _CATALOG_CACHE: ClassVar[
+        dict[tuple[str, int, int], tuple[dict[str, CardDef], dict[str, int]]]
+    ] = {}
+
     def __init__(
         self,
         cards_path: str | Path,
@@ -1617,8 +1662,21 @@ class DragonMirrorGame:
         self.finished = False
         self.winner: int | None = None
         self.pending_choice: dict[str, Any] | None = None
+        # Only compact search clones enable this cache. Diagnostic games may
+        # mutate fixture fields directly, so caching is intentionally disabled
+        # for them.
+        self._cache_legal_actions = False
+        self._legal_actions_cache: list[Action] | None = None
+        self._legal_actions_map: dict[tuple, Action] | None = None
         self.minions_died_this_turn = 0
         self.deck_counts = deck_counts or (DRAGON_DECK_COUNTS, DRAGON_DECK_COUNTS)
+        # Only the legacy mirror has publicly declared lists by default.
+        # Custom games must supply candidate lists explicitly; their actual
+        # constructor decks are private and are never inferred by search.
+        self.search_deck_hypotheses = (
+            {i: [(1.0, dict(DRAGON_DECK_COUNTS))] for i in (0, 1)}
+            if deck_counts is None else {}
+        )
         self.beatrix_choices = beatrix_choices or (None, None)
         requested_ids = set(self.deck_counts[0]) | set(self.deck_counts[1])
         unsupported = requested_ids - EXECUTABLE_CARD_IDS
@@ -1628,14 +1686,7 @@ class DragonMirrorGame:
                 + ", ".join(sorted(unsupported))
             )
         cards_path = Path(cards_path)
-        raw_catalog = json.loads(cards_path.read_text(encoding="utf-8"))
-        self._catalog_set_counts = {}
-        for raw_card in raw_catalog:
-            card_set = raw_card.get("set", "") or ""
-            self._catalog_set_counts[card_set] = (
-                self._catalog_set_counts.get(card_set, 0) + 1
-            )
-        self.card_defs = self._load_defs(cards_path)
+        self.card_defs, self._catalog_set_counts = self._load_catalog(cards_path)
         self.rune_configs = self._resolve_rune_configs(rune_configs, player_classes)
         self.executable_card_ids = EXECUTABLE_CARD_IDS
         self.rule_registry = build_rule_registry()
@@ -1668,8 +1719,28 @@ class DragonMirrorGame:
                 self._resolve_mulligan_for_player(player, selected)
             self._finish_mulligan()
 
-    def _load_defs(self, path: Path) -> dict[str, CardDef]:
+    @classmethod
+    def _load_catalog(
+        cls, path: Path,
+    ) -> tuple[dict[str, CardDef], dict[str, int]]:
+        """Load immutable card metadata once per on-disk catalogue version."""
+        stat = path.stat()
+        key = (str(path.resolve()), stat.st_mtime_ns, stat.st_size)
+        cached = cls._CATALOG_CACHE.get(key)
+        if cached is not None:
+            return cached
+
         cards = json.loads(path.read_text(encoding="utf-8"))
+        set_counts: dict[str, int] = {}
+        for raw_card in cards:
+            card_set = raw_card.get("set", "") or ""
+            set_counts[card_set] = set_counts.get(card_set, 0) + 1
+        result = cls._build_defs(cards)
+        cls._CATALOG_CACHE[key] = (result, set_counts)
+        return result, set_counts
+
+    @classmethod
+    def _build_defs(cls, cards: list[dict[str, Any]]) -> dict[str, CardDef]:
         result = {}
         aliases_by_source: dict[str, list[str]] = {}
         for target_id, source_id in DECLARATIVE_METADATA_ALIASES.items():
@@ -2020,7 +2091,7 @@ class DragonMirrorGame:
             self._deal_opening_card(self.players[1])
 
     def _deal_opening_card(self, player: Player) -> CardInstance:
-        card = player.deck.pop()
+        card = player.deck.take()
         player.hand.append(card)
         self._event(
             "opening_deal", player=player.index, card=card.card_id,
@@ -2062,7 +2133,7 @@ class DragonMirrorGame:
         original = list(player.hand)
         rejected = [card for card in original if card.entity_id in selected]
         kept = [card for card in original if card.entity_id not in selected]
-        replacements = [player.deck.pop() for _ in rejected]
+        replacements = [player.deck.take() for _ in rejected]
         player.hand = kept + replacements
         # Rejected cards return only after replacements are drawn, so a player
         # cannot immediately redraw a card they just mulliganed away.
@@ -2403,6 +2474,9 @@ class DragonMirrorGame:
         result.invalid_actions = self.invalid_actions
         result.events = []
         result.record_events = False
+        result._cache_legal_actions = True
+        result._legal_actions_cache = None
+        result._legal_actions_map = None
         # Shadow the bound method for this branch. This removes a method call,
         # branch and dictionary allocation from every simulated card trigger.
         result._event = _discard_search_event
@@ -2410,6 +2484,7 @@ class DragonMirrorGame:
         result.winner = self.winner
         result.minions_died_this_turn = self.minions_died_this_turn
         result.deck_counts = self.deck_counts
+        result.search_deck_hypotheses = self.search_deck_hypotheses
         result.rune_configs = self.rune_configs
         result.beatrix_choices = self.beatrix_choices
         result._catalog_set_counts = self._catalog_set_counts
@@ -2842,7 +2917,7 @@ class DragonMirrorGame:
             player.fatigue += 1
             self._damage_hero(player, player.fatigue)
             return
-        card = player.deck.pop()
+        card = player.deck.take()
         self._refresh_scrappy(player)
         self._receive_drawn_card(player, card)
 
@@ -2997,7 +3072,7 @@ class DragonMirrorGame:
         if not candidates:
             return None
         card = self.rng.choice(candidates)
-        player.deck.remove(card)
+        player.deck.extract(card)
         self._refresh_scrappy(player)
         card.cost_delta += cost_delta
         self._receive_drawn_card(player, card)
@@ -3812,7 +3887,7 @@ class DragonMirrorGame:
             summoned = None
             if candidates and len(player.board) + len(player.locations) < 7:
                 summoned = self.rng.choice(candidates)
-                player.deck.remove(summoned)
+                player.deck.extract(summoned)
                 summoned.summoned_turn = self.turn
                 self._summon(player, summoned)
             player.reinforcement_aura_turns -= 1
@@ -5244,6 +5319,14 @@ class DragonMirrorGame:
         raise ValueError(f"unsupported target kind: {target_kind}")
 
     def legal_actions(self) -> list[Action]:
+        # Pending choices have several early-return action lists below; do
+        # not reuse a normal-play cache across that boundary.
+        if self.pending_choice and self._cache_legal_actions:
+            self._legal_actions_cache = None
+            self._legal_actions_map = None
+        if (self._cache_legal_actions and not self.pending_choice
+                and self._legal_actions_cache is not None):
+            return self._legal_actions_cache
         if self.finished:
             return []
         if self.pending_choice:
@@ -5387,6 +5470,12 @@ class DragonMirrorGame:
                 continue
             if card.card_id == "TLC_446t" and player.underfel_rift_used_turn == self.turn:
                 continue
+            # Tradeable cards pay the fixed one-mana trade cost, independent
+            # of their printed play cost. This must be offered before the
+            # ordinary affordability gate (a 3/4-cost Tradeable card is often
+            # traded with only one mana remaining).
+            if "TRADEABLE" in card.definition.mechanics and player.mana >= 1 and player.deck:
+                actions.append(Action("TRADE", card.entity_id))
             effective_cost = self._effective_cost(player, card)
             if card.card_id == "TLC_436":
                 if effective_cost > player.corpses:
@@ -5495,7 +5584,7 @@ class DragonMirrorGame:
                             self._find_minion(*target)
                         )
                     ]
-                if target_spec.optional:
+                if target_spec.optional and (None, None) not in targets:
                     targets = [(None, None), *targets]
                 # EDR_860 only deals its bonus damage after the controller has
                 # reached two Imbues.  Before that threshold it is genuinely
@@ -5633,8 +5722,6 @@ class DragonMirrorGame:
                 actions.append(Action("PLAY", card.entity_id))
             else:
                 actions.extend(Action("PLAY", card.entity_id, p, e) for p, e in targets)
-            if "TRADEABLE" in card.definition.mechanics and player.mana >= 1 and player.deck:
-                actions.append(Action("TRADE", card.entity_id))
         for minion in player.board:
             if minion.dormant_turns > 0:
                 continue
@@ -5722,16 +5809,32 @@ class DragonMirrorGame:
                             location.entity_id, self.card_defs[location.card_id]
                         )
                         targets = self._rule_targets(player, location_card, target_spec.kind)
-                        if target_spec.optional:
+                        if target_spec.optional and (None, None) not in targets:
                             targets = [(None, None), *targets]
                         actions.extend(
                             Action("LOCATION", location.entity_id, p, e)
                             for p, e in targets
                         )
-        return sorted(actions, key=Action.key)
+        # Concrete action keys are the shared contract for encoding, search,
+        # execution and training labels. Optional/no-target paths can overlap;
+        # collapse only exact duplicates, never different instances/targets.
+        result = sorted({action.key(): action for action in actions}.values(), key=Action.key)
+        if self._cache_legal_actions:
+            self._legal_actions_cache = result
+            self._legal_actions_map = {action.key(): action for action in result}
+        return result
 
     def step(self, action: Action) -> None:
-        legal = {a.key(): a for a in self.legal_actions()}
+        if self._cache_legal_actions:
+            self._legal_actions_cache = None
+            self._legal_actions_map = None
+        if self._cache_legal_actions:
+            actions = self.legal_actions()
+            legal = self._legal_actions_map or {
+                item.key(): item for item in actions
+            }
+        else:
+            legal = {a.key(): a for a in self.legal_actions()}
         if action.key() not in legal:
             self.invalid_actions += 1
             raise ValueError(f"illegal action: {action}")
@@ -5811,6 +5914,9 @@ class DragonMirrorGame:
             self._normalize_shattered_hand(owner)
         self._resolve_deaths()
         self._check_winner()
+        if self._cache_legal_actions:
+            self._legal_actions_cache = None
+            self._legal_actions_map = None
 
     def _trigger_dalaran_champion_stat_gain(self) -> None:
         """Apply Dalaran Champion once for each observed stat-gain event.
@@ -8248,7 +8354,9 @@ class DragonMirrorGame:
             pool = VOID_SOUL_DEMON_IDS_BY_COST.get(card.void_soul_cost)
             if not pool:
                 raise UnsupportedGeneratedCard(
-                    f"Void Soul cost {card.void_soul_cost}"
+                    f"Void Soul cost {card.void_soul_cost} "
+                    f"(source={card.created_by!r}, entity={card.entity_id}, "
+                    f"player_level={player.void_soul_level})"
                 )
             if len(player.board) + len(player.locations) < 7:
                 demon_id = self.rng.choice(sorted(pool))
@@ -8314,6 +8422,10 @@ class DragonMirrorGame:
                 continue
             held.definition = spell.definition
             held.cost_delta = 0
+            if held.card_id == "JAIL_732":
+                # Shadow of Demise copies the spell instance's upgraded Void
+                # Soul tier as well as its card definition.
+                held.void_soul_cost = max(1, spell.void_soul_cost)
             # Shadow of Demise becomes the spell just cast, regardless of
             # unrelated one-shot spell-damage effects below.  Keeping these
             # writes in the loop also avoids referring to a stale/unbound
@@ -8619,7 +8731,7 @@ class DragonMirrorGame:
             if not candidates or len(player.board) + len(player.locations) >= 7:
                 break
             chosen = self.rng.choice(candidates)
-            player.deck.remove(chosen)
+            player.deck.extract(chosen)
             chosen.summoned_turn = self.turn
             self._summon(player, chosen)
             summoned.append(chosen.entity_id)
@@ -9498,6 +9610,7 @@ class DragonMirrorGame:
             if option in enemy.deck:
                 enemy.deck.remove(option)
                 enemy.deck.append(option)
+                enemy.deck.reveal(-1, (player.index,))
             self._event(
                 "enemy_deck_discover_top", player=player.index,
                 source=pending["source_card_id"], enemy=enemy.index,
@@ -9947,7 +10060,8 @@ class DragonMirrorGame:
         if "sweet_dreams" in card.gifts:
             # Sweet Dreams places the gifted minion on top of the deck, so the
             # next draw must return this exact card.
-            player.deck.insert(0, card)
+            player.deck.append(card)
+            player.deck.reveal(-1, (player.index,))
             self._event(
                 "dark_gift_topdeck", player=player.index,
                 card=card.card_id, entity=card.entity_id, gift="sweet_dreams",
@@ -10105,7 +10219,7 @@ class DragonMirrorGame:
             ]
             if candidates:
                 card = self.rng.choice(candidates)
-                player.deck.remove(card)
+                player.deck.extract(card)
                 if len(player.hand) < 10:
                     player.hand.append(card)
                     self._event("draw", player=player.index, card=card.card_id)
@@ -10210,7 +10324,7 @@ class DragonMirrorGame:
                 if not candidates:
                     continue
                 drawn = self.rng.choice(candidates)
-                owner.deck.remove(drawn)
+                owner.deck.extract(drawn)
                 destination = "hand" if len(owner.hand) < 10 else "burned"
                 if destination == "hand":
                     owner.hand.append(drawn)
@@ -10256,7 +10370,7 @@ class DragonMirrorGame:
                     card_set="ESCAPEFROM_VIOLET_HOLD",
                 ),
                 created_by=weapon.card_id,
-                void_soul_cost=player.void_soul_level,
+                void_soul_cost=max(1, player.void_soul_level),
             )
             self.next_entity_id += 1
             if len(player.hand) < 10:
@@ -12502,7 +12616,7 @@ class DragonMirrorGame:
             candidates = [card for card in player.deck if card.has_race("DEMON")]
             if candidates and len(player.board) + len(player.locations) < 7:
                 demon = self.rng.choice(candidates)
-                player.deck.remove(demon)
+                player.deck.extract(demon)
                 demon.summoned_turn = self.turn
                 demon.summon_moragg_on_death = True
                 self._summon(player, demon)
@@ -12656,7 +12770,13 @@ class DragonMirrorGame:
         if action.kind == "CORPSE_SPEND":
             return f"P{self.current + 1} CORPSE_SPEND amount={action.source}"
         if action.kind == "RULE_CHOICE_PICK":
-            label = self.pending_choice["options"][action.source][0]
+            option = self.pending_choice["options"][action.source]
+            if isinstance(option, (tuple, list)):
+                label = option[0]
+            elif hasattr(option, "definition"):
+                label = f"{option.definition.name}[{option.card_id}]"
+            else:
+                label = str(option)
             return f"P{self.current + 1} CHOOSE_ONE {label}"
         if action.kind == "CATACLYSM_PICK":
             card_id = self.pending_choice["options"][action.source]

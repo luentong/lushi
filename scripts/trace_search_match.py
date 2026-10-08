@@ -4,16 +4,37 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
+sys.path[:0] = [str(ROOT / "src"), str(ROOT / "scripts")]
 
 from hsa import DragonMirrorGame, InformationSetMCTSPolicy
-from hsa.torch_model import TorchPolicyValueModel
+from benchmark_mcts import matchup_deck_counts, configure_search_beliefs
+
+
+def _json_safe(value):
+    """Convert runtime CardInstance values in snapshots to JSON data."""
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, dict):
+        return {str(key): _json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_json_safe(item) for item in value]
+    card_id = getattr(value, "card_id", None)
+    if card_id is not None:
+        definition = getattr(value, "definition", None)
+        return {
+            "id": card_id,
+            "entity": getattr(value, "entity_id", None),
+            "name": getattr(definition, "name", card_id),
+            "cost": getattr(value, "cost", None),
+        }
+    return repr(value)
 
 
 def compact_state(snapshot: dict) -> dict:
@@ -38,14 +59,14 @@ def compact_state(snapshot: dict) -> dict:
                 }
                 for card in player["board"]
             ],
-            "locations": player["locations"],
+            "locations": _json_safe(player["locations"]),
         })
     return {
         "turn": snapshot["turn"],
         "active_player": snapshot["active_player"],
         "finished": snapshot["finished"],
         "winner": snapshot["winner"],
-        "pending_choice": snapshot["pending_choice"],
+        "pending_choice": _json_safe(snapshot["pending_choice"]),
         "players": players,
     }
 
@@ -72,10 +93,27 @@ def player_line(player: dict) -> str:
 
 
 def main() -> int:
+    from hsa.torch_model import TorchPolicyValueModel
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, required=True)
-    parser.add_argument("--candidate-seat", type=int, choices=(0, 1), required=True)
+    parser.add_argument("--candidate-seat", type=int, choices=(0, 1), default=0)
     parser.add_argument("--checkpoint", type=Path, required=True)
+    parser.add_argument(
+        "--both-model", action="store_true",
+        help="Use the checkpoint-backed PUCT policy for both seats.",
+    )
+    parser.add_argument(
+        "--use-model-value", action="store_true",
+        help="Use the trained value head instead of rollout evaluation.",
+    )
+    parser.add_argument(
+        "--use-action-value-estimates", action="store_true",
+        help="Use the checkpoint action-Q head to guide PUCT action selection.",
+    )
+    parser.add_argument("--action-value-prior-weight", type=float, default=2.0)
+    parser.add_argument("--deck-config", type=Path)
+    parser.add_argument("--deck-a")
+    parser.add_argument("--deck-b")
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--samples", type=int, default=1)
     parser.add_argument("--iterations", type=int, default=4)
@@ -93,33 +131,61 @@ def main() -> int:
         ROOT / "reports" / f"search-trace-{args.seed}-seat{args.candidate_seat}"
     )
     model = TorchPolicyValueModel.from_checkpoint(str(args.checkpoint), args.device)
-    candidate = InformationSetMCTSPolicy(
-        samples=args.samples,
-        iterations_per_sample=args.iterations,
-        tree_depth=args.tree_depth,
-        rollout_depth=args.rollout_depth,
-        seed=args.search_seed + args.seed * 2 + args.candidate_seat,
-        policy_value_model=model,
-        use_model_value=False,
-        min_simulations_per_root_action=args.min_simulations_per_root_action,
-        max_total_iterations=args.max_total_iterations,
-    )
-    baseline_seat = 1 - args.candidate_seat
-    baseline = InformationSetMCTSPolicy(
-        samples=args.samples,
-        iterations_per_sample=args.iterations,
-        tree_depth=args.tree_depth,
-        rollout_depth=args.rollout_depth,
-        seed=args.search_seed + args.seed * 2 + baseline_seat,
-    )
-    policies = [baseline, baseline]
-    policies[args.candidate_seat] = candidate
+    if args.use_action_value_estimates and not getattr(
+        model, "action_value_trained", False
+    ):
+        parser.error("checkpoint has no trained action-value head")
+    checkpoint_sha256 = hashlib.sha256(args.checkpoint.read_bytes()).hexdigest()
+    def model_policy(seat: int) -> InformationSetMCTSPolicy:
+        return InformationSetMCTSPolicy(
+            samples=args.samples,
+            iterations_per_sample=args.iterations,
+            tree_depth=args.tree_depth,
+            rollout_depth=0 if args.use_model_value else args.rollout_depth,
+            seed=args.search_seed + args.seed * 2 + seat,
+            policy_value_model=model,
+            use_model_value=args.use_model_value,
+            use_action_value_estimates=args.use_action_value_estimates,
+            action_value_prior_weight=args.action_value_prior_weight,
+            min_simulations_per_root_action=args.min_simulations_per_root_action,
+            max_total_iterations=args.max_total_iterations,
+        )
 
-    game = DragonMirrorGame(args.cards, args.seed)
+    policies: list[InformationSetMCTSPolicy] = []
+    for seat in range(2):
+        if args.both_model or seat == args.candidate_seat:
+            policies.append(model_policy(seat))
+        else:
+            policies.append(InformationSetMCTSPolicy(
+                samples=args.samples,
+                iterations_per_sample=args.iterations,
+                tree_depth=args.tree_depth,
+                rollout_depth=args.rollout_depth,
+                seed=args.search_seed + args.seed * 2 + seat,
+            ))
+
+    deck_counts = None
+    player_classes = ("WARRIOR", "WARRIOR")
+    if args.deck_config or args.deck_a or args.deck_b:
+        if not (args.deck_config and args.deck_a and args.deck_b):
+            parser.error("--deck-config, --deck-a and --deck-b must be used together")
+        (deck_a, class_a), (deck_b, class_b) = matchup_deck_counts(
+            args.deck_config, args.deck_a, args.deck_b
+        )
+        deck_counts = (deck_a, deck_b)
+        player_classes = (class_a, class_b)
+    game = DragonMirrorGame(
+        args.cards, args.seed,
+        deck_counts=deck_counts,
+        player_classes=player_classes,
+    )
     initial_state = compact_state(game.snapshot())
+    if args.deck_config:
+        configure_search_beliefs(game, args.deck_config)
     steps = []
     while not game.finished and len(steps) < args.max_actions:
         actor = game.current
+        state_before = compact_state(game.snapshot())
         policy = policies[actor]
         legal = game.legal_actions()
         legal_descriptions = [game.describe_action(action) for action in legal]
@@ -150,13 +216,19 @@ def main() -> int:
         game.step(action)
         steps.append({
             "step": len(steps) + 1,
+            "turn_before": state_before["turn"],
             "actor": actor + 1,
-            "agent": "policy-prior-puct-v1" if actor == args.candidate_seat else "shared-tree-ismcts-v1",
+            "agent": (
+                "checkpoint-puct-v1"
+                if args.both_model or actor == args.candidate_seat
+                else "shared-tree-ismcts-v1"
+            ),
             "description": description,
             "legal_action_count": len(legal),
             "ranked_alternatives": alternatives,
             "search": search,
-            "events": game.events[event_offset:],
+            "events": _json_safe(game.events[event_offset:]),
+            "state_before": state_before,
             "state_after": compact_state(game.snapshot()),
         })
 
@@ -164,6 +236,9 @@ def main() -> int:
         "schema_version": 1,
         "seed": args.seed,
         "candidate_seat": args.candidate_seat,
+        "both_model": args.both_model,
+        "deck_a": args.deck_a,
+        "deck_b": args.deck_b,
         "winner": game.winner,
         "candidate_win": game.winner == args.candidate_seat,
         "invalid_actions": game.invalid_actions,
@@ -179,6 +254,10 @@ def main() -> int:
             "search_seed": args.search_seed,
             "checkpoint": args.checkpoint.as_posix(),
             "device": args.device,
+            "use_model_value": args.use_model_value,
+            "use_action_value_estimates": args.use_action_value_estimates,
+            "action_value_prior_weight": args.action_value_prior_weight,
+            "checkpoint_sha256": checkpoint_sha256,
         },
         "initial_state": initial_state,
         "steps": steps,
@@ -191,10 +270,17 @@ def main() -> int:
     )
 
     lines = [
-        "# Policy-prior PUCT vs ISMCTS detailed trace", "",
+        (
+            "# Checkpoint PUCT mirror detailed trace"
+            if args.both_model
+            else "# Policy-prior PUCT vs ISMCTS detailed trace"
+        ), "",
         f"- Seed: `{args.seed}`", f"- Candidate: `P{args.candidate_seat + 1}`",
         f"- Winner: `P{game.winner + 1 if game.winner is not None else 'draw'}`",
         f"- Candidate win: `{game.winner == args.candidate_seat}`",
+        f"- Checkpoint SHA-256: `{checkpoint_sha256}`",
+        f"- Action-Q guidance: `{args.use_action_value_estimates}`",
+        f"- Search budget: `{args.samples} × {args.iterations}` per decision",
         f"- Actions: `{len(steps)}`", f"- Illegal actions: `{game.invalid_actions}`", "",
     ]
     previous_turn = None
