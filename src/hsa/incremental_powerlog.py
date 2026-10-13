@@ -24,7 +24,7 @@ except ModuleNotFoundError:  # pragma: no cover - exercised on minimal NPU image
     hslog_tokens = None
     NoSuchEnum = ValueError
 
-from .powerlog_import import normalize_packet_tree
+from .powerlog_import import normalize_packet_tree, record_explicit_block_card
 
 
 def _allow_unknown_tags() -> None:
@@ -65,15 +65,18 @@ class IncrementalPowerLogImporter:
         _allow_unknown_tags()
         _enable_current_client_subspell_compatibility()
         self._parser = LogParser()
+        self._explicit_block_cards: dict[tuple[str, str, int], str] = {}
 
     def reset(self) -> None:
         """Discard state when the watcher switches to a new log file."""
         if LogParser is None:
             raise RuntimeError("Power.log parsing requires hslog")
         self._parser = LogParser()
+        self._explicit_block_cards = {}
 
     def consume(self, lines: Iterable[str]) -> None:
         for line in lines:
+            record_explicit_block_card(line, self._explicit_block_cards)
             # The tailer strips the newline; hslog accepts complete text lines.
             self._parser.read_line(line + "\n")
 
@@ -81,7 +84,8 @@ class IncrementalPowerLogImporter:
         """Return the same sanitized shape as ``scripts/import_power_log.py``."""
         games = []
         for index, packet_tree in enumerate(self._parser.games):
-            game = normalize_packet_tree(packet_tree)
+            game = normalize_packet_tree(
+                packet_tree, getattr(self, "_explicit_block_cards", {}))
             game["game_index"] = index
             games.append(game)
         digest = hashlib.sha256(
@@ -89,6 +93,7 @@ class IncrementalPowerLogImporter:
         ).hexdigest()
         return {
             "schema_version": 1,
+            "identity_timing": "causal_reveal_only",
             "source_sha256": digest,
             "game_count": len(games),
             "games": games,

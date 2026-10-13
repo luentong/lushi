@@ -12,7 +12,21 @@ import gzip
 import json
 from multiprocessing import Pool
 from pathlib import Path
+import os
+import tempfile
 import torch
+
+
+def _atomic_torch_save(payload: dict, dst: Path) -> None:
+    """Never leave a truncated final shard if a worker is interrupted."""
+    fd, tmp_name = tempfile.mkstemp(prefix=f".{dst.name}.", suffix=".tmp", dir=dst.parent)
+    os.close(fd)
+    tmp = Path(tmp_name)
+    try:
+        torch.save(payload, tmp)
+        os.replace(tmp, dst)
+    finally:
+        tmp.unlink(missing_ok=True)
 
 
 def pack(src: Path, out_dir: Path, batch_size: int) -> int:
@@ -29,13 +43,13 @@ def pack(src: Path, out_dir: Path, batch_size: int) -> int:
             batch.append(record)
             count += 1
             if len(batch) >= batch_size:
-                torch.save({"header": header, "records": batch},
-                           out_dir / f"{src.stem}.part{part:05d}.pt")
+                _atomic_torch_save({"header": header, "records": batch},
+                                   out_dir / f"{src.stem}.part{part:05d}.pt")
                 batch = []
                 part += 1
         if batch:
-            torch.save({"header": header, "records": batch},
-                       out_dir / f"{src.stem}.part{part:05d}.pt")
+            _atomic_torch_save({"header": header, "records": batch},
+                               out_dir / f"{src.stem}.part{part:05d}.pt")
     return count
 
 
@@ -54,8 +68,11 @@ def main() -> None:
                         help="Independent JSONL files to pack concurrently.")
     args = parser.parse_args()
     total = 0
+    # Retry diagnostics are written as *.records.jsonl.gz beside final game
+    # shards. They are not corpus inputs (and are often empty/incomplete).
     jobs = [(source, args.output, args.batch_size)
-            for source in sorted(args.source.glob("*.jsonl.gz"))]
+            for source in sorted(args.source.glob("*.jsonl.gz"))
+            if ".records.jsonl.gz" not in source.name]
     if args.workers > 1:
         with Pool(processes=args.workers) as pool:
             results = pool.imap_unordered(_pack_one, jobs)

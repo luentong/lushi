@@ -9,7 +9,11 @@ replay can or cannot be opened for model decisions.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import re
 from typing import Any, Iterable
+
+
+_CLASS_HERO_POWER_ID = re.compile(r"^HERO_\d+[a-z]*bp\d*$", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -135,22 +139,56 @@ class SimulatorActionPlan:
     reason: str | None = None
 
 
-def action_from_plan(plan: SimulatorActionPlan, mapper: EntityIdMapper):
-    """Convert a mapped plan to the engine Action type when unambiguous."""
+def action_from_plan(
+    plan: SimulatorActionPlan,
+    mapper: EntityIdMapper,
+    *,
+    legal_actions: Iterable[Any] | None = None,
+):
+    """Resolve a log descriptor against legal engine actions, failing closed.
+
+    A Power.log target entity alone does not encode the engine's player index.
+    Never fabricate ``target_player=None`` for a targeted action: that could
+    silently turn a hero or minion target into a different engine action.
+    """
     from .dragon_mirror import Action
     if not plan.mappable:
         return None, plan.reason or "plan is not mappable"
-    source = mapper.resolve(plan.source_entity)
-    target = mapper.resolve(plan.target_entity)
-    if plan.kind in {"PLAY", "ATTACK", "HERO_POWER", "TRADE", "LOCATION"}:
-        if plan.source_entity is not None and source is None:
-            return None, "source entity has no simulator mapping"
-        if plan.target_entity is not None and target is None:
-            return None, "target entity has no simulator mapping"
-        kind = "HERO_ATTACK" if plan.kind == "ATTACK" and plan.source_card and plan.source_card.startswith("HERO_") else plan.kind
-        return Action(kind, source, None, target), None
-    if plan.kind == "END_TURN":
+    if plan.kind == "TURN_END":
         return Action("END_TURN"), None
+    if plan.kind in {"PLAY", "ATTACK", "HERO_POWER", "TRADE", "LOCATION"}:
+        kind = ("HERO_ATTACK" if plan.kind == "ATTACK" and plan.source_card
+                and plan.source_card.startswith("HERO_") else
+                "HERO_POWER" if plan.kind == "PLAY" and plan.source_card
+                and _CLASS_HERO_POWER_ID.fullmatch(plan.source_card) else plan.kind)
+        source = None if kind in {"HERO_ATTACK", "HERO_POWER"} else mapper.resolve(plan.source_entity)
+        if kind not in {"HERO_ATTACK", "HERO_POWER"} and plan.source_entity is not None and source is None:
+            return None, "source entity has no simulator mapping"
+        targeted = plan.target_entity not in (None, 0)
+        if legal_actions is None:
+            if targeted:
+                return None, "target player cannot be inferred without legal actions"
+            return Action(kind, source), None
+        candidates = [action for action in legal_actions
+                      if action.kind == kind and action.source == source]
+        if targeted:
+            if plan.target_card and plan.target_card.startswith("HERO_"):
+                candidates = [action for action in candidates
+                              if action.target_player is not None
+                              and action.target_entity is None]
+            else:
+                target = mapper.resolve(plan.target_entity)
+                if target is None:
+                    return None, "target entity has no simulator mapping"
+                candidates = [action for action in candidates
+                              if action.target_entity == target]
+        else:
+            candidates = [action for action in candidates
+                          if action.target_player is None
+                          and action.target_entity is None]
+        if len(candidates) != 1:
+            return None, "observed action has no unique legal engine match"
+        return candidates[0], None
     return None, "event kind requires pending-choice adapter"
 
 
@@ -197,22 +235,36 @@ def match_entity_candidates(
 
 
 def build_simulator_action_plan(diagnostics: ReplayDiagnostics) -> list[SimulatorActionPlan]:
-    """Translate explicit log events into engine-facing action descriptors."""
+    """Classify decision blocks that have an engine-facing action descriptor.
+
+    POWER is a card/effect resolution block, not a second player action.
+    A structurally mappable descriptor still needs entity mapping, legality,
+    public-state comparison, and an observed actor before it is a label.
+    """
     plans: list[SimulatorActionPlan] = []
     for index, event in enumerate(diagnostics.events):
         mappable = True
         reason = None
-        if event.kind in {"PLAY", "ATTACK", "POWER", "TRADE", "LOCATION"}:
+        if event.kind in {"PLAY", "ATTACK", "TRADE", "LOCATION"}:
             if event.source_entity is None:
                 mappable = False
                 reason = "missing source entity"
             elif not event.source_card and event.kind != "ATTACK":
                 mappable = False
                 reason = "source card hidden"
+        elif event.kind == "POWER":
+            mappable = False
+            reason = "effect resolution block; not a player decision"
+        elif event.kind == "TURN_START":
+            mappable = False
+            reason = "turn transition; not a player decision"
         elif event.kind in {"DISCOVER", "CHOOSE_ONE"} and not event.chosen:
             mappable = False
             reason = "choice unresolved"
-        elif event.kind not in {"TURN_START", "TURN_END"}:
+        elif event.kind in {"DISCOVER", "CHOOSE_ONE"}:
+            mappable = False
+            reason = "choice requires simulator adapter"
+        elif event.kind != "TURN_END":
             mappable = False
             reason = "event kind requires rule adapter"
         plans.append(SimulatorActionPlan(
@@ -222,6 +274,48 @@ def build_simulator_action_plan(diagnostics: ReplayDiagnostics) -> list[Simulato
             mappable=mappable, reason=reason,
         ))
     return plans
+
+
+def audit_post_action_source_reveals(
+    game: dict[str, Any], diagnostics: ReplayDiagnostics,
+) -> list[dict[str, Any]]:
+    """Report hidden plays revealed *after* the action, for offline audit only.
+
+    These identities must never be copied into ``ReplayEvent.source_card`` or
+    pre-action model features: an opponent's hand card is still unknown when
+    the PLAY block begins. A same-block ShowEntity can nevertheless explain
+    what happened after the play has been observed.
+    """
+    play_blocks = {
+        block.get("packet_id"): block
+        for block in game.get("blocks", ())
+        if str(block.get("block_type") or "").upper() == "PLAY"
+    }
+    revealed: list[dict[str, Any]] = []
+    for index, event in enumerate(diagnostics.events):
+        if event.kind != "PLAY" or event.source_card or event.source_entity is None:
+            continue
+        block = play_blocks.get(event.packet_id)
+        if block is None:
+            continue
+        matches = [effect for effect in _effects(block)
+                   if effect.get("kind") == "ShowEntity"
+                   and effect.get("entity") == event.source_entity
+                   and effect.get("card_id")
+                   and (event.packet_id is None
+                        or effect.get("packet_id") is None
+                        or int(effect["packet_id"]) > int(event.packet_id))]
+        if matches:
+            effect = matches[0]
+            revealed.append({
+                "event_index": index,
+                "action_packet_id": event.packet_id,
+                "source_entity": event.source_entity,
+                "revealed_card": effect["card_id"],
+                "reveal_packet_id": effect.get("packet_id"),
+                "timing": "post_action_only",
+            })
+    return revealed
 
 
 def _effects(block: dict[str, Any]) -> Iterable[dict[str, Any]]:
@@ -269,10 +363,40 @@ def extract_replay_events(game: dict[str, Any]) -> ReplayDiagnostics:
     entity_controller: dict[str, str] = {}
     entity_creator: dict[str, Any] = {}
     preamble_rows, blocks, result.reset_count, result.retained_pre_reset_entities = _current_reset_segment(game)
-    rows = list(preamble_rows)
+    first_block_id = min(
+        (int(block["packet_id"]) for block in blocks
+         if str(block.get("packet_id", "")).lstrip("-").isdigit()),
+        default=None,
+    )
+    # `preamble` is the importer's collection of top-level packets, not a
+    # guarantee that every row precedes the first game block. Keep only the
+    # actual opening snapshot for deck inference, and merge all state rows by
+    # their original packet id before deriving zones/controllers.
+    opening_rows = [
+        row for row in preamble_rows
+        if (result.reset_count or first_block_id is None
+            or row.get("packet_id") is None
+            or int(row["packet_id"]) < first_block_id)
+    ]
+    opening_ids = {id(row) for row in opening_rows}
+    ordered_rows: list[tuple[int, int, dict[str, Any]]] = []
+    for index, row in enumerate(preamble_rows):
+        packet_id = row.get("packet_id")
+        ordered_rows.append((int(packet_id) if packet_id is not None else -1,
+                             index, row))
+    offset = len(ordered_rows)
     for block in blocks:
-        rows.extend(e for e in _effects(block) if e.get("kind") in {"FullEntity", "ShowEntity", "TagChange"})
-    for row in rows:
+        for effect in _effects(block):
+            if effect.get("kind") in {"FullEntity", "ShowEntity", "TagChange"}:
+                packet_id = effect.get("packet_id", block.get("packet_id"))
+                ordered_rows.append((int(packet_id) if packet_id is not None else -1,
+                                     offset, effect))
+                offset += 1
+    ordered_rows.sort(key=lambda item: (item[0], item[1]))
+    opening_zone: dict[str, str] = {}
+    opening_controller: dict[str, str] = {}
+    counted_known_deck_entities: set[str] = set()
+    for _, _, row in ordered_rows:
         entity = row.get("entity")
         if entity is None:
             continue
@@ -285,17 +409,23 @@ def extract_replay_events(game: dict[str, Any]) -> ReplayDiagnostics:
             controller = tags.get("CONTROLLER")
             if zone is not None:
                 entity_zone[key] = str(zone)
+                if id(row) in opening_ids:
+                    opening_zone[key] = str(zone)
             if controller is not None:
                 entity_controller[key] = str(controller)
+                if id(row) in opening_ids:
+                    opening_controller[key] = str(controller)
             if tags.get("CREATOR") is not None or tags.get("COPIED_FROM_ENTITY_ID") is not None:
                 entity_creator[key] = tags.get("CREATOR") or tags.get("COPIED_FROM_ENTITY_ID")
             # Only the pre-game snapshot is a deck-list observation.  Cards
             # entering DECK later are generated/rewound cards, not original
             # deck counts, and must be tracked separately.
-            if zone == "DECK" and card and row in preamble_rows:
+            if (zone == "DECK" and card and id(row) in opening_ids
+                    and key not in counted_known_deck_entities):
                 owner = str(controller or "unknown")
                 counts = result.deck_counts.setdefault(owner, {})
                 counts[card] = counts.get(card, 0) + 1
+                counted_known_deck_entities.add(key)
             if zone == "HAND" and card:
                 owner = str(controller or "unknown")
                 result.hand_entities.setdefault(owner, []).append({"entity": entity, "card_id": card})
@@ -306,14 +436,23 @@ def extract_replay_events(game: dict[str, Any]) -> ReplayDiagnostics:
             tag = str(row.get("tag"))
             if tag == "ZONE":
                 entity_zone[key] = str(row.get("value"))
+                if id(row) in opening_ids:
+                    opening_zone[key] = str(row.get("value"))
+            elif tag == "CONTROLLER":
+                entity_controller[key] = str(row.get("value"))
+                if id(row) in opening_ids:
+                    opening_controller[key] = str(row.get("value"))
     # A hidden deck slot is represented by an entity without a card ID.
-    for row in preamble_rows:
-        if row.get("kind") in {"FullEntity", "ShowEntity"} and row.get("card_id"):
+    counted_hidden_slots: set[str] = set()
+    for row in opening_rows:
+        if row.get("kind") not in {"FullEntity", "ShowEntity"} or row.get("card_id"):
             continue
         entity = str(row.get("entity")) if row.get("entity") is not None else None
-        if entity and entity_zone.get(entity) == "DECK":
-            owner = entity_controller.get(entity, "unknown")
+        if (entity and entity not in counted_hidden_slots
+                and opening_zone.get(entity) == "DECK"):
+            owner = opening_controller.get(entity, "unknown")
             result.unknown_deck_slots[owner] = result.unknown_deck_slots.get(owner, 0) + 1
+            counted_hidden_slots.add(entity)
     # Mulligan choices are special: current Power.log clients mark their
     # completion through MULLIGAN_STATE=DONE, rather than ChosenEntities.
     # Collect that public acknowledgement before evaluating the choice blocks.

@@ -9,16 +9,31 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from hsa.dragon_mirror import (
-    Action, DragonMirrorGame, HERALD_COLLECTIBLE_IDS, Location, LOST_CITY_QUEST_IDS,
+    Action, CardDef, DragonMirrorGame, HERALD_COLLECTIBLE_IDS, Location, LOST_CITY_QUEST_IDS,
     LOST_CITY_QUEST_REWARDS, STANDARD_VANILLA_IDS, Weapon,
 )
-from hsa.rules import ENGINE_OWNED_AUXILIARY_IDS, _past_ids
+from hsa.rules import (DamageActionTarget, DamageActionTargetThenAddToHandIfKilled,
+                       ENGINE_OWNED_AUXILIARY_IDS, _past_ids)
 
 
 CARDS = ROOT / "cards.251332.enUS.json"
 
 
 class FirstStandardCardBatchTests(unittest.TestCase):
+    def test_glacial_shard_freezes_enemy_character(self):
+        for target_is_hero in (True, False):
+            game = self.game()
+            shard = self.add_hand(game, "CORE_UNG_205")
+            enemy = game._entity("CORE_UNG_205")
+            game.players[1].board.append(enemy)
+            target = None if target_is_hero else enemy.entity_id
+            action = Action("PLAY", shard.entity_id, 1, target)
+            self.assertIn(action, game.legal_actions())
+            self.assertFalse(any(a.kind == "PLAY" and a.source == shard.entity_id
+                                 and a.target_player == 0 for a in game.legal_actions()))
+            game.step(action)
+            self.assertEqual(game.turn, (game.players[1] if target_is_hero else enemy).frozen_turn)
+
     def test_all_current_standard_herald_cards_are_executable(self):
         game = self.game()
         self.assertTrue(HERALD_COLLECTIBLE_IDS <= game.executable_card_ids)
@@ -787,6 +802,19 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.players[0].hand.append(card)
         return card
 
+    def next_own_turn_after_prepare(self, game, card):
+        """Exercise the actual Prepare lock, then advance both turns normally."""
+        actor = game.current
+        self.assertTrue(card.prepared)
+        self.assertEqual(game.turn, card.prepared_turn)
+        self.assertFalse(any(a.kind == "PLAY" and a.source == card.entity_id
+                             for a in game.legal_actions()))
+        self.assertNotIn(Action("PREPARE", card.entity_id), game.legal_actions())
+        game.step(Action("END_TURN"))
+        game.step(Action("END_TURN"))
+        self.assertEqual(actor, game.current)
+        self.assertLess(card.prepared_turn, game.turn)
+
     def add_board(
         self, game: DragonMirrorGame, card_id: str, player: int = 0, *, attack=0
     ):
@@ -1324,6 +1352,21 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         )
         self.assertIn("JAIL_732", [card.card_id for card in game.players[0].hand])
 
+    def test_void_soul_deathrattle_records_generated_tier_for_belief(self):
+        game = self.game()
+        player = game.players[0]
+        player.void_soul_level = 4
+        corpse = self.add_board(game, "JAIL_733", 0)
+
+        game._deathrattle(player, corpse)
+
+        soul = next(card for card in player.hand if card.card_id == "JAIL_732")
+        event = next(event for event in reversed(game.events)
+                     if event["kind"] == "void_soul_generated")
+        self.assertEqual(4, soul.void_soul_cost)
+        self.assertEqual(4, event["cost"])
+        self.assertEqual("JAIL_733", event["source"])
+
     def test_latest_powerlog_simple_rules(self):
         game = self.game()
         target = self.add_board(game, "CORE_LOOT_137", 0)
@@ -1630,6 +1673,19 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual("CORE_AT_055", shadow.card_id)
         self.assertEqual(1, shadow.cost)
 
+    def test_shadow_of_demise_copies_upgraded_void_soul_tier(self):
+        game = self.game()
+        game.players[0].void_soul_level = 3
+        shadow = self.add_hand(game, "CORE_RLK_567")
+        soul = game._entity("JAIL_732", created_by="JAIL_730")
+        soul.void_soul_cost = 3
+        game.players[0].hand.append(soul)
+
+        game.step(Action("PLAY", soul.entity_id))
+
+        self.assertEqual("JAIL_732", shadow.card_id)
+        self.assertEqual(3, shadow.void_soul_cost)
+
     def test_spell_damage_bonus_without_shadow_of_demise_is_safe(self):
         """A one-shot spell bonus must not require a Shadow in hand."""
         game = self.game()
@@ -1729,6 +1785,33 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         card = self.add_hand(game, "TLC_902")
         game.step(Action("PLAY", card.entity_id))
         self.assertEqual(2, sum(c.card_id == "TLC_630t" for c in game.players[0].hand))
+
+    def test_gorishi_stinger_targets_characters_and_summons_rush_grub(self):
+        game = self.game()
+        friendly = self.add_board(game, "CORE_CS2_182", 0)
+        enemy = self.add_board(game, "CORE_CS2_182", 1)
+        stinger = self.add_hand(game, "TLC_630t")
+        actions = [action for action in game.legal_actions()
+                   if action.kind == "PLAY" and action.source == stinger.entity_id]
+        self.assertEqual({(0, None), (1, None), (0, friendly.entity_id),
+                          (1, enemy.entity_id)},
+                         {(action.target_player, action.target_entity) for action in actions})
+        game.step(Action("PLAY", stinger.entity_id, 1, enemy.entity_id))
+        self.assertEqual(2, enemy.damage)
+        self.assertEqual(0, friendly.damage)
+        self.assertEqual(30, game.players[1].health)
+        grub = next(card for card in game.players[0].board if card.card_id == "TLC_903t")
+        self.assertEqual((2, 1, True), (grub.attack, grub.health, grub.rush))
+
+    def test_gorishi_stinger_full_board_still_damages_selected_hero(self):
+        game = self.game()
+        for _ in range(7):
+            self.add_board(game, "CORE_CS2_182", 0)
+        stinger = self.add_hand(game, "TLC_630t")
+        game.step(Action("PLAY", stinger.entity_id, 1, None))
+        self.assertEqual(28, game.players[1].health)
+        self.assertEqual(7, len(game.players[0].board))
+        self.assertFalse(any(card.card_id == "TLC_903t" for card in game.players[0].board))
 
     def test_opu_the_unseen_fan_of_knives(self):
         game = self.game()
@@ -1992,6 +2075,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         other = self.add_board(game, "CORE_CS2_065", 0)
         spell = self.add_hand(game, "JAIL_326")
         game.step(Action("PREPARE", spell.entity_id))
+        self.next_own_turn_after_prepare(game, spell)
         game.step(Action("PLAY", spell.entity_id, 0, source.entity_id))
         self.assertEqual((source.attack, source.max_health), (other.attack, other.max_health))
 
@@ -2000,6 +2084,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         target = self.add_board(game, "CATA_565", 0)
         spell = self.add_hand(game, "JAIL_913")
         game.step(Action("PREPARE", spell.entity_id))
+        self.next_own_turn_after_prepare(game, spell)
         game.step(Action("PLAY", spell.entity_id, 0, target.entity_id))
         self.assertTrue(target.lifesteal)
         self.assertEqual(5, target.attack_delta)
@@ -2017,6 +2102,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         other = self.add_board(game, "CATA_565", 0)
         sawbones = self.add_hand(game, "JAIL_444")
         game.step(Action("PREPARE", sawbones.entity_id))
+        self.next_own_turn_after_prepare(game, sawbones)
         game.step(Action("PLAY", sawbones.entity_id))
         self.assertNotIn(other, game.players[0].board)
         self.assertGreaterEqual(game.players[0].mana, 1)
@@ -2027,6 +2113,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         target = self.add_board(game, "JAIL_912", 0)
         swimmer = self.add_hand(game, "JAIL_395")
         game.step(Action("PREPARE", swimmer.entity_id))
+        self.next_own_turn_after_prepare(game, swimmer)
         game.step(Action("PLAY", swimmer.entity_id, 0, target.entity_id))
         self.assertEqual(26, game.players[0].health)
 
@@ -2036,6 +2123,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         deathrattle = self.add_board(game, "JAIL_912", 0)
         swimmer = self.add_hand(game, "JAIL_395")
         game.step(Action("PREPARE", swimmer.entity_id))
+        self.next_own_turn_after_prepare(game, swimmer)
         targets = {
             action.target_entity
             for action in game.legal_actions()
@@ -2048,6 +2136,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game = self.game()
         parasite = self.add_hand(game, "JAIL_721")
         game.step(Action("PREPARE", parasite.entity_id))
+        self.next_own_turn_after_prepare(game, parasite)
         game.step(Action("PLAY", parasite.entity_id))
         before = (parasite.attack, parasite.max_health)
         demon = game._entity("CORE_CS2_065")
@@ -2062,6 +2151,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game = self.game()
         auctioneer = self.add_hand(game, "JAIL_718")
         game.step(Action("PREPARE", auctioneer.entity_id))
+        self.next_own_turn_after_prepare(game, auctioneer)
         game.step(Action("PLAY", auctioneer.entity_id))
         # Prepare spends the current turn's mana; model the next turn before
         # testing the minion's spell trigger.
@@ -2075,6 +2165,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game = self.game()
         vanessa = self.add_hand(game, "JAIL_407")
         game.step(Action("PREPARE", vanessa.entity_id))
+        self.next_own_turn_after_prepare(game, vanessa)
         game.step(Action("PLAY", vanessa.entity_id))
         game.players[0].mana = 20
         spell = self.add_hand(game, "CORE_CS2_023")
@@ -2086,19 +2177,32 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_tricksy_improviser_prepared_secrets(self):
         game = self.game()
-        prior_spell = self.add_hand(game, "CORE_EX1_289")
+        improvisor = self.add_hand(game, "JAIL_321")
+        game.step(Action("PREPARE", improvisor.entity_id))
+        self.next_own_turn_after_prepare(game, improvisor)
+        # The Battlecry checks this turn, not the earlier Prepare turn.
+        prior_spell = self.add_hand(game, "JAIL_COIN1")
+        game.step(Action("PLAY", prior_spell.entity_id))
+        game.step(Action("PLAY", improvisor.entity_id))
+        self.assertEqual(2, len(game.players[0].secrets))
+
+    def test_tricksy_improviser_does_not_count_spell_on_prepare_turn(self):
+        game = self.game()
+        prior_spell = self.add_hand(game, "JAIL_COIN1")
         game.step(Action("PLAY", prior_spell.entity_id))
         improvisor = self.add_hand(game, "JAIL_321")
         game.step(Action("PREPARE", improvisor.entity_id))
+        self.next_own_turn_after_prepare(game, improvisor)
         game.step(Action("PLAY", improvisor.entity_id))
-        self.assertGreaterEqual(len(game.players[0].secrets), 2)
+        self.assertEqual([], game.players[0].secrets)
 
     def test_defias_wannabe_prepare_combo(self):
         game = self.game()
-        coin = self.add_hand(game, "JAIL_COIN1")
-        game.step(Action("PLAY", coin.entity_id))
         wannabe = self.add_hand(game, "JAIL_909")
         game.step(Action("PREPARE", wannabe.entity_id))
+        self.next_own_turn_after_prepare(game, wannabe)
+        coin = self.add_hand(game, "JAIL_COIN1")
+        game.step(Action("PLAY", coin.entity_id))
         before = (wannabe.attack, wannabe.max_health)
         game.step(Action("PLAY", wannabe.entity_id))
         self.assertEqual((before[0] + 1, before[1] + 1), (wannabe.attack, wannabe.max_health))
@@ -2106,11 +2210,12 @@ class FirstStandardCardBatchTests(unittest.TestCase):
     def test_code_violet_repeats_after_three_other_spells(self):
         game = self.game()
         game.players[0].max_mana = game.players[0].mana = 10
+        spell = self.add_hand(game, "JAIL_735")
+        game.step(Action("PREPARE", spell.entity_id))
+        self.next_own_turn_after_prepare(game, spell)
         for _ in range(3):
             coin = self.add_hand(game, "JAIL_COIN1")
             game.step(Action("PLAY", coin.entity_id))
-        spell = self.add_hand(game, "JAIL_735")
-        game.step(Action("PREPARE", spell.entity_id))
         game.step(Action("PLAY", spell.entity_id))
         summoned = [m for m in game.players[0].board if m.created_by == "JAIL_735"]
         self.assertEqual(2, len(summoned))
@@ -4034,7 +4139,7 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         target = self.add_board(damage_game, "CORE_LOOT_137", 1)
         roots = self.add_hand(damage_game, "CORE_AT_037")
         damage_game.step(Action("PLAY", roots.entity_id, 1, target.entity_id))
-        damage_game.step(Action("RULE_CHOICE_PICK", 0))
+        damage_game.step(Action("RULE_CHOICE_PICK", 0, 1, target.entity_id))
         self.assertEqual(2, target.damage)
 
         summon_game = self.game()
@@ -4121,11 +4226,18 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_void_blast_generates_void_soul(self):
         game = self.game()
+        game.players[0].void_soul_level = 3
         target = self.add_board(game, "CORE_CS2_231", 1)
         blast = self.add_hand(game, "JAIL_891")
         game.step(Action("PLAY", blast.entity_id, 1, target.entity_id))
         self.assertFalse(any(card is target for card in game.players[1].board))
-        self.assertTrue(any(card.card_id == "JAIL_732" for card in game.players[0].hand))
+        soul = next(card for card in game.players[0].hand if card.card_id == "JAIL_732")
+        self.assertEqual(3, soul.void_soul_cost)
+        event = next(
+            event for event in game.events
+            if event["kind"] == "generated_to_hand" and event.get("card") == "JAIL_732"
+        )
+        self.assertEqual(3, event["cost"])
 
     def test_life_cycle_replaces_same_cost(self):
         game = self.game()
@@ -4541,6 +4653,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         trade = self.add_hand(game, "CORE_SW_429")
         game.step(Action("TRADE", trade.entity_id))
         self.assertEqual(1, len(game.players[0].hand))
+
+        # Trade pays one mana rather than the card's printed play cost.
+        game = self.game()
+        game.players[0].mana = 1
+        game.players[0].deck = [game._entity("GAME_005", started_in_deck=True)]
+        expensive_trade = self.add_hand(game, "CORE_SW_072")
+        self.assertIn(Action("TRADE", expensive_trade.entity_id), game.legal_actions())
 
         game = self.game()
         game.players[0].mana = 20
@@ -6172,6 +6291,39 @@ class FinalStandardClosureTests(unittest.TestCase):
             rule.card_id for rule in game.rule_registry.all_rules()
         })
 
+    def test_random_pack_respects_targeted_generated_battlecry(self):
+        game = self.game()
+        game.executable_card_ids = {"TLC_600"}
+        avatar = self.add_hand(game, "CORE_WON_145")
+        game.step(Action("PLAY", avatar.entity_id))
+        self.assertEqual(1, sum(minion.card_id == "TLC_600"
+                                for minion in game.players[0].board))
+        self.assertEqual(5, game.players[0].armor)
+        opened = [event for event in game.events
+                  if event["kind"] == "standard_pack_opened"]
+        self.assertEqual(["TLC_600"], opened[-1]["cards"])
+
+    def test_direct_damage_target_rules_declare_target_spec(self):
+        game = self.game()
+        missing = [rule.card_id for rule in game.rule_registry.all_rules()
+                   if rule.targeting is None
+                   and any(isinstance(effect, (DamageActionTarget,
+                                               DamageActionTargetThenAddToHandIfKilled))
+                           for effects in rule.hooks.values() for effect in effects)]
+        self.assertEqual([], missing)
+
+    def test_void_blast_with_only_friendly_target_never_offers_no_target(self):
+        game = self.game()
+        target = game._entity("CORE_REV_946")
+        target.summoned_turn = -1
+        game._summon(game.players[0], target)
+        blast = self.add_hand(game, "JAIL_891")
+        offers = [action for action in game.legal_actions()
+                  if action.kind == "PLAY" and action.source == blast.entity_id]
+        self.assertEqual([Action("PLAY", blast.entity_id, 0, target.entity_id)], offers)
+        game.step(offers[0])
+        self.assertEqual(3, target.damage)
+
     def test_final_48_stateful_effects(self):
         game = self.game()
         alex = self.add_hand(game, "CATA_307")
@@ -6445,6 +6597,40 @@ class AuxiliaryEntityCoverageTests(unittest.TestCase):
         game.players[0].hand.append(scout)
         game.step(Action("PLAY", scout.entity_id, 1, target.entity_id))
         self.assertLess(target.health, target.max_health)
+
+    def test_ebonscale_scout_doubled_battlecry_fizzles_after_target_dies(self):
+        game = self.game()
+        target = game._entity("CORE_CS2_231")
+        game._summon(game.players[1], target)
+        scout = game._entity("CATA_552t")
+        game._apply_dark_gift(scout, "rude_awakening")
+        game.players[0].mana = 20
+        game.players[0].hand.append(scout)
+        game.step(Action("PLAY", scout.entity_id, 1, target.entity_id))
+        self.assertNotIn(target, game.players[1].board)
+        self.assertEqual(0, game.invalid_actions)
+        self.assertTrue(any(event["kind"] == "battlecry_target_absent"
+                            and event["source"] == "CATA_552t"
+                            for event in game.events))
+
+    def test_corrupted_dream_shuffles_runtime_token_without_global_definition(self):
+        game = self.game()
+        token = game._instance_from_definition(
+            CardDef("EDR_209t", "Ancient", "MINION", 5, attack=5,
+                    health=5, mechanics=("TAUNT",), card_class="DRUID"))
+        self.assertNotIn(token.card_id, game.card_defs)
+        token.attack_delta = 2
+        token.damage = 1
+        game._summon(game.players[1], token)
+        spell = game._entity("EDR_846t2")
+        game.players[0].mana = 20
+        game.players[0].hand.append(spell)
+        game.step(Action("PLAY", spell.entity_id, 1, token.entity_id))
+        self.assertNotIn(token, game.players[1].board)
+        returned = next(c for c in game.players[1].deck if c.card_id == "EDR_209t")
+        self.assertNotEqual(token.entity_id, returned.entity_id)
+        self.assertEqual((5, 5), (returned.attack, returned.health))
+        self.assertEqual(0, game.invalid_actions)
 
     def test_emerald_choice_entities_are_independently_executable(self):
         game = self.game()

@@ -29,7 +29,7 @@ hslog_tokens.SUB_SPELL_START_RE = re.compile(
     r"SUB_SPELL_START(?: -)? SpellPrefabGUID=(.*?) Source=(\d+) TargetCount=(\d+)$"
 )
 
-from hsa.powerlog_import import normalize_packet_tree
+from hsa.powerlog_import import normalize_packet_tree, record_explicit_block_card
 
 
 def allow_unknown_tags() -> None:
@@ -54,19 +54,23 @@ def main() -> int:
     raw = args.power_log.read_bytes()
     allow_unknown_tags()
     log_parser = LogParser()
+    explicit_block_cards = {}
     with args.power_log.open(encoding="utf-8") as handle:
-        log_parser.read(handle)
+        for line in handle:
+            record_explicit_block_card(line, explicit_block_cards)
+            log_parser.read_line(line)
     log_parser.flush()
     if not log_parser.games:
         raise RuntimeError("no CREATE_GAME packet found")
 
     games = []
     for index, packet_tree in enumerate(log_parser.games):
-        game = normalize_packet_tree(packet_tree)
+        game = normalize_packet_tree(packet_tree, explicit_block_cards)
         game["game_index"] = index
         games.append(game)
     payload = {
         "schema_version": 1,
+        "identity_timing": "causal_reveal_only",
         "source_sha256": hashlib.sha256(raw).hexdigest(),
         "game_count": len(games),
         "games": games,

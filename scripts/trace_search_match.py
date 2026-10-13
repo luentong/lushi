@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -13,8 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "src"), str(ROOT / "scripts")]
 
 from hsa import DragonMirrorGame, InformationSetMCTSPolicy
-from hsa.torch_model import TorchPolicyValueModel
-from benchmark_mcts import matchup_deck_counts
+from benchmark_mcts import matchup_deck_counts, configure_search_beliefs
 
 
 def compact_state(snapshot: dict) -> dict:
@@ -73,6 +73,7 @@ def player_line(player: dict) -> str:
 
 
 def main() -> int:
+    from hsa.torch_model import TorchPolicyValueModel
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--candidate-seat", type=int, choices=(0, 1), default=0)
@@ -85,6 +86,11 @@ def main() -> int:
         "--use-model-value", action="store_true",
         help="Use the trained value head instead of rollout evaluation.",
     )
+    parser.add_argument(
+        "--use-action-value-estimates", action="store_true",
+        help="Use the checkpoint action-Q head to guide PUCT action selection.",
+    )
+    parser.add_argument("--action-value-prior-weight", type=float, default=2.0)
     parser.add_argument("--deck-config", type=Path)
     parser.add_argument("--deck-a")
     parser.add_argument("--deck-b")
@@ -105,6 +111,11 @@ def main() -> int:
         ROOT / "reports" / f"search-trace-{args.seed}-seat{args.candidate_seat}"
     )
     model = TorchPolicyValueModel.from_checkpoint(str(args.checkpoint), args.device)
+    if args.use_action_value_estimates and not getattr(
+        model, "action_value_trained", False
+    ):
+        parser.error("checkpoint has no trained action-value head")
+    checkpoint_sha256 = hashlib.sha256(args.checkpoint.read_bytes()).hexdigest()
     def model_policy(seat: int) -> InformationSetMCTSPolicy:
         return InformationSetMCTSPolicy(
             samples=args.samples,
@@ -114,6 +125,8 @@ def main() -> int:
             seed=args.search_seed + args.seed * 2 + seat,
             policy_value_model=model,
             use_model_value=args.use_model_value,
+            use_action_value_estimates=args.use_action_value_estimates,
+            action_value_prior_weight=args.action_value_prior_weight,
             min_simulations_per_root_action=args.min_simulations_per_root_action,
             max_total_iterations=args.max_total_iterations,
         )
@@ -147,6 +160,8 @@ def main() -> int:
         player_classes=player_classes,
     )
     initial_state = compact_state(game.snapshot())
+    if args.deck_config:
+        configure_search_beliefs(game, args.deck_config)
     steps = []
     while not game.finished and len(steps) < args.max_actions:
         actor = game.current
@@ -220,6 +235,9 @@ def main() -> int:
             "checkpoint": args.checkpoint.as_posix(),
             "device": args.device,
             "use_model_value": args.use_model_value,
+            "use_action_value_estimates": args.use_action_value_estimates,
+            "action_value_prior_weight": args.action_value_prior_weight,
+            "checkpoint_sha256": checkpoint_sha256,
         },
         "initial_state": initial_state,
         "steps": steps,
@@ -240,6 +258,9 @@ def main() -> int:
         f"- Seed: `{args.seed}`", f"- Candidate: `P{args.candidate_seat + 1}`",
         f"- Winner: `P{game.winner + 1 if game.winner is not None else 'draw'}`",
         f"- Candidate win: `{game.winner == args.candidate_seat}`",
+        f"- Checkpoint SHA-256: `{checkpoint_sha256}`",
+        f"- Action-Q guidance: `{args.use_action_value_estimates}`",
+        f"- Search budget: `{args.samples} × {args.iterations}` per decision",
         f"- Actions: `{len(steps)}`", f"- Illegal actions: `{game.invalid_actions}`", "",
     ]
     previous_turn = None

@@ -151,9 +151,40 @@ def class_matched_candidates(
 
 
 def filter_complete_candidates(candidates: list[dict[str, int]]) -> list[dict[str, int]]:
-    """Discard truncated decklists when at least one complete list is present."""
-    complete = [deck for deck in candidates if sum(map(int, deck.values())) >= 30]
-    return complete or candidates
+    """Keep valid 20/30/40-card lists; discard malformed lengths when possible.
+
+    The current standard manifest includes a legitimate 20-card Dirty Priest
+    format whose remaining cards are generated/copied at game start.  Treating
+    every list shorter than 30 as truncated silently removes that archetype
+    from live belief.  Only lengths outside the supported formats are filtered
+    when at least one valid candidate remains.
+    """
+    valid = [deck for deck in candidates
+             if sum(map(int, deck.values())) in {20, 30, 40}]
+    return valid or candidates
+
+
+def select_belief_candidates(
+    candidates: list[dict[str, int]], max_hypotheses: int,
+) -> list[dict[str, int]]:
+    """Select a deterministic, evenly-spaced belief subset.
+
+    A manifest's file order is not a probability distribution.  Taking a
+    prefix would silently over-represent whichever decks happen to be listed
+    first, especially when a 91-deck pool is capped for live latency.  The
+    evenly-spaced policy keeps both ends and intermediate entries while
+    remaining reproducible for audit/replay.
+    """
+    if max_hypotheses < 1:
+        raise ValueError("max_hypotheses must be positive")
+    if len(candidates) <= max_hypotheses:
+        return list(candidates)
+    if max_hypotheses == 1:
+        return [candidates[0]]
+    last = len(candidates) - 1
+    indices = [round(index * last / (max_hypotheses - 1))
+               for index in range(max_hypotheses)]
+    return [candidates[index] for index in indices]
 
 
 def configured_known_deck(payload: dict[str, Any]) -> dict[str, int]:
@@ -599,7 +630,8 @@ def main() -> int:
                     compatible_candidates = [
                         deck for deck in complete_candidates if deck in observed_compatible
                     ]
-                    raw_candidates = (compatible_candidates[:args.max_hypotheses]
+                    raw_candidates = (select_belief_candidates(
+                        compatible_candidates, args.max_hypotheses)
                                       if class_coverage else [])
                     hypothesis_actions = []
                     bridge_attempts = []
@@ -680,6 +712,9 @@ def main() -> int:
                                           "class_filtered_pool_size": len(class_candidates),
                                           "complete_pool_size": len(complete_candidates),
                                           "observed_compatible_pool_size": len(compatible_candidates),
+                                          "selection": ("evenly_spaced"
+                                                         if len(compatible_candidates) > args.max_hypotheses
+                                                         else "all_compatible"),
                                           "hypotheses": bridge_attempts,
                                           "first_viable_legal_actions": first_viable_legal_actions,
                                           "consensus_support": consensus.support}

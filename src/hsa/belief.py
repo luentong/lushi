@@ -1,13 +1,15 @@
-"""Public-information belief tracking for the fixed Dragon Warrior mirror."""
+"""Public-information sampling with explicitly declared deck hypotheses."""
 
 from __future__ import annotations
 
 import random
+import copy
+import math
 from collections import Counter
 from dataclasses import dataclass
+from .standard_catalog import STANDARD_SETS_BUILD_251332
 
 from .dragon_mirror import (
-    DRAGON_DECK_COUNTS,
     DRAGON_IDS,
     LOW_COST_DRAGON_IDS,
     PIRATE_IDS,
@@ -33,6 +35,10 @@ _GENERATION_POOLS: dict[str, tuple[str, ...]] = {
     "CORE_EX1_014": ("EX1_014t",),
     "CATA_585": ("CATA_585",),
     "JAIL_730": ("JAIL_732",),
+    "JAIL_733": ("JAIL_732",),
+    # Void Blast can add a Void Soul to hand when its target dies.  The event
+    # carries the current tier so sampled hidden copies keep the correct pool.
+    "JAIL_891": ("JAIL_732",),
 }
 _UNKNOWN_PUBLIC_POOL = tuple(sorted(
     (set(SUPPORTED_IDS) | DRAGON_IDS | WARRIOR_MINION_IDS | PIRATE_IDS)
@@ -100,6 +106,8 @@ class PublicBelief:
     hand_modifiers: tuple[HandModifierBelief, ...]
     unresolved_hidden_slots: int
     public_events_consumed: int
+    deck_hypotheses: tuple = ()
+    fallback_pool: tuple[str, ...] = ()
 
     def sample_determinization(
         self, game: DragonMirrorGame, *, seed: int, record_event: bool = True,
@@ -119,11 +127,24 @@ class PublicBelief:
         sampled = game.clone(
             skip_hidden_zones_of=self.opponent, record_events=record_event
         )
+        # Future chance events and unknown draw order must not inherit the
+        # real game's RNG or hidden ordering. Separate streams make sampling
+        # reproducible without coupling future effects to bag construction.
+        sampled.rng = random.Random(f"{seed}:future")
+        sampled.players[self.observer].deck.sample_unknown_order(
+            self.observer, random.Random(f"{seed}:own-deck")
+        )
         opponent = sampled.players[self.opponent]
         total_hidden = self.opponent_hand_size + self.opponent_deck_size
         rng = random.Random(seed)
         candidates: list[tuple[str, bool, str | None, int]] = []
-        for card_id, count in self.starting_cards_remaining.items():
+        remaining = self.starting_cards_remaining
+        if self.deck_hypotheses:
+            remaining = dict(rng.choices(
+                self.deck_hypotheses,
+                weights=[item[0] for item in self.deck_hypotheses], k=1,
+            )[0][1])
+        for card_id, count in remaining.items():
             candidates.extend((card_id, True, None, 0) for _ in range(count))
         for card_id, count in self.known_extra_cards.items():
             candidates.extend((card_id, False, "JAIL_384", 0) for _ in range(count))
@@ -135,10 +156,7 @@ class PublicBelief:
                 )
             )
 
-        candidates.extend(
-            (rng.choice(_UNKNOWN_PUBLIC_POOL), False, "UNKNOWN_PUBLIC_GENERATOR", 0)
-            for _ in range(self.unresolved_hidden_slots)
-        )
+        fallback_pool = self.fallback_pool or _UNKNOWN_PUBLIC_POOL
         coin = ("GAME_005", False, "MULLIGAN", 0) if self.known_coin_in_hand else None
         non_coin_capacity = total_hidden - int(coin is not None)
         # Public destruction/discard bookkeeping is not complete yet.  If its
@@ -148,12 +166,25 @@ class PublicBelief:
         while len(candidates) < non_coin_capacity:
             candidates.append(
                 (
-                    rng.choice(_UNKNOWN_PUBLIC_POOL),
+                    rng.choice(fallback_pool),
                     False,
                     "UNKNOWN_PUBLIC_GENERATOR",
                     0,
                 )
             )
+        # Only explicitly revealed enemy deck positions may be copied.
+        fixed = {}
+        real_deck = game.players[self.opponent].deck
+        for position in real_deck.known.get(self.observer, {}):
+            if position < self.opponent_deck_size:
+                card = real_deck[position]
+                fixed[position] = copy.deepcopy(card)
+                match = next((i for i, spec in enumerate(candidates)
+                              if spec[0] == card.card_id), None)
+                if match is not None:
+                    candidates.pop(match)
+                elif candidates:
+                    candidates.pop()
         rng.shuffle(candidates)
         hand_specs = candidates[:self.opponent_hand_size - int(coin is not None)]
         if coin is not None:
@@ -165,11 +196,21 @@ class PublicBelief:
             card = sampled._entity(
                 card_id, started_in_deck=started_in_deck, created_by=created_by
             )
-            card.void_soul_cost = void_soul_cost
+            # Void Soul is also present in some submitted decklists.  Its
+            # starting-deck spec has no generated-tier metadata (0), which
+            # must not overwrite _entity()'s valid tier-one default.
+            card.void_soul_cost = (
+                max(1, void_soul_cost)
+                if card_id == "JAIL_732" else void_soul_cost
+            )
             return card
 
         opponent.hand = [make_card(spec) for spec in hand_specs]
-        opponent.deck = [make_card(spec) for spec in deck_specs]
+        deck_iter = iter(make_card(spec) for spec in deck_specs)
+        opponent.deck = [fixed[i] if i in fixed else next(deck_iter)
+                         for i in range(self.opponent_deck_size)]
+        for position in fixed:
+            opponent.deck.reveal(position, (self.observer,))
         for modifier in self.hand_modifiers:
             eligible = [
                 card for card in opponent.hand
@@ -194,7 +235,7 @@ class PublicBelief:
         if record_event:
             sampled._event(
                 "determinization", observer=self.observer,
-                belief_model="public_dragon_mirror_v3", seed=seed,
+                belief_model="public_candidates_v4", seed=seed,
                 hidden_hand=len(opponent.hand), hidden_deck=len(opponent.deck),
                 unresolved_hidden_slots=self.unresolved_hidden_slots,
             )
@@ -205,15 +246,31 @@ class PublicBelief:
         if observer not in (0, 1):
             raise ValueError("observer must be player 0 or 1")
         opponent = 1 - observer
-        remaining = Counter(DRAGON_DECK_COUNTS)
+        hypotheses = []
+        for weight, counts in game.search_deck_hypotheses.get(observer, ()):
+            if not math.isfinite(weight) or weight <= 0:
+                raise ValueError("deck hypothesis weights must be finite and positive")
+            if any(not isinstance(n, int) or n <= 0 for n in counts.values()):
+                raise ValueError("deck hypothesis counts must be positive integers")
+            if set(counts) - game.executable_card_ids:
+                raise ValueError("deck hypothesis contains unsupported cards")
+            hypotheses.append((weight, Counter(counts)))
+        remaining = Counter()
+        for _, counts in hypotheses:
+            remaining |= counts
         extras: Counter[str] = Counter()
         generated: list[GeneratedCardBelief] = []
         modifiers: list[HandModifierBelief] = []
         consumed = 0
 
         def consume_public_card(event: dict[str, object]) -> None:
+            nonlocal hypotheses
             card_id = str(event["card"])
             if event.get("started_in_deck"):
+                hypotheses = [(weight, counts) for weight, counts in hypotheses
+                              if counts[card_id] > 0]
+                for _, counts in hypotheses:
+                    counts[card_id] -= 1
                 if remaining[card_id] > 0:
                     remaining[card_id] -= 1
                     if remaining[card_id] == 0:
@@ -244,14 +301,45 @@ class PublicBelief:
                 extras[event["duplicated"]] += 1
                 consumed += 1
             elif kind == "play":
+                definition = game.card_defs.get(event.get("card"))
+                if definition and "SECRET" in definition.mechanics:
+                    # Playing a secret reveals its existence, not its identity.
+                    # Keep the candidate distribution broad until revealed;
+                    # never filter it using the simulator's private card ID.
+                    consumed += 1
+                    continue
                 consume_public_card(event)
                 consumed += 1
             elif kind in {"burn", "discard"}:
                 consume_public_card(event)
                 consumed += 1
+            elif kind == "returned_to_hand":
+                # A card returned after it was publicly played is an exact
+                # known extra, not another copy from the starting deck. The
+                # play event already removed its original deck copy. Recording
+                # this separately keeps the later re-play from leaving a
+                # phantom card in the starting-deck candidate bag.
+                card_id = event.get("card")
+                destination = event.get("destination", "hand")
+                if card_id and destination != "burned":
+                    extras[str(card_id)] += 1
+                consumed += 1
+            elif kind == "lorewalker_copy":
+                # The copied spell is named in the public event and is already
+                # known from the public cast that triggered the copy.
+                card_id = event.get("spell")
+                if card_id:
+                    extras[str(card_id)] += 1
+                consumed += 1
+            elif kind == "phoenix_return":
+                extras["FIR_919"] += 1
+                consumed += 1
+            elif kind == "infinite_banana_returned":
+                extras["TIME_042t"] += 1
+                consumed += 1
             elif kind in {
                 "generated_to_hand", "generated_from_pool",
-                "discover_pick", "discover_copy", "returned_to_hand",
+                "discover_pick", "discover_copy",
                 "void_soul_generated",
             }:
                 source_card_id = event.get("source")
@@ -288,23 +376,34 @@ class PublicBelief:
         hand_size = len(opponent_view["hand"])
         deck_size = opponent_view["deck_count"]
         known_coin = (
-            opponent == 1
-            and any(
+            hand_size > 0 and any(
                 event.get("kind") == "coin_given"
                 and event.get("player") == opponent
                 for event in game.events
             )
             and not any(
-                event.get("kind") == "play"
+                event.get("kind") in {"play", "burn", "discard"}
                 and event.get("player") == opponent
                 and event.get("card") == "GAME_005"
                 for event in game.events
             )
         )
-        accounted = (
-            sum(remaining.values()) + sum(extras.values())
-            + len(generated) + int(known_coin)
-        )
+        # If every candidate was contradicted, never retain the stale union.
+        remaining = Counter()
+        for _, counts in hypotheses:
+            remaining |= +counts
+        # Count slots within a candidate, not across mutually exclusive decks.
+        # The union can contain twice as many cards as any actual hypothesis.
+        minimum_remaining = min((sum(counts.values()) for _, counts in hypotheses), default=0)
+        accounted = minimum_remaining + sum(extras.values()) + len(generated) + int(known_coin)
+        fallback_pool = tuple(sorted(
+            card_id for card_id in game.executable_card_ids
+            if (definition := game.card_defs.get(card_id)) is not None
+            and definition.collectible
+            and definition.card_set in STANDARD_SETS_BUILD_251332
+            and definition.card_class in {game.players[opponent].card_class, "NEUTRAL"}
+            and card_id not in SPECIAL_TOKEN_IDS
+        ))
         return cls(
             observer=observer,
             opponent=opponent,
@@ -317,12 +416,17 @@ class PublicBelief:
             hand_modifiers=tuple(modifiers),
             unresolved_hidden_slots=max(0, hand_size + deck_size - accounted),
             public_events_consumed=consumed,
+            deck_hypotheses=tuple((weight, tuple(sorted((+counts).items())))
+                                  for weight, counts in hypotheses),
+            fallback_pool=fallback_pool,
         )
 
     def as_dict(self) -> dict[str, object]:
         return {
-            "schema_version": 3,
-            "belief_model": "public_dragon_mirror_v3",
+            "schema_version": 4,
+            "belief_model": "public_candidates_v4",
+            "candidate_count": len(self.deck_hypotheses),
+            "candidate_weights": [item[0] for item in self.deck_hypotheses],
             "observer": self.observer + 1,
             "opponent": self.opponent + 1,
             "starting_cards_remaining": self.starting_cards_remaining,

@@ -5,7 +5,17 @@ from pathlib import Path
 
 KEEP = {
     "record_type", "state", "actions", "chosen_action", "value_target",
-    "policy_target", "teacher_action_values", "actor", "game_seed", "winner",
+    "opponent_value_state", "opponent_value_target",
+    "policy_target", "policy_target_source", "teacher_action_values",
+    "teacher_action_visits", "actor", "game_seed", "winner",
+    "teacher_search_version", "teacher_selection_source", "conditional",
+    "conditional_root_action", "conditional_observation_visits",
+    "conditional_trigger_depth",
+    "conditional_policy_visits", "conditional_target_repeats",
+    "conditional_target_iterations", "conditional_target_source",
+    "conditional_target_top_action_agreement",
+    "conditional_target_mean_value_std", "conditional_target_entropy",
+    "value_target_valid",
 }
 
 def compact(src: Path, dst: Path) -> int:

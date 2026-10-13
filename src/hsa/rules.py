@@ -1386,7 +1386,7 @@ class DrawDifferentCosts:
             if not candidates:
                 break
             card = game.rng.choice(candidates)
-            context.player.deck.remove(card)
+            context.player.deck.extract(card)
             game._refresh_scrappy(context.player)
             used_costs.add(card.definition.cost)
             game._receive_drawn_card(context.player, card)
@@ -1414,7 +1414,7 @@ class ChronogorDrawHighestGiveLowest:
                        if game._effective_cost(player, card) == cost]
             card = game.rng.choice(choices)
             remaining.remove(card)
-            player.deck.remove(card)
+            player.deck.extract(card)
             game._refresh_scrappy(player)
             game._receive_drawn_card(player, card)
             highest.append(card.card_id)
@@ -1424,7 +1424,7 @@ class ChronogorDrawHighestGiveLowest:
             choices = [card for card in player.deck
                        if game._effective_cost(player, card) == cost]
             card = game.rng.choice(choices)
-            player.deck.remove(card)
+            player.deck.extract(card)
             if len(enemy.hand) < 10:
                 enemy.hand.append(card)
                 destination = "opponent_hand"
@@ -4168,7 +4168,7 @@ class SummonMatchingFromBottomDeck:
                 continue
             if len(player.board) + len(player.locations) >= 7:
                 break
-            player.deck.remove(card)
+            player.deck.extract(card)
             card.summoned_turn = game.turn
             game._summon(player, card)
             game._event(
@@ -4235,7 +4235,7 @@ class HeraldDestroyRightAndGrow:
             ]
             if candidates:
                 destroyed = game.rng.choice(candidates)
-                enemy.deck.remove(destroyed)
+                enemy.deck.extract(destroyed)
                 game._event(
                     "chogall_deck_destroy", player=player.index,
                     source=context.card.entity_id, card=destroyed.card_id,
@@ -4733,7 +4733,11 @@ class ShuffleActionTargetIntoOwnerDeck:
         owner = game.players[context.action.target_player]
         target = game._find_minion(owner.index, context.action.target_entity)
         owner.board.remove(target)
-        returned = game._entity(target.card_id, created_by=context.card.card_id)
+        # Generated tokens can have a valid immutable definition on the
+        # instance without a global card_defs entry. Reinstantiate from that
+        # printed definition, resetting board-only buffs and damage.
+        returned = game._instance_from_definition(
+            target.definition, created_by=context.card.card_id)
         owner.deck.insert(game.rng.randrange(len(owner.deck) + 1), returned)
         game._refresh_continuous(owner)
         game._event(
@@ -5919,7 +5923,7 @@ class EquipHighKingsHammer:
         deck_card = next((card for card in context.player.deck if card.card_id == "TIME_209t"), None)
         if deck_card is None:
             return
-        context.player.deck.remove(deck_card)
+        context.player.deck.extract(deck_card)
         game._equip_weapon(context.player, Weapon("TIME_209t", "High King's Hammer", 3, 4))
         context.card.high_kings_hammer_claimed = True
 
@@ -5947,7 +5951,7 @@ class SummonAurasFromDeck:
             seen.add(card.card_id)
             selected.append(card)
         for card in selected:
-            player.deck.remove(card)
+            player.deck.extract(card)
             card.summoned_turn = game.turn
             game._summon(player, card)
 
@@ -6355,7 +6359,7 @@ class DrawFirstArgusPortalOnHeroKill:
         if not portals:
             return
         portal = game.rng.choice(portals)
-        context.player.deck.remove(portal)
+        context.player.deck.extract(portal)
         if len(context.player.hand) < 10:
             context.player.hand.append(portal)
             destination = "hand"
@@ -6372,7 +6376,7 @@ class TalanjiBattlecry:
         player = context.player
         target = next((card for card in player.deck if card.card_id == "TIME_619t"), None)
         if target is not None and len(player.hand) < 10:
-            player.deck.remove(target)
+            player.deck.extract(target)
             player.hand.append(target)
             game._event("talanji_draw_bwonsamdi", player=player.index, entity=target.entity_id)
         else:
@@ -6431,7 +6435,7 @@ class RafaamTokenBattlecry:
             candidates = [card for card in player.deck if rafaams(card)]
             if candidates and len(player.hand) < 10:
                 drawn = game.rng.choice(candidates)
-                player.deck.remove(drawn)
+                player.deck.extract(drawn)
                 player.hand.append(drawn)
                 game._event("rafaam_token_draw", player=player.index, source=card_id, card=drawn.card_id)
         elif card_id == "TIME_005t2":
@@ -6553,6 +6557,8 @@ class AddToHand:
                     "generated_to_hand", player=player.index,
                     card=card.card_id, entity=card.entity_id,
                     source=context.card.card_id,
+                    **({"cost": card.void_soul_cost}
+                       if card.card_id == "JAIL_732" else {}),
                 )
             else:
                 game._event(
@@ -7119,8 +7125,10 @@ class AddToDeck:
                 setattr(card, name, value)
             if self.position == "top":
                 player.deck.append(card)
+                player.deck.reveal(-1, (context.player.index,))
             elif self.position == "bottom":
                 player.deck.insert(0, card)
+                player.deck.reveal(0, (context.player.index,))
             else:
                 raise ValueError(f"unknown deck position: {self.position}")
         if self.shuffle:
@@ -7647,7 +7655,7 @@ class SummonFromDeckAtMostCost:
         if not candidates:
             return
         card = game.rng.choice(candidates)
-        context.player.deck.remove(card)
+        context.player.deck.extract(card)
         card.summoned_turn = game.turn
         game._summon(context.player, card)
         game._event("summon_from_deck_cost", player=context.player.index,
@@ -8053,7 +8061,7 @@ class CastRandomDeckSpellAtSource:
         if not candidates:
             return
         spell = game.rng.choice(candidates)
-        context.player.deck.remove(spell)
+        context.player.deck.extract(spell)
         try:
             game._cast_spell(context.player, spell,
                              Action("PLAY", spell.entity_id, context.player.index,
@@ -8335,7 +8343,7 @@ class SummonDeckDeathrattlesAndFight:
         for card in candidates[:self.count]:
             if len(context.player.board) + len(context.player.locations) >= 7:
                 break
-            context.player.deck.remove(card)
+            context.player.deck.extract(card)
             card.summoned_turn = game.turn
             game._summon(context.player, card)
             summoned.append(card)
@@ -8788,7 +8796,7 @@ class EatDeckMinionGainStats:
         if not candidates:
             return
         eaten = game.rng.choice(candidates)
-        context.player.deck.remove(eaten)
+        context.player.deck.extract(eaten)
         context.card.attack_delta += eaten.attack
         context.card.health_delta += eaten.max_health
         context.card.eaten_deck_minion = copy.deepcopy(eaten)
@@ -9149,9 +9157,9 @@ class OpenStandardPackAndPlay:
 
     def execute(self, game: Any, context: RuleContext) -> None:
         from .dragon_mirror import Action, Weapon
-        pool = [card_id for card_id in game.executable_card_ids
+        pool = [card_id for card_id in sorted(game.executable_card_ids)
                 if card_id in game.card_defs
-                and game.card_defs[card_id].card_set != "GENERATED"]
+                and game._is_standard_collectible(game.card_defs[card_id])]
         game.rng.shuffle(pool)
         played: list[str] = []
         for card_id in pool[:self.count]:
@@ -9168,7 +9176,7 @@ class OpenStandardPackAndPlay:
                     # A generated battlecry that needs a target cannot be
                     # played when the random pack did not also provide one.
                     continue
-                target = targets[0] if targets else (None, None)
+                target = game.rng.choice(targets) if targets else (None, None)
                 card.summoned_turn = game.turn
                 game._summon(context.player, card)
                 game._battlecry(
@@ -9728,7 +9736,7 @@ class CastShredFromDeck:
                         source=context.card.card_id)
             return
         shred = game.rng.choice(candidates)
-        context.player.deck.remove(shred)
+        context.player.deck.extract(shred)
         game._damage_hero(context.player, 3, shred)
         if self.gain_source_stats:
             attack, health = self.gain_source_stats
@@ -10239,7 +10247,7 @@ class GladiatorialCombat:
         candidates = [held for held in context.player.deck if held.definition.card_type == "MINION"]
         if candidates and len(context.player.board) + len(context.player.locations) < 7:
             minion = game.rng.choice(candidates)
-            context.player.deck.remove(minion)
+            context.player.deck.extract(minion)
             minion.summoned_turn = game.turn
             game._summon(context.player, minion)
         Summon("TIME_870t", side="opponent").execute(game, context)
@@ -11463,7 +11471,7 @@ class MoveImpFormantToEnemyTop:
         if not candidates:
             return
         chosen = game.rng.choice(candidates)
-        enemy.deck.remove(chosen)
+        enemy.deck.extract(chosen)
         chosen.attack_delta += 2
         chosen.health_delta += 2
         enemy.deck.append(chosen)
@@ -11747,7 +11755,7 @@ class SummonDeckMinionsWithRush:
             if not candidates:
                 return
             card = game.rng.choice(candidates)
-            context.player.deck.remove(card)
+            context.player.deck.extract(card)
             card.rush = True
             card.summoned_turn = game.turn
             game._summon(context.player, card)
@@ -11810,7 +11818,13 @@ class AddVoidSoul:
         if candidates:
             soul = game._entity("JAIL_732", created_by=context.card.card_id)
             soul.void_soul_cost = cost
-            game._add_generated(context.player, soul)
+            destination = game._add_generated(context.player, soul)
+            game._event(
+                "void_soul_generated", player=context.player.index,
+                card=soul.card_id, entity=soul.entity_id,
+                source=context.card.card_id, destination=destination,
+                cost=cost,
+            )
 
 
 @dataclass(frozen=True)
@@ -12314,7 +12328,7 @@ class SummonRandomDeckRaceWithLifesteal:
         if not candidates:
             return
         minion = game.rng.choice(candidates)
-        player.deck.remove(minion)
+        player.deck.extract(minion)
         minion.lifesteal = True
         minion.summoned_turn = game.turn
         game._summon(player, minion)
@@ -13118,7 +13132,18 @@ class EbonscaleScoutBattlecry:
     def execute(self, game: Any, context: RuleContext) -> None:
         if context.action is None or context.action.target_entity is None:
             raise ValueError("enemy minion target is required")
-        target = game._find_minion(context.action.target_player, context.action.target_entity)
+        target = next(
+            (minion for minion in game.players[context.action.target_player].board
+             if minion.entity_id == context.action.target_entity),
+            None,
+        )
+        # A repeated Battlecry retains its original target. If its first
+        # resolution killed that minion, the next resolution simply fizzles.
+        if target is None:
+            game._event("battlecry_target_absent", player=context.player.index,
+                        source=context.card.card_id,
+                        target=context.action.target_entity)
+            return
         game._damage_minion(
             context.action.target_player, target,
             game._spell_effect_amount(context.player, context.card, context.card.attack),
@@ -14973,8 +14998,13 @@ def build_rule_registry() -> RuleRegistry:
             ),
         ),
         CardRule(
-            "TLC_630t", {Hook.SPELL: (DamageRandomEnemyCharacters(2, 1), Summon("TLC_903t"),)},
-            RuleSource("official_text_and_engine_verified", "HearthstoneJSON 251332"),
+            "TLC_630t", {Hook.SPELL: (DamageActionTarget(2), Summon("TLC_903t"),)},
+            RuleSource(
+                "official_text_and_engine_verified", "HearthstoneJSON 251332; real Power.log target evidence",
+                verification=("test_gorishi_stinger_targets_characters_and_summons_rush_grub",
+                              "test_gorishi_stinger_full_board_still_damages_selected_hero"),
+            ),
+            targeting=TargetSpec(TargetKind.ANY_CHARACTER),
         ),
         CardRule(
             "EX1_379", {Hook.SPELL: (ArmSecret(),)},
@@ -15415,6 +15445,7 @@ def build_rule_registry() -> RuleRegistry:
                 "local_spec", local,
                 verification=("test_windpeak_wyrm_battlecry_and_coin_spell_rules",),
             ),
+            TargetSpec(TargetKind.ANY_CHARACTER),
             cost_modifier=CostIfKindred(3),
         ),
         CardRule(
@@ -15423,6 +15454,7 @@ def build_rule_registry() -> RuleRegistry:
                 "upstream_adapted", rosetta, "CORE_UNG_084", "AGPL-3.0",
                 ("test_fire_plume_phoenix_has_explicit_battlecry_target",),
             ),
+            TargetSpec(TargetKind.ANY_CHARACTER),
         ),
         CardRule(
             "CATA_556", {},
@@ -16927,6 +16959,12 @@ def build_rule_registry() -> RuleRegistry:
             )),)},
             RuleSource("upstream_adapted", rosetta, "AT_037", "AGPL-3.0", ("test_living_roots_choose_one",)),
             TargetSpec(TargetKind.ANY_CHARACTER, optional=True),
+        ),
+        CardRule(
+            "CORE_UNG_205", {Hook.BATTLECRY: (FreezeActionTarget(),)},
+            RuleSource("card_text", "cards.251332.enUS.json", "CORE_UNG_205", "",
+                       ("test_glacial_shard_freezes_enemy_character",)),
+            TargetSpec(TargetKind.ENEMY_CHARACTER),
         ),
         CardRule(
             "CORE_CS2_024", {Hook.SPELL: (DamageActionTarget(3), FreezeActionTarget())},

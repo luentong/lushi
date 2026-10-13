@@ -10,8 +10,8 @@ import torch
 from torch import Tensor, nn
 
 from .encoding import (
-    compatible_feature_schema, configure_card_vocab, encode_action,
-    encode_state, feature_schema,
+    CARD_SEMANTIC_FEATURE_SIZE, compatible_feature_schema,
+    configure_card_vocab, encode_action, encode_state, feature_schema,
 )
 from .policy_value import PolicyValueOutput
 
@@ -106,7 +106,6 @@ class PolicyValueNet(nn.Module):
             nn.Linear(action_hidden_size, 1),
             nn.Tanh(),
         )
-
     def forward(
         self,
         states: Tensor,
@@ -319,7 +318,6 @@ class ResidualPolicyValueNet(nn.Module):
             nn.Linear(hidden_size // 4, 1),
             nn.Tanh(),
         )
-
     def _encode_state(self, states: Tensor) -> Tensor:
         features = self.state_stem(states)
         for block in self.state_blocks:
@@ -369,10 +367,10 @@ class ResidualPolicyValueNet(nn.Module):
 class StructuredResidualPolicyValueNet(nn.Module):
     """Card-embedding residual model that scales beyond a closed deck slice.
 
-    Schema-v4 state histograms and action card identities share one learned
+    Schema-v4/v5 state histograms and action card identities share one learned
     embedding table (implemented as a bias-free Linear for dense one-hot NPU
-    inputs).  This gives the same card a common representation in hand, board,
-    source, and target roles while keeping continuous game features separate.
+    inputs). Schema v5 adds the actor's remaining-deck histogram and current
+    turn damage progress, while v4 checkpoints retain their original layout.
     """
 
     def __init__(
@@ -388,10 +386,34 @@ class StructuredResidualPolicyValueNet(nn.Module):
         super().__init__()
         if residual_blocks < 1:
             raise ValueError("residual_blocks must be positive")
-        if state_size != 374 + 3 * card_vocab_size:
-            raise ValueError("structured model requires state schema v4")
-        if action_size != 56 + 2 * card_vocab_size:
-            raise ValueError("structured model requires action schema v4")
+        v4_state_size = 374 + 3 * card_vocab_size
+        v5_state_size = 376 + 4 * card_vocab_size
+        v6_semantic_width = state_size - v5_state_size
+        if state_size == v4_state_size:
+            self.state_schema_version = 4
+            histogram_count = 3
+            dynamic_state_size = 350
+            semantic_state_size = 0
+        elif state_size == v5_state_size:
+            self.state_schema_version = 5
+            histogram_count = 4
+            dynamic_state_size = 352
+            semantic_state_size = 0
+        elif v6_semantic_width > 0 and v6_semantic_width % 4 == 0:
+            self.state_schema_version = 6
+            histogram_count = 4
+            dynamic_state_size = 352
+            semantic_state_size = v6_semantic_width
+            self.card_semantic_feature_size = v6_semantic_width // 4
+        else:
+            raise ValueError("structured model requires state schema v4, v5, or v6")
+        if self.state_schema_version < 6:
+            self.card_semantic_feature_size = 0
+        expected_action_size = 56 + 2 * card_vocab_size
+        if self.state_schema_version >= 6:
+            expected_action_size += 2 * self.card_semantic_feature_size
+        if action_size != expected_action_size:
+            raise ValueError("structured model action width does not match state schema")
         self.state_size = state_size
         self.action_size = action_size
         self.hidden_size = hidden_size
@@ -399,11 +421,26 @@ class StructuredResidualPolicyValueNet(nn.Module):
         self.residual_blocks = residual_blocks
         self.card_vocab_size = card_vocab_size
         self.card_embedding_size = card_embedding_size
+        self.state_histogram_count = histogram_count
+        self.dynamic_state_size = dynamic_state_size
+        self.semantic_state_size = semantic_state_size
         self.card_embedding = nn.Linear(
             card_vocab_size, card_embedding_size, bias=False
         )
+        if semantic_state_size:
+            self.semantic_state_projection = nn.Sequential(
+                nn.Linear(semantic_state_size, card_embedding_size),
+                nn.LayerNorm(card_embedding_size),
+                nn.GELU(),
+            )
+        else:
+            self.semantic_state_projection = None
         self.state_stem = nn.Sequential(
-            nn.Linear(374 + 3 * card_embedding_size, hidden_size),
+            nn.Linear(
+                24 + histogram_count * card_embedding_size + dynamic_state_size
+                + (card_embedding_size if semantic_state_size else 0),
+                hidden_size,
+            ),
             nn.LayerNorm(hidden_size),
             nn.GELU(),
         )
@@ -412,7 +449,11 @@ class StructuredResidualPolicyValueNet(nn.Module):
         )
         self.state_final_norm = nn.LayerNorm(hidden_size)
         self.action_tower = nn.Sequential(
-            nn.Linear(56 + 2 * card_embedding_size, action_hidden_size),
+            nn.Linear(
+                56 + 2 * card_embedding_size
+                + (2 * self.card_semantic_feature_size if self.state_schema_version >= 6 else 0),
+                action_hidden_size,
+            ),
             nn.LayerNorm(action_hidden_size),
             nn.GELU(),
             nn.Linear(action_hidden_size, action_hidden_size),
@@ -437,6 +478,14 @@ class StructuredResidualPolicyValueNet(nn.Module):
             nn.Tanh(),
         )
 
+        self.action_value_head = nn.Sequential(
+            nn.Linear(action_hidden_size * 4, action_hidden_size),
+            nn.LayerNorm(action_hidden_size),
+            nn.GELU(),
+            nn.Linear(action_hidden_size, 1),
+            nn.Tanh(),
+        )
+
     def _encode_state(self, states: Tensor) -> Tensor:
         vocab = self.card_vocab_size
         global_features = states[:, :24]
@@ -444,13 +493,18 @@ class StructuredResidualPolicyValueNet(nn.Module):
         histograms = [
             states[:, histogram_start + role * vocab:
                    histogram_start + (role + 1) * vocab]
-            for role in range(3)
+            for role in range(self.state_histogram_count)
         ]
-        dynamic_features = states[:, histogram_start + 3 * vocab:]
+        dynamic_features = states[
+            :, histogram_start + self.state_histogram_count * vocab:
+               histogram_start + self.state_histogram_count * vocab + self.dynamic_state_size
+        ]
         embedded_cards = [self.card_embedding(items) for items in histograms]
-        features = self.state_stem(torch.cat(
-            (global_features, *embedded_cards, dynamic_features), dim=-1
-        ))
+        parts = [global_features, *embedded_cards, dynamic_features]
+        if self.semantic_state_size:
+            semantic_features = states[:, -self.semantic_state_size:]
+            parts.append(self.semantic_state_projection(semantic_features))
+        features = self.state_stem(torch.cat(parts, dim=-1))
         for block in self.state_blocks:
             features = block(features)
         return self.state_final_norm(features)
@@ -481,12 +535,12 @@ class StructuredResidualPolicyValueNet(nn.Module):
             target_tail,
         ), dim=-1))
 
-    def forward(
+    def forward_with_action_values(
         self,
         states: Tensor,
         actions: Tensor,
         action_mask: Tensor | None = None,
-    ) -> tuple[Tensor, Tensor]:
+    ) -> tuple[Tensor, Tensor, Tensor]:
         if states.ndim != 2 or states.shape[-1] != self.state_size:
             raise ValueError("states must have shape [batch, state_size]")
         if actions.ndim != 3 or actions.shape[-1] != self.action_size:
@@ -502,11 +556,29 @@ class StructuredResidualPolicyValueNet(nn.Module):
         logits = self.policy_head(joint).squeeze(-1)
         if action_mask is not None:
             logits = logits.masked_fill(~action_mask, -1.0e4)
-        return logits, self.value_head(state_features).squeeze(-1)
+        action_values = self.action_value_head(joint).squeeze(-1)
+        if action_mask is not None:
+            action_values = action_values.masked_fill(~action_mask, 0.0)
+        return logits, self.value_head(state_features).squeeze(-1), action_values
+
+    def forward(
+        self,
+        states: Tensor,
+        actions: Tensor,
+        action_mask: Tensor | None = None,
+    ) -> tuple[Tensor, Tensor]:
+        logits, values, _action_values = self.forward_with_action_values(
+            states, actions, action_mask
+        )
+        return logits, values
 
     def metadata(self) -> dict[str, int | str]:
         return {
-            "architecture": "policy-value-structured-residual-v5",
+            "architecture": (
+                "policy-value-structured-residual-v6-semantic-action-q-v1"
+                if self.state_schema_version >= 6
+                else "policy-value-structured-residual-v5-action-q-v1"
+            ),
             "state_size": self.state_size,
             "action_size": self.action_size,
             "hidden_size": self.hidden_size,
@@ -514,6 +586,7 @@ class StructuredResidualPolicyValueNet(nn.Module):
             "residual_blocks": self.residual_blocks,
             "card_vocab_size": self.card_vocab_size,
             "card_embedding_size": self.card_embedding_size,
+            "card_semantic_feature_size": self.card_semantic_feature_size,
         }
 
 
@@ -524,13 +597,17 @@ class TorchPolicyValueModel:
 
     def __init__(
         self, model: PolicyValueNet, device: torch.device,
-        *, value_trained: bool = True, state_schema_version: int = 1,
+        *, value_trained: bool = True, action_value_trained: bool = False,
+        state_schema_version: int = 1,
+        root_perspective_value: bool = False,
     ):
         self.model = model.to(device).eval()
         self.name = str(model.metadata()["architecture"])
         self.device = device
         self.value_trained = value_trained
+        self.action_value_trained = action_value_trained
         self.state_schema_version = state_schema_version
+        self.root_perspective_value = root_perspective_value
 
     @classmethod
     def from_checkpoint(
@@ -556,6 +633,8 @@ class TorchPolicyValueModel:
             "policy-value-bilinear-mlp-v3": BilinearPolicyValueNet,
             "policy-value-residual-mlp-v4": ResidualPolicyValueNet,
             "policy-value-structured-residual-v5": StructuredResidualPolicyValueNet,
+            "policy-value-structured-residual-v5-action-q-v1": StructuredResidualPolicyValueNet,
+            "policy-value-structured-residual-v6-semantic-action-q-v1": StructuredResidualPolicyValueNet,
         }.get(architecture)
         if model_class is None:
             raise ValueError(f"unsupported model architecture: {architecture}")
@@ -572,17 +651,70 @@ class TorchPolicyValueModel:
                 int(metadata.get("card_embedding_size", 128)),
             ))
         model = model_class(*model_args)
-        model.load_state_dict(checkpoint["model_state_dict"])
+        action_head_missing = False
+        if model_class is StructuredResidualPolicyValueNet:
+            loaded = model.load_state_dict(
+                checkpoint["model_state_dict"], strict=False
+            )
+            allowed_missing = {
+                key for key in loaded.missing_keys
+                if key.startswith("action_value_head.")
+            }
+            if set(loaded.missing_keys) != allowed_missing or loaded.unexpected_keys:
+                raise ValueError(
+                    "checkpoint weights differ beyond the optional action-value head: "
+                    f"missing={loaded.missing_keys}, unexpected={loaded.unexpected_keys}"
+                )
+            action_head_missing = bool(allowed_missing)
+        else:
+            model.load_state_dict(checkpoint["model_state_dict"], strict=True)
         return cls(
             model, device,
             value_trained=bool(checkpoint["report"].get("value_trained", True)),
+            action_value_trained=(
+                bool(checkpoint["report"].get("action_value_trained", False))
+                and not action_head_missing
+            ),
             state_schema_version=int(
                 feature.get("schema_version", 1)
+            ),
+            root_perspective_value=bool(
+                checkpoint["report"].get("root_perspective_value_trained", False)
             ),
         )
 
     def predict(self, game, actions) -> PolicyValueOutput:
         return self.predict_batch(((game, actions),))[0]
+
+    def predict_value(self, game, observer: int) -> float:
+        """Predict the value from a fixed player's observation.
+
+        Information-set search must compare leaves from one root player's
+        perspective.  Re-evaluating from whichever player happens to act at a
+        leaf and negating it assumes both players' private observations yield
+        perfectly antisymmetric estimates, which is not true for an
+        imperfect-information model.
+        """
+        if observer not in (0, 1):
+            raise ValueError("observer must be player 0 or 1")
+        state = torch.tensor(
+            [encode_state(
+                game, observer, schema_version=self.state_schema_version,
+            )],
+            dtype=torch.float32,
+            device=self.device,
+        )
+        # The value head is state-only; a single masked dummy action satisfies
+        # the shared forward interface without affecting value prediction.
+        actions = torch.zeros(
+            (1, 1, self.model.action_size),
+            dtype=torch.float32,
+            device=self.device,
+        )
+        mask = torch.ones((1, 1), dtype=torch.bool, device=self.device)
+        with torch.inference_mode():
+            output = self.model(state, actions, mask)
+        return float(output[1].item())
 
     def predict_batch(self, requests) -> tuple[PolicyValueOutput, ...]:
         """Evaluate variable-sized legal-action sets in one model forward pass.
@@ -642,16 +774,29 @@ class TorchPolicyValueModel:
         # Inference mode also disables autograd version-counter bookkeeping;
         # this path never returns tensors that will participate in training.
         with torch.inference_mode():
-            logits, values = self.model(states, action_tensor, mask)
+            if (self.action_value_trained
+                    and isinstance(self.model, StructuredResidualPolicyValueNet)):
+                logits, values, action_values = self.model.forward_with_action_values(
+                    states, action_tensor, mask
+                )
+            else:
+                logits, values = self.model(states, action_tensor, mask)
+                action_values = None
             # Return policy and value in one D2H transfer. Separate ``cpu``
             # calls serialize two small NPU synchronizations per root batch.
-            results = torch.cat(
-                (torch.softmax(logits, dim=1), values.unsqueeze(1)), dim=1
-            ).cpu().tolist()
+            output_tensor = torch.cat(
+                (torch.softmax(logits, dim=1), values.unsqueeze(1))
+                + (() if action_values is None else (action_values,)),
+                dim=1,
+            )
+            results = output_tensor.cpu().tolist()
         for batch_index, (index, _, actions) in enumerate(nonempty):
             result = results[batch_index]
             outputs[index] = PolicyValueOutput(
                 tuple(result[:len(actions)]),
-                float(result[-1]),
+                float(result[max_actions]),
+                (() if action_values is None else tuple(
+                    result[max_actions + 1:max_actions + 1 + len(actions)]
+                )),
             )
         return tuple(outputs)

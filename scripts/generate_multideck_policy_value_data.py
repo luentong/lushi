@@ -13,6 +13,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 import math
 import os
+import random
 import signal
 import subprocess
 import sys
@@ -23,7 +24,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def allocate_counts(weights: list[float], total: int, minimum: int) -> list[int]:
+def _record_failed_future(
+    records: list[dict], future_to_index: dict, future: object, error: Exception,
+) -> int:
+    """Mark the manifest row for a failed future (not its list position)."""
+    index = future_to_index[future]
+    records[index]["status"] = "failed"
+    records[index]["error"] = str(error)
+    return index
+
+
+def allocate_counts(
+    weights: list[float], total: int, minimum: int, *, tie_break_seed: int = 0,
+) -> list[int]:
     if total < len(weights) * minimum:
         raise ValueError(
             f"total games ({total}) must be at least {len(weights) * minimum} "
@@ -37,9 +50,16 @@ def allocate_counts(weights: list[float], total: int, minimum: int) -> list[int]
     raw = [weight * scale for weight in weights]
     floors = [math.floor(value) for value in raw]
     counts = [count + floor for count, floor in zip(counts, floors)]
+    # When minimum=0 and the matchup weights are equal, largest-remainder
+    # allocation has identical fractional parts.  A stable sort silently
+    # assigned every extra game to the first N deck pairs, badly biasing large
+    # sparse corpora.  Randomize only exact ties, reproducibly from the run
+    # seed; unequal remainders still retain strict priority.
+    tie_rng = random.Random(tie_break_seed)
+    tie_breakers = [tie_rng.random() for _ in weights]
     for index in sorted(
         range(len(weights)),
-        key=lambda item: raw[item] - floors[item],
+        key=lambda item: (raw[item] - floors[item], tie_breakers[item]),
         reverse=True,
     )[: remaining - sum(floors)]:
         counts[index] += 1
@@ -64,7 +84,28 @@ def main() -> int:
     )
     parser.add_argument("--teacher-samples", type=int, default=2)
     parser.add_argument("--teacher-iterations", type=int, default=32)
+    parser.add_argument("--teacher-checkpoint", type=Path)
+    parser.add_argument("--teacher-device", default="cpu")
+    parser.add_argument("--teacher-value-mode", choices=("prior-only", "trained"), default="prior-only")
+    parser.add_argument("--export-observer-view", action="store_true")
     parser.add_argument("--rollout-depth", type=int, default=3)
+    parser.add_argument(
+        "--policy-target-source", choices=("visits", "action-values"),
+        default="visits",
+        help="Root policy supervision source passed to each matchup generator.",
+    )
+    parser.add_argument("--policy-action-value-temperature", type=float, default=0.15)
+    parser.add_argument(
+        "--collect-conditional-training", action="store_true",
+        help="Capture independently re-searched public outcome branches as policy-only labels.",
+    )
+    parser.add_argument("--conditional-training-min-visits", type=int, default=8)
+    parser.add_argument("--conditional-training-min-action-visits", type=int, default=1)
+    parser.add_argument(
+        "--conditional-training-repeats", type=int, default=3,
+    )
+    parser.add_argument("--conditional-training-iterations", type=int, default=24)
+    parser.add_argument("--conditional-training-max-branches", type=int, default=2)
     parser.add_argument("--workers", type=int, default=8)
     parser.add_argument(
         "--exclude-deck", action="append", default=[],
@@ -103,6 +144,9 @@ def main() -> int:
         parser.error("--card-vocab frozen-file requires --card-vocab-file")
     if args.seed_stride <= 0:
         parser.error("--seed-stride must be positive")
+    if (not math.isfinite(args.policy_action_value_temperature)
+            or args.policy_action_value_temperature <= 0):
+        parser.error("--policy-action-value-temperature must be finite and positive")
     if args.job_timeout_seconds is not None and args.job_timeout_seconds <= 0:
         parser.error("--job-timeout-seconds must be positive")
 
@@ -125,7 +169,8 @@ def main() -> int:
         for right_index, right in enumerate(ids)
     ]
     counts = allocate_counts(
-        [job[2] for job in jobs], args.total_games, args.min_games_per_pair
+        [job[2] for job in jobs], args.total_games, args.min_games_per_pair,
+        tie_break_seed=args.seed,
     )
     args.output_dir.mkdir(parents=True, exist_ok=True)
     records = []
@@ -137,6 +182,9 @@ def main() -> int:
             "--teacher", "ismcts", "--samples", str(args.teacher_samples),
             "--iterations", str(args.teacher_iterations),
             "--rollout-depth", str(args.rollout_depth),
+            "--policy-target-source", args.policy_target_source,
+            "--policy-action-value-temperature",
+            str(args.policy_action_value_temperature),
             "--behavior", "teacher", "--workers", str(args.workers),
             "--max-actions", str(args.max_actions),
             "--card-vocab", args.card_vocab,
@@ -147,6 +195,27 @@ def main() -> int:
         ]
         if args.card_vocab_file is not None:
             command.extend(("--card-vocab-file", str(args.card_vocab_file)))
+        if args.teacher_checkpoint is not None:
+            command.extend(("--teacher-checkpoint", str(args.teacher_checkpoint),
+                            "--teacher-device", args.teacher_device,
+                            "--teacher-value-mode", args.teacher_value_mode))
+        if args.export_observer_view:
+            command.append("--export-observer-view")
+        if args.collect_conditional_training:
+            command.extend((
+                "--collect-conditional-training",
+                "--conditional-training-min-visits",
+                str(args.conditional_training_min_visits),
+                "--conditional-training-min-action-visits",
+                str(args.conditional_training_min_action_visits),
+                "--conditional-training-target-source", "independent-search",
+                "--conditional-training-repeats",
+                str(args.conditional_training_repeats),
+                "--conditional-training-iterations",
+                str(args.conditional_training_iterations),
+                "--conditional-training-max-branches",
+                str(args.conditional_training_max_branches),
+            ))
         # A frequency-weighted corpus may deliberately sample only a subset
         # of the full ordered-pair matrix.  Keep unsampled pairs in the
         # manifest for auditability, but do not spawn a child process merely
@@ -169,6 +238,7 @@ def main() -> int:
         "min_games_per_pair": args.min_games_per_pair,
         "seed": args.seed,
         "seed_stride": args.seed_stride,
+        "allocation_tie_break_seed": args.seed,
         "job_timeout_seconds": args.job_timeout_seconds,
         "resume": args.resume,
         "teacher": {
@@ -176,6 +246,23 @@ def main() -> int:
             "iterations_per_sample": args.teacher_iterations,
             "simulations_per_decision": args.teacher_samples * args.teacher_iterations,
             "rollout_depth": args.rollout_depth,
+        },
+        "conditional_training": {
+            "enabled": args.collect_conditional_training,
+            "min_policy_visits": args.conditional_training_min_visits,
+            "min_action_visits": (
+                args.conditional_training_min_action_visits
+                if args.collect_conditional_training else 0
+            ),
+            "target_source": "independent-search",
+            "independent_repeats": args.conditional_training_repeats,
+            "independent_iterations": args.conditional_training_iterations,
+            "max_branches_per_decision": args.conditional_training_max_branches,
+            "value_target": "masked",
+        },
+        "value_training": {
+            "perspective_views": "acting_player_and_opponent",
+            "opponent_view_target": "negative_of_acting_player_result",
         },
         "card_vocab": {
             "mode": args.card_vocab,
@@ -271,20 +358,21 @@ def main() -> int:
             json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
         with ThreadPoolExecutor(max_workers=parallel_jobs) as executor:
-            futures = [executor.submit(run_job, index) for index in pending_indices]
-            for future in as_completed(futures):
+            future_to_index = {
+                executor.submit(run_job, index): index
+                for index in pending_indices
+            }
+            for future in as_completed(future_to_index):
                 try:
                     records[future.result()]["status"] = "complete"
                 except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as exc:
                     if not args.continue_on_error:
-                        for remaining in futures:
+                        for remaining in future_to_index:
                             remaining.cancel()
                         raise
                     # Associate the failure with the future's job index
                     # without parsing a child process's stderr.
-                    index = futures.index(future)
-                    records[index]["status"] = "failed"
-                    records[index]["error"] = str(exc)
+                    _record_failed_future(records, future_to_index, future, exc)
                 args.manifest.write_text(
                     json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
                 )

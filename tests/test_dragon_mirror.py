@@ -67,7 +67,10 @@ class DragonMirrorRulesTests(unittest.TestCase):
 
     def test_direct_and_generated_metadata_entities_are_loaded(self):
         game = self.game()
-        self.assertEqual(EXECUTABLE_CARD_IDS | BASIC_AUXILIARY_IDS, set(game.card_defs))
+        runtime_only = {"TLC_833t", "JAIL_315t", "JAIL_450t"}
+        self.assertEqual(EXECUTABLE_CARD_IDS | BASIC_AUXILIARY_IDS | runtime_only,
+                         set(game.card_defs))
+        self.assertTrue(all(not game.card_defs[c].collectible for c in runtime_only))
         self.assertGreaterEqual(len(DIRECT_IDS), 17)
         self.assertGreaterEqual(len(GENERATED_MINION_IDS), 72)
         self.assertGreaterEqual(len(GENERATED_DRAGON_IDS), 40)
@@ -296,6 +299,31 @@ class DragonMirrorRulesTests(unittest.TestCase):
         self.assertEqual(1, target.damage)
         self.assertEqual(12, target.attack)
         self.assertEqual(2, location.durability)
+
+    def test_sanguine_depths_enables_torch_to_remove_enemy_minion(self):
+        game = self.game()
+        location_card = self.add_hand(game, "CORE_REV_990")
+        target = self.add_board(game, "TLC_600", 1)
+        torch = self.add_hand(game, "CATA_585")
+        self.play(game, location_card)
+        location = game.players[0].locations[0]
+        location.cooldown = 0
+
+        game.step(Action("LOCATION", location.entity_id, 1, target.entity_id))
+
+        self.assertEqual(1, target.damage)
+        self.assertEqual(8, target.attack)
+        self.assertTrue(any(
+            action.kind == "PLAY"
+            and action.source == torch.entity_id
+            and action.target_player == 1
+            and action.target_entity == target.entity_id
+            for action in game.legal_actions()
+        ))
+        game.step(Action("PLAY", torch.entity_id, 1, target.entity_id))
+
+        self.assertNotIn(target, game.players[1].board)
+        self.assertIn(torch, game.players[0].hand)
 
     def test_four_distinct_friendly_characters_summon_warptooth(self):
         game = self.game()
@@ -1171,7 +1199,10 @@ class DragonMirrorRulesTests(unittest.TestCase):
         player.deck = [other]
         player.hand.remove(gifted)
         self.assertEqual("deck", game._add_generated(player, gifted))
-        self.assertIs(player.deck[0], gifted)
+        self.assertIs(player.deck[-1], gifted)
+        game._draw(player)
+        self.assertIn(gifted, player.hand)
+        self.assertEqual([other], player.deck)
 
         earthen = self.add_board(game, "CATA_999")
         peddler = self.add_board(game, "EDR_889")

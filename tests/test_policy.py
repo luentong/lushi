@@ -69,6 +69,45 @@ class HeuristicPolicyTests(unittest.TestCase):
                 )
                 self.assertEqual(cheap.entity_id, action.target_entity)
 
+    def test_direct_damage_prefers_enemy_hero_over_self_hero(self):
+        game = DragonMirrorGame(CARDS, 29)
+        player, enemy = game.players
+        player.hand.clear()
+        player.board.clear()
+        enemy.board.clear()
+        player.mana = 10
+        spell = game._entity("FIR_939")
+        player.hand.append(spell)
+        candidates = [
+            action for action in game.legal_actions()
+            if action.kind == "PLAY" and action.source == spell.entity_id
+        ]
+        policy = HeuristicPolicy()
+        best = max(candidates, key=lambda action: policy.score(game, action))
+        self.assertEqual(1, best.target_player)
+        self.assertIsNone(best.target_entity)
+
+    def test_direct_damage_respects_elusive_targets(self):
+        game = DragonMirrorGame(CARDS, 31)
+        player, enemy = game.players
+        player.hand.clear()
+        player.board.clear()
+        enemy.board.clear()
+        player.mana = 10
+        elusive = game._entity("END_033")
+        elusive.summoned_turn = game.turn - 1
+        enemy.board.append(elusive)
+        spell = game._entity("FIR_939")
+        player.hand.append(spell)
+        targets = [
+            action for action in game.legal_actions()
+            if action.kind == "PLAY" and action.source == spell.entity_id
+        ]
+        self.assertFalse(any(action.target_entity == elusive.entity_id for action in targets))
+        best = max(targets, key=lambda action: HeuristicPolicy().score(game, action))
+        self.assertEqual(1, best.target_player)
+        self.assertIsNone(best.target_entity)
+
 
 if __name__ == "__main__":
     unittest.main()

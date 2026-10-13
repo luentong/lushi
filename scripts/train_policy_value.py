@@ -144,13 +144,22 @@ class DecisionDataset(Dataset):
                 records = payload["records"]
             else:
                 records = []
-                for i in range(int(payload["count"])):
+                count_rows = int(payload["count"])
+                value_valid = payload.get(
+                    "value_valid", torch.ones(count_rows, dtype=torch.bool)
+                )
+                conditional = payload.get(
+                    "conditional", torch.zeros(count_rows, dtype=torch.bool)
+                )
+                for i in range(count_rows):
                     count = int(payload["mask"][i].sum().item())
                     records.append({
                         "state": payload["states"][i].tolist(),
                         "actions": payload["actions"][i, :count].tolist(),
                         "chosen_action": int(payload["chosen"][i]),
                         "value_target": float(payload["values"][i]),
+                        "value_target_valid": bool(value_valid[i]),
+                        "conditional": bool(conditional[i]),
                         "policy_target": payload["policy_targets"][i, :count].tolist(),
                         "game_seed": int(payload.get("game_seed", torch.zeros(1, dtype=torch.int64))[i]),
                         "winner": (None if int(payload.get("winner", torch.full((1,), -1, dtype=torch.int8))[i]) < 0 else int(payload["winner"][i])),
@@ -180,9 +189,12 @@ def collate_decisions(
     policy_target_temperature: float = 1.0,
     value_weighted_targets: bool = False,
     policy_value_temperature: float = 0.5,
+    conditional_policy_weight: float = 2.0,
 ):
     if policy_target_temperature <= 0:
         raise ValueError("policy target temperature must be positive")
+    if conditional_policy_weight <= 0:
+        raise ValueError("conditional policy weight must be positive")
     state_size = len(records[0]["state"])
     action_size = len(records[0]["actions"][0])
     max_actions = max(len(record["actions"]) for record in records)
@@ -194,13 +206,25 @@ def collate_decisions(
     chosen = torch.empty(len(records), dtype=torch.long)
     values = torch.empty(len(records), dtype=torch.float32)
     policy_targets = torch.zeros((len(records), max_actions), dtype=torch.float32)
+    value_mask = torch.zeros(len(records), dtype=torch.bool)
+    conditional_mask = torch.zeros(len(records), dtype=torch.bool)
+    policy_weights = torch.ones(len(records), dtype=torch.float32)
     for row, record in enumerate(records):
         count = len(record["actions"])
         states[row] = torch.tensor(record["state"], dtype=torch.float32)
         actions[row, :count] = torch.tensor(record["actions"], dtype=torch.float32)
         mask[row, :count] = True
         chosen[row] = int(record["chosen_action"])
-        values[row] = float(record["value_target"])
+        value_is_valid = record.get("value_target_valid", True)
+        value_mask[row] = bool(value_is_valid)
+        values[row] = (
+            float(record["value_target"])
+            if value_is_valid and record.get("value_target") is not None
+            else 0.0
+        )
+        conditional_mask[row] = bool(record.get("conditional", False))
+        if conditional_mask[row]:
+            policy_weights[row] = conditional_policy_weight
         target = None if hard_policy_targets else record.get("policy_target")
         if target is None:
             policy_targets[row, chosen[row]] = 1.0
@@ -232,7 +256,10 @@ def collate_decisions(
                 if total > 0:
                     aligned /= total
             policy_targets[row, :count] = aligned
-    return states, actions, mask, chosen, values, policy_targets
+    return (
+        states, actions, mask, chosen, values, policy_targets,
+        value_mask, conditional_mask, policy_weights,
+    )
 
 
 def choose_device(requested: str) -> torch.device:
@@ -250,26 +277,40 @@ def choose_device(requested: str) -> torch.device:
 
 def evaluate(model, loader, device):
     model.eval()
-    correct = count = policy_count = 0
+    correct = policy_count = sample_count = value_count = 0
+    conditional_correct = conditional_count = 0
+    ordinary_correct = ordinary_count = 0
     absolute_error = 0.0
     squared_error = 0.0
     policy_cross_entropy = 0.0
     policy_target_entropy = 0.0
+    conditional_cross_entropy = conditional_target_entropy = 0.0
+    ordinary_cross_entropy = ordinary_target_entropy = 0.0
     with torch.no_grad():
-        for states, actions, mask, chosen, targets, policy_targets in loader:
+        for (
+            states, actions, mask, chosen, targets, policy_targets,
+            value_mask, conditional_mask, _policy_weights,
+        ) in loader:
             states, actions, mask = states.to(device), actions.to(device), mask.to(device)
             chosen, targets = chosen.to(device), targets.to(device)
             policy_targets = policy_targets.to(device)
+            value_mask = value_mask.to(device)
+            conditional_mask = conditional_mask.to(device)
             logits, values = model(states, actions, mask)
             log_probabilities = F.log_softmax(logits, dim=1)
             nontrivial = mask.sum(dim=1) > 1
-            correct += int(
-                ((logits.argmax(dim=1) == chosen) & nontrivial).sum().item()
-            )
+            matches = logits.argmax(dim=1) == chosen
+            correct += int((matches & nontrivial).sum().item())
             policy_count += int(nontrivial.sum().item())
-            count += len(chosen)
-            absolute_error += float((values - targets).abs().sum().item())
-            squared_error += float(((values - targets) ** 2).sum().item())
+            conditional_rows = nontrivial & conditional_mask
+            ordinary_rows = nontrivial & ~conditional_mask
+            conditional_count += int(conditional_rows.sum().item())
+            ordinary_count += int(ordinary_rows.sum().item())
+            conditional_correct += int((matches & conditional_rows).sum().item())
+            ordinary_correct += int((matches & ordinary_rows).sum().item())
+            value_count += int(value_mask.sum().item())
+            absolute_error += float((values[value_mask] - targets[value_mask]).abs().sum().item())
+            squared_error += float(((values[value_mask] - targets[value_mask]) ** 2).sum().item())
             row_cross_entropy = -(policy_targets * log_probabilities).sum(dim=1)
             policy_cross_entropy += float(row_cross_entropy[nontrivial].sum().item())
             target_logs = torch.where(
@@ -281,17 +322,39 @@ def evaluate(model, loader, device):
             policy_target_entropy += float(
                 row_target_entropy[nontrivial].sum().item()
             )
+            conditional_cross_entropy += float(row_cross_entropy[conditional_rows].sum().item())
+            conditional_target_entropy += float(row_target_entropy[conditional_rows].sum().item())
+            ordinary_cross_entropy += float(row_cross_entropy[ordinary_rows].sum().item())
+            ordinary_target_entropy += float(row_target_entropy[ordinary_rows].sum().item())
+            sample_count += len(chosen)
     cross_entropy = policy_cross_entropy / max(1, policy_count)
     target_entropy = policy_target_entropy / max(1, policy_count)
-    value_mse = squared_error / count
+    value_mse = squared_error / max(1, value_count)
+    conditional_accuracy = conditional_correct / max(1, conditional_count)
+    ordinary_accuracy = ordinary_correct / max(1, ordinary_count)
     return {
         "policy_decisions": policy_count,
-        "forced_decisions": count - policy_count,
+        "forced_decisions": sample_count - policy_count,
         "policy_accuracy": correct / max(1, policy_count),
+        "conditional_policy_decisions": conditional_count,
+        "conditional_policy_accuracy": conditional_accuracy,
+        "conditional_policy_kl": max(
+            0.0,
+            conditional_cross_entropy / max(1, conditional_count)
+            - conditional_target_entropy / max(1, conditional_count),
+        ),
+        "ordinary_policy_decisions": ordinary_count,
+        "ordinary_policy_accuracy": ordinary_accuracy,
+        "ordinary_policy_kl": max(
+            0.0,
+            ordinary_cross_entropy / max(1, ordinary_count)
+            - ordinary_target_entropy / max(1, ordinary_count),
+        ),
         "policy_cross_entropy": cross_entropy,
         "policy_target_entropy": target_entropy,
         "policy_kl": max(0.0, cross_entropy - target_entropy),
-        "value_mae": absolute_error / count,
+        "value_examples": value_count,
+        "value_mae": absolute_error / max(1, value_count),
         "value_mse": value_mse,
         # Targets and predictions are mapped from [-1, 1] to win probability.
         "value_brier": value_mse / 4.0,
@@ -426,11 +489,17 @@ def main() -> None:
         "--policy-value-temperature", type=float, default=0.5,
         help="Q-value temperature for value-weighted visit targets.",
     )
+    parser.add_argument(
+        "--conditional-policy-weight", type=float, default=2.0,
+        help="Relative policy-loss weight for conditional observation records.",
+    )
     args = parser.parse_args()
     if args.policy_target_temperature <= 0:
         parser.error("--policy-target-temperature must be positive")
     if args.policy_value_temperature <= 0:
         parser.error("--policy-value-temperature must be positive")
+    if args.conditional_policy_weight <= 0:
+        parser.error("--conditional-policy-weight must be positive")
     if args.policy_weight < 0 or args.value_weight < 0:
         parser.error("policy and value weights must be non-negative")
     if args.policy_weight == 0 and args.value_weight == 0:
@@ -476,12 +545,34 @@ def main() -> None:
             args.init_checkpoint, map_location="cpu", weights_only=False
         )
         initial_model = initial["report"]["model"]
-        if initial_model != model.metadata():
+        expected_model = model.metadata()
+        old_structured_arch = (
+            expected_model.get("architecture")
+            == "policy-value-structured-residual-v5-action-q-v1"
+            and initial_model.get("architecture")
+            == "policy-value-structured-residual-v5"
+            and {
+                **initial_model,
+                "architecture": expected_model["architecture"],
+            } == expected_model
+        )
+        if initial_model != expected_model and not old_structured_arch:
             raise ValueError("initial checkpoint model architecture does not match")
         initial_schema = initial["report"].get("feature_schema")
         if initial_schema is not None and not compatible_feature_schema(initial_schema, schema):
             raise ValueError("initial checkpoint feature schema does not match")
-        model.load_state_dict(initial["model_state_dict"])
+        loaded = model.load_state_dict(
+            initial["model_state_dict"], strict=not old_structured_arch
+        )
+        if old_structured_arch:
+            allowed_missing = {
+                key for key in loaded.missing_keys
+                if key.startswith("action_value_head.")
+            }
+            if set(loaded.missing_keys) != allowed_missing or loaded.unexpected_keys:
+                raise ValueError(
+                    "legacy structured checkpoint differs beyond the new action-value head"
+                )
     seeds = sorted({record["game_seed"] for record in dataset.records})
     validation_seeds = (
         set() if external_validation_dataset is not None
@@ -507,6 +598,7 @@ def main() -> None:
         policy_target_temperature=args.policy_target_temperature,
         value_weighted_targets=args.policy_target == "value-weighted-visits",
         policy_value_temperature=args.policy_value_temperature,
+        conditional_policy_weight=args.conditional_policy_weight,
     )
     loader = DataLoader(
         Subset(dataset, train_indices), batch_size=args.batch_size, shuffle=True,
@@ -538,10 +630,15 @@ def main() -> None:
     for epoch in range(1, args.epochs + 1):
         epoch_loss = 0.0
         batches = 0
-        for states, actions, mask, chosen, targets, policy_targets in loader:
+        for (
+            states, actions, mask, chosen, targets, policy_targets,
+            value_mask, _conditional_mask, policy_weights,
+        ) in loader:
             states, actions, mask = states.to(device), actions.to(device), mask.to(device)
             chosen, targets = chosen.to(device), targets.to(device)
             policy_targets = policy_targets.to(device)
+            value_mask = value_mask.to(device)
+            policy_weights = policy_weights.to(device)
             optimizer.zero_grad(set_to_none=True)
             logits, values = model(states, actions, mask)
             policy_loss_rows = -(
@@ -549,11 +646,16 @@ def main() -> None:
             ).sum(dim=1)
             nontrivial = mask.sum(dim=1) > 1
             policy_loss = (
-                policy_loss_rows[nontrivial].mean()
+                (policy_loss_rows[nontrivial] * policy_weights[nontrivial]).sum()
+                / policy_weights[nontrivial].sum().clamp_min(1e-12)
                 if bool(nontrivial.any().item())
                 else policy_loss_rows.sum() * 0.0
             )
-            value_loss = F.mse_loss(values, targets)
+            value_loss = (
+                F.mse_loss(values[value_mask], targets[value_mask])
+                if bool(value_mask.any().item())
+                else values.sum() * 0.0
+            )
             loss = args.policy_weight * policy_loss + args.value_weight * value_loss
             loss.backward()
             if args.gradient_clip > 0:
@@ -652,6 +754,7 @@ def main() -> None:
             args.policy_value_temperature
             if args.policy_target == "value-weighted-visits" else None
         ),
+        "conditional_policy_weight": args.conditional_policy_weight,
         "value_trained": args.value_weight > 0,
         "initial_loss": losses[0],
         "final_loss": losses[-1],

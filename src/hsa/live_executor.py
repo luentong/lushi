@@ -30,11 +30,11 @@ def execute_plans(
     """Apply only actions that are legal in the current simulator state."""
     report = ExecutionReport()
     for plan in plans:
-        action, error = action_from_plan(plan, mapper)
+        legal = {candidate.key(): candidate for candidate in game.legal_actions()}
+        action, error = action_from_plan(plan, mapper, legal_actions=legal.values())
         if error:
             report.stopped_at, report.reason = plan.index, error
             break
-        legal = {candidate.key(): candidate for candidate in game.legal_actions()}
         if action.key() not in legal:
             report.stopped_at = plan.index
             report.reason = "mapped action is not legal in simulator state"

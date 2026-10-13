@@ -23,18 +23,23 @@ from typing import Any
 from .dragon_mirror import CardDef, DragonMirrorGame, Location, Weapon
 from .live_compare import compare_public_state
 from .live_replay import EntityIdMapper
+from .live_special_zones import (broxigar_reserves, godfrey_public_copies,
+                                 generated_hidden_hand_card)
 
 
 _IMPLICIT_HERO_POWER_ID = re.compile(r"^HERO_\d+[a-z]*bp\d*$", re.IGNORECASE)
 _EXECUTABLE_CARD_ALIASES = {
-    # All three definitions are 0-cost "Gain 1 Mana Crystal this turn only".
+    # These client variants are all 0-cost "Gain 1 Mana Crystal this turn only".
     # Clients emit different second-player Coin variants by game version;
     # the engine implements the canonical GAME_005 form.
+    "AV_COIN1": "GAME_005",
+    "DFT_ALEX_COIN1": "GAME_005",
     "TTN_COIN2": "GAME_005",
     "VAC_COIN2": "GAME_005",
 }
 _NON_BOARD_ENTITY_TYPES = {
-    "HERO", "PLAYER", "GAME", "HERO_POWER", "ENCHANTMENT", "COUNTER",
+    "HERO", "PLAYER", "GAME", "HERO_POWER", "WEAPON", "LOCATION",
+    "ENCHANTMENT", "COUNTER",
 }
 _STATIC_PUBLIC_MINION_MECHANICS = frozenset({
     "TAUNT", "RUSH", "CHARGE", "LIFESTEAL", "ELUSIVE", "STEALTH",
@@ -66,6 +71,21 @@ def _tag_is_true(entity: Any, tag: str) -> bool:
         return bool(int(value))
     except (TypeError, ValueError):
         return str(value).upper() in {"TRUE", "YES"}
+
+
+def _public_remaining_durability(entity: Any) -> int | None:
+    """Read remaining weapon/location durability from public Power.log tags."""
+    explicit = entity.tags.get("DURABILITY")
+    try:
+        if explicit is not None:
+            remaining = int(explicit)
+        elif entity.health is not None:
+            remaining = int(entity.health) - int(entity.damage)
+        else:
+            return None
+    except (TypeError, ValueError):
+        return None
+    return remaining if remaining > 0 else None
 
 
 def _executable_card_id(game: DragonMirrorGame, card_id: str | None) -> str | None:
@@ -141,6 +161,14 @@ class BridgeResult:
         return self.game is not None and self.reason is None
 
 
+def _supported_bridge_deck_sizes(own_deck: dict[str, int],
+                                 opponent_deck: dict[str, int]) -> tuple[bool, bool]:
+    """Return (supported, short-format-opponent) for live hydration."""
+    own_size = sum(map(int, own_deck.values()))
+    opponent_size = sum(map(int, opponent_deck.values()))
+    short_format = opponent_size == 20 and int(opponent_deck.get("JAIL_430", 0)) > 0
+    return own_size >= 30 and (opponent_size >= 30 or short_format), short_format
+
 def _controller_entities(state: Any, controller: int, zone: str) -> list[Any]:
     return [entity for entity in state.entities.values()
             if entity.controller == controller and entity.zone == zone]
@@ -153,21 +181,37 @@ def _classes(value: tuple[str, str] | list[str] | None) -> tuple[str, str]:
 
 
 def _visible_card_counts(state: Any, controller: int) -> Counter[str]:
-    """Cards known to have left or be outside the starting deck.
+    """Count unique visible non-generated entities currently outside DECK.
 
-    A card generated during the game may appear in the action history.  It is
-    only removed from a candidate deck when that deck actually contains it.
-    This is a safe lower-fidelity determinisation, not a claim about deck
-    order.
+    PLAY and ATTACK history describe actions, not additional card copies.
+    Counting that history double-subtracted living minions and subtracted
+    them again on every attack. Current zones also let a shuffled-back card
+    rejoin the candidate bag. When provenance is absent, membership in the
+    supplied deck remains a hypothesis; transformations/theft need additional
+    origin information to fully reconstruct the remaining list.
     """
     result: Counter[str] = Counter()
+    seen = set()
     for entity in state.entities.values():
-        if entity.controller == controller and entity.card_id and entity.zone in {"HAND", "PLAY", "SECRET"}:
-            if entity.card_type not in {"HERO", "PLAYER", "GAME"}:
-                result[entity.card_id] += 1
-    for action in state.action_history:
-        if action.get("controller") == controller and action.get("source_card"):
-            result[str(action["source_card"])] += 1
+        original_deck = bool(entity.zone_history and entity.zone_history[0][1] == "DECK"
+                             and not any(entity.tags.get(tag) not in (None, 0, "0", "")
+                                         for tag in ("CREATOR", "COPIED_FROM_ENTITY_ID")))
+        owner = (entity.initial_controller or entity.controller) if original_deck else entity.controller
+        if (entity.entity_id in seen or owner != controller
+                or not entity.card_id or entity.zone not in {
+                    "HAND", "PLAY", "SECRET", "GRAVEYARD", "REMOVEDFROMGAME", "SETASIDE"}
+                or (entity.zone == "SETASIDE" and not original_deck)
+                or (entity.card_type == "HERO" and not original_deck)
+                or entity.card_type in {"PLAYER", "GAME", "HERO_POWER",
+                                        "ENCHANTMENT", "COUNTER"}
+                or _is_hero_power(entity)):
+            continue
+        seen.add(entity.entity_id)
+        if any(entity.tags.get(tag) not in (None, 0, "0", "")
+               for tag in ("CREATOR", "COPIED_FROM_ENTITY_ID")):
+            continue
+        original_id = entity.identity_history[0][1] if original_deck and entity.identity_history else entity.card_id
+        result[original_id] += 1
     return result
 
 
@@ -241,6 +285,132 @@ def _inert_play_artifacts(state: Any, *, policy: str) -> set[str]:
     return result
 
 
+def _modeled_corpse_rebirth_proxies(state: Any, game: DragonMirrorGame) -> dict[str, int]:
+    """Find TIME_618's public player enchantment and its SETASIDE spell proxy.
+
+    The proxy is not a pending choice: the engine represents the same effect
+    with ``corpse_rebirth_pending``. Require a public corpse count and a
+    verified attachment to the owning PLAYER entity before substituting it.
+    """
+    if "TIME_618t" not in game.card_defs:
+        return {}
+    players = [entity for entity in state.entities.values()
+               if entity.card_type == "PLAYER"
+               or "MULLIGAN_STATE" in entity.tags
+               or "PLAYSTATE" in entity.tags]
+    players.sort(key=lambda entity: int(entity.entity_id)
+                 if entity.entity_id.lstrip("-").isdigit() else 10**9)
+    if len(players) != 2:
+        return {}
+    owner_by_entity = {entity.entity_id: index
+                       for index, entity in enumerate(players, start=1)}
+    meta = state.visible().get("player_meta", {})
+    result: dict[str, int] = {}
+    for enchant in state.entities.values():
+        if (enchant.card_id != "TIME_618e" or enchant.zone != "PLAY"
+                or enchant.card_type != "ENCHANTMENT"):
+            continue
+        controller = owner_by_entity.get(str(enchant.tags.get("ATTACHED")))
+        proxy_id = str(enchant.tags.get("TAG_SCRIPT_DATA_NUM_1"))
+        proxy = state.entities.get(proxy_id)
+        if (controller not in (1, 2) or enchant.controller != controller
+                or proxy is None or proxy.card_id != "TIME_618t"
+                or proxy.zone != "SETASIDE" or proxy.controller != controller
+                or meta.get(str(controller), {}).get("corpses") is None):
+            continue
+        result[proxy_id] = controller
+    return result
+
+
+def _retired_deathwing_hero_entities(state: Any, game: DragonMirrorGame) -> set[str]:
+    """Recognise the old hero/power archived by permanent CATA_190h replacement.
+
+    This is not a general rule for every hero transformation. Require the
+    replacement hero and its executable power to be public, plus the exact
+    PLAY -> SETASIDE transition and linkage to the old hero.
+    """
+    if "CATA_190p" not in game.card_defs:
+        return set()
+    result: set[str] = set()
+    for hero in state.entities.values():
+        if not (hero.card_id == "CATA_190h" and hero.zone == "PLAY"
+                and hero.card_type == "HERO" and hero.controller in (1, 2)):
+            continue
+        old_id = str(hero.tags.get("LINKED_ENTITY"))
+        old_hero = state.entities.get(old_id)
+        if (old_hero is None or old_hero.card_type != "HERO"
+                or old_hero.controller != hero.controller
+                or old_hero.zone != "SETASIDE"
+                or "PLAY" not in [zone for _, zone in old_hero.zone_history]):
+            continue
+        new_power = any(
+            entity.card_id == "CATA_190p" and entity.zone == "PLAY"
+            and entity.card_type == "HERO_POWER"
+            and entity.controller == hero.controller
+            and str(entity.tags.get("CREATOR")) == hero.entity_id
+            for entity in state.entities.values()
+        )
+        if not new_power:
+            continue
+        result.add(old_id)
+        for entity in state.entities.values():
+            if (entity.card_type == "HERO_POWER" and entity.zone == "SETASIDE"
+                    and entity.controller == hero.controller
+                    and str(entity.tags.get("CREATOR")) == old_id
+                    and "PLAY" in [zone for _, zone in entity.zone_history]):
+                result.add(entity.entity_id)
+    return result
+
+
+def _retired_linked_hero_powers(state: Any) -> set[str]:
+    """Recognise a replaced hero power archived by its active successor.
+
+    The link alone is insufficient: both objects must be hero powers owned by
+    the same player, with the successor in PLAY and the predecessor having
+    visibly moved PLAY -> SETASIDE. This only omits the retired action source
+    from hydration; it never discards the currently usable power.
+    """
+    result: set[str] = set()
+    for current in state.entities.values():
+        if (current.card_type != "HERO_POWER" or current.zone != "PLAY"
+                or current.controller not in (1, 2)):
+            continue
+        previous_id = str(current.tags.get("LINKED_ENTITY"))
+        previous = state.entities.get(previous_id)
+        if (previous is None or previous.card_type != "HERO_POWER"
+                or previous.zone != "SETASIDE"
+                or previous.controller != current.controller
+                or "PLAY" not in [zone for _, zone in previous.zone_history]):
+            continue
+        result.add(previous_id)
+    return result
+
+
+def _unplayed_unlinked_setaside_heroes(
+    state: Any, open_choice_entities: tuple[int, ...],
+) -> set[str]:
+    """Exclude an unactivated hero candidate from the current action surface.
+
+    A generated hero can be staged in SETASIDE before a later effect uses it.
+    It is not the *current* hero if it has never entered PLAY, no live object
+    references it, and it is not an open choice. Any one of those signals keeps
+    the normal fail-closed behavior.
+    """
+    selected = {str(entity_id) for entity_id in open_choice_entities}
+    selected.update(str(entity_id) for choices in state.open_choice_candidates.values()
+                    for entity_id in choices)
+    referenced = {str(reference) for source in state.entities.values()
+                  for reference in source.references}
+    return {
+        entity.entity_id for entity in state.entities.values()
+        if entity.card_type == "HERO" and entity.zone == "SETASIDE"
+        and entity.controller in (1, 2)
+        and "PLAY" not in [zone for _, zone in entity.zone_history]
+        and entity.entity_id not in selected
+        and entity.entity_id not in referenced
+    }
+
+
 def _remaining_deck(deck: dict[str, int], observed: Counter[str]) -> list[str]:
     remaining: list[str] = []
     for card_id, count in deck.items():
@@ -268,8 +438,15 @@ def build_snapshot_hypothesis(
     filled from the candidate's remaining cards solely for scoring that
     hypothesis.
     """
-    if sum(map(int, own_deck.values())) < 30 or sum(map(int, opponent_deck.values())) < 30:
-        return BridgeResult(reason="known and candidate decks must each contain at least 30 cards")
+    # JAIL_430 (Azalina/Special Dirty Priest format) starts from a legal
+    # 20-card list and copies 20 cards from the opponent before the opening
+    # draw.  DragonMirror already applies that pre-game rule, so rejecting the
+    # 20-card source list here would make the live belief path unable to model
+    # an otherwise supported archetype.
+    supported_sizes, opponent_short_format = _supported_bridge_deck_sizes(
+        own_deck, opponent_deck)
+    if not supported_sizes:
+        return BridgeResult(reason="known deck must contain at least 30 cards; candidate must contain 30/40 cards or supported 20-card JAIL_430 format")
     classes = _classes(player_classes)
     decks = (dict(own_deck), dict(opponent_deck)) if self_controller == 1 else (dict(opponent_deck), dict(own_deck))
     classes = classes if self_controller == 1 else (classes[1], classes[0])
@@ -278,6 +455,9 @@ def build_snapshot_hypothesis(
                                 player_classes=classes)
     except Exception as exc:  # unsupported candidate cards must stay closed.
         return BridgeResult(reason=f"cannot initialise candidate: {exc}")
+    # Constructor opening deals/Coin/start effects are synthetic, not events
+    # observed in this live match. They must not update the hydrated belief.
+    game.events.clear()
     # Keep public whiteboard minions available for combat hydration without
     # making them playable candidates or random-generation outcomes.
     static_public_defs = _public_static_minion_defs(cards_path)
@@ -295,6 +475,16 @@ def build_snapshot_hypothesis(
         )
     inert_setaside = _inert_setaside_entities(
         state, open_choice_entities, policy=setaside_policy)
+    modeled_rebirth = (_modeled_corpse_rebirth_proxies(state, game)
+                       if setaside_policy == "advisory" else {})
+    retired_heroes = (_retired_deathwing_hero_entities(state, game)
+                      if setaside_policy == "advisory" else set())
+    retired_powers = (_retired_linked_hero_powers(state)
+                      if setaside_policy == "advisory" else set())
+    staged_heroes = (_unplayed_unlinked_setaside_heroes(state, open_choice_entities)
+                     if setaside_policy == "advisory" else set())
+    reserves = broxigar_reserves(state)
+    atlas_copies = godfrey_public_copies(state)
     inert_play_artifacts = _inert_play_artifacts(state, policy=setaside_policy)
     projection = state.public_decision_projection(open_choice_entities)
     active_setaside = set(projection["active_setaside"])
@@ -303,6 +493,12 @@ def build_snapshot_hypothesis(
                         else {entity.entity_id for entity in state.entities.values()
                               if entity.zone == "SETASIDE"})
     blocked_setaside -= open_setaside
+    blocked_setaside -= modeled_rebirth.keys()
+    blocked_setaside -= retired_heroes
+    blocked_setaside -= retired_powers
+    blocked_setaside -= staged_heroes
+    blocked_setaside -= reserves.keys()
+    blocked_setaside -= atlas_copies.keys()
     for entity in state.entities.values():
         if (entity.controller in (1, 2) and entity.zone == "SETASIDE"
                 and str(entity.entity_id) not in inert_setaside
@@ -330,8 +526,14 @@ def build_snapshot_hypothesis(
 
     mapper = EntityIdMapper()
     notes: list[str] = []
+    if opponent_short_format:
+        notes.append("advisory: expanded supported 20-card JAIL_430 deck to 40 cards at game start")
     if inert_setaside:
         notes.append(f"advisory: ignored {len(inert_setaside)} inert SETASIDE entities")
+    if modeled_rebirth:
+        notes.append("advisory: hydrated Husk corpse rebirth player enchantment")
+    if retired_heroes:
+        notes.append(f"advisory: ignored {len(retired_heroes)} retired Deathwing hero entities")
     if inert_play_artifacts:
         notes.append(
             f"advisory: ignored {len(inert_play_artifacts)} inert opaque PLAY artifacts")
@@ -343,7 +545,27 @@ def build_snapshot_hypothesis(
         player.locations.clear()
         player.secrets.clear()
         player.weapon = None
-        raw_hand = _controller_entities(state, live_controller, "HAND")
+        player.overdrawn_cards.clear()
+        player.broxigar_removed_from_game = any(owner == live_controller for owner, _ in reserves.values())
+        player.broxigar_return_used = any(owner == live_controller and used for owner, used in reserves.values())
+        raw_hand = [atlas_copies.get(e.entity_id, e)
+                    for e in _controller_entities(state, live_controller, "HAND")]
+        recovered = [e for e in atlas_copies.values() if e.controller == live_controller]
+        if recovered:
+            notes.append(f"controller {live_controller}: inferred {len(recovered)} Godfrey copies from public proxies")
+        for live in recovered:
+            if live.zone != "SETASIDE":
+                continue
+            card_id = _executable_card_id(game, live.card_id)
+            if card_id is None:
+                return BridgeResult(reason=f"non-executable Godfrey reserve: {live.card_id}")
+            card = game._entity(card_id)
+            card.entity_id = int(live.entity_id)
+            card.cost_delta = (live.cost - card.definition.cost) if live.cost is not None else -1
+            player.overdrawn_cards.append(card)
+        # Creation order does not establish recovery order in the public log.
+        # Sample one queue hypothesis rather than assert chronological order.
+        game.rng.shuffle(player.overdrawn_cards)
         public_hand = [x for x in raw_hand if x.card_id]
         hidden_hand = [x for x in raw_hand if not x.card_id]
         public_board = _controller_entities(state, live_controller, "PLAY")
@@ -356,6 +578,17 @@ def build_snapshot_hypothesis(
         observed = _visible_card_counts(state, live_controller)
         deck_source = decks[engine_index]
         remaining = _remaining_deck(deck_source, observed)
+        # Revealed/returned cards known to still be in DECK are not eligible
+        # for hidden hand sampling. Preserve their identities and live costs.
+        pinned_deck = []
+        for live in _controller_entities(state, live_controller, "DECK"):
+            if not live.card_id:
+                continue
+            generated = any(live.tags.get(tag) not in (None, 0, "0", "")
+                            for tag in ("CREATOR", "COPIED_FROM_ENTITY_ID"))
+            if not generated and live.card_id in remaining:
+                remaining.remove(live.card_id)
+                pinned_deck.append(live)
         # Hand cards may be generated, so construct from metadata even if not
         # in the candidate deck.  Hidden opponents are filled deterministically
         # below only when the log exposes an actual unknown hand entity.
@@ -402,11 +635,50 @@ def build_snapshot_hypothesis(
         # Remove cards already visible / played, retaining a deterministic
         # possible deck for future draws.  This does not assert its order.
         player.deck = [game._entity(card_id, started_in_deck=True) for card_id in remaining]
-        for _ in hidden_hand:
+        game.rng.shuffle(player.deck)
+        for live in hidden_hand:
+            generated_hypothesis = generated_hidden_hand_card(game, live)
+            if generated_hypothesis is not None:
+                card, explanation = generated_hypothesis
+                card.entity_id = int(live.entity_id)
+                player.hand.append(card)
+                mapper.bind(int(live.entity_id), card.entity_id)
+                notes.append(f"controller {live_controller}: {explanation}")
+                continue
+            if live.zone_history and live.zone_history[0][1] != "DECK":
+                return BridgeResult(reason=f"unsupported hidden generated hand entity: {live.entity_id}")
             if not player.deck:
                 return BridgeResult(reason=f"candidate deck cannot fill hidden hand for controller {live_controller}")
-            player.hand.append(player.deck.pop())
+            card = player.deck.pop()
+            card.entity_id = int(live.entity_id)
+            player.hand.append(card)
+            mapper.bind(int(live.entity_id), card.entity_id)
             notes.append(f"controller {live_controller} hidden hand determinised")
+        # Public generated cards still in DECK cannot fill hidden hand slots.
+        # They are extra cards, not copies of starting candidate deck entries.
+        for live in _controller_entities(state, live_controller, "DECK"):
+            if not live.card_id or not any(live.tags.get(tag) not in (None, 0, "0", "")
+                                          for tag in ("CREATOR", "COPIED_FROM_ENTITY_ID")):
+                continue
+            card_id = _executable_card_id(game, live.card_id)
+            if card_id is None:
+                return BridgeResult(reason=f"non-executable generated deck card: {live.card_id}")
+            card = game._entity(card_id)
+            card.entity_id = int(live.entity_id)
+            card.cost_delta = live.cost - card.definition.cost if live.cost is not None else 0
+            player.deck.append(card)
+        for live in pinned_deck:
+            card_id = _executable_card_id(game, live.card_id)
+            if card_id is None:
+                return BridgeResult(reason=f"non-executable known deck card: {live.card_id}")
+            card = game._entity(card_id, started_in_deck=True)
+            card.entity_id = int(live.entity_id)
+            card.cost_delta = live.cost - card.definition.cost if live.cost is not None else 0
+            player.deck.append(card)
+        game.rng.shuffle(player.deck)
+        hand_positions = {int(e.entity_id): int(e.tags.get("ZONE_POSITION", pos + 1))
+                          for pos, e in enumerate(raw_hand)}
+        player.hand.sort(key=lambda card: hand_positions.get(card.entity_id, 9999))
         raw_secrets = _controller_entities(state, live_controller, "SECRET")
         known_secrets = [x for x in raw_secrets if x.card_id]
         hidden_secrets = [x for x in raw_secrets if not x.card_id]
@@ -442,6 +714,10 @@ def build_snapshot_hypothesis(
             player.mana = int(meta["mana"])
         if meta.get("max_mana") is not None:
             player.max_mana = int(meta["max_mana"])
+        if meta.get("corpses") is not None:
+            player.corpses = max(0, int(meta["corpses"]))
+        if live_controller in modeled_rebirth.values():
+            player.corpse_rebirth_pending = True
         # A transformed/imbued Hero Power is a public entity in Power.log.
         # Preserve it when the engine has executable metadata; ordinary class
         # powers intentionally retain the simulator's class fallback.
@@ -458,15 +734,17 @@ def build_snapshot_hypothesis(
             notes.append(f"controller {live_controller} ordinary hero power uses class fallback")
         # Weapon stats and durability are public and do not require a hidden
         # determinisation.  They are safe to hydrate when the log exposes both
-        # values.  A missing durability stays closed because it changes Hero
-        # attack legality after combat.
+        # values. Current Power.log versions commonly encode weapon maximum
+        # durability as HEALTH and spent durability as DAMAGE, without a
+        # separate DURABILITY tag. Never guess if neither representation is
+        # present: durability changes Hero attack legality after combat.
         weapons = [x for x in _controller_entities(state, live_controller, "PLAY")
                    if x.card_type == "WEAPON"]
         if len(weapons) > 1:
             return BridgeResult(reason=f"controller {live_controller} has multiple live weapons")
         if weapons:
             live_weapon = weapons[0]
-            durability = live_weapon.tags.get("DURABILITY")
+            durability = _public_remaining_durability(live_weapon)
             if not live_weapon.card_id or durability is None:
                 return BridgeResult(reason="live weapon lacks identity or durability")
             definition = game.card_defs.get(live_weapon.card_id)
@@ -492,17 +770,25 @@ def build_snapshot_hypothesis(
         locations = [x for x in _controller_entities(state, live_controller, "PLAY")
                      if x.card_type == "LOCATION"]
         for live_location in locations:
-            durability = live_location.tags.get("DURABILITY")
+            durability = _public_remaining_durability(live_location)
             exhausted = live_location.tags.get("EXHAUSTED")
             if not live_location.card_id or durability is None:
                 return BridgeResult(reason="live location lacks identity or durability")
             if live_location.card_id not in game.card_defs:
                 return BridgeResult(reason=f"non-executable visible location: {live_location.card_id}")
-            # A location used this turn has cooldown 2.  At the start of the
-            # next owner turn it becomes 1 (still unusable); otherwise an
-            # exhausted location seen off-turn is conservatively kept at 2.
+            # The client exposes LOCATION_ACTION_COOLDOWN directly on newer
+            # logs. EXHAUSTED can remain 1 while that counter is 0, so the
+            # explicit location counter takes precedence for present-action
+            # legality. Older logs retain the conservative inference below.
             cooldown = 0
-            if exhausted is None:
+            public_cooldown = live_location.tags.get("LOCATION_ACTION_COOLDOWN")
+            try:
+                public_cooldown = max(0, int(public_cooldown)) if public_cooldown is not None else None
+            except (TypeError, ValueError):
+                public_cooldown = None
+            if public_cooldown is not None:
+                cooldown = public_cooldown
+            elif exhausted is None:
                 # Older log clients do not emit EXHAUSTED for every Location.
                 # Keeping it unavailable for two owner turns is conservative:
                 # it cannot fabricate an illegal Location use.
@@ -544,18 +830,45 @@ def build_snapshot_hypothesis(
             if source_id is not None:
                 card = next((x for x in player.board if x.entity_id == source_id), None)
                 if card is not None:
-                    card.attacks_this_turn += 1
+                    # The current public NUM_ATTACKS_THIS_TURN tag already
+                    # includes every earlier attack. History is a fallback
+                    # only when the client omitted that tag entirely.
+                    if (source_entity is None or
+                            source_entity.tags.get("NUM_ATTACKS_THIS_TURN") is None):
+                        card.attacks_this_turn += 1
                 else:
-                    player.hero_attacks_this_turn += 1
+                    hero = next((x for x in _controller_entities(
+                        state, int(controller), "PLAY") if x.card_type == "HERO"), None)
+                    if hero is None or hero.tags.get("NUM_ATTACKS_THIS_TURN") is None:
+                        player.hero_attacks_this_turn += 1
         elif kind == "POWER":
             if source_entity is not None and _is_hero_power(source_entity):
                 player.hero_power_used = True
         elif kind == "PLAY":
+            if source_entity is not None and _is_hero_power(source_entity):
+                player.hero_power_used = True
+                continue
             player.cards_played_this_turn += 1
             source_card = action.get("source_card")
             definition = game.card_defs.get(source_card)
             if definition is not None and definition.card_type == "SPELL":
                 player.spells_cast_this_turn += 1
+
+    # A refresh can follow an earlier use in the same turn. Current explicit
+    # EXHAUSTED beats historical usage; otherwise refreshed powers disappear
+    # from the legal-action list for the remainder of the turn.
+    for controller in (1, 2):
+        player = game.players[controller - 1]
+        powers = [e for e in _controller_entities(state, controller, "PLAY") if _is_hero_power(e)]
+        if len(powers) != 1:
+            continue
+        power = powers[0]
+        if power.tags.get("EXHAUSTED") in (0, 1, "0", "1"):
+            player.hero_power_used = _tag_is_true(power, "EXHAUSTED")
+        if power.card_id == "JAIL_EVENT_101hp":
+            amount = power.tags.get("TAG_SCRIPT_DATA_NUM_1")
+            if str(amount).isdigit() and int(amount) >= 2:
+                player.collapsing_star_damage = int(amount)
 
     game.next_entity_id = max([game.next_entity_id] + list(mapper.sim_to_live)) + 1
     visible = state.visible()
@@ -566,6 +879,31 @@ def build_snapshot_hypothesis(
     game.current = int(visible["active_player"]) - 1
     if visible.get("turn") is not None:
         game.turn = int(visible["turn"])
+    # Schema v5 consumes damage progress for effects whose conditions count
+    # distinct friendly characters damaged during the active player's turn.
+    # Rebuild it from explicit DAMAGE TagChanges, not the snapshot's cumulative
+    # DAMAGE values (which may include earlier turns). Entity registry entries
+    # survive deaths, so lethal damage still contributes to the count.
+    for event in state.damage_history:
+        if (event.get("turn") != current_turn
+                or event.get("active_player") != event.get("controller")):
+            continue
+        controller = event.get("controller")
+        if controller not in (1, 2):
+            continue
+        live = (state.entity_registry.get(str(event.get("entity")))
+                or state.entities.get(str(event.get("entity"))))
+        if live is None:
+            continue
+        player = game.players[int(controller) - 1]
+        if live.card_type == "HERO" or str(live.card_id or "").startswith("HERO_"):
+            player.damaged_characters_this_turn.add(f"hero:{player.index}")
+        elif live.card_type == "MINION" or (
+                live.card_id in game.card_defs
+                and game.card_defs[live.card_id].card_type == "MINION"):
+            if str(event.get("entity")).lstrip("-").isdigit():
+                player.damaged_characters_this_turn.add(
+                    f"minion:{int(event['entity'])}")
     if game.current != self_controller - 1:
         return BridgeResult(reason="waiting for local player's decision")
     if open_choice_entities:
@@ -595,4 +933,14 @@ def build_snapshot_hypothesis(
         return BridgeResult(reason="hydrated public state does not match Power.log",
                             public_match=comparison.as_dict(), hypothesis_notes=notes)
     game._live_replay_verified = True
+    # This game represents one candidate chosen by the live belief caller;
+    # preserve that hypothesis when PUCT resamples hidden hands internally.
+    # Use the already-publicly-filtered remainder, since synthetic hydration
+    # does not have an engine event history of all past plays.
+    opponent_index = 1 - game.current
+    from collections import Counter
+    hidden = game.players[opponent_index]
+    game.search_deck_hypotheses[game.current] = [
+        (1.0, dict(Counter(c.card_id for c in hidden.hand + hidden.deck)))
+    ]
     return BridgeResult(game=game, mapper=mapper, public_match=comparison.as_dict(), hypothesis_notes=notes)

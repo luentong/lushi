@@ -139,6 +139,25 @@ class HeuristicPolicy:
             return 0.0
         friendly = action.target_player == game.current
         if action.target_entity is None:
+            # A directly targeted damage card should normally point at an
+            # enemy.  Previously the generic target score treated all hero
+            # targets almost identically, which allowed rollouts to select
+            # an otherwise useless self-damage line (for example
+            # Shadowflame Suffusion -> own hero).  Keep explicit self-damage
+            # cards viable, but strongly prefer an enemy hero whenever the
+            # card text does not require damaging the friendly hero.
+            text = (card.definition.text or "").lower()
+            direct_damage = "damage" in text and not any(
+                marker in text
+                for marker in (
+                    "your hero",
+                    "friendly hero",
+                    "yourself",
+                    "deal damage to you",
+                )
+            )
+            if direct_damage:
+                return -90.0 if friendly else 45.0
             return -20.0 if friendly else 20.0
         if card.card_id in {"CATA_200", "CATA_490"}:
             # These Battlecries explicitly target another card in our hand,
@@ -156,6 +175,22 @@ class HeuristicPolicy:
             # has already validated the action; use a neutral heuristic score
             # when no minion-specific valuation applies.
             return 0.0
+        text = (card.definition.text or "").lower()
+        direct_damage = "damage" in text and not any(
+            marker in text
+            for marker in (
+                "your hero",
+                "friendly hero",
+                "yourself",
+                "deal damage to you",
+            )
+        )
+        if direct_damage:
+            # Removing a damaged enemy is more valuable than spending the
+            # same effect on a friendly body.  The explicit card handlers
+            # below can still refine this score for known effects.
+            value = (55.0 if target.health <= 2 else 28.0) + 3.0 * target.attack
+            return value if not friendly else -value
         if card.card_id == "CORE_SW_066":
             bonuses = abs(target.attack_delta) + abs(target.health_delta)
             keywords = sum((target.taunt, target.divine_shield, target.windfury,

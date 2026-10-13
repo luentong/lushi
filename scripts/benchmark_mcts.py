@@ -10,6 +10,7 @@ import sys
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
+from functools import lru_cache
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -27,6 +28,12 @@ from hsa.deck_metadata import apply_deck_metadata_overrides
 
 
 def matchup_deck_counts(config_path: Path, deck_a: str, deck_b: str):
+    decks = _decoded_decks(config_path)
+    return decks[deck_a], decks[deck_b]
+
+
+@lru_cache(maxsize=8)
+def _decoded_decks(config_path: Path):
     try:
         from hearthstone.deckstrings import Deck
     except ImportError:
@@ -49,7 +56,23 @@ def matchup_deck_counts(config_path: Path, deck_a: str, deck_b: str):
             {by_dbf[dbf_id]["id"]: count for dbf_id, count in deck.cards},
             card_class,
         )
-    return decode(deck_a), decode(deck_b)
+    return {name: decode(name) for name in by_id}
+
+
+def configure_search_beliefs(game, config_path: Path) -> None:
+    """Class-conditioned candidates from the declared evaluation universe.
+
+    Uniform over distinct supplied lists, not an estimate of ladder frequency.
+    The selected opponent's actual deck is not singled out.
+    """
+    decks = _decoded_decks(config_path)
+    for observer in (0, 1):
+        card_class = game.players[1 - observer].card_class
+        unique = {tuple(sorted(counts.items())) for counts, cls in decks.values()
+                  if cls == card_class}
+        game.search_deck_hypotheses[observer] = [
+            (1.0 / len(unique), dict(counts)) for counts in sorted(unique)
+        ] if unique else []
 from hsa.evaluation import wilson_interval
 
 
@@ -102,6 +125,8 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
         cards, seed, deck_counts=deck_counts, player_classes=player_classes
     )
     candidate_device = worker_device(args.device, args.npu_devices, seed)
+    if decoded_decks is not None:
+        configure_search_beliefs(game, args.deck_config)
     baseline_device = worker_device(
         args.baseline_device, args.npu_devices, seed
     )
@@ -145,6 +170,7 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
             ),
             max_total_iterations=args.baseline_max_total_iterations,
             neural_prior_depth=args.baseline_neural_prior_depth,
+            prior_temperature=args.baseline_prior_temperature,
         )
     if args.mode == "puct":
         if args.checkpoint is None:
@@ -166,6 +192,7 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
             min_simulations_per_root_action=args.min_simulations_per_root_action,
             max_total_iterations=args.max_total_iterations,
             neural_prior_depth=args.neural_prior_depth,
+            prior_temperature=args.prior_temperature,
         )
     else:
         search = (
@@ -187,11 +214,35 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
             else MCTSPolicy(args.iterations, args.rollout_depth)
         )
     policies[mcts_seat] = search
+    progress_path = None
+    if getattr(args, "progress_dir", None) is not None:
+        args.progress_dir.mkdir(parents=True, exist_ok=True)
+        progress_path = args.progress_dir / (
+            f"seed-{seed}-seat-{mcts_seat}-swap-{int(args.swap_decks)}.jsonl"
+        )
+        progress_path.open("x", encoding="utf-8").close()
+
+    def trace_progress(**payload):
+        if progress_path is not None:
+            with progress_path.open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps(payload, ensure_ascii=False) + "\n")
+
     actions = searches = nodes = simulations = adaptive_searches = 0
     started = time.perf_counter()
     while not game.finished and actions < args.max_actions:
         actor = game.current
-        game.step(policies[actor].choose(game))
+        step_started = time.perf_counter()
+        trace_progress(phase="before", action_index=actions, turn=game.turn,
+                       actor=actor, legal_actions=len(game.legal_actions()))
+        action = policies[actor].choose(game)
+        description = game.describe_action(action) if progress_path is not None else None
+        game.step(action)
+        trace_progress(phase="after", action_index=actions, turn=game.turn,
+                       actor=actor, action=description,
+                       elapsed_seconds=time.perf_counter() - step_started,
+                       finished=game.finished, winner=game.winner,
+                       search_iterations=policies[actor].last_search.get("iterations", 0)
+                       if hasattr(policies[actor], "last_search") else 0)
         if actor == mcts_seat:
             searches += 1
             nodes += int(search.last_search.get("nodes", 0))
@@ -200,7 +251,7 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
                 search.last_search.get("adaptive_iterations", 0) > 0
             )
         actions += 1
-    return {
+    result = {
         "seed": seed,
         "mcts_seat": mcts_seat,
         "winner": game.winner,
@@ -217,6 +268,12 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
         "candidate_device": candidate_device,
         "baseline_device": baseline_device,
     }
+    if progress_path is not None:
+        progress_path.with_suffix(".result.json").write_text(
+            json.dumps(result, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+    return result
 
 
 def _new_live_match(
@@ -245,6 +302,8 @@ def _new_live_match(
         cards, seed, deck_counts=deck_counts, player_classes=player_classes
     )
     candidate_device = worker_device(args.device, args.npu_devices, seed)
+    if decoded_decks is not None:
+        configure_search_beliefs(game, args.deck_config)
     baseline_device = worker_device(args.baseline_device, args.npu_devices, seed)
     policies = [HeuristicPolicy(), HeuristicPolicy()]
     if args.baseline in {"ismcts", "puct"}:
@@ -271,6 +330,7 @@ def _new_live_match(
             ),
             max_total_iterations=args.baseline_max_total_iterations,
             neural_prior_depth=args.baseline_neural_prior_depth,
+            prior_temperature=args.baseline_prior_temperature,
         )
     model = load_model(args.checkpoint, candidate_device)
     policies[mcts_seat] = InformationSetMCTSPolicy(
@@ -285,6 +345,7 @@ def _new_live_match(
         min_simulations_per_root_action=args.min_simulations_per_root_action,
         max_total_iterations=args.max_total_iterations,
         neural_prior_depth=args.neural_prior_depth,
+        prior_temperature=args.prior_temperature,
     )
     return {
         "seed": seed,
@@ -474,6 +535,8 @@ def main() -> int:
         type=int,
         help="limit neural policy priors to this many tree levels; 1 is root only",
     )
+    parser.add_argument("--prior-temperature", type=float, default=1.0,
+                         help="power-temperature for candidate PUCT priors (>1 flattens)")
     parser.add_argument("--checkpoint", type=Path)
     parser.add_argument(
         "--policy-only", action="store_true",
@@ -503,6 +566,8 @@ def main() -> int:
         type=int,
         help="limit baseline neural priors to this many tree levels; 1 is root only",
     )
+    parser.add_argument("--baseline-prior-temperature", type=float, default=1.0,
+                         help="power-temperature for baseline PUCT priors (>1 flattens)")
     parser.add_argument(
         "--baseline-policy-only", action="store_true",
         help="use baseline checkpoint priors with heuristic rollout values",
@@ -541,6 +606,8 @@ def main() -> int:
     parser.add_argument("--swap-decks", action="store_true",
                         help="place deck B in player 0 and deck A in player 1")
     parser.add_argument("--output", type=Path, default=ROOT / "reports" / "mcts-smoke.json")
+    parser.add_argument("--progress-dir", type=Path,
+                        help="Write durable per-action timing traces for long-game diagnosis")
     args = parser.parse_args()
     candidate_seats = tuple(
         int(item.strip()) for item in args.mcts_seats.split(",") if item.strip()
@@ -700,6 +767,12 @@ def main() -> int:
         ),
         "neural_prior_depth": (
             args.neural_prior_depth if args.mode == "puct" else None
+        ),
+        "prior_temperature": (
+            args.prior_temperature if args.mode == "puct" else None
+        ),
+        "baseline_prior_temperature": (
+            args.baseline_prior_temperature if args.baseline == "puct" else None
         ),
         "tree_depth": args.tree_depth if args.mode in {"ismcts", "puct"} else None,
         "rollout_depth": (

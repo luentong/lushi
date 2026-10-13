@@ -33,7 +33,21 @@ def test_candidate_class_filter_keeps_matching_decks_and_has_safe_fallback():
     assert module.filter_candidates_for_class(decks, cards, "MAGE") == decks
     assert module.class_matched_candidates(decks, cards, "PRIEST") == ([decks[1]], True)
     assert module.class_matched_candidates(decks, cards, "MAGE") == ([], False)
-    assert module.filter_complete_candidates([{"A": 20}, {"A": 30}]) == [{"A": 30}]
+    assert module.filter_complete_candidates([{"A": 20}, {"A": 30}]) == [{"A": 20}, {"A": 30}]
+    assert module.filter_complete_candidates([{"A": 19}, {"A": 30}]) == [{"A": 30}]
+
+
+def test_belief_candidate_cap_is_evenly_spaced_not_a_prefix():
+    from importlib.util import module_from_spec, spec_from_file_location
+    script = Path(__file__).parents[1] / "scripts" / "live_recommender.py"
+    spec = spec_from_file_location("live_recommender_even_sampling", script)
+    module = module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    decks = [{"DECK": index} for index in range(10)]
+    selected = module.select_belief_candidates(decks, 4)
+    assert [deck["DECK"] for deck in selected] == [0, 3, 6, 9]
+    assert module.select_belief_candidates(decks, 20) == decks
 
 
 def test_local_controller_is_inferred_from_hand_visibility():
@@ -641,8 +655,11 @@ def test_snapshot_bridge_hydrates_public_state_for_local_turn():
     assert result.available, result.reason
     assert result.mapper.resolve(10) == 10
     assert result.game._live_replay_verified
+    assert not any(event.get("kind") == "coin_given" for event in result.game.events)
     assert _executable_card_id(result.game, "VAC_COIN2") == "GAME_005"
     assert _executable_card_id(result.game, "TTN_COIN2") == "GAME_005"
+    assert _executable_card_id(result.game, "AV_COIN1") == "GAME_005"
+    assert _executable_card_id(result.game, "DFT_ALEX_COIN1") == "GAME_005"
     # A Hero's public ATK is authoritative even when a generated weapon is
     # not emitted as a normal CARDTYPE=WEAPON entity in the live snapshot.
     state.entities["1"].tags["ATK"] = 2

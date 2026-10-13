@@ -42,6 +42,91 @@ class _CountingEndTurnPrior(_EndTurnPrior):
 
 
 class MCTSPolicyTests(unittest.TestCase):
+    def test_action_q_estimate_is_optional_puct_first_play_urgency(self):
+        game = DragonMirrorGame(CARDS, 146)
+
+        class ActionQPrior:
+            name = "action-q-prior-test"
+            def predict(self, state, actions):
+                priors = tuple(1.0 / len(actions) for _ in actions)
+                q_values = tuple(
+                    0.8 if action.kind == "END_TURN" else -0.4
+                    for action in actions
+                )
+                return PolicyValueOutput(priors, 0.0, q_values)
+
+        policy = InformationSetMCTSPolicy(
+            samples=1, iterations_per_sample=2, tree_depth=2,
+            rollout_depth=0, policy_value_model=ActionQPrior(),
+            use_model_value=False, force_uniform_expansion=False,
+            neural_prior_depth=1, tactical_precheck=False,
+            use_action_value_estimates=True,
+        )
+        policy.choose(game)
+        stats = policy.last_search["root_action_stats"]
+        end_turn = next(
+            item for action, item in zip(game.legal_actions(), stats, strict=True)
+            if action.kind == "END_TURN"
+        )
+        self.assertAlmostEqual(0.8, end_turn["prior_value"])
+        self.assertTrue(any(
+            item["prior_value"] == -0.4 for item in stats
+            if item["prior"] > 0
+        ))
+
+    def test_value_sign_changes_only_when_actor_changes_not_after_each_action(self):
+        game = DragonMirrorGame(CARDS, 146)
+        actor = game.current
+        class ConstantRootValue:
+            name = "constant-root-value"
+            def predict(self, state, actions):
+                return PolicyValueOutput(
+                    tuple(1.0 / len(actions) for _ in actions),
+                    0.75 if state.current == actor else -0.75,
+                )
+        legal = game.legal_actions()
+        self.assertTrue(any(a.kind == "PLAY" for a in legal))
+        self.assertTrue(any(a.kind == "END_TURN" for a in legal))
+        policy = InformationSetMCTSPolicy(
+            samples=1, iterations_per_sample=len(legal), tree_depth=1,
+            rollout_depth=0, policy_value_model=ConstantRootValue(),
+            tactical_precheck=False,
+        )
+        policy.choose(game)
+        for stats in policy.last_search["root_action_stats"]:
+            self.assertEqual(1, stats["visits"])
+            self.assertAlmostEqual(0.75, stats["mean_value"])
+            self.assertEqual({1: 1}, stats["tree_depth_counts"])
+            self.assertEqual({0: 1}, stats["rollout_step_counts"])
+            self.assertEqual({"model": 1}, stats["value_source_counts"])
+
+    def test_root_perspective_value_is_not_negated_at_opponent_turn(self):
+        game = DragonMirrorGame(CARDS, 146)
+
+        class RootPerspectiveValue:
+            name = "root-perspective-value-test"
+
+            def predict(self, state, actions):
+                return PolicyValueOutput(
+                    tuple(1.0 / len(actions) for _ in actions), 0.0
+                )
+
+            def predict_value(self, state, observer):
+                self.last_observer = observer
+                return 0.75
+
+        model = RootPerspectiveValue()
+        legal = game.legal_actions()
+        policy = InformationSetMCTSPolicy(
+            samples=1, iterations_per_sample=len(legal), tree_depth=2,
+            rollout_depth=0, policy_value_model=model,
+            root_perspective_model_value=True,
+            tactical_precheck=False,
+        )
+        policy.choose(game)
+        for stats in policy.last_search["root_action_stats"]:
+            self.assertAlmostEqual(0.75, stats["mean_value"])
+
     def test_mcts_returns_legal_action_and_does_not_mutate_root(self):
         game = DragonMirrorGame(CARDS, 101)
         before = game.snapshot()
@@ -254,6 +339,22 @@ class MCTSPolicyTests(unittest.TestCase):
             policy.last_search["adaptive_iterations"],
         )
 
+    def test_optional_model_rollout_is_reproducible_and_does_not_mutate_root(self):
+        game = DragonMirrorGame(CARDS, 146)
+        before = game.snapshot()
+        policies = [InformationSetMCTSPolicy(
+            samples=1, iterations_per_sample=8, tree_depth=2,
+            rollout_depth=0, model_rollout_depth=3,
+            policy_value_model=HeuristicPolicyValueModel(), seed=77,
+        ) for _ in range(2)]
+        actions = [policy.choose(game) for policy in policies]
+        self.assertEqual(actions[0], actions[1])
+        self.assertEqual(policies[0].last_search, policies[1].last_search)
+        self.assertEqual(before, game.snapshot())
+        self.assertEqual(3, policies[0].last_search["model_rollout_depth"])
+        with self.assertRaises(ValueError):
+            InformationSetMCTSPolicy(model_rollout_depth=-1)
+
     def test_root_coverage_gives_each_action_requested_repeated_samples(self):
         game = DragonMirrorGame(CARDS, 146)
         policy = InformationSetMCTSPolicy(
@@ -264,6 +365,7 @@ class MCTSPolicyTests(unittest.TestCase):
         self.assertEqual(
             2, policy.last_search["minimum_root_action_visits_achieved"]
         )
+        self.assertGreater(policy.last_search["outcome_branches"], 0)
         self.assertTrue(
             all(
                 item["visits"] >= 2

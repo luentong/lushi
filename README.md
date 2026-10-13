@@ -450,6 +450,17 @@ removed for the paired v3 input. The v4 validation top-1 was 40.95% versus
 zone is still a correctness fix because it prevents hand/board aliasing, but
 this dataset does not demonstrate a strength improvement attributable to it.
 
+The current experimental state schema v5 adds two inputs that are absent from
+v4: the acting player's remaining-deck identity histogram, and per-turn
+distinct-friendly-character damage progress (capped at the four-character
+Warptooth threshold). The opponent's hidden deck identities remain excluded.
+The structured residual model accepts v4 checkpoints with their original
+1,217-feature legacy-vocabulary layout and v5 datasets with 1,500 features;
+the action vector is unchanged at 618 features. This is an input-coverage
+upgrade, not evidence of stronger play: no v5 checkpoint has been trained or
+evaluated yet. A v5 training run must regenerate teacher shards with the new
+schema and separately measure conditional-trigger sequencing performance.
+
 The low-budget PUCT expansion rule was also isolated. Standard prior-first
 expansion was tested against the existing force-unvisited rule with the same
 checkpoint, four simulations, four 910C workers, and 52 seat-swapped seed

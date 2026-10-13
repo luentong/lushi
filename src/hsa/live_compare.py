@@ -46,7 +46,8 @@ def compare_public_state(
         log_player = players.get(str(index + player_offset), {})
         meta = visible.get("player_meta", {}).get(str(index + player_offset), {})
         for field, attr in (("health", "health"), ("armor", "armor"),
-                            ("mana", "mana"), ("max_mana", "max_mana")):
+                            ("mana", "mana"), ("max_mana", "max_mana"),
+                            ("corpses", "corpses")):
             if meta.get(field) is not None and hasattr(player, attr):
                 value = getattr(player, attr)
                 if value != meta[field]:

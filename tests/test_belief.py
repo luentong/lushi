@@ -155,7 +155,7 @@ class PublicBeliefTests(unittest.TestCase):
         self.assertEqual(beliefs[0].as_dict(), beliefs[1].as_dict())
         self.assertGreater(len(beliefs[0].generated_cards[0].candidates), 1)
 
-    def test_returned_spell_becomes_a_generated_hidden_slot(self):
+    def test_returned_spell_is_counted_as_a_known_extra(self):
         game = DragonMirrorGame(CARDS, 225)
         card = next(
             c for c in game.players[1].hand + game.players[1].deck
@@ -175,7 +175,8 @@ class PublicBeliefTests(unittest.TestCase):
             entity=card.entity_id, source=card.card_id, destination="hand",
         )
         belief = PublicBelief.from_game(game, 0)
-        self.assertEqual(("CATA_585",), belief.generated_cards[0].candidates)
+        self.assertEqual(1, belief.known_extra_cards["CATA_585"])
+        self.assertEqual((), belief.generated_cards)
         self.assertEqual(0, belief.unresolved_hidden_slots)
 
     def test_hand_buff_sampling_uses_aggregate_count_not_private_entities(self):
@@ -223,6 +224,64 @@ class PublicBeliefTests(unittest.TestCase):
         ]
         self.assertTrue(souls)
         self.assertTrue(all(card.void_soul_cost == 3 for card in souls))
+
+    def test_void_soul_deathrattle_generation_preserves_public_cost(self):
+        game = DragonMirrorGame(CARDS, 233)
+        game.players[1].void_soul_level = 4
+        game._event(
+            "void_soul_generated", player=1, card="JAIL_732",
+            entity=9002, source="JAIL_733", destination="hand", cost=4,
+        )
+        soul = game._entity("JAIL_732", created_by="JAIL_733")
+        soul.void_soul_cost = 4
+        game.players[1].hand.append(soul)
+
+        belief = PublicBelief.from_game(game, 0)
+        generated = next(
+            slot for slot in belief.generated_cards
+            if slot.source_card_id == "JAIL_733"
+        )
+        self.assertEqual(4, generated.void_soul_cost)
+        sampled = belief.sample_determinization(game, seed=107)
+        self.assertTrue(any(
+            card.card_id == "JAIL_732" and card.void_soul_cost == 4
+            for card in sampled.players[1].hand + sampled.players[1].deck
+        ))
+
+    def test_void_blast_generated_hand_slot_preserves_public_cost(self):
+        game = DragonMirrorGame(CARDS, 239)
+        game.players[1].void_soul_level = 3
+        game._event(
+            "generated_to_hand", player=1, card="JAIL_732", entity=9003,
+            source="JAIL_891", cost=3,
+        )
+        soul = game._entity("JAIL_732", created_by="JAIL_891")
+        soul.void_soul_cost = 3
+        game.players[1].hand.append(soul)
+
+        belief = PublicBelief.from_game(game, 0)
+        generated = next(
+            slot for slot in belief.generated_cards
+            if slot.source_card_id == "JAIL_891"
+        )
+        self.assertEqual(3, generated.void_soul_cost)
+        sampled = belief.sample_determinization(game, seed=109)
+        self.assertTrue(any(
+            card.card_id == "JAIL_732" and card.void_soul_cost == 3
+            for card in sampled.players[1].hand + sampled.players[1].deck
+        ))
+
+    def test_starting_deck_void_soul_keeps_nonzero_default_tier(self):
+        game = DragonMirrorGame(CARDS, 241)
+        belief = PublicBelief(
+            observer=0, opponent=1,
+            starting_cards_remaining={"JAIL_732": 1},
+            known_extra_cards={}, opponent_hand_size=1, opponent_deck_size=0,
+            known_coin_in_hand=False, generated_cards=(), hand_modifiers=(),
+            unresolved_hidden_slots=0, public_events_consumed=0,
+        )
+        sampled = belief.sample_determinization(game, seed=113)
+        self.assertEqual(1, sampled.players[1].hand[0].void_soul_cost)
 
 
 if __name__ == "__main__":

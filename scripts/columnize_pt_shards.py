@@ -16,12 +16,19 @@ def columnize(src: Path, dst: Path) -> int:
     max_actions = max(len(r["actions"]) for r in records)
     n = len(records)
     states = torch.tensor([r["state"] for r in records], dtype=torch.float32)
+    opponent_value_states = torch.zeros_like(states)
+    opponent_value_valid = torch.zeros(n, dtype=torch.bool)
     actions = torch.zeros((n, max_actions, action_size), dtype=torch.float32)
     mask = torch.zeros((n, max_actions), dtype=torch.bool)
     chosen = torch.zeros(n, dtype=torch.long)
     values = torch.zeros(n, dtype=torch.float32)
     targets = torch.zeros((n, max_actions), dtype=torch.float32)
+    action_values = torch.zeros((n, max_actions), dtype=torch.float32)
+    action_value_visits = torch.zeros((n, max_actions), dtype=torch.int32)
+    action_value_mask = torch.zeros((n, max_actions), dtype=torch.bool)
     actors = torch.zeros(n, dtype=torch.int8)
+    value_valid = torch.ones(n, dtype=torch.bool)
+    conditional = torch.zeros(n, dtype=torch.bool)
     game_seeds = torch.zeros(n, dtype=torch.int64)
     winners = torch.full((n,), -1, dtype=torch.int8)
     for i, r in enumerate(records):
@@ -29,7 +36,21 @@ def columnize(src: Path, dst: Path) -> int:
         actions[i, :count] = torch.tensor(r["actions"], dtype=torch.float32)
         mask[i, :count] = True
         chosen[i] = int(r["chosen_action"])
-        values[i] = float(r["value_target"])
+        target_value = r.get("value_target")
+        is_value_valid = r.get("value_target_valid", True) and target_value is not None
+        value_valid[i] = bool(is_value_valid)
+        values[i] = float(target_value) if is_value_valid else 0.0
+        opponent_state = r.get("opponent_value_state")
+        opponent_target = r.get("opponent_value_target")
+        if (is_value_valid and opponent_state is not None
+                and opponent_target is not None):
+            if len(opponent_state) != state_size:
+                raise ValueError("opponent value state does not match state schema")
+            opponent_value_states[i] = torch.tensor(
+                opponent_state, dtype=torch.float32
+            )
+            opponent_value_valid[i] = True
+        conditional[i] = bool(r.get("conditional", False))
         actors[i] = int(r.get("actor", 0))
         game_seeds[i] = int(r.get("game_seed", 0))
         if r.get("winner") is not None:
@@ -40,10 +61,31 @@ def columnize(src: Path, dst: Path) -> int:
         else:
             limit = min(count, len(target))
             targets[i, :limit] = torch.tensor(target[:limit], dtype=torch.float32)
+        q_values = r.get("teacher_action_values")
+        q_visits = r.get("teacher_action_visits")
+        if q_values is not None and q_visits is not None:
+            q_limit = min(count, len(q_values), len(q_visits))
+            if q_limit:
+                action_values[i, :q_limit] = torch.tensor(
+                    q_values[:q_limit], dtype=torch.float32
+                )
+                action_value_visits[i, :q_limit] = torch.tensor(
+                    q_visits[:q_limit], dtype=torch.int32
+                )
+                action_value_mask[i, :q_limit] = (
+                    action_value_visits[i, :q_limit] > 0
+                )
     dst.parent.mkdir(parents=True, exist_ok=True)
-    torch.save({"header": payload.get("header", {}), "states": states, "actions": actions, "mask": mask,
+    torch.save({"header": payload.get("header", {}), "states": states,
+                "opponent_value_states": opponent_value_states,
+                "opponent_value_valid": opponent_value_valid,
+                "actions": actions, "mask": mask,
                 "chosen": chosen, "values": values, "actor": actors,
+                "value_valid": value_valid, "conditional": conditional,
                 "game_seed": game_seeds, "winner": winners,
+                "action_values": action_values,
+                "action_value_visits": action_value_visits,
+                "action_value_mask": action_value_mask,
                 "policy_targets": targets, "count": n}, dst)
     return n
 

@@ -33,6 +33,17 @@ def _available_mana(tags: dict[str, Any]) -> int | None:
     return max(0, resources - used)
 
 
+def _total_mana(tags: dict[str, Any]) -> int | None:
+    """Total current crystals in Power.log, even if MAXRESOURCES is omitted."""
+    value = tags.get("MAXRESOURCES")
+    if value is None:
+        value = tags.get("RESOURCES")
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 @dataclass
 class EntityView:
     entity_id: str
@@ -49,6 +60,9 @@ class EntityView:
     last_seen_packet: int | None = None
     zone_history: list[tuple[int | None, str]] = field(default_factory=list)
     references: set[int] = field(default_factory=set)
+    initial_controller: int | None = None
+    identity_history: list[tuple[int | None, str]] = field(default_factory=list)
+    creation_context: dict[str, Any] = field(default_factory=dict)
 
     def apply(self, row: dict[str, Any]) -> None:
         packet_id = row.get("packet_id")
@@ -58,9 +72,13 @@ class EntityView:
             packet_id = None
         if self.first_seen_packet is None:
             self.first_seen_packet = packet_id
+        if row.get("kind") == "FullEntity" and row.get("_creation_context") and not self.creation_context:
+            self.creation_context = dict(row["_creation_context"])
         self.last_seen_packet = packet_id
         if row.get("card_id"):
             self.card_id = row["card_id"]
+            if not self.identity_history or self.identity_history[-1][1] != self.card_id:
+                self.identity_history.append((packet_id, self.card_id))
         for tag_row in row.get("tags", ()):  # FullEntity/ShowEntity tags
             self._tag(tag_row.get("tag"), tag_row.get("value"), packet_id)
         self._tag(row.get("tag"), row.get("value"), packet_id)
@@ -72,6 +90,8 @@ class EntityView:
         self.tags[key] = value
         if key == "CONTROLLER":
             self.controller = int(value)
+            if self.initial_controller is None:
+                self.initial_controller = self.controller
         elif key == "ZONE":
             self.zone = str(value)
             if not self.zone_history or self.zone_history[-1][1] != self.zone:
@@ -100,10 +120,28 @@ class LiveGameState:
     game_phase: str | None = None
     fatigue: dict[str, int] = field(default_factory=dict)
     action_history: list[dict[str, Any]] = field(default_factory=list)
+    damage_history: list[dict[str, Any]] = field(default_factory=list)
     consistency_errors: list[str] = field(default_factory=list)
     reset_count: int = 0
+    open_choice_candidates: dict[int, tuple[str, ...]] = field(default_factory=dict)
+    resolved_choice_rejected_ids: set[str] = field(default_factory=set)
 
     def apply_row(self, row: dict[str, Any], *, replace_active: bool = False) -> None:
+        kind = str(row.get("kind") or "")
+        if kind in {"Choices", "ChosenEntities"}:
+            try:
+                choice_id = int(row["id"])
+                options = tuple(str(int(value)) for value in row.get("choices", ()))
+            except (KeyError, TypeError, ValueError):
+                choice_id, options = None, ()
+            if choice_id is not None:
+                if kind == "Choices":
+                    self.open_choice_candidates[choice_id] = options
+                else:
+                    candidates = self.open_choice_candidates.pop(choice_id, ())
+                    if candidates and options:
+                        self.resolved_choice_rejected_ids.update(
+                            set(candidates) - set(options))
         entity = row.get("entity")
         if entity is None:
             return
@@ -118,21 +156,25 @@ class LiveGameState:
         view.apply(row)
 
     def apply_game(self, game: dict[str, Any]) -> "LiveGameState":
-        for row in game.get("preamble", ()):
-            self.apply_row(row)
-        for block in game.get("blocks", ()):
-            if _is_game_reset(block):
-                self._reset_from_snapshot(block)
-                continue
-            self.blocks_seen += 1
-            self._apply_block_metadata(block)
-            self.apply_row({"entity": block.get("source_entity"), "card_id": block.get("source_card")})
-            self.apply_row({"entity": block.get("target_entity"), "card_id": block.get("target_card")})
-            for effect in block.get("effects", ()):
-                self.apply_row(effect)
+        for _, kind, item, parent in _ordered_game_events(game):
+            self._apply_ordered_event(kind, item, parent)
         self._resolve_action_controllers()
         self._refresh_public_game_metadata()
         return self
+
+    def _apply_ordered_event(
+        self, kind: str, item: dict[str, Any],
+        parent: dict[str, Any] | None,
+    ) -> None:
+        if kind == "row":
+            self.apply_row(item)
+            self._refresh_public_game_metadata()
+        elif kind == "block":
+            # An open block's effects are interleaved with top-level packets
+            # and nested blocks. Do not apply its full future effect list yet.
+            self.apply_block_delta({**item, "effects": []}, first_observation=True)
+        elif parent is not None:
+            self.apply_block_delta({**parent, "effects": [item]})
 
     def apply_block_delta(
         self, block: dict[str, Any], *, effect_start: int = 0,
@@ -165,7 +207,26 @@ class LiveGameState:
             self.apply_row({"entity": block.get("target_entity"),
                             "card_id": block.get("target_card")})
         for effect in block.get("effects", ())[effect_start:]:
+            self._record_damage_change(effect, block.get("packet_id"))
+            if effect.get("kind") == "FullEntity":
+                source = self.entities.get(str(block.get("source_entity")))
+                tags = {t.get("tag"): t.get("value") for t in effect.get("tags", ())}
+                controller = tags.get("CONTROLLER")
+                opening_hand_count = sum(
+                    e.controller == controller and e.zone == "HAND" and bool(e.zone_history)
+                    and e.zone_history[0][1] == "DECK" for e in self.entities.values())
+                effect = {**effect, "_creation_context": {
+                    "source_card": source.card_id if source else block.get("source_card"),
+                    "source_type": source.card_type if source else None,
+                    "block_type": block.get("block_type"), "turn": self.turn,
+                    "phase": self.game_phase, "opening_hand_count": opening_hand_count,
+                }}
             self.apply_row(effect)
+            tag = str(effect.get("tag") or "")
+            if tag in {"FATIGUE", "FATIGUE_DAMAGE"}:
+                controller = effect.get("controller") or block.get("controller")
+                if controller is not None:
+                    self.fatigue[str(controller)] = int(effect.get("value", 0))
         self._resolve_action_controllers()
         self._refresh_public_game_metadata()
 
@@ -247,7 +308,10 @@ class LiveGameState:
         self.game_phase = None
         self.fatigue.clear()
         self.action_history.clear()
+        self.damage_history.clear()
         self.consistency_errors.clear()
+        self.open_choice_candidates.clear()
+        self.resolved_choice_rejected_ids.clear()
         self.reset_count += 1
         for effect in block.get("effects", ()):
             self.apply_row(effect, replace_active=str(effect.get("kind") or "") in {"FullEntity", "ShowEntity"})
@@ -281,14 +345,29 @@ class LiveGameState:
             # alter the current legal action set.  Keep every other relation
             # active, especially choices, targets, attachments and unknown
             # secret identities.
-            creator_only_known_secret = bool(inbound) and all(
-                tag in {"CREATOR", "DISPLAYED_CREATOR"}
-                and source.zone == "SECRET" and bool(source.card_id)
-                for source, tag in inbound
-            )
-            has_live_reference = bool(inbound) and not creator_only_known_secret
+            # COPIED_FROM_ENTITY_ID records provenance, not a pending choice
+            # or attachment. Script-data pointers from a card already in the
+            # graveyard are likewise historical. A live source using either
+            # script-data pointer remains active and fail-closed.
+            def decision_reference(source: EntityView, tag: str) -> bool:
+                if tag == "COPIED_FROM_ENTITY_ID":
+                    return False
+                if source.zone == "GRAVEYARD" and tag in {
+                    "TAG_SCRIPT_DATA_NUM_1", "TAG_SCRIPT_DATA_NUM_2"
+                }:
+                    return False
+                if (tag in {"CREATOR", "DISPLAYED_CREATOR"}
+                        and source.zone == "SECRET" and bool(source.card_id)):
+                    return False
+                return True
+
+            has_live_reference = any(decision_reference(source, tag)
+                                     for source, tag in inbound)
+            rejected_choice_option = (entity.entity_id in self.resolved_choice_rejected_ids
+                                      and not has_live_reference)
             active = (entity_id in open_choices or has_live_reference
-                      or entity.card_type in _ACTIVE_SETASIDE_TYPES)
+                      or (entity.card_type in _ACTIVE_SETASIDE_TYPES
+                          and not rejected_choice_option))
             (active_setaside if active else inert_setaside).append(entity.entity_id)
         return {
             "decision_entities": decision_entities,
@@ -328,11 +407,18 @@ class LiveGameState:
             # belief updates and temporary-action legality must not each make
             # their own, potentially different, inference.
             controller = block.get("controller")
+            source_entity = self.entities.get(str(source))
             if controller not in (1, 2):
-                source_entity = self.entities.get(str(source))
                 controller = source_entity.controller if source_entity else controller
+            # Current clients encode a Location activation as a PLAY block
+            # even though the source was already on the board. Distinguish it
+            # from the earlier card play so cooldown and per-turn history can
+            # be reconstructed without replaying hidden effects.
+            action_kind = ("LOCATION" if kind == "PLAY" and source_entity is not None
+                           and source_entity.zone == "PLAY"
+                           and source_entity.card_type == "LOCATION" else kind)
             self.action_history.append({
-                "kind": kind, "source_entity": source,
+                "kind": action_kind, "source_entity": source,
                 "source_card": block.get("source_card"),
                 "target_entity": target,
                 "target_card": block.get("target_card"),
@@ -350,6 +436,46 @@ class LiveGameState:
                 if controller is not None:
                     self.fatigue[str(controller)] = int(effect.get("value", 0))
 
+    def _record_damage_change(
+        self, effect: dict[str, Any], packet_id: Any = None,
+    ) -> None:
+        """Retain public, within-turn damage events for condition features.
+
+        A current DAMAGE tag alone cannot reveal whether damage happened this
+        turn. Record only an explicit increasing TagChange, and resolve its
+        owner from the entity registry after hydration. FullEntity snapshots
+        establish a baseline; they are deliberately not treated as new damage.
+        """
+        if (str(effect.get("kind") or "").upper() != "TAGCHANGE"
+                or str(effect.get("tag") or "").upper() != "DAMAGE"):
+            return
+        raw_entity = effect.get("entity")
+        if raw_entity is None:
+            return
+        key = str(raw_entity)
+        entity = self.entities.get(key) or self.entity_registry.get(key)
+        if entity is None:
+            return
+        try:
+            new_damage = int(effect.get("value"))
+        except (TypeError, ValueError):
+            return
+        if new_damage <= entity.damage:
+            return
+        owner = entity.controller
+        if owner not in (1, 2):
+            try:
+                owner = int(effect.get("controller"))
+            except (TypeError, ValueError):
+                owner = None
+        self.damage_history.append({
+            "entity": key,
+            "controller": owner,
+            "turn": self.turn,
+            "active_player": self.active_player,
+            "packet_id": effect.get("packet_id", packet_id),
+        })
+
     def visible(self) -> dict[str, Any]:
         by_player: dict[str, dict[str, list[dict[str, Any]]]] = {}
         player_meta: dict[str, dict[str, Any]] = {}
@@ -360,9 +486,13 @@ class LiveGameState:
             meta = player_meta.setdefault(str(entity.controller), {})
             if entity.card_type == "PLAYER":
                 meta.update({"mana": _available_mana(entity.tags),
-                             "max_mana": entity.tags.get("MAXRESOURCES"),
-                             "fatigue": entity.tags.get("FATIGUE")})
-            if entity.card_type == "HERO":
+                             "max_mana": _total_mana(entity.tags),
+                             "fatigue": entity.tags.get("FATIGUE"),
+                             "corpses": entity.tags.get("CORPSES")})
+            # Hero replacement archives the previous hero in SETASIDE. Its
+            # stale health/armor must never overwrite the active hero's
+            # public stats, regardless of entity insertion order.
+            if entity.card_type == "HERO" and entity.zone == "PLAY":
                 meta.update({"max_health": entity.health,
                              "health": (entity.health - entity.damage) if entity.health is not None else None,
                              "damage": entity.damage,
@@ -394,8 +524,9 @@ class LiveGameState:
                         or entity.tags.get("MAXRESOURCES") is not None):
                     player_meta.setdefault(str(controller), {}).update({
                         "mana": _available_mana(entity.tags),
-                        "max_mana": entity.tags.get("MAXRESOURCES"),
+                        "max_mana": _total_mana(entity.tags),
                         "fatigue": entity.tags.get("FATIGUE"),
+                        "corpses": entity.tags.get("CORPSES"),
                     })
         return {
             "blocks_seen": self.blocks_seen,
@@ -406,6 +537,7 @@ class LiveGameState:
             "players": by_player,
             "player_meta": player_meta,
             "action_history": list(self.action_history),
+            "damage_history": list(self.damage_history),
             "entity_count": len(self.entities),
             "registry_entity_count": len(self.entity_registry),
             "reset_count": self.reset_count,
@@ -417,6 +549,46 @@ def reconstruct_game(game: dict[str, Any]) -> LiveGameState:
     return LiveGameState().apply_game(game)
 
 
+def _ordered_game_events(game: dict[str, Any]):
+    """Merge top-level packets, blocks and effects by original packet id.
+
+    The normalized `preamble` array contains *all* top-level packets, not
+    just the opening snapshot. Legacy synthetic fixtures without packet ids
+    retain their original preamble-then-block order.
+    """
+    timeline: list[tuple[int, int, tuple[Any, ...], str,
+                         dict[str, Any], dict[str, Any] | None]] = []
+    serial = 0
+
+    def packet_number(value: Any, fallback: int) -> int:
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return fallback
+
+    for index, row in enumerate(game.get("preamble", ())):
+        number = packet_number(row.get("packet_id"), -1)
+        timeline.append((number, serial, ("row", number if number >= 0 else index),
+                         "row", row, None))
+        serial += 1
+    for index, block in enumerate(game.get("blocks", ())):
+        block_number = packet_number(block.get("packet_id"), index)
+        block_key = ("block", block_number if block.get("packet_id") is not None
+                     else f"index:{index}")
+        timeline.append((block_number, serial, block_key, "block", block, None))
+        serial += 1
+        for effect_index, effect in enumerate(block.get("effects", ())):
+            effect_number = packet_number(effect.get("packet_id"), block_number)
+            effect_key = ("effect", effect_number if effect.get("packet_id") is not None
+                          else (block_key, effect_index))
+            timeline.append((effect_number, serial, effect_key,
+                             "effect", effect, block))
+            serial += 1
+    timeline.sort(key=lambda entry: (entry[0], entry[1]))
+    for _, _, key, kind, item, parent in timeline:
+        yield key, kind, item, parent
+
+
 @dataclass
 class LiveStateCursor:
     """Incrementally project one append-only normalized Power.log game."""
@@ -424,23 +596,20 @@ class LiveStateCursor:
     state: LiveGameState = field(default_factory=LiveGameState)
     preamble_rows_seen: int = 0
     block_effects_seen: dict[str, int] = field(default_factory=dict)
+    seen_event_keys: set[tuple[Any, ...]] = field(default_factory=set)
 
     def apply_game(self, game: dict[str, Any]) -> LiveGameState:
-        preamble = game.get("preamble", ())
-        for row in preamble[self.preamble_rows_seen:]:
-            self.state.apply_row(row)
-        self.preamble_rows_seen = len(preamble)
-
-        for index, block in enumerate(game.get("blocks", ())):
-            key = str(block.get("packet_id") if block.get("packet_id") is not None
-                      else f"index:{index}")
-            effects = block.get("effects", ())
-            previous = self.block_effects_seen.get(key)
-            if previous is None:
-                self.state.apply_block_delta(block, first_observation=True)
-            elif len(effects) > previous:
-                self.state.apply_block_delta(block, effect_start=previous)
-            self.block_effects_seen[key] = len(effects)
+        for key, kind, item, parent in _ordered_game_events(game):
+            if key in self.seen_event_keys:
+                continue
+            self.state._apply_ordered_event(kind, item, parent)
+            self.seen_event_keys.add(key)
+        self.preamble_rows_seen = len(game.get("preamble", ()))
+        self.block_effects_seen = {
+            str(block.get("packet_id") if block.get("packet_id") is not None
+                else f"index:{index}"): len(block.get("effects", ()))
+            for index, block in enumerate(game.get("blocks", ()))
+        }
         self.state._refresh_public_game_metadata()
         return self.state
 
@@ -448,34 +617,28 @@ class LiveStateCursor:
 def timeline_snapshots(game: dict[str, Any]) -> list[dict[str, Any]]:
     """Return compact public-state snapshots after each normalized block."""
     state = LiveGameState()
-    snapshots: list[dict[str, Any]] = []
-    for row in game.get("preamble", ()):
-        state.apply_row(row)
-    for block in game.get("blocks", ()):
-        if _is_game_reset(block):
-            state._reset_from_snapshot(block)
+    events = list(_ordered_game_events(game))
+    last_effect_key: dict[int, tuple[Any, ...]] = {}
+    for key, kind, _, parent in events:
+        if kind == "effect" and parent is not None:
+            last_effect_key[id(parent)] = key
+    snapshots_by_block: dict[int, dict[str, Any]] = {}
+    for key, kind, item, parent in events:
+        state._apply_ordered_event(kind, item, parent)
+        completed = (item if kind == "block" and id(item) not in last_effect_key
+                     else parent if kind == "effect" and parent is not None
+                     and last_effect_key.get(id(parent)) == key else None)
+        if completed is not None:
             visible = state.visible()
-            snapshots.append({"packet_id": block.get("packet_id"),
-                              "block_type": block.get("block_type"),
-                              "blocks_seen": state.blocks_seen,
-                              "entity_count": visible["entity_count"],
-                              "players": visible["players"],
-                              "player_meta": visible["player_meta"]})
-            continue
-        state.blocks_seen += 1
-        state._apply_block_metadata(block)
-        state.apply_row({"entity": block.get("source_entity"), "card_id": block.get("source_card")})
-        state.apply_row({"entity": block.get("target_entity"), "card_id": block.get("target_card")})
-        for effect in block.get("effects", ()):
-            state.apply_row(effect)
-        visible = state.visible()
-        snapshots.append({"packet_id": block.get("packet_id"),
-                          "block_type": block.get("block_type"),
-                          "blocks_seen": state.blocks_seen,
-                          "entity_count": visible["entity_count"],
-                          "players": visible["players"],
-                          "player_meta": visible["player_meta"]})
-    return snapshots
+            snapshots_by_block[id(completed)] = {
+                "packet_id": completed.get("packet_id"),
+                "block_type": completed.get("block_type"),
+                "blocks_seen": state.blocks_seen,
+                "entity_count": visible["entity_count"],
+                "players": visible["players"],
+                "player_meta": visible["player_meta"],
+            }
+    return [snapshots_by_block[id(block)] for block in game.get("blocks", ())]
 
 
 def _is_game_reset(block: dict[str, Any]) -> bool:
