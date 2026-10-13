@@ -4,12 +4,14 @@
 from __future__ import annotations
 
 import argparse
+import inspect
 import json
 import os
 import sys
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
+from functools import lru_cache
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -27,6 +29,12 @@ from hsa.deck_metadata import apply_deck_metadata_overrides
 
 
 def matchup_deck_counts(config_path: Path, deck_a: str, deck_b: str):
+    decks = _decoded_decks(config_path)
+    return decks[deck_a], decks[deck_b]
+
+
+@lru_cache(maxsize=8)
+def _decoded_decks(config_path: Path):
     try:
         from hearthstone.deckstrings import Deck
     except ImportError:
@@ -49,7 +57,19 @@ def matchup_deck_counts(config_path: Path, deck_a: str, deck_b: str):
             {by_dbf[dbf_id]["id"]: count for dbf_id, count in deck.cards},
             card_class,
         )
-    return decode(deck_a), decode(deck_b)
+    return {name: decode(name) for name in by_id}
+
+
+def configure_search_beliefs(game, config_path: Path) -> None:
+    """Use class-matched deck hypotheses without revealing the exact opponent list."""
+    decks = _decoded_decks(config_path)
+    for observer in (0, 1):
+        card_class = game.players[1 - observer].card_class
+        unique = {tuple(sorted(counts.items())) for counts, cls in decks.values()
+                  if cls == card_class}
+        game.search_deck_hypotheses[observer] = [
+            (1.0 / len(unique), dict(counts)) for counts in sorted(unique)
+        ] if unique else []
 from hsa.evaluation import wilson_interval
 
 
@@ -84,6 +104,25 @@ def worker_device(requested: str, npu_devices: str, seed: int) -> str:
     return f"npu:{devices[os.getpid() % len(devices)]}"
 
 
+def make_information_set_search(**kwargs):
+    """Keep default benchmarks runnable with older local search builds.
+
+    An explicitly requested action-Q or non-default prior temperature must
+    never be silently ignored by a search implementation lacking that feature.
+    """
+    parameters = inspect.signature(InformationSetMCTSPolicy).parameters
+    optional_defaults = {
+        "use_action_value_estimates": False,
+        "prior_temperature": 1.0,
+    }
+    for name, default in optional_defaults.items():
+        if name in kwargs and name not in parameters:
+            value = kwargs.pop(name)
+            if value != default:
+                raise RuntimeError(f"this search build does not support {name}")
+    return InformationSetMCTSPolicy(**kwargs)
+
+
 def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> dict:
     decoded_decks = (
         matchup_deck_counts(args.deck_config, args.deck_a, args.deck_b)
@@ -102,6 +141,8 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
         cards, seed, deck_counts=deck_counts, player_classes=player_classes
     )
     candidate_device = worker_device(args.device, args.npu_devices, seed)
+    if decoded_decks is not None:
+        configure_search_beliefs(game, args.deck_config)
     baseline_device = worker_device(
         args.baseline_device, args.npu_devices, seed
     )
@@ -122,7 +163,9 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
                     "baseline checkpoint value head was not trained; pass "
                     "--baseline-policy-only"
                 )
-        policies[baseline_seat] = InformationSetMCTSPolicy(
+            if args.baseline_use_action_values and not baseline_model.action_value_trained:
+                raise ValueError("baseline checkpoint action-Q head was not trained")
+        policies[baseline_seat] = make_information_set_search(
             samples=args.baseline_samples or args.samples,
             iterations_per_sample=(
                 args.baseline_iterations or args.iterations
@@ -136,6 +179,7 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
             ),
             seed=args.search_seed + seed * 2 + baseline_seat,
             policy_value_model=baseline_model,
+            use_action_value_estimates=args.baseline_use_action_values,
             use_model_value=(
                 args.baseline == "puct" and not args.baseline_policy_only
             ),
@@ -145,6 +189,7 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
             ),
             max_total_iterations=args.baseline_max_total_iterations,
             neural_prior_depth=args.baseline_neural_prior_depth,
+            prior_temperature=args.baseline_prior_temperature,
         )
     if args.mode == "puct":
         if args.checkpoint is None:
@@ -154,18 +199,22 @@ def play(cards: Path, seed: int, mcts_seat: int, args: argparse.Namespace) -> di
             raise ValueError(
                 "checkpoint value head was not trained; pass --policy-only"
             )
-        search = InformationSetMCTSPolicy(
+        if args.use_action_values and not model.action_value_trained:
+            raise ValueError("candidate checkpoint action-Q head was not trained")
+        search = make_information_set_search(
             samples=args.samples,
             iterations_per_sample=args.iterations,
             tree_depth=args.tree_depth,
             rollout_depth=args.rollout_depth if args.policy_only else 0,
             seed=args.search_seed + seed * 2 + mcts_seat,
             policy_value_model=model,
+            use_action_value_estimates=args.use_action_values,
             use_model_value=not args.policy_only,
             force_uniform_expansion=not args.prior_first_expansion,
             min_simulations_per_root_action=args.min_simulations_per_root_action,
             max_total_iterations=args.max_total_iterations,
             neural_prior_depth=args.neural_prior_depth,
+            prior_temperature=args.prior_temperature,
         )
     else:
         search = (
@@ -245,6 +294,8 @@ def _new_live_match(
         cards, seed, deck_counts=deck_counts, player_classes=player_classes
     )
     candidate_device = worker_device(args.device, args.npu_devices, seed)
+    if decoded_decks is not None:
+        configure_search_beliefs(game, args.deck_config)
     baseline_device = worker_device(args.baseline_device, args.npu_devices, seed)
     policies = [HeuristicPolicy(), HeuristicPolicy()]
     if args.baseline in {"ismcts", "puct"}:
@@ -253,7 +304,11 @@ def _new_live_match(
             load_model(args.baseline_checkpoint, baseline_device)
             if args.baseline == "puct" else None
         )
-        policies[baseline_seat] = InformationSetMCTSPolicy(
+        if args.baseline_use_action_values and (
+            baseline_model is None or not baseline_model.action_value_trained
+        ):
+            raise ValueError("baseline checkpoint action-Q head was not trained")
+        policies[baseline_seat] = make_information_set_search(
             samples=args.baseline_samples or args.samples,
             iterations_per_sample=args.baseline_iterations or args.iterations,
             tree_depth=args.baseline_tree_depth or args.tree_depth,
@@ -264,6 +319,7 @@ def _new_live_match(
             ),
             seed=args.search_seed + seed * 2 + baseline_seat,
             policy_value_model=baseline_model,
+            use_action_value_estimates=args.baseline_use_action_values,
             use_model_value=False,
             force_uniform_expansion=not args.baseline_prior_first_expansion,
             min_simulations_per_root_action=(
@@ -271,20 +327,25 @@ def _new_live_match(
             ),
             max_total_iterations=args.baseline_max_total_iterations,
             neural_prior_depth=args.baseline_neural_prior_depth,
+            prior_temperature=args.baseline_prior_temperature,
         )
     model = load_model(args.checkpoint, candidate_device)
-    policies[mcts_seat] = InformationSetMCTSPolicy(
+    if args.use_action_values and not model.action_value_trained:
+        raise ValueError("candidate checkpoint action-Q head was not trained")
+    policies[mcts_seat] = make_information_set_search(
         samples=args.samples,
         iterations_per_sample=args.iterations,
         tree_depth=args.tree_depth,
         rollout_depth=args.rollout_depth,
         seed=args.search_seed + seed * 2 + mcts_seat,
         policy_value_model=model,
+        use_action_value_estimates=args.use_action_values,
         use_model_value=False,
         force_uniform_expansion=not args.prior_first_expansion,
         min_simulations_per_root_action=args.min_simulations_per_root_action,
         max_total_iterations=args.max_total_iterations,
         neural_prior_depth=args.neural_prior_depth,
+        prior_temperature=args.prior_temperature,
     )
     return {
         "seed": seed,
@@ -474,7 +535,10 @@ def main() -> int:
         type=int,
         help="limit neural policy priors to this many tree levels; 1 is root only",
     )
+    parser.add_argument("--prior-temperature", type=float, default=1.0)
     parser.add_argument("--checkpoint", type=Path)
+    parser.add_argument("--use-action-values", action="store_true",
+                        help="use a trained action-Q head in candidate PUCT search")
     parser.add_argument(
         "--policy-only", action="store_true",
         help="use checkpoint priors but retain heuristic rollout leaf values",
@@ -489,6 +553,8 @@ def main() -> int:
         help="comma-separated NPU indices used when --device=npu",
     )
     parser.add_argument("--baseline-checkpoint", type=Path)
+    parser.add_argument("--baseline-use-action-values", action="store_true",
+                        help="use a trained action-Q head in baseline PUCT search")
     parser.add_argument("--baseline-device", default="cpu")
     parser.add_argument("--baseline-samples", type=int)
     parser.add_argument("--baseline-iterations", type=int)
@@ -503,6 +569,7 @@ def main() -> int:
         type=int,
         help="limit baseline neural priors to this many tree levels; 1 is root only",
     )
+    parser.add_argument("--baseline-prior-temperature", type=float, default=1.0)
     parser.add_argument(
         "--baseline-policy-only", action="store_true",
         help="use baseline checkpoint priors with heuristic rollout values",
@@ -659,6 +726,12 @@ def main() -> int:
         "baseline_policy_only": (
             args.baseline_policy_only if args.baseline == "puct" else None
         ),
+        "candidate_use_action_values": (
+            args.use_action_values if args.mode == "puct" else None
+        ),
+        "baseline_use_action_values": (
+            args.baseline_use_action_values if args.baseline == "puct" else None
+        ),
         "baseline_samples": (
             (args.baseline_samples or args.samples)
             if args.baseline in {"ismcts", "puct"} else None
@@ -700,6 +773,12 @@ def main() -> int:
         ),
         "neural_prior_depth": (
             args.neural_prior_depth if args.mode == "puct" else None
+        ),
+        "prior_temperature": (
+            args.prior_temperature if args.mode == "puct" else None
+        ),
+        "baseline_prior_temperature": (
+            args.baseline_prior_temperature if args.baseline == "puct" else None
         ),
         "tree_depth": args.tree_depth if args.mode in {"ismcts", "puct"} else None,
         "rollout_depth": (

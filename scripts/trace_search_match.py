@@ -48,7 +48,8 @@ def compact_state(snapshot: dict) -> dict:
             "deck_count": player["deck_count"],
             "weapon": player["weapon"],
             "hand": [
-                {"id": card["id"], "name": card["name"], "cost": card["cost"]}
+                {"id": card["id"], "entity": card["entity"],
+                 "name": card["name"], "cost": card["cost"]}
                 for card in player["hand"]
             ],
             "board": [
@@ -114,6 +115,12 @@ def main() -> int:
     parser.add_argument("--deck-config", type=Path)
     parser.add_argument("--deck-a")
     parser.add_argument("--deck-b")
+    parser.add_argument(
+        "--mulligan-mode", choices=("automatic", "teacher", "model"),
+        default="automatic",
+        help="Use explicit opening-hand steps; automatic preserves older traces.",
+    )
+    parser.add_argument("--mulligan-checkpoint", type=Path)
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--samples", type=int, default=1)
     parser.add_argument("--iterations", type=int, default=4)
@@ -126,6 +133,8 @@ def main() -> int:
     parser.add_argument("--cards", type=Path, default=ROOT / "cards.251332.enUS.json")
     parser.add_argument("--output-prefix", type=Path)
     args = parser.parse_args()
+    if args.mulligan_mode == "model" and args.mulligan_checkpoint is None:
+        parser.error("--mulligan-mode model requires --mulligan-checkpoint")
 
     prefix = args.output_prefix or (
         ROOT / "reports" / f"search-trace-{args.seed}-seat{args.candidate_seat}"
@@ -176,9 +185,15 @@ def main() -> int:
         player_classes = (class_a, class_b)
     game = DragonMirrorGame(
         args.cards, args.seed,
+        manual_mulligan=args.mulligan_mode != "automatic",
         deck_counts=deck_counts,
         player_classes=player_classes,
     )
+    mulligan_model = None
+    if args.mulligan_mode == "model":
+        from hsa.mulligan import MulliganModel
+        mulligan_model = MulliganModel(args.mulligan_checkpoint, args.device)
+    mulligan_masks = {}
     initial_state = compact_state(game.snapshot())
     if args.deck_config:
         configure_search_beliefs(game, args.deck_config)
@@ -189,9 +204,21 @@ def main() -> int:
         policy = policies[actor]
         legal = game.legal_actions()
         legal_descriptions = [game.describe_action(action) for action in legal]
-        action = policy.choose(game)
+        is_mulligan = bool(
+            game.pending_choice and game.pending_choice["kind"] == "MULLIGAN"
+        )
+        if is_mulligan:
+            from hsa.mulligan import next_mulligan_action, teacher_mask
+            if actor not in mulligan_masks:
+                mulligan_masks[actor] = (
+                    mulligan_model.choose_mask(game, actor)
+                    if mulligan_model is not None else teacher_mask(game, actor)
+                )
+            action = next_mulligan_action(game, mulligan_masks[actor])
+        else:
+            action = policy.choose(game)
         description = game.describe_action(action)
-        search = dict(policy.last_search)
+        search = {} if is_mulligan else dict(policy.last_search)
         root_policy = search.pop("root_policy", [])
         root_action_stats = search.pop("root_action_stats", None)
         if root_action_stats is None:
@@ -199,7 +226,7 @@ def main() -> int:
                 {"visit_share": probability}
                 for probability in root_policy
             ]
-        alternatives = sorted(
+        alternatives = [] if is_mulligan else sorted(
             [
                 {"action": text, **stats}
                 for text, stats in zip(
@@ -219,7 +246,8 @@ def main() -> int:
             "turn_before": state_before["turn"],
             "actor": actor + 1,
             "agent": (
-                "checkpoint-puct-v1"
+                f"mulligan-{args.mulligan_mode}"
+                if is_mulligan else "checkpoint-puct-v1"
                 if args.both_model or actor == args.candidate_seat
                 else "shared-tree-ismcts-v1"
             ),
@@ -258,6 +286,15 @@ def main() -> int:
             "use_action_value_estimates": args.use_action_value_estimates,
             "action_value_prior_weight": args.action_value_prior_weight,
             "checkpoint_sha256": checkpoint_sha256,
+            "mulligan_mode": args.mulligan_mode,
+            "mulligan_checkpoint": (
+                args.mulligan_checkpoint.as_posix()
+                if args.mulligan_checkpoint else None
+            ),
+            "mulligan_checkpoint_sha256": (
+                hashlib.sha256(args.mulligan_checkpoint.read_bytes()).hexdigest()
+                if args.mulligan_checkpoint else None
+            ),
         },
         "initial_state": initial_state,
         "steps": steps,

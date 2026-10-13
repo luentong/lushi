@@ -1939,6 +1939,7 @@ class TransformFriendlyMinionRandom:
         candidates = [
             card_id for card_id in game.executable_card_ids
             if card_id in game.card_defs
+            and not game._is_fabled_card_id(card_id)
             and game.card_defs[card_id].card_type == "MINION"
             and game.card_defs[card_id].cost <= max(0, target.cost - 1)
         ]
@@ -2136,6 +2137,10 @@ class OfferOutcastDiscover:
     map_followup: bool = False
 
     def execute(self, game: Any, context: RuleContext) -> None:
+        # Illidari Studies text is "Discover an Outcast card. Your next
+        # Outcast card costs (1) less."  The discount is keyed to the Outcast
+        # mechanic, not to spell type or Demon race; it applies regardless of
+        # whether that card is currently in an Outcast hand position.
         candidates = [
             card_id for card_id, definition in game.card_defs.items()
             if card_id in game.executable_card_ids
@@ -2147,8 +2152,8 @@ class OfferOutcastDiscover:
         )
         if self.map_followup and game.pending_choice is not None:
             game.pending_choice["map_followup"] = True
-        context.player.next_spell_cost_reduction = max(
-            context.player.next_spell_cost_reduction, 1
+        context.player.next_outcast_cost_reduction = max(
+            context.player.next_outcast_cost_reduction, 1
         )
 
 
@@ -4718,6 +4723,7 @@ class OfferEffectChoice:
     """Pause resolution until the controller selects one effect bundle."""
 
     options: tuple[tuple[str, tuple[Effect, ...]], ...]
+    requires_target_when_combined: bool = False
 
     def execute(self, game: Any, context: RuleContext) -> None:
         fandral_active = any(
@@ -5283,6 +5289,7 @@ class AddRandomDragon:
         candidates = sorted(
             card_id for card_id, definition in game.card_defs.items()
             if card_id in game.executable_card_ids
+            and not game._is_fabled_card_id(card_id)
             and definition.card_type == "MINION"
             and "DRAGON" in definition.races
         )
@@ -5307,6 +5314,7 @@ class SummonRandomDragonMinCost:
         candidates = sorted(
             card_id for card_id, definition in game.card_defs.items()
             if card_id in game.executable_card_ids
+            and not game._is_fabled_card_id(card_id)
             and definition.card_type == "MINION"
             and "DRAGON" in definition.races
             and definition.cost >= self.min_cost
@@ -6519,6 +6527,8 @@ class AddRandomLegendaryMinion:
         candidates = [
             card_id for card_id in game.executable_card_ids
             if card_id in game.card_defs
+            and not game._is_fabled_card_id(card_id)
+            and game._is_standard_collectible(game.card_defs[card_id])
             and game.card_defs[card_id].card_type == "MINION"
             and game.card_defs[card_id].rarity == "LEGENDARY"
         ]
@@ -6539,6 +6549,8 @@ class AddRandomLegendaryMinionDiscounted:
         candidates = [
             card_id for card_id in game.executable_card_ids
             if card_id in game.card_defs
+            and not game._is_fabled_card_id(card_id)
+            and game._is_standard_collectible(game.card_defs[card_id])
             and game.card_defs[card_id].card_type == "MINION"
             and game.card_defs[card_id].rarity == "LEGENDARY"
         ]
@@ -6889,6 +6901,8 @@ class SummonRandomMinionWithCost:
         candidates = [
             card_id for card_id in game.executable_card_ids
             if card_id in game.card_defs
+            and not game._is_fabled_card_id(card_id)
+            and game._is_standard_collectible(game.card_defs[card_id])
             and game.card_defs[card_id].card_type == "MINION"
             and game.card_defs[card_id].cost == self.cost
         ]
@@ -9034,7 +9048,12 @@ class AttackAllOtherMinions:
 class ReplayOtherSpellsAndEndTurn:
     def execute(self, game: Any, context: RuleContext) -> None:
         from .dragon_mirror import Action
-        for spell in list(context.player.spells_this_turn_for_replay):
+        # Snapshot and clear before replaying.  A replayed spell may itself
+        # trigger this effect; leaving the live list populated causes
+        # unbounded recursive replays during search rollouts.
+        spells = list(context.player.spells_this_turn_for_replay)
+        context.player.spells_this_turn_for_replay.clear()
+        for spell in spells:
             replay = copy.deepcopy(spell)
             candidates = game._random_spell_target_candidates(context.player.index, replay)
             action = Action("PLAY", replay.entity_id, *candidates[0][:2]) if candidates else Action("PLAY", replay.entity_id)
@@ -9377,6 +9396,8 @@ def _filtered_executable_ids(
     result: list[str] = []
     for card_id, definition in game.card_defs.items():
         if card_id not in game.executable_card_ids:
+            continue
+        if game._is_fabled_card_id(card_id):
             continue
         if collectible_only and not definition.collectible:
             continue
@@ -11638,6 +11659,8 @@ class AddLegendaryOneOneCopies:
     def execute(self, game: Any, context: RuleContext) -> None:
         candidates = [card_id for card_id in game.executable_card_ids
                       if card_id in game.card_defs
+                      and not game._is_fabled_card_id(card_id)
+                      and game._is_standard_collectible(game.card_defs[card_id])
                       and game.card_defs[card_id].card_type == "MINION"
                       and game.card_defs[card_id].rarity == "LEGENDARY"]
         for _ in range(self.count):
@@ -13301,6 +13324,18 @@ class RuleRegistry:
     def targeting(self, card_id: str) -> TargetSpec | None:
         rule = self.get(card_id)
         return None if rule is None else rule.targeting
+
+    def target_required_when_combined(self, card_id: str) -> bool:
+        """Whether a combined Choose One effect still needs an explicit target."""
+        rule = self.get(card_id)
+        if rule is None:
+            return False
+        return any(
+            isinstance(effect, OfferEffectChoice)
+            and effect.requires_target_when_combined
+            for effects in rule.hooks.values()
+            for effect in effects
+        )
 
     def has_hook(self, hook: Hook, card_id: str) -> bool:
         rule = self.get(card_id)
@@ -16855,7 +16890,7 @@ def build_rule_registry() -> RuleRegistry:
             "CORE_AT_037", {Hook.SPELL: (OfferEffectChoice((
                 ("damage_2", (DamageActionTarget(2),)),
                 ("summon_saplings", (Summon("TTN_950t", count=2),)),
-            )),)},
+            ), requires_target_when_combined=True),)},
             RuleSource("upstream_adapted", rosetta, "AT_037", "AGPL-3.0", ("test_living_roots_choose_one",)),
             TargetSpec(TargetKind.ANY_CHARACTER, optional=True),
         ),

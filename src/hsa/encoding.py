@@ -4,17 +4,20 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 from .dragon_mirror import Action, DragonMirrorGame
 from .legacy_vocab import LEGACY_CARD_VOCAB
 
 
-STATE_SCHEMA_VERSION = 4
+STATE_SCHEMA_VERSION = 7
 LEGACY_STATE_SCHEMA_VERSION = 1
 ABSOLUTE_ACTION_PLAYER_SCHEMA_VERSION = 2
 RELATIVE_ACTION_PLAYER_SCHEMA_VERSION = 3
+ACTION_TARGET_ZONE_SCHEMA_VERSION = 4
 ACTION_KINDS = (
     "END_TURN", "MULLIGAN_TOGGLE", "MULLIGAN_CONFIRM", "TRADE", "PLAY",
     "PREPARE", "ATTACK", "HERO_ATTACK", "LOCATION", "HERO_POWER",
@@ -79,6 +82,138 @@ TARGET_KINDS = ("none", "hero", "card", "literal")
 MAX_HAND_SLOTS = 10
 MAX_BOARD_SLOTS = 7
 
+# Schema v7 assigns an explicit card token to every card-bearing entity slot.
+# Zero means an empty slot, one means a known runtime card outside the frozen
+# vocabulary, and vocabulary rows start at two.  The layout is fixed so NPU
+# batches retain static shapes as cards enter and leave play.
+ENTITY_CARD_LAYOUT = (
+    ("own_hand", MAX_HAND_SLOTS),
+    ("own_board", MAX_BOARD_SLOTS),
+    ("enemy_board", MAX_BOARD_SLOTS),
+    ("own_locations", MAX_BOARD_SLOTS),
+    ("enemy_locations", MAX_BOARD_SLOTS),
+    ("weapons", 2),
+    ("hero_powers", 2),
+)
+ENTITY_CARD_SLOT_COUNT = sum(width for _, width in ENTITY_CARD_LAYOUT)
+
+# Card semantics are intentionally independent of the frozen card-ID
+# vocabulary.  This lets an unseen-but-known card contribute type, class,
+# tribe, cost, stats, rarity and keyword information instead of collapsing to
+# an all-zero identity feature.
+CARD_TYPES = ("MINION", "SPELL", "WEAPON", "LOCATION", "HERO")
+CARD_CLASSES = (
+    "NEUTRAL", "DEATHKNIGHT", "DEMONHUNTER", "DRUID", "HUNTER",
+    "MAGE", "PALADIN", "PRIEST", "ROGUE", "SHAMAN", "WARLOCK",
+    "WARRIOR",
+)
+CARD_RACES = (
+    "BEAST", "DEMON", "DRAGON", "ELEMENTAL", "MECHANICAL", "MURLOC",
+    "NAGA", "PIRATE", "QUILBOAR", "TOTEM", "UNDEAD", "ALL", "TREANT",
+    "GNOLL", "GRONN", "OGRE", "TITAN", "PET", "DRAENEI", "CENTAUR",
+)
+CARD_MECHANICS = (
+    "TAUNT", "RUSH", "CHARGE", "BATTLECRY", "DEATHRATTLE", "DIVINE_SHIELD",
+    "REBORN", "WINDFURY", "MEGA_WINDFURY", "LIFESTEAL", "POISONOUS",
+    "VENOMOUS", "STEALTH", "ELUSIVE", "FREEZE", "DISCOVER", "INSPIRE",
+    "SPELLBURST", "OUTCAST", "OVERKILL", "FRENZY", "HONORABLE_KILL",
+    "CORRUPT", "ECHO", "TRADEABLE", "MAGNETIC", "DORMANT", "COLOSSAL",
+    "OVERLOAD", "TWINSPELL", "REWIND", "FINALE", "QUICKDRAW", "KINDRED",
+)
+CARD_RARITIES = ("FREE", "COMMON", "RARE", "EPIC", "LEGENDARY", "SPECIAL")
+CARD_TEXT_EFFECT_PATTERNS = (
+    r"\bdamage\b", r"\bdestroy\b", r"\bsilence\b", r"\bsummon\b",
+    r"\bdraw\b", r"\bdiscover\b", r"\badd .{0,50} to (?:your )?hand\b|\bgenerate\b",
+    r"\btransform\b|\bturn .{0,50} into\b", r"\bcopy\b",
+    r"\breturn .{0,50} to (?:your )?hand\b", r"\bshuffle .{0,50} into .{0,30}deck\b",
+    r"\bresurrect\b|\brevive\b", r"\breduce .{0,40}cost\b|\bcosts? (?:\([0-9]+\) )?less\b",
+    r"\bincrease .{0,40}cost\b|\bcosts? (?:\([0-9]+\) )?more\b",
+    r"\bgain .{0,30}mana\b|\brefresh .{0,30}mana\b|\bmana crystal\b",
+    r"\barmor\b", r"\bheal\b|\brestore .{0,30}health\b",
+    r"\bgive .{0,40}\+|\bgain .{0,30}\+", r"\breduce .{0,30}attack\b|\blose .{0,30}attack\b",
+    r"\battack\b", r"\bweapon\b|\bequip\b", r"\bsecret\b",
+    r"\bchoose one\b|\bchoose both\b", r"\brandom(?:ly)?\b",
+    r"\benemy\b|\bopposing\b", r"\bfriendly\b|\byour minion\b|\byour character\b",
+    r"\bbattlecry\b", r"\bdeathrattle\b|\bafter .{0,30}dies\b|\bwhen .{0,30}dies\b",
+    r"\bend of your turn\b|\bat end of turn\b", r"\bstart of your turn\b",
+    r"\bwhenever .{0,40}damage\b|\bafter .{0,30}takes damage\b|\bwhen .{0,30}damaged\b",
+    r"\bafter you play\b|\bwhenever you play\b|\bwhen you play\b",
+    r"\bif you\b|\bif your\b|\bwhile you\b|\bwhen you have\b",
+    r"\bfor every\b|\beach time\b|\bprogress\b|\bquest\b",
+    r"\bagain\b|\btwice\b|\brepeat\b", r"\blifesteal\b",
+    r"\bthis turn\b|\buntil end of turn\b", r"\bboard\b|\bbattlefield\b",
+    r"\bhand\b", r"\bdeck\b", r"\bhero\b", r"\bspell\b", r"\bminion\b",
+    r"\battack your hero\b|\battack the enemy hero\b",
+)
+_CARD_TEXT_EFFECT_REGEXES = tuple(re.compile(pattern) for pattern in CARD_TEXT_EFFECT_PATTERNS)
+CARD_SEMANTIC_FEATURE_SIZE = (
+    len(CARD_TYPES) + len(CARD_CLASSES) + len(CARD_RACES)
+    + len(CARD_MECHANICS) + 11 + 2 + len(CARD_RARITIES)
+    + len(CARD_TEXT_EFFECT_PATTERNS)
+)
+
+
+def card_semantic_features(definition) -> tuple[float, ...]:
+    """Return a stable, ID-free metadata vector for a card definition."""
+    def attr(name, json_name=None, default=None):
+        if isinstance(definition, dict):
+            return definition.get(json_name or name, default)
+        return getattr(definition, name, default)
+
+    # Cache by the fields that affect the vector, not card ID or object
+    # identity. Some runtime cards share an ID but have modified definitions.
+    return _card_semantic_features_cached(
+        attr("card_type", "type", ""),
+        tuple(attr("classes", default=()) or ()),
+        attr("card_class", "cardClass", "") or "",
+        tuple(attr("races", default=()) or ()),
+        attr("race", default=""),
+        tuple(attr("mechanics", default=()) or ()),
+        attr("cost", default=0), attr("attack", default=0),
+        attr("health", default=0), attr("rarity", default="") or "SPECIAL",
+        attr("text", default="") or "",
+    )
+
+
+@lru_cache(maxsize=8192)
+def _card_semantic_features_cached(card_type, classes, card_class, races,
+                                   race, mechanics, cost_raw, attack_raw,
+                                   health_raw, rarity, text_raw):
+    values = _one_hot(CARD_TYPES.index(card_type)
+                      if card_type in CARD_TYPES else None,
+                      len(CARD_TYPES))
+    classes = set(classes)
+    classes.add(card_class)
+    values.extend(float(name in classes) for name in CARD_CLASSES)
+    races = set(races)
+    if race:
+        races.add(race)
+    values.extend(float(name in races) for name in CARD_RACES)
+    mechanics = set(mechanics)
+    values.extend(float(name in mechanics) for name in CARD_MECHANICS)
+    cost = max(0, min(10, int(cost_raw)))
+    values.extend(_one_hot(cost, 11))
+    values.extend((min(max(float(attack_raw), 0.0), 20.0) / 20.0,
+                   min(max(float(health_raw), 0.0), 20.0) / 20.0))
+    values.extend(_one_hot(CARD_RARITIES.index(rarity)
+                           if rarity in CARD_RARITIES else None,
+                           len(CARD_RARITIES)))
+    text = re.sub(r"\s+", " ", text_raw).lower()
+    values.extend(float(bool(pattern.search(text)))
+                  for pattern in _CARD_TEXT_EFFECT_REGEXES)
+    if len(values) != CARD_SEMANTIC_FEATURE_SIZE:
+        raise AssertionError("card semantic feature width drifted")
+    return tuple(values)
+
+
+def _semantic_summary(cards, divisor: float) -> list[float]:
+    result = [0.0] * CARD_SEMANTIC_FEATURE_SIZE
+    for card in cards:
+        features = card_semantic_features(card.definition)
+        for index, value in enumerate(features):
+            result[index] += value / divisor
+    return result
+
 
 def _one_hot(index: int | None, size: int) -> list[float]:
     result = [0.0] * size
@@ -96,6 +231,56 @@ def _card_histogram(cards) -> list[float]:
     return result
 
 
+def _entity_card_token(card_id: str | None) -> float:
+    if not card_id:
+        return 0.0
+    index = CARD_INDEX.get(card_id)
+    return float(1 if index is None else index + 2)
+
+
+def _entity_card_tokens(game: DragonMirrorGame, observer: int) -> list[float]:
+    """Return aligned card identities for every visible card-bearing slot."""
+    own = game.players[observer]
+    enemy = game.players[1 - observer]
+
+    def padded_ids(cards, width: int) -> list[str | None]:
+        values = [getattr(card, "card_id", None) for card in cards[:width]]
+        return values + [None] * (width - len(values))
+
+    ids: list[str | None] = []
+    ids.extend(padded_ids(own.hand, MAX_HAND_SLOTS))
+    ids.extend(padded_ids(own.board, MAX_BOARD_SLOTS))
+    ids.extend(padded_ids(enemy.board, MAX_BOARD_SLOTS))
+    ids.extend(padded_ids(own.locations, MAX_BOARD_SLOTS))
+    ids.extend(padded_ids(enemy.locations, MAX_BOARD_SLOTS))
+    ids.extend((
+        getattr(own.weapon, "card_id", None),
+        getattr(enemy.weapon, "card_id", None),
+        own.hero_power_id,
+        enemy.hero_power_id,
+    ))
+    if len(ids) != ENTITY_CARD_SLOT_COUNT:
+        raise AssertionError("entity card layout width drifted")
+    return [_entity_card_token(card_id) for card_id in ids]
+
+
+def card_semantic_lookup(card_definitions: dict[str, object]) -> list[list[float]]:
+    """Build the shared v7 semantic table aligned with entity token IDs.
+
+    The table is stored once in the dataset header/checkpoint, rather than
+    repeating 134 semantic floats for every entity in every decision record.
+    """
+    table = [
+        [0.0] * CARD_SEMANTIC_FEATURE_SIZE,  # empty
+        [0.0] * CARD_SEMANTIC_FEATURE_SIZE,  # out-of-vocabulary
+    ]
+    for card_id in CARD_VOCAB:
+        definition = card_definitions.get(card_id)
+        table.append(list(card_semantic_features(definition)) if definition else
+                     [0.0] * CARD_SEMANTIC_FEATURE_SIZE)
+    return table
+
+
 def encode_state(
     game: DragonMirrorGame,
     observer: int | None = None,
@@ -107,6 +292,9 @@ def encode_state(
         LEGACY_STATE_SCHEMA_VERSION,
         ABSOLUTE_ACTION_PLAYER_SCHEMA_VERSION,
         RELATIVE_ACTION_PLAYER_SCHEMA_VERSION,
+        ACTION_TARGET_ZONE_SCHEMA_VERSION,
+        5,
+        6,
         STATE_SCHEMA_VERSION,
     }:
         raise ValueError(f"unsupported state schema version: {schema_version}")
@@ -133,6 +321,12 @@ def encode_state(
     values.extend(_card_histogram(own.hand))
     values.extend(_card_histogram(own.board))
     values.extend(_card_histogram(enemy.board))
+    if schema_version >= 5:
+        # The acting player knows their deck list and which cards remain in
+        # it. Keep this histogram contiguous with the other card roles so the
+        # structured model can embed them with one shared identity table.
+        # Never expose the opponent's hidden deck identities here.
+        values.extend(_card_histogram(own.deck))
     if schema_version == LEGACY_STATE_SCHEMA_VERSION:
         return tuple(values)
 
@@ -193,6 +387,20 @@ def encode_state(
                 float(card.poisonous or card.aura_poisonous),
             ))
 
+    if schema_version >= 5:
+        # Conditional triggers such as Warptooth depend on distinct friendly
+        # characters damaged during the active player's turn. Dead minions are
+        # no longer on board, so this progress cannot be reconstructed from
+        # the ordinary board slots. Only expose the active player's current
+        # turn counter; the other player's retained prior-turn counter is not
+        # actionable and would be misleading.
+        values.extend((
+            min(len(own.damaged_characters_this_turn), 4) / 4.0
+            if game.current == own.index else 0.0,
+            min(len(enemy.damaged_characters_this_turn), 4) / 4.0
+            if game.current == enemy.index else 0.0,
+        ))
+
     for player in (own, enemy):
         for position in range(MAX_BOARD_SLOTS):
             location = (
@@ -203,6 +411,16 @@ def encode_state(
                 location.durability / 5.0 if location else 0.0,
                 location.cooldown / 5.0 if location else 0.0,
             ))
+    if schema_version >= 6:
+        # Same four observable card roles as the ID histograms, but semantic
+        # metadata is retained even for cards outside the frozen ID vocab.
+        for cards, divisor in (
+            (own.hand, 10.0), (own.board, 7.0),
+            (enemy.board, 7.0), (own.deck, 30.0),
+        ):
+            values.extend(_semantic_summary(cards, divisor))
+    if schema_version >= 7:
+        values.extend(_entity_card_tokens(game, observer))
     return tuple(values)
 
 
@@ -236,6 +454,9 @@ def encode_action(
         LEGACY_STATE_SCHEMA_VERSION,
         ABSOLUTE_ACTION_PLAYER_SCHEMA_VERSION,
         RELATIVE_ACTION_PLAYER_SCHEMA_VERSION,
+        ACTION_TARGET_ZONE_SCHEMA_VERSION,
+        5,
+        6,
         STATE_SCHEMA_VERSION,
     }:
         raise ValueError(f"unsupported action schema version: {schema_version}")
@@ -289,7 +510,7 @@ def encode_action(
         source_position if isinstance(source_position, int) else None,
         MAX_HAND_SLOTS,
     )
-    if schema_version >= STATE_SCHEMA_VERSION:
+    if schema_version >= ACTION_TARGET_ZONE_SCHEMA_VERSION:
         values += _one_hot(ZONE_NAMES.index(target_zone), len(ZONE_NAMES))
     values += _one_hot(TARGET_KINDS.index(target_kind), len(TARGET_KINDS))
     values += _one_hot(target_player, 2)
@@ -303,6 +524,13 @@ def encode_action(
         if source_zone == "literal" and isinstance(source_position, int)
         else 0.0
     )
+    if schema_version >= 6:
+        source_definition = game.card_defs.get(source_card) if source_card else None
+        target_definition = game.card_defs.get(target_card) if target_card else None
+        values.extend(card_semantic_features(source_definition)
+                      if source_definition else (0.0,) * CARD_SEMANTIC_FEATURE_SIZE)
+        values.extend(card_semantic_features(target_definition)
+                      if target_definition else (0.0,) * CARD_SEMANTIC_FEATURE_SIZE)
     return tuple(values)
 
 
@@ -327,18 +555,26 @@ def encode_decision(game: DragonMirrorGame) -> EncodedDecision:
 
 def feature_schema(
     schema_version: int = STATE_SCHEMA_VERSION,
+    *,
+    card_definitions: dict[str, object] | None = None,
 ) -> dict[str, object]:
     if schema_version not in {
         LEGACY_STATE_SCHEMA_VERSION,
         ABSOLUTE_ACTION_PLAYER_SCHEMA_VERSION,
         RELATIVE_ACTION_PLAYER_SCHEMA_VERSION,
+        ACTION_TARGET_ZONE_SCHEMA_VERSION,
+        5,
+        6,
         STATE_SCHEMA_VERSION,
     }:
         raise ValueError(f"unsupported state schema version: {schema_version}")
     vocab_json = json.dumps(CARD_VOCAB, separators=(",", ":"))
     legacy_state_size = 24 + 3 * len(CARD_VOCAB)
     dynamic_state_size = 16 + MAX_HAND_SLOTS * 4 + 2 * MAX_BOARD_SLOTS * 19 + 2 * MAX_BOARD_SLOTS * 2
-    return {
+    semantic_state_size = 4 * CARD_SEMANTIC_FEATURE_SIZE if schema_version >= 6 else 0
+    semantic_action_size = 2 * CARD_SEMANTIC_FEATURE_SIZE if schema_version >= 6 else 0
+    entity_identity_size = ENTITY_CARD_SLOT_COUNT if schema_version >= 7 else 0
+    result = {
         "schema_version": schema_version,
         "card_vocab_size": len(CARD_VOCAB),
         "card_vocab_mode": CARD_VOCAB_MODE,
@@ -348,13 +584,15 @@ def feature_schema(
             legacy_state_size
             if schema_version == LEGACY_STATE_SCHEMA_VERSION
             else legacy_state_size + dynamic_state_size
+            + (2 + len(CARD_VOCAB) if schema_version >= 5 else 0)
+            + semantic_state_size + entity_identity_size
         ),
         "action_size": (
             len(ACTION_KINDS) + len(ZONE_NAMES) + 2 + len(CARD_VOCAB)
             + MAX_HAND_SLOTS
-            + (len(ZONE_NAMES) if schema_version >= STATE_SCHEMA_VERSION else 0)
+            + (len(ZONE_NAMES) if schema_version >= ACTION_TARGET_ZONE_SCHEMA_VERSION else 0)
             + len(TARGET_KINDS) + 2 + len(CARD_VOCAB)
-            + MAX_HAND_SLOTS + 1
+            + MAX_HAND_SLOTS + 1 + semantic_action_size
         ),
         "action_kinds": list(ACTION_KINDS),
         "action_player_encoding": (
@@ -362,8 +600,29 @@ def feature_schema(
             if schema_version >= RELATIVE_ACTION_PLAYER_SCHEMA_VERSION
             else "absolute"
         ),
-        "action_target_zone": schema_version >= STATE_SCHEMA_VERSION,
+        "action_target_zone": schema_version >= ACTION_TARGET_ZONE_SCHEMA_VERSION,
+        "card_semantic_feature_size": CARD_SEMANTIC_FEATURE_SIZE if schema_version >= 6 else 0,
+        "card_semantics": (
+            "type-class-race-mechanics-cost-stats-rarity-text-effect-v2"
+            if schema_version >= 6 else "none"
+        ),
+        "entity_card_slot_count": entity_identity_size,
+        "entity_card_layout": (
+            [[name, width] for name, width in ENTITY_CARD_LAYOUT]
+            if schema_version >= 7 else []
+        ),
+        "entity_card_token_rows": (
+            len(CARD_VOCAB) + 2 if schema_version >= 7 else 0
+        ),
     }
+    if schema_version >= 7 and card_definitions is not None:
+        semantic_lookup = card_semantic_lookup(card_definitions)
+        semantic_json = json.dumps(semantic_lookup, separators=(",", ":"))
+        result["entity_card_semantic_lookup"] = semantic_lookup
+        result["entity_card_semantic_sha256"] = hashlib.sha256(
+            semantic_json.encode()
+        ).hexdigest()
+    return result
 
 
 def compatible_feature_schema(left: dict[str, object], right: dict[str, object]) -> bool:
@@ -379,4 +638,16 @@ def compatible_feature_schema(left: dict[str, object], right: dict[str, object])
         "card_vocab_sha256", "state_size", "action_size", "action_kinds",
         "action_player_encoding", "action_target_zone",
     )
-    return all(left.get(field) == right.get(field) for field in fields)
+    if not all(left.get(field) == right.get(field) for field in fields):
+        return False
+    if int(left.get("schema_version", 0) or 0) >= 6:
+        if not all(left.get(field) == right.get(field) for field in (
+            "card_semantic_feature_size", "card_semantics",
+        )):
+            return False
+    if int(left.get("schema_version", 0) or 0) >= 7:
+        return all(left.get(field) == right.get(field) for field in (
+            "entity_card_slot_count", "entity_card_layout",
+            "entity_card_token_rows", "entity_card_semantic_sha256",
+        ))
+    return True

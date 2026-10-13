@@ -1689,7 +1689,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("PLAY", studies.entity_id))
         self.assertIsNotNone(game.pending_choice)
         self.assertEqual("DISCOVER", game.pending_choice["kind"])
-        self.assertEqual(1, game.players[0].next_spell_cost_reduction)
+        self.assertTrue(all(
+            "OUTCAST" in option.definition.mechanics
+            or "Outcast" in option.definition.text
+            for option in game.pending_choice["options"]
+        ))
+        self.assertEqual(1, game.players[0].next_outcast_cost_reduction)
+        self.assertEqual(0, game.players[0].next_spell_cost_reduction)
 
     def test_soulrest_ceremony(self):
         game = self.game()
@@ -2135,6 +2141,11 @@ class FirstStandardCardBatchTests(unittest.TestCase):
     def test_wanted_poster_grants_prepare(self):
         game = self.game()
         poster = self.add_hand(game, "CAP_407")
+        # The Poster itself only creates the Discover; its text does not make
+        # the Poster a preparable card.  Prepare belongs to the discovered
+        # minion after the choice resolves.
+        self.assertFalse(any(action.kind == "PREPARE" and action.source == poster.entity_id
+                             for action in game.legal_actions()))
         game.step(Action("PLAY", poster.entity_id))
         self.assertIsNotNone(game.pending_choice)
         option = game.pending_choice["options"][0]
@@ -2642,6 +2653,25 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertTrue(all((leg.attack, leg.max_health) == (1, 3) for leg in legs))
         self.assertEqual((4, 9), (wickerfang.attack, wickerfang.max_health))
 
+    def test_wickerfang_keeps_copied_stats_after_a_leg_dies(self):
+        game = self.game()
+        wickerfang = self.add_hand(game, "CATA_139")
+        game.step(Action("PLAY", wickerfang.entity_id))
+        legs = [
+            card for card in game.players[0].board
+            if card.colossal_parent_entity == wickerfang.entity_id
+        ]
+
+        game._end_turn()
+        self.assertEqual((4, 9), (wickerfang.attack, wickerfang.max_health))
+
+        dead_leg = legs[0]
+        dead_leg.damage = dead_leg.health
+        game._resolve_deaths()
+
+        self.assertNotIn(dead_leg, game.players[0].board)
+        self.assertEqual((4, 9), (wickerfang.attack, wickerfang.max_health))
+
     def test_wickerfang_preserves_direct_body_buff_when_a_leg_changes(self):
         game = self.game()
         wickerfang = self.add_hand(game, "CATA_139")
@@ -2840,6 +2870,16 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         }
         self.assertIn((1, legendary.entity_id), targets)
         self.assertNotIn((1, ordinary.entity_id), targets)
+
+    def test_repeated_garona_last_stand_does_not_retarget_nonlegendary(self):
+        game = self.game()
+        legendary = self.add_board(game, "CORE_EX1_110", 1)
+        ordinary = self.add_board(game, "TLC_248", 1)
+        spell = self.add_hand(game, "CATA_203")
+        spell.spell_casts_twice = True
+        game.step(Action("PLAY", spell.entity_id, 1, legendary.entity_id))
+        self.assertNotIn(legendary, game.players[1].board)
+        self.assertIn(ordinary, game.players[1].board)
 
     def test_morbid_swarm_targeted_choose_one_branch_requires_target(self):
         game = self.game(player_classes=("DEATHKNIGHT", "ROGUE"))
@@ -3183,6 +3223,15 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         game.step(Action("HERO_ATTACK", None, 1, None))
         self.assertEqual(1, len(game.players[0].hand))
 
+    def test_spider_rider_does_not_draw_after_its_own_minion_attack(self):
+        game = self.game()
+        rider = self.add_board(game, "JAIL_872", 0, attack=2)
+        hand_before = len(game.players[0].hand)
+        deck_before = len(game.players[0].deck)
+        game.step(Action("ATTACK", rider.entity_id, 1, None))
+        self.assertEqual(hand_before, len(game.players[0].hand))
+        self.assertEqual(deck_before, len(game.players[0].deck))
+
     def test_holy_embrace_heals_and_generates_dark_embrace(self):
         game = self.game()
         game.players[0].health = 20
@@ -3477,6 +3526,13 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_infest_scullery_scales_summon_cost_with_hero_attacks(self):
         game = self.game()
+        seven_cost_pool = game._random_executable_minion_pool(
+            cost=7, collectible_standard=True,
+        )
+        self.assertIn("CATA_553", seven_cost_pool)
+        self.assertNotIn("CATA_553t", seven_cost_pool)
+        self.assertNotIn("TIME_850", seven_cost_pool)
+
         game.players[0].hero_attacks_this_game = 3
         spell = self.add_hand(game, "JAIL_200")
         game.step(Action("PLAY", spell.entity_id))
@@ -3497,6 +3553,48 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         ]
         self.assertEqual(2, len(generated))
         self.assertTrue(all(minion.definition.cost == 10 for minion in generated))
+
+    def test_generic_discover_never_offers_fabled_minions(self):
+        game = self.game()
+        pool = ["TIME_850", "CATA_553", "CORE_EX1_110"]
+        game._offer_discover(game.players[0], pool, dark_gift=False)
+        self.assertNotIn("TIME_850", game.pending_choice["pool"])
+        self.assertNotIn("TIME_850", {
+            option.card_id for option in game.pending_choice["options"]
+        })
+        self.assertNotIn(
+            "TIME_850", game._random_executable_minion_pool(cost=7)
+        )
+
+        game._offer_legendary_wild_god_discover(
+            game.players[0], source_card_id="test"
+        )
+        self.assertNotIn("TIME_850", game.pending_choice["pool"])
+
+        game._offer_class_discover(
+            game.players[0], card_class="WARRIOR", source_card_id="test",
+            card_type="MINION",
+        )
+        self.assertNotIn("TIME_850", game.pending_choice["pool"])
+
+    def test_ebyssian_only_becomes_12_12_while_held_when_dragon_is_played(self):
+        game = self.game()
+        ebyssian = self.add_hand(game, "CATA_553")
+        dragon = self.add_hand(game, "CATA_556")
+        game.step(Action("PLAY", dragon.entity_id))
+        self.assertEqual("CATA_553t", ebyssian.card_id)
+        self.assertEqual((12, 12), (ebyssian.attack, ebyssian.max_health))
+
+        game = self.game()
+        ebyssian = self.add_hand(game, "CATA_553")
+        game._summon_random_executable_minion(
+            game.players[0], source_card_id="JAIL_200", cost=7,
+            collectible_standard=True,
+        )
+        generated = game.players[0].board[-1]
+        if generated.card_id == "CATA_553":
+            self.assertEqual((6, 6), (generated.attack, generated.max_health))
+        self.assertEqual("CATA_553", ebyssian.card_id)
 
     def test_blessing_of_the_moon_offers_discounted_temporary_cards(self):
         game = self.game()
@@ -3791,11 +3889,19 @@ class FirstStandardCardBatchTests(unittest.TestCase):
 
     def test_horn_of_plenty_discovers_discounted_nature_spell(self):
         game = self.game()
+        game.players[0].card_class = "DRUID"
         horn = self.add_hand(game, "EDR_270")
         game.step(Action("PLAY", horn.entity_id))
         self.assertEqual("DISCOVER", game.pending_choice["kind"])
         options = game.pending_choice["options"]
         self.assertTrue(options)
+        pool = game.pending_choice["pool"]
+        self.assertNotIn("CORE_EX1_259", pool)  # Lightning Storm is Shaman-only.
+        self.assertTrue(all(
+            game.card_defs[card_id].card_class in {"DRUID", "NEUTRAL"}
+            or "DRUID" in game.card_defs[card_id].classes
+            for card_id in pool
+        ))
         self.assertTrue(all(
             card.definition.card_type == "SPELL"
             and card.definition.spell_school == "NATURE"
@@ -4073,6 +4179,25 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertIn(Action("RULE_CHOICE_PICK", 1), actions)
         game.step(Action("RULE_CHOICE_PICK", 0, 1, target.entity_id))
         self.assertEqual(2, target.damage)
+
+    def test_fandral_living_roots_combines_effects_and_requires_target(self):
+        game = self.game()
+        self.add_board(game, "CORE_OG_044", 0)
+        target = self.add_board(game, "CORE_LOOT_137", 1)
+        roots = self.add_hand(game, "CORE_AT_037")
+
+        actions = game.legal_actions()
+        self.assertNotIn(Action("PLAY", roots.entity_id), actions)
+        self.assertIn(
+            Action("PLAY", roots.entity_id, 1, target.entity_id), actions
+        )
+
+        game.step(Action("PLAY", roots.entity_id, 1, target.entity_id))
+        self.assertEqual(2, target.damage)
+        self.assertEqual(2, sum(
+            minion.card_id == "TTN_950t" for minion in game.players[0].board
+        ))
+        self.assertIsNone(game.pending_choice)
 
     def test_frostbolt_and_blizzard_freeze_targets(self):
         game = self.game()
@@ -4820,7 +4945,54 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(0, game.players[0].corpses)
         self.assertTrue(game.pending_choice["options"])
 
-    def test_dark_gift_option_entities_apply_their_real_instance_effects(self):
+    def test_shadowflame_suffusion_does_not_discover_noncollectible_egg(self):
+        game = self.game()
+        spell = self.add_hand(game, "FIR_939")
+        game.step(Action("PLAY", spell.entity_id, 1, None))
+        pending = game.pending_choice
+        self.assertEqual("DISCOVER", pending["kind"])
+        self.assertNotIn("EDR_454t", pending["pool"])
+        self.assertNotIn("EDR_454t", {
+            option.card_id for option in pending["options"]
+        })
+        self.assertTrue(all(
+            game._is_standard_collectible(game.card_defs[card_id])
+            and game.card_defs[card_id].card_type == "MINION"
+            and game.card_defs[card_id].card_class == "WARRIOR"
+            for card_id in pending["pool"]
+        ))
+
+    def test_constructed_dark_gift_pool_excludes_hidden_system_options(self):
+        game = self.game()
+        target = self.add_board(game, "EDR_810t", 0)
+        constructed = {
+            "waking_terror", "bundled_up", "well_rested", "sleepwalker",
+            "harpys_talons", "persisting_horror", "short_claws",
+            "rude_awakening", "living_nightmare", "sweet_dreams",
+        }
+        self.assertLessEqual(game._eligible_dark_gifts(target), constructed)
+        self.assertNotIn("inner_demons", game._eligible_dark_gifts(target))
+        self.assertNotIn("nightmare_scales", game._eligible_dark_gifts(target))
+
+        for hidden_id in ("EDR_100t4", "EDR_100t10"):
+            hidden = self.add_hand(game, hidden_id)
+            self.assertNotIn(
+                Action("PLAY", hidden.entity_id, 0, target.entity_id),
+                game.legal_actions(),
+            )
+
+        game._offer_spell_discover(
+            game.players[0], source_card_id="TLC_100_CUSTOM",
+        )
+        self.assertTrue(all(
+            game._is_standard_collectible(game.card_defs[card_id])
+            for card_id in game.pending_choice["pool"]
+        ))
+        self.assertTrue({"EDR_100t4", "EDR_100t10"}.isdisjoint(
+            game.pending_choice["pool"]
+        ))
+
+    def test_constructed_dark_gift_option_entity_applies_effect(self):
         game = self.game()
         target = self.add_board(game, "EDR_810t", 0)
         gift = self.add_hand(game, "EDR_100t")
@@ -4828,24 +5000,6 @@ class FirstStandardCardBatchTests(unittest.TestCase):
         self.assertTrue(target.lifesteal)
         self.assertEqual(3, target.attack_delta)
         self.assertIn("waking_terror", target.gifts)
-
-        inner = self.add_hand(game, "EDR_100t4")
-        game.step(Action("PLAY", inner.entity_id, 0, target.entity_id))
-        self.assertEqual(2, target.deathrattle_draw_cards)
-        game.players[0].deck = [game._entity("GAME_005"), game._entity("GAME_005")]
-        game._damage_minion(0, target, target.health)
-        game._resolve_deaths()
-        self.assertEqual(2, len(game.players[0].hand))
-
-        target = self.add_board(game, "EDR_810t", 0)
-        scales = self.add_hand(game, "EDR_100t10")
-        game.step(Action("PLAY", scales.entity_id, 0, target.entity_id))
-        self.assertTrue(target.divine_shield)
-        self.assertEqual(3, target.divine_shield_hits)
-        for _ in range(3):
-            game._damage_minion(0, target, 1)
-            self.assertEqual(target.max_health, target.health)
-        self.assertFalse(target.divine_shield)
 
     def test_blinding_carapace_options_are_all_registered_and_apply_keywords(self):
         game = self.game()
@@ -5262,6 +5416,22 @@ class ThirdStandardCardBatchTests(unittest.TestCase):
         self.assertEqual(creeper.definition.attack + 2, creeper.attack)
         game._start_turn(0)
         self.assertEqual(creeper.definition.attack, creeper.attack)
+
+    def test_twilight_elemental_is_a_durable_runtime_entity(self):
+        game = self.game()
+        self.assertIn("OG_031a", game.card_defs)
+        game._equip_weapon(
+            game.players[0], Weapon("CORE_OG_031", "Hammer of Twilight", 4, 2)
+        )
+        game._destroy_weapon(game.players[0])
+        elemental = game.players[0].board[0]
+        self.assertEqual("OG_031a", elemental.card_id)
+        self.assertEqual((4, 2), (elemental.attack, elemental.max_health))
+
+        elemental.deathrattle_summon_card_id = "OG_031a"
+        game.players[0].board.clear()
+        game._deathrattle(game.players[0], elemental)
+        self.assertEqual(["OG_031a"], [card.card_id for card in game.players[0].board])
 
     def test_swap_discover_and_choice_rules(self):
         game = self.game()
@@ -6014,6 +6184,19 @@ class EighthStandardCardBatchTests(unittest.TestCase):
         game._start_turn(0)
         self.assertNotIn(card, game.players[0].hand)
 
+    def test_ancient_raptor_plant_is_a_durable_runtime_entity(self):
+        game = self.game()
+        self.assertIn("TLC_245t", game.card_defs)
+        plant = game._entity("TLC_245t")
+        self.assertEqual((1, 1), (plant.attack, plant.max_health))
+
+        # A later effect may grant the generated token a Deathrattle that
+        # resummons its current form.  This was the rollout path that exposed
+        # the missing persistent token definition.
+        plant.deathrattle_summon_card_id = "TLC_245t"
+        game._deathrattle(game.players[0], plant)
+        self.assertEqual(["TLC_245t"], [card.card_id for card in game.players[0].board])
+
 
 class NinthStandardCardBatchTests(unittest.TestCase):
     """Regression coverage for the Lost City 50I standard-card tranche."""
@@ -6444,6 +6627,24 @@ class AuxiliaryEntityCoverageTests(unittest.TestCase):
         game.players[0].hand.append(scout)
         game.step(Action("PLAY", scout.entity_id, 1, target.entity_id))
         self.assertLess(target.health, target.max_health)
+
+    def test_repeated_ebonscale_scout_fizzles_after_target_dies(self):
+        game = self.game()
+        target = game._entity("CORE_CS2_231")
+        target.summoned_turn = -1
+        game._summon(game.players[1], target)
+        target.damage = target.max_health - 1
+        scout = game._entity("CATA_552t")
+        game.players[0].hand.append(scout)
+        scout.battlecry_twice = True
+        game.players[0].mana = 20
+        game.step(Action("PLAY", scout.entity_id, 1, target.entity_id))
+        self.assertNotIn(target, game.players[1].board)
+        self.assertTrue(any(
+            event["kind"] == "battlecry_target_absent"
+            and event["source"] == "CATA_552t"
+            for event in game.events
+        ))
 
     def test_emerald_choice_entities_are_independently_executable(self):
         game = self.game()

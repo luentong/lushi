@@ -87,14 +87,22 @@ class HeuristicPolicy:
         if action.kind == "PREPARE":
             return 8.0
         if action.kind == "TRADE":
-            card = next(c for c in player.hand if c.entity_id == action.source)
+            card = next((c for c in player.hand if c.entity_id == action.source), None)
+            if card is None:
+                # A cloned rollout can retain an action object across a
+                # generated-card/hand mutation.  Scoring must remain total;
+                # stale actions are simply dominated rather than crashing the
+                # whole teacher worker.
+                return -1e9
             return 4.0 + max(0, game._effective_cost(player, card) - player.mana)
         if action.kind == "LOCATION":
             return self._location_score(game, action)
         if action.kind in {"ATTACK", "HERO_ATTACK"}:
             return self._attack_score(game, action)
         if action.kind == "PLAY":
-            card = next(c for c in player.hand if c.entity_id == action.source)
+            card = next((c for c in player.hand if c.entity_id == action.source), None)
+            if card is None:
+                return -1e9
             score = 100.0 + 4.0 * game._effective_cost(player, card) + _card_value(card)
             return score + self._play_target_score(game, card, action)
         return 0.0

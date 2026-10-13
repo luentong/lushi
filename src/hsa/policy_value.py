@@ -14,6 +14,7 @@ from .policy import HeuristicPolicy, _card_value
 class PolicyValueOutput:
     priors: tuple[float, ...]
     value: float
+    action_values: tuple[float, ...] = ()
 
 
 class PolicyValueModel(Protocol):
